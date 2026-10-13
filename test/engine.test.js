@@ -102,9 +102,39 @@ test('surat penagihan: hanya invoice lewat jatuh tempo, dikelompokkan per proyek
   assert.strictEqual(i.lewat, 12); assert.strictEqual(i.sisa, 111e6, 'sisa sebelum PPh = DPP + PPN'); assert.strictEqual(i.kas, 111e6 - 2650000, 'kas = sisa − PPh');
   let a = ENGINE.suratAlerts(res.ctx);
   assert.strictEqual(a.length, 1); assert.strictEqual(a[0].perlu, true);
-  // setelah surat tercatat: tidak perlu surat lagi dalam 14 hari; tenggat lewat → peringatan dini
-  input.surat = [row(ENGINE.SURAT, { nomor: 'KU.03.03/WB-4C.0001/2026', tgl: '2026-10-05', pelanggan: 'PT CONTOH', invoices: NOMOR, tenggat: '2026-10-08' })];
-  const res2 = ENGINE.compute(input); a = ENGINE.suratAlerts(res2.ctx);
-  assert.strictEqual(a[0].perlu, false);
-  assert.ok(ENGINE.kinerjaData(res2.ctx).ews.some(e => e.kat === 'TENGGAT SURAT TERLEWAT'));
+  assert.strictEqual(a[0].ke, 1);
+  const L = (o) => row(ENGINE.SURAT, Object.assign({ pelanggan: 'PT CONTOH', invoices: NOMOR }, o));
+  const at = (surat) => { input.surat = surat; const r = ENGINE.compute(JSON.parse(JSON.stringify(input))); return { a: ENGINE.suratAlerts(r.ctx)[0], ews: ENGINE.kinerjaData(r.ctx).ews, d: ENGINE.suratData(r.ctx, 'PT CONTOH') }; };
+  // surat ke-1 dengan tenggat belum lewat → menunggu
+  let x = at([L({ nomor: 'S-1', tgl: '2026-10-12', tenggat: '2026-10-15', ke: 1 })]);
+  assert.strictEqual(x.a.perlu, false); assert.strictEqual(x.a.tunggu, '2026-10-15');
+  assert.strictEqual(x.d.letters[0].status, 'MENUNGGU TANGGAPAN');
+  // tenggat lewat tanpa tanggapan → surat ke-2 disarankan + peringatan dini
+  x = at([L({ nomor: 'S-1', tgl: '2026-10-05', tenggat: '2026-10-08', ke: 1 })]);
+  assert.strictEqual(x.a.perlu, true); assert.strictEqual(x.a.ke, 2);
+  assert.ok(x.ews.some(e => e.kat === 'TENGGAT SURAT TERLEWAT'));
+  // tanpa tenggat → jeda 7 hari dari tanggal surat
+  x = at([L({ nomor: 'S-1', tgl: '2026-10-08', ke: 1 })]); assert.strictEqual(x.a.perlu, false);
+  // ditanggapi dengan janji bayar → ditahan sampai janji; janji lewat → surat berikutnya + JANJI BAYAR TERLEWAT
+  x = at([L({ nomor: 'S-1', tgl: '2026-10-01', tenggat: '2026-10-04', ke: 1, tanggap_tgl: '2026-10-05', tanggap_jenis: 'EMAIL', janji: '2026-10-20' })]);
+  assert.strictEqual(x.a.perlu, false); assert.strictEqual(x.d.letters[0].status, 'DITANGGAPI');
+  x = at([L({ nomor: 'S-1', tgl: '2026-10-01', ke: 1, tanggap_tgl: '2026-10-02', janji: '2026-10-10' })]);
+  assert.strictEqual(x.a.perlu, true); assert.strictEqual(x.a.janjiLewat, 1); assert.ok(x.ews.some(e => e.kat === 'JANJI BAYAR TERLEWAT'));
+  // ditutup manual → invoice tidak lagi ditagih lewat surat
+  x = at([L({ nomor: 'S-1', tgl: '2026-10-01', ke: 1, tutup: 'Sengketa volume, rekonsiliasi dengan PIC' })]);
+  assert.strictEqual(x.a, undefined); assert.strictEqual(x.d.letters[0].status, 'DITUTUP');
+  // surat ke-3 lewat tenggat → eskalasi, bukan surat ke-4
+  x = at([L({ nomor: 'S-1', tgl: '2026-09-01', ke: 1 }), L({ nomor: 'S-2', tgl: '2026-09-15', ke: 2 }), L({ nomor: 'S-3', tgl: '2026-10-01', tenggat: '2026-10-04', ke: 3 })]);
+  assert.strictEqual(x.a.perlu, false); assert.strictEqual(x.a.eskalasi, 1); assert.ok(x.ews.some(e => e.kat === 'ESKALASI PENAGIHAN'));
+});
+
+test('surat penagihan: lunas lewat penerimaan → SELESAI – LUNAS otomatis', () => {
+  const input = fixture({ submit: '2026-09-01' });
+  input.surat = [row(ENGINE.SURAT, { nomor: 'S-1', tgl: '2026-10-05', pelanggan: 'PT CONTOH', invoices: NOMOR, sisa: 111e6, ke: 1, tenggat: '2026-10-08' })];
+  input.paramRek = [['BNI', '149394879', 'BANK_BNI']];
+  input.log = [row(ENGINE.LOG, { tgl: '2026-10-10', inv: NOMOR, nominal: 111e6 - 2650000, rekening: 'BNI 149394879' })];
+  const r = ENGINE.compute(input), d = ENGINE.suratData(r.ctx, 'PT CONTOH');
+  assert.strictEqual(d.letters[0].status, 'SELESAI – LUNAS');
+  assert.strictEqual(ENGINE.suratAlerts(r.ctx).length, 0);
+  assert.ok(!ENGINE.kinerjaData(r.ctx).ews.some(e => /SURAT|JANJI/.test(e.kat)));
 });

@@ -35,7 +35,12 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 ## Surat Penagihan (permohonan percepatan pembayaran)
 Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
 - Alert per pelanggan yang punya invoice lewat jatuh tempo (invoice tanpa jatuh tempo — belum submit / tanda terima — tidak ikut).
-  Pelanggan dianggap sudah disurati bila invoicenya masuk surat dalam `SURAT_ULANG_HARI` (bawaan 14) hari terakhir.
+- Surat berjenjang otomatis: ke-1 Permohonan Percepatan Pembayaran → ke-2 Permohonan Pembayaran Kedua → ke-3 Penegasan Penyelesaian
+  Pembayaran (merujuk nomor & tanggal surat sebelumnya). Surat berikutnya disarankan setelah tenggat lewat (tanpa tenggat: `SURAT_JEDA_HARI`,
+  bawaan 7 hari) bila belum ada tanggapan dan invoice belum lunas. Setelah surat ke-3: alert **eskalasi ke manajemen**.
+- Status surat: **SELESAI – LUNAS** / **SEBAGIAN DIBAYAR** otomatis dari penerimaan; **Catat tanggapan** (bentuk, ringkasan, janji bayar →
+  surat berikutnya ditahan sampai janji); **Tutup surat** dengan alasan (sengketa, invoice dibatalkan/diganti).
+  Peringatan dini: TENGGAT SURAT TERLEWAT, JANJI BAYAR TERLEWAT, ESKALASI PENAGIHAN.
 - Satu surat per pelanggan; pelanggan multi-proyek → tabel ringkasan per proyek, rincian per invoice di lampiran.
 - Diisi pengguna: nomor surat, tanggal surat, Kepada Yth., tenggat (tanpa / 3 / 7 hari / tanggal), rekening (centang dari Parameter), kontak.
 - Penandatangan: peran `MENGETAHUI` di Parameter (Manager CSU). Tembusan: `SURAT_TEMBUSAN` (dipisah `;`).
