@@ -458,12 +458,13 @@ function arFromTrigger_(e) {
   try { return ScriptApp.getProjectTriggers().some(function(t){return String(t.getUniqueId())===uid;}); } catch (x) { return false; }
 }
 function arInstallTriggers_(ss) {
-  var managed=['onEditInstalled','dailyRebuild','syncTurunanAuto','rebuildIfDirty'];
+  var managed=['onEditInstalled','dailyRebuild','syncTurunanAuto','rebuildIfDirty','onChangeInstalled'];
   ScriptApp.getProjectTriggers().forEach(function(t){if(managed.indexOf(t.getHandlerFunction())>=0)ScriptApp.deleteTrigger(t);});
   ScriptApp.newTrigger('onEditInstalled').forSpreadsheet(ss).onEdit().create();
   ScriptApp.newTrigger('dailyRebuild').timeBased().everyDays(1).atHour(6).inTimezone(TZ).create();
   ScriptApp.newTrigger('syncTurunanAuto').timeBased().everyHours(1).create();
   ScriptApp.newTrigger('rebuildIfDirty').timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger('onChangeInstalled').forSpreadsheet(ss).onChange().create();
 }
 function arMarkDirty_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); }
 /** kerjakan bila ditandai; bila lock dipegang proses lain, tanda dibiarkan untuk jadwal 5 menit (tidak ada "Lock timeout" bagi pengedit) */
@@ -603,4 +604,75 @@ function arGuardClosed_(kind, d, what) {
   if (!t || !st.tutup || t > st.tutup) return '';
   if (!st.koreksi) throw new Error(what + ' menyangkut periode yang sudah tutup buku (s.d. ' + st.tutup + '). Setelah tanggal tutup buku data periode itu tidak bisa diubah / dibatalkan, kecuali Section Head membuka izin koreksi.');
   return t;
+}
+
+// ---------------- Jejak edit langsung: invoice & penerimaan seharusnya dicatat lewat aplikasi.
+// Tulisan aplikasi (setValues) tidak memicu onEdit, jadi setiap event di kolom terkontrol = ketikan / tempel manual di sheet.
+var AR_AUDIT_SHEET_ = 'Jejak Edit Langsung';
+var AR_AUDIT_FREE_ = { 'Log Penerimaan': ['ket', 'sap_doc', 'bupot'] }; // kolom yang memang boleh diisi di sheet
+function arAuditControlled_(name, c) {
+  if (name === 'Log Penerimaan') return (AR_AUDIT_FREE_[name].indexOf(c[0]) < 0 && colType_(c) !== 'auto') || ['idp'].indexOf(c[0]) >= 0;
+  return colType_(c) === 'app'; // Monitoring Invoice: angka & identitas invoice dari aplikasi; kolom manual (submit, faktur, BA, …) bebas
+}
+function arAuditSheet_() {
+  var ss = arSpreadsheet_(), sh = ss.getSheetByName(AR_AUDIT_SHEET_);
+  if (!sh) {
+    sh = ss.insertSheet(AR_AUDIT_SHEET_);
+    sh.getRange(1, 1, 1, 10).setValues([['WAKTU', 'PENGEDIT', 'SHEET', 'SEL', 'BARIS (ID / NOMOR)', 'KOLOM', 'NILAI LAMA', 'NILAI BARU', 'CATATAN', 'DITINJAU (ISI SECTION HEAD)']])
+      .setFontWeight('bold').setBackground(C.navy).setFontColor('#FFFFFF');
+    sh.setFrozenRows(1); sh.setTabColor('#C00000');
+  }
+  return sh;
+}
+function arAuditLog_(rows, subject) {
+  if (!rows.length) return;
+  var sh = arAuditSheet_();
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, 10).setNumberFormat('@').setValues(rows.map(function(r){ return r.map(function(v){ return arSafeCell_(String(v === null || v === undefined ? '' : v)); }); }));
+  arNotify_(subject, ['Perubahan berikut dibuat langsung di spreadsheet, tidak melalui aplikasi (tanpa validasi, tanpa tutup periode):', ''].concat(rows.slice(0, 40).map(function(r) {
+    return '• ' + r[2] + ' ' + r[3] + ' · ' + r[4] + ' · ' + r[5] + ': "' + r[6] + '" → "' + r[7] + '"' + (r[8] ? ' · ' + r[8] : '') + ' · oleh ' + r[1];
+  })).concat(rows.length > 40 ? ['… dan ' + (rows.length - 40) + ' perubahan lain (lihat sheet ' + AR_AUDIT_SHEET_ + ')'] : []));
+}
+function arEditor_(e) { var m = ''; try { m = e && e.user && e.user.getEmail ? e.user.getEmail() : ''; } catch (x) {} if (!m) m = email_(); return m || '(tidak terbaca — akun Gmail pribadi)'; }
+/** dipanggil onEditInstalled untuk Monitoring Invoice / Log Penerimaan */
+function arAuditEdit_(e, sh, name) {
+  var schema = name === 'Log Penerimaan' ? ENGINE.LOG : ENGINE.REG, map = colMap_(sh, schema, schema === ENGINE.REG ? ENGINE.REG_ALIAS : null), byCol = {};
+  schema.cols.forEach(function(c) { if (map[c[0]] && arAuditControlled_(name, c)) byCol[map[c[0]]] = c; });
+  var r0 = Math.max(e.range.getRow(), schema.firstRow), r1 = e.range.getLastRow(), c0 = e.range.getColumn(), c1 = e.range.getLastColumn();
+  if (r1 < r0) return;
+  var hit = []; for (var c = c0; c <= c1; c++) if (byCol[c]) hit.push(c);
+  if (!hit.length) return;
+  var single = e.range.getNumRows() === 1 && e.range.getNumColumns() === 1, keyCol = map[name === 'Log Penerimaan' ? 'idp' : 'nomor'], tglCol = map.tgl;
+  var n = Math.min(r1 - r0 + 1, 200), keys = keyCol ? sh.getRange(r0, keyCol, n, 1).getDisplayValues() : [], tgls = tglCol ? sh.getRange(r0, tglCol, n, 1).getValues() : [];
+  var vals = sh.getRange(r0, c0, n, c1 - c0 + 1).getDisplayValues(), st = arPeriodState_(), who = arEditor_(e), now = arNow_(), out = [];
+  for (var i = 0; i < n; i++) hit.forEach(function(c) {
+    var t = tgls[i] ? (isDate_(tgls[i][0]) ? dstr_(tgls[i][0]) : String(tgls[i][0] || '')) : '';
+    var note = st.tutup && t && t <= st.tutup ? 'PERIODE TERTUTUP s.d. ' + st.tutup : '';
+    out.push([now, who, name, sh.getRange(r0 + i, c).getA1Notation(), keys[i] ? keys[i][0] : '', byCol[c][1], single ? (e.oldValue === undefined ? '' : e.oldValue) : '(beberapa sel)', vals[i][c - c0], note, '']);
+  });
+  arAuditLog_(out, 'Edit langsung di sheet ' + name + ' (' + out.length + ' sel)');
+}
+/** baris yang hilang (dihapus / ID diubah) dibandingkan pembaruan sebelumnya — dipanggil rebuildAll_.
+ *  Daftar ID disimpan di sheet tersembunyi (Script Properties dibatasi 9 KB per nilai); ditulis hanya bila berubah. */
+function arAuditCounts_(input) {
+  var ixI = ENGINE.colIndex(ENGINE.LOG, 'idp'), ixN = ENGINE.colIndex(ENGINE.REG, 'nomor'), pr = arProps_(), ss = arSpreadsheet_();
+  var now = { LOG: [], REG: [] }, seen = {};
+  (input.log || []).forEach(function(r) { var k = String(r[ixI] || '').trim(); if (k && !seen['L' + k]) { seen['L' + k] = 1; now.LOG.push(k); } });
+  (input.register || []).forEach(function(r) { var k = ENGINE.normInv(String(r[ixN] || '').trim()); if (k && !seen['R' + k]) { seen['R' + k] = 1; now.REG.push(k); } });
+  var dig = arDigest_(JSON.stringify(now));
+  if (pr.getProperty('AUDIT_IDS_DIGEST') === dig) return;
+  var sh = ss.getSheetByName('_Jejak ID');
+  if (!sh) { sh = ss.insertSheet('_Jejak ID'); sh.getRange(1, 1, 1, 2).setValues([['ID PENERIMAAN', 'NOMOR INVOICE']]); sh.hideSheet(); }
+  var prev = { LOG: [], REG: [] }, last = sh.getLastRow(), had = !!pr.getProperty('AUDIT_IDS_DIGEST');
+  if (last > 1) sh.getRange(2, 1, last - 1, 2).getValues().forEach(function(r) { if (r[0]) prev.LOG.push(String(r[0])); if (r[1]) prev.REG.push(String(r[1])); });
+  var out = [], ts = arNow_();
+  if (had) [['LOG', 'Log Penerimaan'], ['REG', 'Monitoring Invoice']].forEach(function(x) {
+    var cur = {}; now[x[0]].forEach(function(k) { cur[k] = 1; });
+    prev[x[0]].forEach(function(k) { if (!cur[k]) out.push([ts, '(terdeteksi saat pembaruan)', x[1], '', k, 'BARIS', k, '(hilang / dihapus / ID diubah)', 'BARIS HILANG', '']); });
+  });
+  var n = Math.max(now.LOG.length, now.REG.length, 1), grid = [];
+  for (var i = 0; i < n; i++) grid.push([now.LOG[i] || '', now.REG[i] || '']);
+  if (last > 1) sh.getRange(2, 1, last - 1, 2).clearContent();
+  sh.getRange(2, 1, n, 2).setNumberFormat('@').setValues(grid);
+  pr.setProperty('AUDIT_IDS_DIGEST', dig);
+  if (out.length) arAuditLog_(out, 'Baris hilang dari ' + out.map(function(r){return r[2];}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(' & ') + ' (' + out.length + ')');
 }

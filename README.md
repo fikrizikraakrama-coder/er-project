@@ -26,3 +26,8 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - Snapshot Analisis Bulanan dibuat otomatis setelah tutup buku (jadwal harian 06.00 pada tanggal tutup buku).
 - Koreksi periode tertutup: Section Head membuka izin (maks. 7 hari) di Otorisasi Dokumen AR → pembuat menyimpan dengan alasan →
   data ditandai `[KOREKSI PERIODE TERTUTUP …]`, email ke Section Head, dan snapshot bulan itu otomatis direvisi (Rev.01, Rev.02, …; arsip lama tetap).
+
+## Jejak edit langsung
+Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
+dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
+Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).

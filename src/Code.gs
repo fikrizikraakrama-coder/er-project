@@ -92,11 +92,19 @@ function onEditInstalled(e) {
   if (INPUT_SHEETS.indexOf(name) >= 0) {
     if (name === 'Monitoring Invoice' && row < ENGINE.REG.firstRow) return;
     if (name === 'Log Penerimaan' && row < ENGINE.LOG.firstRow) return;
+    if (name === 'Monitoring Invoice' || name === 'Log Penerimaan') { try { arAuditEdit_(e, sh, name); } catch (err) { } }
     if (name === 'Riwayat Adendum' && row < ENGINE.ADD.firstRow) return;
     if (name === 'Input Tagbrut' && row < ENGINE.TAG.firstRow) return;
     if (name === 'Data LK (Tempel)' && row < 8 && !(row === 4 && col === 3)) return;
     arEditRebuild_();
   }
+}
+
+/** penghapusan baris tidak memicu onEdit: perubahan struktur → tandai perlu diperbarui (rebuild membandingkan ID baris) */
+function onChangeInstalled(e) {
+  if (!e || !arFromTrigger_(e)) return;
+  if (['REMOVE_ROW', 'INSERT_ROW', 'OTHER'].indexOf(String(e.changeType)) < 0) return; // EDIT sudah ditangani onEditInstalled
+  arEditRebuild_();
 }
 
 // =====================================================================  BACA BERDASARKAN JUDUL KOLOM
@@ -212,6 +220,7 @@ function rebuildAll_(opt) {
     var ss = arSpreadsheet_();
     if (!ss.getSheetByName('Kinerja & Peringatan Dini')) { try { var rr = ss.getSheetByName('RA-RI Termin'); setupKinerja_(ss, rr ? rr.getIndex() : ss.getSheets().length); } catch (err) { } }
     var input = readAll_();
+    try { arAuditCounts_(input); } catch (err) { }
     var res = ENGINE.compute(input);
     arEnrichReports_(res);
     if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
@@ -675,7 +684,7 @@ function lockSystem() { arRequireMaker_();
   // hapus kuncian lama buatan menu ini (aman dijalankan ulang)
   [SpreadsheetApp.ProtectionType.SHEET, SpreadsheetApp.ProtectionType.RANGE].forEach(function (t) { ss.getProtections(t).forEach(function (p) { if (String(p.getDescription()).indexOf(LOCK_TAG) === 0) p.remove(); }); });
   var n = 0;
-  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E', 'Rekonsiliasi Saldo', 'Analisis Bulanan AR']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
+  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E', 'Rekonsiliasi Saldo', 'Analisis Bulanan AR', 'Jejak Edit Langsung']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
   [['Monitoring Invoice', ENGINE.REG.headerRow], ['Log Penerimaan', ENGINE.LOG.headerRow], ['Master Pelanggan', ENGINE.MPEL.headerRow], ['Master Proyek', ENGINE.MPRO.headerRow],
     ['Riwayat Adendum', ENGINE.ADD.headerRow], ['Input Tagbrut', ENGINE.TAG.headerRow], ['Data LK (Tempel)', 7]].forEach(function (x) {
     var sh = ss.getSheetByName(x[0]); if (!sh) return; protectRange_(sh.getRange(1, 1, x[1], sh.getMaxColumns()), ed, 'judul kolom ' + x[0]); n++;
