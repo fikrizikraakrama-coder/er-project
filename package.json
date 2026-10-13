@@ -1,0 +1,9 @@
+{
+  "name": "ar-csu",
+  "private": true,
+  "description": "Sistem AR CSU (Google Apps Script) — uji ENGINE di luar Sheets",
+  "scripts": {
+    "test": "node tools/sync-engine.js --check && node --test test/*.test.js",
+    "sync-engine": "node tools/sync-engine.js"
+  }
+}

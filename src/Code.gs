@@ -21,11 +21,11 @@ var PENGEMBANG = 'Fikri Zikra Akrama';
 // =====================================================================  MENU & PEMICU
 function onOpen() {
   // v2.6: alat sekali jalan (migrasi lama) dihapus dari menu — fungsinya tetap ada dan bisa dijalankan dari editor Apps Script bila diperlukan
-  var v26 = false; try { v26 = arProps_().getProperty('V26_DONE') === '1'; } catch (e) { }
+  var v26 = false, v28 = false; try { v26 = arProps_().getProperty('V26_DONE') === '1'; v28 = arProps_().getProperty('V28_DONE') === '1'; } catch (e) { }
   var m = SpreadsheetApp.getUi().createMenu('AR CSU')
-    .addItem('Perbarui semua laporan', 'rebuildAll')
-    .addItem('Pasang pembaruan v2.8 (backup dahulu)', 'applyV28')
-    .addItem('Buat / lihat analisis bulan lalu', 'arMonthlyMenu')
+    .addItem('Perbarui semua laporan', 'rebuildAll');
+  if (!v28) m = m.addItem('Pasang pembaruan v2.8 (backup dahulu)', 'applyV28');
+  m = m.addItem('Buat / lihat analisis bulan lalu', 'arMonthlyMenu')
     .addItem('Revisi analisis bulanan…', 'arMonthlyRevisionMenu')
     .addItem('Aktifkan pilihan tanggal P&E', 'arEnablePE')
     .addItem('Buka aplikasi (jendela)', 'openAppDialog')
@@ -43,6 +43,7 @@ function onOpen() {
     .addItem('Aktifkan otomatisasi (sekali saja)', 'setupTriggers')
     .addItem('Kunci struktur & periksa hak akses', 'lockSystem')
     .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
+    .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();
 }
@@ -50,22 +51,23 @@ function onOpen() {
 function setupTriggers() {
   var ss = arSpreadsheet_();
   arRequireOwner_();
-  ScriptApp.getProjectTriggers().forEach(function (t) { if (['onEditInstalled', 'dailyRebuild', 'syncTurunanAuto'].indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('onEditInstalled').forSpreadsheet(ss).onEdit().create();
-  ScriptApp.newTrigger('dailyRebuild').timeBased().everyDays(1).atHour(6).inTimezone(TZ).create();
-  ScriptApp.newTrigger('syncTurunanAuto').timeBased().everyHours(1).create();
+  arInstallTriggers_(ss);
   secret_();
   rebuildAll();
-  SpreadsheetApp.getUi().alert('Otomatisasi aktif.\n\n• Setiap perubahan di sheet input langsung memperbarui laporan.\n• Setiap pagi pukul 06.00 status jatuh tempo diperbarui.\n• Setiap jam file Akuntansi (memorial) & P&E diperbarui, dan centang verifikasi Akuntansi ditarik ke sistem.');
+  SpreadsheetApp.getUi().alert('Otomatisasi aktif.\n\n• Setiap perubahan di sheet input memperbarui laporan (langsung bila sistem tidak sibuk, paling lambat 5 menit).\n• Setiap pagi pukul 06.00 status jatuh tempo diperbarui.\n• Setiap jam file Akuntansi (memorial) & P&E diperbarui, dan centang verifikasi Akuntansi ditarik ke sistem.');
 }
-function dailyRebuild() { arRequireMaker_(); rebuildAll(); arMonthlyAuto_(); }
+// Fungsi pemicu juga bisa dipanggil lewat google.script.run, jadi tanpa event trigger yang sah tetap diperlakukan sebagai panggilan pengguna.
+function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_(); rebuildAll_({ format: true }); arMonthlyAuto_(); }
+/** jadwal 5 menit: menyelesaikan pembaruan yang ditandai saat sistem sibuk */
+function rebuildIfDirty(e) { if (!arFromTrigger_(e)) arRequireMaker_(); arRebuildIfDirty_(25000); }
 
 function onEditInstalled(e) {
-  if (!e || !e.range) return;
+  // installable trigger berjalan sebagai pemilik trigger; Session.getActiveUser() pengedit sering kosong, jadi tidak memakai cek akses per pengguna
+  if (!e || !e.range || !arFromTrigger_(e)) return;
   var sh = e.range.getSheet(), name = sh.getName(), row = e.range.getRow(), col = e.range.getColumn();
   if (name === 'Analisis Bulanan AR' && row === 5 && col === 3) { var snaps = arMonthlyRows_(), id = String(sh.getRange('C5').getValue()); var hit = snaps.filter(function(r) { return r[0] === id; })[0]; if (hit) arRenderMonthly_(hit); return; }
   if (name === 'Pareto') {
-    if (row === 5 && col === 3) return rebuildAll();
+    if (row === 5 && col === 3) return arEditRebuild_();
     var map = JSON.parse(arProps_().getProperty('EDIT_' + name) || 'null');
     if (!map) return;
     var nr = e.range.getNumRows(), nc = e.range.getNumColumns(), changed = false;
@@ -80,20 +82,20 @@ function onEditInstalled(e) {
         if (nomor) { setRegisterValue_(nomor, key, sh.getRange(r, c).getValue()); changed = true; }
       }
     }
-    if (changed) rebuildAll();
+    if (changed) arEditRebuild_();
     return;
   }
-  if (name === ENGINE.MEMO.sheet) { if (row >= ENGINE.MEMO.firstRow) { memoMarkManual_(sh, row, e.range.getNumRows(), col, e.range.getNumColumns()); rebuildAll(); } return; }
-  if (name === ENGINE.PEREF.sheet && row >= ENGINE.PEREF.firstRow) return rebuildAll();
-  if (SELECTOR_SHEETS.indexOf(name) >= 0 && row === 5 && col === 3) return rebuildAll();
-  if (name === 'Kartu Piutang' && row === 5 && col === 5) return rebuildAll();
+  if (name === ENGINE.MEMO.sheet) { if (row >= ENGINE.MEMO.firstRow) { memoMarkManual_(sh, row, e.range.getNumRows(), col, e.range.getNumColumns()); arEditRebuild_(); } return; }
+  if (name === ENGINE.PEREF.sheet && row >= ENGINE.PEREF.firstRow) return arEditRebuild_();
+  if (SELECTOR_SHEETS.indexOf(name) >= 0 && row === 5 && col === 3) return arEditRebuild_();
+  if (name === 'Kartu Piutang' && row === 5 && col === 5) return arEditRebuild_();
   if (INPUT_SHEETS.indexOf(name) >= 0) {
     if (name === 'Monitoring Invoice' && row < ENGINE.REG.firstRow) return;
     if (name === 'Log Penerimaan' && row < ENGINE.LOG.firstRow) return;
     if (name === 'Riwayat Adendum' && row < ENGINE.ADD.firstRow) return;
     if (name === 'Input Tagbrut' && row < ENGINE.TAG.firstRow) return;
     if (name === 'Data LK (Tempel)' && row < 8 && !(row === 4 && col === 3)) return;
-    rebuildAll();
+    arEditRebuild_();
   }
 }
 
@@ -199,8 +201,11 @@ function toCell_(v, type) {
 }
 
 // =====================================================================  HITUNG & TULIS
-function rebuildAll() {
-  arRequireAccess_();
+function rebuildAll() { arRequireAccess_(); return rebuildAll_({ format: true }); }
+/** inti pembaruan tanpa cek identitas — hanya dipanggil fungsi yang sudah memeriksa akses atau oleh trigger terverifikasi.
+ *  opt.format: rapikan format sheet sumber (berat; dilewati untuk pembaruan karena edit sel) */
+function rebuildAll_(opt) {
+  opt = opt || {};
   var lock = arLock_();
   lock.waitLock(28000);
   try {
@@ -216,7 +221,7 @@ function rebuildAll() {
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
     ensureSelectors_(ss, res);
     arWriteReconciliation_(res);
-    arFormatSourceSheets_(ss);
+    if (opt.format) arFormatSourceSheets_(ss);
     var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
     var stamp = 'Diperbarui otomatis: ' + Utilities.formatDate(new Date(), TZ, 'dd MMM yyyy HH:mm') + ' · Sistem AR CSU v' + ENGINE.VERSION + ' · dirancang & dikembangkan oleh ' + PENGEMBANG +
       (aktif ? '' : '   ⚠ OTOMATISASI BELUM AKTIF — jalankan menu AR CSU ▸ Aktifkan otomatisasi agar pilihan bulan/NPP langsung memperbarui laporan');
@@ -670,7 +675,7 @@ function lockSystem() { arRequireMaker_();
   // hapus kuncian lama buatan menu ini (aman dijalankan ulang)
   [SpreadsheetApp.ProtectionType.SHEET, SpreadsheetApp.ProtectionType.RANGE].forEach(function (t) { ss.getProtections(t).forEach(function (p) { if (String(p.getDescription()).indexOf(LOCK_TAG) === 0) p.remove(); }); });
   var n = 0;
-  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
+  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E', 'Rekonsiliasi Saldo', 'Analisis Bulanan AR']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
   [['Monitoring Invoice', ENGINE.REG.headerRow], ['Log Penerimaan', ENGINE.LOG.headerRow], ['Master Pelanggan', ENGINE.MPEL.headerRow], ['Master Proyek', ENGINE.MPRO.headerRow],
     ['Riwayat Adendum', ENGINE.ADD.headerRow], ['Input Tagbrut', ENGINE.TAG.headerRow], ['Data LK (Tempel)', 7]].forEach(function (x) {
     var sh = ss.getSheetByName(x[0]); if (!sh) return; protectRange_(sh.getRange(1, 1, x[1], sh.getMaxColumns()), ed, 'judul kolom ' + x[0]); n++;
@@ -862,15 +867,18 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
     if (row && opt.revisi && !String(opt.alasan || '').trim()) throw new Error('Alasan revisi wajib diisi.');
     if (row && map.status_inv && /^BATAL/i.test(String(sh.getRange(row, map.status_inv).getValue()))) throw new Error('Invoice ' + nomor + ' sudah dibatalkan — tidak bisa direvisi. Buat invoice baru dengan nomor lain.');
     checkNppSave_(p.npp, p.pelanggan);
+    // tutup periode: tanggal invoice baru, dan tanggal lama bila revisi, tidak boleh berada di periode tertutup tanpa izin koreksi
+    var tglLama = row && map.tgl ? sh.getRange(row, map.tgl).getValue() : '';
+    var koreksi = arCheckPeriod_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], opt.periodeAlasan, 'Invoice');
     var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), user = email_() || 'pengguna';
-    p.nomor = nomor; p.json = JSON.stringify(p.form || {}); p.dibuat = now + ' · ' + user; p.sumber = 'APLIKASI';
+    p.nomor = nomor; p.json = JSON.stringify(p.form || {}); p.dibuat = now + ' · ' + user + (koreksi ? ' · ' + koreksi : ''); p.sumber = 'APLIKASI';
     if (row) {
       var lc = sh.getLastColumn(), old = sh.getRange(row, 1, 1, lc).getValues()[0], oo = {};
       cols.forEach(function (c) { var j = map[c[0]]; oo[c[0]] = j ? (isDate_(old[j - 1]) ? dstr_(old[j - 1]) : old[j - 1]) : ''; });
       if (opt.expectedRev !== undefined && Number(opt.expectedRev) !== (Number(oo.rev) || 0)) throw new Error('Invoice telah direvisi pengguna lain. Buka ulang sebelum menyimpan.');
       var rev = (Number(oo.rev) || 0) + 1; p.rev = rev;
       var perluFP = (Math.round(Number(oo.dpp) || 0) !== Math.round(p.dpp) || Math.round(Number(oo.ppn) || 0) !== Math.round(p.ppn)) ? 'YA — DPP/PPN berubah' : 'TIDAK';
-      ss.getSheetByName('Riwayat Revisi').appendRow([now, nomor, rev, opt.alasan, user, perluFP, Number(oo.dpp) || 0, Number(oo.ppn) || 0, (Number(oo.dpp) || 0) + (Number(oo.ppn) || 0),
+      ss.getSheetByName('Riwayat Revisi').appendRow([now, nomor, rev, (koreksi ? koreksi + ' ' : '') + opt.alasan, user, perluFP, Number(oo.dpp) || 0, Number(oo.ppn) || 0, (Number(oo.dpp) || 0) + (Number(oo.ppn) || 0),
         p.dpp, p.ppn, p.dpp + p.ppn, JSON.stringify(oo).substring(0, 49000)]);
       var nv = old.slice();
       cols.forEach(function (c) { var j = map[c[0]]; if (j && colType_(c) === 'app' && p[c[0]] !== undefined) nv[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
@@ -890,6 +898,7 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
   result.saved = true;
   var post = arAfterSave_([p.npp], [String(p.tgl || '').substring(0, 7)]);
   result.reportPending = post.reportPending; result.warnings = post.warnings;
+  if (koreksi) { var nw = arNotify_('Koreksi periode tertutup — invoice ' + nomor, ['Pembuat: ' + user, 'Mode: ' + result.mode + (result.mode === 'revisi' ? ' (rev ' + result.rev + ', alasan: ' + opt.alasan + ')' : ''), 'Tanggal invoice: ' + p.tgl, 'DPP Rp ' + ENGINE.fmtRp(p.dpp) + ' · PPN Rp ' + ENGINE.fmtRp(p.ppn), 'Tanda: ' + koreksi]); if (nw) result.warnings.push(nw); }
   return result;
 }
 /** baris Log Penerimaan dari aplikasi → array sesuai urutan skema LOG */
@@ -906,7 +915,7 @@ function checkPayRows_(rows) {
   if (pbs.length && Math.abs(pbs.reduce(function (t, p) { return t + Number(p.nominal); }, 0)) > 1) throw new Error('Pindah buku tidak seimbang: jumlah baris harus 0 (asal negatif, tujuan positif).');
 }
 /** simpan beberapa baris sekaligus (satu transfer untuk beberapa invoice, atau pindah buku) */
-function apiSavePayments(rows, requestId) { return arSavePayments_(rows, requestId); }
+function apiSavePayments(rows, requestId, opt) { return arSavePayments_(rows, requestId, opt); }
 /** pembayaran tunggal (kompatibel versi 2.0) */
 function apiSavePayment(p) { var r = apiSavePayments([p]); return plain_({ ok: true, saved: true, reportPending: r.reportPending, warnings:r.warnings, duplicate:r.duplicate, invoice: (r.invoices || [])[0] || null, payment: (r.payments || []).slice(-1)[0] || null }); }
 /** pratinjau tanpa menyimpan: kartu piutang & alokasi bila baris-baris ini dicatat */
@@ -1054,7 +1063,11 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
     r.kode = sign_({ id: r.id, jenis: String(r.jenis).toUpperCase(), ref: r.ref, sidik: r.sidik, putus_oleh: me, putus_waktu: now, status: st });
     ['status', 'putus_oleh', 'putus_waktu', 'catatan', 'kode'].forEach(function (k) { if (A.map[k]) A.sh.getRange(r._row, A.map[k]).setNumberFormat('@').setValue(r[k]); });
     out = { ok: true, id: r.id, status: st, kode: r.kode };
+    var notif = { r: r, me: me, nama: (u && u.nama) || '', dl: dl };
   } finally { lock.releaseLock(); }
+  // bukti di luar sistem: kode HMAC bisa dihitung ulang oleh editor proyek, email di kotak masuk Section Head tidak
+  out.warnings = [];
+  var w = arNotifyDecision_(notif); if (w) out.warnings.push(w);
   rebuildAll();
   return out;
 }
@@ -1119,10 +1132,10 @@ var V2_AKUN = [
   ['PEMULIHAN_CKPN_RETENSI', 'Pemulihan Impairment Piutang Retensi', '8199222000', '8199222001', ''],
   ['PEMULIHAN_CKPN_TAGBRUT', 'Pemulihan Impairment Tagihan Bruto', '8199223000', '8199223010', ''],
   ['PEMULIHAN_CKPN_HAD', 'Pemulihan Impairment Piutang Prestasi', '8199223001', '8199223011', '']];
+// templat awal tabel Pengguna & Peran: email diisi di Parameter (baris PEMBUAT = akun yang memasang), bukan di kode
 var V2_USERS = [
-  ['fikrizikraakrama@gmail.com', 'Fikri Zikra Akrama', 'AR Officer', 'TX220018', 'PEMBUAT'],
-  ['zikraakramaa@gmail.com', 'Fikri Zikra Akrama', 'AR Officer', 'TX220018', 'PEMBUAT'],
-  ['anasafifudin1@gmail.com', 'Anas Afifudin', 'Section Head of Finance & HR', 'WB170219', 'PENYETUJU'],
+  ['', 'Fikri Zikra Akrama', 'AR Officer', 'TX220018', 'PEMBUAT'],
+  ['', 'Anas Afifudin', 'Section Head of Finance & HR', 'WB170219', 'PENYETUJU'],
   ['', 'Yusqi Audah Firdaus', 'Manager of Concrete Services Unit', 'WB090278', 'MENGETAHUI (TTD BASAH)'],
   ['', 'Elmarta Hexa Panggabean', 'Akuntansi', '', 'PENERIMA']];
 var V2_KV = [
@@ -1172,7 +1185,8 @@ function upgradeV2() { arRequireMaker_();
   }
   if (norm_(par.getRange('U3').getValue()) !== 'EMAIL') {
     par.getRange('U3:Y3').setValues([['EMAIL', 'NAMA', 'JABATAN', 'NIP', 'PERAN']]).setBackground(C.navy).setFontColor('#FFFFFF').setFontWeight('bold');
-    par.getRange(4, 21, V2_USERS.length, 5).setValues(V2_USERS); par.getRange('U2').setValue('PENGGUNA & PERAN (PERSETUJUAN)').setFontWeight('bold');
+    var seed = V2_USERS.map(function (r) { return r.slice(); }); seed[0][0] = email_();
+    par.getRange(4, 21, seed.length, 5).setValues(seed); par.getRange('U2').setValue('PENGGUNA & PERAN (PERSETUJUAN)').setFontWeight('bold');
     par.getRange('Y4:Y40').setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.peran, true).setAllowInvalid(true).build()); log.push('Parameter: tabel Pengguna & Peran');
   }
   if (norm_(par.getRange('AA3').getValue()) !== 'KELAS') {
@@ -1424,14 +1438,14 @@ function syncRun_(opt, out) {
   if (opt.noPull) res = compute_();
   else {
     try { out.verif = pullVerif_(); } catch (e) { out.err.push('tarik verifikasi: ' + e.message); }
-    rebuildAll(); res = LAST_RES_ || compute_();
+    rebuildAll_(); res = LAST_RES_ || compute_();
   }
   try { out.memo = pushMemorial_(res, opt.months); } catch (e) { out.err.push('file Akuntansi: ' + e.message); }
   try { out.pe = pushPE_(res, opt.npps); } catch (e) { out.err.push('file P&E: ' + e.message); }
   arProps_().setProperty('SYNC_LAST', Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'));
   return out;
 }
-function syncTurunanAuto() { arRequireMaker_(); var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'); if (!(a && a.val) && !(b && b.val)) return; syncTurunan_(); }
+function syncTurunanAuto(e) { if (!arFromTrigger_(e)) arRequireMaker_(); var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'); if (!(a && a.val) && !(b && b.val)) return; syncTurunan_(); }
 function syncTurunan() { arRequireMaker_();
   var r = syncTurunan_(), A = paramKV_('FILE_AKUNTANSI_ID'), P = paramKV_('FILE_PE_ID');
   var url = function (x) { return x && x.val ? 'https://docs.google.com/spreadsheets/d/' + x.val : '-'; };
@@ -1614,7 +1628,7 @@ function aturDelegasi() { arRequireMaker_();
   if (!mail) { setParamKV_('DELEGASI_EMAIL', '', 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut)'); rebuildAll(); ui.alert('Delegasi dicabut.'); return; }
   var du = ENGINE.userBy(P, mail);
   if (!du) throw new Error(mail + ' belum terdaftar di Parameter ▸ Pengguna & Peran. Daftarkan dulu (peran selain PEMBUAT).');
-  if (/^PEMBUAT/i.test(du.peran) || AR28_MAKERS_.indexOf(mail) >= 0 || mail === me) throw new Error('Delegasi tidak boleh jatuh ke akun PEMBUAT (' + mail + '). Pilih pejabat lain yang tidak menyusun paket penerimaan / validasi.');
+  if (/^PEMBUAT/i.test(du.peran) || mail === me) throw new Error('Delegasi tidak boleh jatuh ke akun PEMBUAT (' + mail + '). Pilih pejabat lain yang tidak menyusun paket penerimaan / validasi.');
   if (/^PENYETUJU/i.test(du.peran)) throw new Error(mail + ' sudah berperan PENYETUJU; delegasi tidak diperlukan.');
   var nama = du.nama || mail;
   if (ui.alert('Konfirmasi delegasi', 'Akun ' + mail + ' (' + nama + ') diberi wewenang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk PAY dan VAL.\n\nCap persetujuan tertulis "DISETUJUI a.n. SECTION HEAD oleh ' + nama + ' (DELEGASI)". Pengajuan yang dibuat akun ini sendiri tetap tidak dapat ia setujui. Setelah 31-10-2026 delegasi berhenti sendiri.\n\nOK = aktifkan · Batal = tidak diubah.', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;

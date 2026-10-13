@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.8.0 · 12-10-2026';
+  var VERSION = '2.8.1 · 13-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -2560,7 +2560,15 @@ var ENGINE = (function () {
     });
     (x.approvals || []).forEach(function(r) { var v = restoreVal[S(r[ai("id")])]; if (v && U(r[ai("jenis")]) === DOC.VAL && U(r[ai("status")]) === "DIBATALKAN") { r[ai("status")] = v.status; r[ai("putus_waktu")] = v.putus || ""; r[ai("kode")] = v.kode || ""; } });
     (x.approvals || []).forEach(function(r) { if (U(r[ai('jenis')]) === DOC.BATAL && U(r[ai('status')]) === 'DISETUJUI' && S(r[ai('putus_waktu')]).slice(0,10) > cutoff) futureBatal[normInv(r[ai('ref')])] = true; });
-    x.register = (x.register || []).map(function(r) { if (futureBatal[normInv(r[ri('nomor')])]) r[ri('status_inv')] = 'AKTIF'; return r; }).filter(function(r) { var d = D(r[ri('tgl')]); return !d || d <= cutoff; });
+    // peristiwa dokumen yang terjadi setelah cutoff belum ada pada posisi itu (mis. invoice 20-09 disubmit 05-10 → per 30-09 masih WAITING SUBMIT)
+    var after = function(r, k) { var d = D(r[ri(k)]); return !!d && d > cutoff; };
+    x.register = (x.register || []).map(function(r) {
+      if (futureBatal[normInv(r[ri('nomor')])]) r[ri('status_inv')] = 'AKTIF';
+      ['submit', 'tt'].forEach(function(k) { if (after(r, k)) r[ri(k)] = ''; });
+      if (after(r, 'tgl_fp')) { r[ri('tgl_fp')] = ''; r[ri('no_fp')] = ''; }
+      if (after(r, 'ba_tgl')) { r[ri('ba_tgl')] = ''; r[ri('ba_no')] = ''; }
+      return r;
+    }).filter(function(r) { var d = D(r[ri('tgl')]); return !d || d <= cutoff; });
     x.log = (x.log || []).filter(function(r) { var d = D(r[colIndex(LOG,'tgl')]); return d && d <= cutoff; });
     x.approvals = (x.approvals || []).filter(function(r) { return S(r[ai('waktu')]).slice(0,10) <= cutoff; }).map(function(r) { if (S(r[ai('putus_waktu')]).slice(0,10) > cutoff) { r[ai('status')] = 'MENUNGGU'; r[ai('putus_waktu')] = ''; r[ai('putus_oleh')] = ''; r[ai('kode')] = ''; } return r; });
     x.adendum = (x.adendum || []).filter(function(r) { var d = D(r[colIndex(ADD,'tgl')]); return !d || d <= cutoff; });
@@ -2570,7 +2578,12 @@ var ENGINE = (function () {
     x.selectors = x.selectors || {}; ['INKASO','RA-RI Termin','Pareto'].forEach(function(k) { x.selectors[k] = cutoff.slice(0,7); });
     return compute(x);
   }
-  function contextAt(ctx, cutoff) { return cutoff && cutoff < ctx.today && ctx._input ? computeAt(ctx._input, cutoff).ctx : ctx; }
+  // posisi lampau di-cache per tanggal pada ctx: approvalsPlain / paket KP tidak lagi menghitung ulang seluruh sistem untuk tanggal yang sama
+  function contextAt(ctx, cutoff) {
+    if (!(cutoff && cutoff < ctx.today && ctx._input)) return ctx;
+    var c = ctx._atCache || (ctx._atCache = {});
+    return c[cutoff] || (c[cutoff] = computeAt(ctx._input, cutoff).ctx);
+  }
   function reconciliationRows(ctx) {
     var out = [];
     proyekAR(ctx).forEach(function(n) {
@@ -2607,7 +2620,7 @@ var ENGINE = (function () {
     fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,
     readParams: readParams, buildMaster: buildMaster, signerFor: signerFor, tarifDefault: tarifDefault, pphLabel: pphLabel,
     terbilang: terbilang, toRoman: toRoman, retTxt: retTxt, normInv: normInv, nppValid: nppValid, nppKey: nppKey, npwp16: npwp16, D: D, N: N, S: S, U: U, rnd: rnd, flo: flo,
-    monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, parseMonthSel: parseMonthSel,
+    monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,
     MEMO: MEMO, PEREF: PEREF, MEMO_KODE: MEMO_KODE, memorial: memorial, memoParse: memoParse, memoSheetRows: memoSheetRows, peSummary: peSummary, peSummaryBlocks: peSummaryBlocks,
     delegasiFor: delegasiFor, isDelegasi: isDelegasi, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
     DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData

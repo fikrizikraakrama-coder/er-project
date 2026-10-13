@@ -326,7 +326,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <h1>AR CSU — Pengelolaan Piutang</h1>
       <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap">versi 2.8.0 · 12-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
     </div>
-    <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div><div id="arRecovery" class="note warn" hidden></div><div id="arNotice" class="note warn" hidden></div>
+    <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div><div id="arRecovery" class="note warn" hidden></div><div id="arNotice" class="note warn" hidden></div><div id="arVersion" class="note err" hidden></div>
     <div class="modes" role="tablist">
       <button role="tab" aria-selected="false" data-mode="dashboard">Dashboard Piutang</button>
       <button role="tab" aria-selected="true" data-mode="buat">Penagihan</button>
@@ -408,7 +408,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
         <fieldset>
           <legend>Transfer masuk</legend>
           <div class="row"><div><label for="pTgl">Tanggal bayar</label><input id="pTgl" type="date"></div><div><label for="pRek">Rekening penerimaan</label><select id="pRek"></select></div></div>
-          <div class="row"><div><label for="pTrf">Nominal transfer (Rp)</label><input id="pTrf" inputmode="decimal" class="num" placeholder="sesuai mutasi rekening"></div><div><label for="pRef">Ref. transfer / mutasi</label><input id="pRef" placeholder="no. jurnal di mutasi (kosong = otomatis)"></div></div>
+          <div class="row"><div><label for="pTrf">Nominal transfer (Rp)</label><input id="pTrf" inputmode="decimal" class="num" placeholder="sesuai mutasi rekening"></div><div><label for="pRef">Ref. transfer / mutasi</label><input id="pRef" placeholder="no. jurnal di mutasi (wajib bila >1 invoice)"></div></div>
           <label for="pKet">Keterangan</label><input id="pKet" placeholder="mis. T1 T2 T3 sesuai keterangan transfer">
         </fieldset>
         <fieldset>
@@ -437,7 +437,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
 
     <!-- ===================== MODE PERSETUJUAN & PAKET -->
     <div class="scroll" id="mode-setuju" hidden>
-      <div class="who" id="whoBox"></div>
+      <div class="who" id="whoBox"></div><div id="perBox"></div>
       <fieldset><legend>Menunggu persetujuan Section Head</legend><div id="pendList"></div></fieldset>
       <fieldset><legend>Dokumen bulanan</legend>
         <label for="mSel">Bulan</label><select id="mSel"></select>
@@ -859,10 +859,16 @@ function nextDigit(year) { var mx = 0; B.invoices.forEach(function (i) { var m =
 /* ====================================================== boot */
 function boot() {
   call('apiBootstrap', [], function (b) {
-    B = b; fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
+    B = b; checkEngineVersion(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
     applyAccess(); setMode(B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
     $('pTgl').value = today(); $('kTgl').value = today();
   }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Akses belum tersedia: ' + esc(e.message || e) + '</div>'; });
+}
+/** Engine.gs (server) dan EngineClient.html (aplikasi) harus berasal dari salinan yang sama — beda versi = hitungan pratinjau bisa beda dengan yang disimpan */
+function checkEngineVersion() {
+  var el = $('arVersion'), sv = String(B.version || ''), cv = String(E.VERSION || '');
+  el.hidden = sv === cv;
+  if (sv !== cv) el.textContent = 'Versi perhitungan server (' + sv + ') berbeda dengan aplikasi (' + cv + '). Salin Engine.gs dan EngineClient.html dari rilis yang sama, lalu terbitkan ulang aplikasi web sebelum menyimpan data.';
 }
 function fillPelanggan() {
   var opts = B.pelanggan.filter(function (p) { return p.aktif !== 'TIDAK' && B.proyek.some(function (r) { return r.pelanggan === p.nama && r.aktif === 'YA'; }); })
@@ -1289,8 +1295,8 @@ function save(revisi) {
   if (ex && !revisi) { revisi = true; }
   if (revisi && !String(S.alasan || '').trim()) { $('revBox').hidden = false; $('fAlasan').focus(); $('saveStatus').innerHTML = '<span style="color:var(--red)">Isi alasan revisi terlebih dahulu.</span>'; return; }
   save._busy = true; $('btnSave').disabled = true; $('saveStatus').textContent = 'Menyimpan dan memperbarui laporan…';
-  call('apiSaveInvoice', [payload(), { revisi: !!revisi, alasan: S.alasan, expectedRev: S._loadedRev }], function (r) {
-    save._busy = false; showSavedNotice(r); if (r.rev !== undefined) S._loadedRev = r.rev;
+  call('apiSaveInvoice', [payload(), { revisi: !!revisi, alasan: S.alasan, expectedRev: S._loadedRev, periodeAlasan: save._periode || '' }], function (r) {
+    save._busy = false; save._periode = ''; showSavedNotice(r); if (r.rev !== undefined) S._loadedRev = r.rev;
     if (r && r.needConfirm) {
       confirmDlg('Nomor sudah ada', 'Nomor <b>' + esc(r.existing.nomor) + '</b> sudah tercatat. Simpan sebagai revisi ke-' + ((+r.existing.rev || 0) + 1) + '?', 'Simpan sebagai revisi', function () { save(true); });
       $('btnSave').disabled = false; $('saveStatus').textContent = ''; return;
@@ -1299,7 +1305,20 @@ function save(revisi) {
     $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode === 'revisi' ? 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : '.') : 'Tersimpan di Monitoring Invoice.') + '</span>';
     toast('Invoice ' + r.nomor + ' tersimpan.' + (r.reportPending ? ' Laporan perlu diperbarui.' : ' Laporan sudah diperbarui.'));
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); update(); });
-  }, function (e) { save._busy = false; $('btnSave').disabled = false; $('saveStatus').innerHTML = '<span style="color:var(--red)">Gagal menyimpan: ' + esc(e.message || e) + '</span>'; });
+  }, function (e) { save._busy = false; $('btnSave').disabled = false;
+    if (askPeriodReason(e, function (al) { save._periode = al; save(revisi); })) { $('saveStatus').textContent = ''; return; }
+    save._periode = ''; $('saveStatus').innerHTML = '<span style="color:var(--red)">Gagal menyimpan: ' + esc(periodMsg(e)) + '</span>'; });
+}
+/** periode tertutup: server menolak dengan kode PERIODE_TERTUTUP (belum ada izin Section Head) atau PERIODE_TERTUTUP_ALASAN (izin ada, alasan kosong) */
+function periodMsg(e) { return String(e && e.message || e).replace(/^(Error:\s*)?PERIODE_TERTUTUP(_ALASAN)?:\s*/, ''); }
+function askPeriodReason(e, retry) {
+  if (String(e && e.message || e).indexOf('PERIODE_TERTUTUP_ALASAN') < 0) return false;
+  confirmDlg('Koreksi periode tertutup', esc(periodMsg(e)) + '<br><br>Koreksi akan ditandai pada data dan dikirim ke email Section Head.<textarea id="dlgPer" style="margin-top:8px" placeholder="alasan koreksi (min. 10 karakter)"></textarea>', 'Simpan dengan alasan', function () {
+    var al = (($('dlgPer') || {}).value || '').trim();
+    if (al.length < 10) { toast('Alasan minimal 10 karakter.'); return; }
+    retry(al);
+  });
+  return true;
 }
 
 /* ====================================================== buka / revisi */
@@ -1388,6 +1407,8 @@ function payBalance() {
   var T = Math.round(num($('pTrf').value)), S0 = PAY.rows.reduce(function (t, r) { return t + Math.round(num(r.nominal)); }, 0), el = $('pBal'), ok = true;
   if (PAY.mode !== 'trf') return;
   if (!PAY.rows.length) { el.className = 'note'; el.textContent = 'Isi nominal transfer, lalu tambahkan invoice. Nominal per invoice dibagi otomatis dan masih bisa diubah.'; ok = false; }
+  else if (PAY.rows.length > 1 && !$('pRef').value.trim()) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>Ref. transfer / mutasi</b> (no. jurnal di mutasi rekening). Ref dipakai untuk mencegah transfer yang sama tercatat dua kali, jadi tidak dibuat otomatis.'; ok = false; }
+  else if (PAY.rows.length > 1 && !T) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>Nominal transfer</b> sesuai mutasi rekening.'; ok = false; }
   else if (T && Math.abs(T - S0) > 0) { el.className = 'note err'; el.innerHTML = 'Jumlah per invoice Rp ' + nfDot(S0) + ' ≠ nominal transfer Rp ' + nfDot(T) + ' (selisih ' + nfDot(T - S0) + ').'; ok = false; }
   else { el.className = 'note ok'; el.innerHTML = PAY.rows.length + ' invoice · total Rp ' + nfDot(S0) + (T ? ' = transfer ✓' : '') + (PAY.splitNote ? '<br>' + esc(PAY.splitNote) : ''); }
   if (!$('pRek').value) ok = false;
@@ -1443,11 +1464,11 @@ function savePay() {
   if (savePay._busy) return;
   var rows = payRowsPayload();
   if (!rows.length) { $('payStatus').innerHTML = '<span style="color:var(--red)">Lengkapi data terlebih dahulu.</span>'; return; }
-  if (PAY.mode === 'trf' && !payBalance()) { $('payStatus').innerHTML = '<span style="color:var(--red)">Pilih rekening penerimaan dan pastikan jumlah per invoice sama dengan nominal transfer.</span>'; return; }
+  if (PAY.mode === 'trf' && !payBalance()) { $('payStatus').innerHTML = '<span style="color:var(--red)">Lengkapi rekening penerimaan; untuk transfer ke beberapa invoice isi Ref dan nominal transfer, dan pastikan jumlah per invoice sama dengan nominal transfer.</span>'; return; }
   var request; try { request = paymentRequest(rows); } catch(e) { $('payStatus').textContent = e.message; showRecovery(); return; }
   savePay._busy = true; $('btnPay').disabled = true; $('payStatus').textContent = 'Menyimpan…';
-  call('apiSavePayments', [rows, request.id], function (r) {
-    savePay._busy = false; clearPaymentRequest(); showSavedNotice(r);
+  call('apiSavePayments', [rows, request.id, { periodeAlasan: savePay._periode || '' }], function (r) {
+    savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r);
     $('payStatus').innerHTML = '<span style="color:var(--green)">Tersimpan: ' + rows.length + ' baris. ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
     LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY;
     toast(PAY.mode === 'pb' ? 'Pindah buku tersimpan.' : 'Pembayaran Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' tercatat.');
@@ -1460,7 +1481,10 @@ function savePay() {
       var L = Object.keys(npps), out = [];
       L.forEach(function (n) { call('apiKartu', [n], function (k) { out.push(k); if (out.length === L.length) { PAY.prev = { rows: [], kartu: out }; renderPayView(); } }); });
     });
-  }, function (e) { savePay._busy = false; showRecovery(); $('btnPay').disabled = false; $('payStatus').innerHTML = '<span style="color:var(--red)">Penyimpanan belum terkonfirmasi; periksa status sebelum menginput ulang. ' + esc(e.message || e) + '</span>'; });
+  }, function (e) { savePay._busy = false; $('btnPay').disabled = false;
+    // penolakan periode terjadi sebelum apa pun ditulis: kirim ulang dengan ID permintaan yang sama aman
+    if (askPeriodReason(e, function (al) { savePay._periode = al; savePay(); })) { $('payStatus').textContent = ''; return; }
+    savePay._periode = ''; showRecovery(); $('payStatus').innerHTML = '<span style="color:var(--red)">Penyimpanan belum terkonfirmasi; periksa status sebelum menginput ulang. ' + esc(periodMsg(e)) + '</span>'; });
 }
 
 /* ====================================================== item WIKA-WITON */
@@ -1529,6 +1553,7 @@ function bind() {
   $('pTrf').oninput = function () { if (PAY.rows.length && !PAY.rows.some(function (r) { return r.manual; })) splitAuto(); payChanged(); };
   $('pTrf').onblur = function () { var v = num(this.value); if (v) this.value = nf(v); };
   ['pTgl', 'pRek', 'pRef', 'pKet'].forEach(function (id) { $(id).onchange = payChanged; });
+  $('pRef').oninput = payBalance;
   $('pSplit').onclick = function () { splitAuto(); payChanged(); };
   $('pClear').onclick = function () { PAY.rows = []; PAY.splitNote = ''; PAY.prev = null; renderPayRows(); payChanged(); };
   $('pRows').oninput = function (e) { var t = e.target, k = +t.dataset.k; if (!t.dataset.f || !PAY.rows[k]) return; var r = PAY.rows[k];
@@ -2161,12 +2186,34 @@ function refreshAll(cb) { call('apiBootstrap', [], function (b) { B = b; applyAc
 
 /* ====================================================== v2: mode Otorisasi Dokumen AR */
 var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX' };
+/* tutup periode: PEMBUAT menutup (hanya maju); Section Head membuka koreksi sementara (maks. 7 hari) atau mencabutnya */
+function renderPeriode() {
+  var P = B.params || {}, tutup = P.PERIODE_DITUTUP_SAMPAI || '', kor = P.PERIODE_KOREKSI_SAMPAI && P.PERIODE_KOREKSI_SAMPAI >= B.today ? P.PERIODE_KOREKSI_SAMPAI : '';
+  var appr = !!(B.access && B.access.approver), maker = !!(B.access && B.access.maker), h = '';
+  h += '<div class="note' + (kor ? ' warn' : '') + '" style="margin-top:8px"><b>Periode ditutup s.d.:</b> ' + (tutup ? esc(tg(tutup)) : 'belum ada') +
+    (kor ? '<br>Koreksi diizinkan sampai ' + esc(tg(kor)) + ' oleh ' + esc(P.PERIODE_KOREKSI_OLEH || '-') + ' — ' + esc(P.PERIODE_KOREKSI_ALASAN || '') : '') + '<div class="inline" style="margin-top:6px;gap:10px">' +
+    (maker ? '<button class="linkbtn" type="button" onclick="periodeTutup()">Tutup periode…</button>' : '') +
+    (appr && tutup && !kor ? '<button class="linkbtn" type="button" onclick="periodeBuka()">Izinkan koreksi periode tertutup…</button>' : '') +
+    (appr && kor ? '<button class="linkbtn" type="button" onclick="periodeAksi(\'cabut\')">Cabut izin koreksi</button>' : '') + '</div></div>';
+  $('perBox').innerHTML = h;
+}
+function periodeAksi(act, tgl, alasan) {
+  call('apiPeriode', [act, tgl || '', alasan || ''], function (r) { toast('Periode diperbarui.' + (r.warnings && r.warnings.length ? ' ' + r.warnings.join(' ') : '')); refreshAll(); }, function (e) { toast(e.message || e); });
+}
+function periodeTutup() {
+  var def = E.prevMonthEnd(B.today);
+  confirmDlg('Tutup periode', 'Invoice & penerimaan bertanggal sampai tanggal ini ditolak, kecuali Section Head mengizinkan koreksi. Tutup periode setelah LK ditutup / laporan ke pusat terkirim.<input type="date" id="dlgPerT" style="margin-top:8px" value="' + esc(def) + '">', 'Tutup periode', function () { periodeAksi('tutup', ($('dlgPerT') || {}).value); });
+}
+function periodeBuka() {
+  confirmDlg('Izinkan koreksi periode tertutup', 'Pembuat boleh mencatat / merevisi transaksi di periode tertutup sampai tanggal berikut (maks. 7 hari), dengan alasan per transaksi. Setiap koreksi dikirim ke email Anda.<input type="date" id="dlgPerK" style="margin-top:8px" value="' + esc(B.today) + '"><textarea id="dlgPerA" style="margin-top:8px" placeholder="alasan / dasar izin (min. 10 karakter)"></textarea>', 'Izinkan', function () { periodeAksi('buka', ($('dlgPerK') || {}).value, ($('dlgPerA') || {}).value); });
+}
 function renderSetuju() {
   if (!B || !$('mode-setuju')) return;
   var me = B.user || {}, role = me.peran || '';
   $('whoBox').innerHTML = 'Masuk sebagai <b>' + esc(me.nama || me.email || 'pengguna tidak dikenal') + '</b>' + (role ? ' · ' + esc(role) : '') + (me.email ? '<br><span style="color:var(--steel)">' + esc(me.email) + '</span>' : '') +
     (!role ? '<div class="note warn">Email ini belum terdaftar di Parameter ▸ Pengguna & Peran, jadi tidak bisa mengajukan/menyetujui.</div>' : '') +
     (B.delegasi ? '<div class="note warn">Delegasi aktif: Anda boleh menyetujui a.n. ' + esc(B.delegasi.atas) + ' sampai ' + esc(tg(B.delegasi.sampai)) + ' untuk ' + esc(B.delegasi.jenis.map(function (j) { return { PAY: 'paket penerimaan', VAL: 'validasi rencana cair', INV: 'paket invoice', KP: 'kartu piutang', REK: 'rekap bulanan', TUTUP: 'penutupan manual', SEMUA: 'semua jenis' }[j] || j; }).join(', ')) + '. Cap tertulis "a.n. Section Head (delegasi)".</div>' : '');
+  renderPeriode();
   var pend = B.approvals.filter(function (a) { return a.status === 'MENUNGGU'; }).reverse();
   $('pendList').innerHTML = pend.length ? pend.map(apprCard).join('') : '<div class="note">Tidak ada pengajuan yang menunggu.</div>';
   var hist = B.approvals.filter(function (a) { return a.status !== 'MENUNGGU'; }).slice(-15).reverse();
