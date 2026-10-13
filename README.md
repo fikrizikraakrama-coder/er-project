@@ -31,3 +31,13 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
+
+## Surat Penagihan (permohonan percepatan pembayaran)
+Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
+- Alert per pelanggan yang punya invoice lewat jatuh tempo (invoice tanpa jatuh tempo — belum submit / tanda terima — tidak ikut).
+  Pelanggan dianggap sudah disurati bila invoicenya masuk surat dalam `SURAT_ULANG_HARI` (bawaan 14) hari terakhir.
+- Satu surat per pelanggan; pelanggan multi-proyek → tabel ringkasan per proyek, rincian per invoice di lampiran.
+- Diisi pengguna: nomor surat, tanggal surat, Kepada Yth., tenggat (tanpa / 3 / 7 hari / tanggal), rekening (centang dari Parameter), kontak.
+- Penandatangan: peran `MENGETAHUI` di Parameter (Manager CSU). Tembusan: `SURAT_TEMBUSAN` (dipisah `;`).
+- **Simpan PDF ke Drive & catat surat** → folder arsip `Surat Penagihan/<tahun>/<bulan>` dan sheet **Log Surat Penagihan**.
+  Tenggat yang terlewat dengan invoice masih terbuka muncul sebagai peringatan dini **TENGGAT SURAT TERLEWAT**.

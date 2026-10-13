@@ -198,6 +198,7 @@ function readAll_() {
     log: readSchema_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG),
     tagbrut: readSchema_(it, ENGINE.TAG), notes: readSchema_(it, ENGINE.NOTE),
     approvals: readSchema_(ss.getSheetByName('Log Persetujuan'), ENGINE.APPR),
+    surat: readSchema_(ss.getSheetByName(ENGINE.SURAT.sheet), ENGINE.SURAT),
     lk: readLK_(), selectors: sel,
     memo: ss.getSheetByName(ENGINE.MEMO.sheet) ? readSchema_(ss.getSheetByName(ENGINE.MEMO.sheet), ENGINE.MEMO) : undefined,
     peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF)
@@ -684,7 +685,7 @@ function lockSystem() { arRequireMaker_();
   // hapus kuncian lama buatan menu ini (aman dijalankan ulang)
   [SpreadsheetApp.ProtectionType.SHEET, SpreadsheetApp.ProtectionType.RANGE].forEach(function (t) { ss.getProtections(t).forEach(function (p) { if (String(p.getDescription()).indexOf(LOCK_TAG) === 0) p.remove(); }); });
   var n = 0;
-  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E', 'Rekonsiliasi Saldo', 'Analisis Bulanan AR', 'Jejak Edit Langsung']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
+  REPORT_SHEETS.concat(['Parameter', 'Log Persetujuan', 'Riwayat Revisi', 'Memorial AR', 'Referensi P&E', 'Rekonsiliasi Saldo', 'Analisis Bulanan AR', 'Jejak Edit Langsung', 'Log Surat Penagihan']).forEach(function (name) { var sh = ss.getSheetByName(name); if (sh) { protectRange_(sh, ed, name); n++; } });
   [['Monitoring Invoice', ENGINE.REG.headerRow], ['Log Penerimaan', ENGINE.LOG.headerRow], ['Master Pelanggan', ENGINE.MPEL.headerRow], ['Master Proyek', ENGINE.MPRO.headerRow],
     ['Riwayat Adendum', ENGINE.ADD.headerRow], ['Input Tagbrut', ENGINE.TAG.headerRow], ['Data LK (Tempel)', 7]].forEach(function (x) {
     var sh = ss.getSheetByName(x[0]); if (!sh) return; protectRange_(sh.getRange(1, 1, x[1], sh.getMaxColumns()), ed, 'judul kolom ' + x[0]); n++;
@@ -1098,7 +1099,7 @@ function archiveFolder_(P, kind, month) {
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
-  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', VALX: 'Validasi Rencana Cair' }[kind] || 'Lainnya';
+  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
   return sub(sub(f, y), ('0' + mm).slice(-2) + ' ' + ENGINE.MONTHS[mm - 1] + ' ' + y);
 }
@@ -1121,6 +1122,39 @@ function apiArchive(kind, ref, meta, fileName) { arRequireAccess_();
   var f = folder.createFile(blob);
   if (kind === 'INV') setRegisterValue_(ref, 'link_paket', f.getUrl());
   return { ok: true, url: f.getUrl(), name: f.getName(), folder: folder.getName(), moved: moved };
+}
+
+// =====================================================================  SURAT PERMOHONAN PERCEPATAN PEMBAYARAN
+/** invoice lewat jatuh tempo milik satu pelanggan, dikelompokkan per proyek (untuk menyusun surat di aplikasi) */
+function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.suratData(compute_().ctx, pelanggan)); }
+/** arsipkan PDF surat ke Drive lalu catat di Log Surat Penagihan (nomor surat unik; invoice diperiksa ulang di server) */
+function apiSuratSimpan(m) {
+  var a = arRequireMaker_(); m = m || {};
+  var nomor = String(m.nomor || '').trim(), tgl = String(m.tgl || ''), tenggat = String(m.tenggat || ''), list = (m.invoices || []).map(function (x) { return ENGINE.normInv(x); });
+  if (nomor.length < 5) throw new Error('Nomor surat wajib diisi.');
+  if (!arValidDate_(tgl)) throw new Error('Tanggal surat tidak valid.');
+  if (tenggat && (!arValidDate_(tenggat) || tenggat < tgl)) throw new Error('Tenggat pembayaran tidak boleh sebelum tanggal surat.');
+  if (!list.length) throw new Error('Pilih minimal satu invoice.');
+  if (!m.b64) throw new Error('PDF surat belum dibuat.');
+  var used = function () { return readSchema_(sheet_(ENGINE.SURAT.sheet), ENGINE.SURAT).some(function (r) { return String(r[0]).trim().toUpperCase() === nomor.toUpperCase(); }); };
+  if (sheet_(ENGINE.SURAT.sheet) && used()) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
+  var d = ENGINE.suratData(compute_().ctx, m.pelanggan), ok = {}, total = 0;
+  d.projects.forEach(function (p) { p.invoices.forEach(function (i) { ok[ENGINE.normInv(i.nomor)] = i; }); });
+  list.forEach(function (n) { if (!ok[n]) throw new Error('Invoice ' + n + ' tidak lewat jatuh tempo atau bukan milik ' + d.nama + '. Muat ulang aplikasi.'); total += ok[n].sisa; });
+  var ar = apiArchive('SURAT', nomor, { b64: m.b64, name: 'Surat Penagihan_' + d.nama + '_' + nomor, month: tgl.slice(0, 7) });
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var ss = arSpreadsheet_(), sh = setupDataSheet_(ss, ENGINE.SURAT, 'LOG SURAT PERMOHONAN PERCEPATAN PEMBAYARAN', 'Dicatat otomatis saat surat dibuat di aplikasi ▸ Surat Penagihan. Dasar alert pelanggan & peringatan TENGGAT SURAT TERLEWAT. Jangan diubah manual.', 'Log Persetujuan', '#C55A11').sh;
+    if (used()) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
+    var map = colMap_(sh, ENGINE.SURAT), lc = Math.max(sh.getLastColumn(), ENGINE.SURAT.cols.length), row = Array(lc).fill('');
+    var rec = { nomor: nomor, tgl: tgl, pelanggan: d.pelanggan, invoices: list.join('; '), sisa: Math.round(total), tenggat: tenggat, kepada: String(m.kepada || '').slice(0, 500),
+      rekening: (m.rekening || []).join('; '), kontak: String(m.kontak || '').slice(0, 300), oleh: a.email, waktu: arNow_(), link: ar.url };
+    ENGINE.SURAT.cols.forEach(function (c) { var j = map[c[0]]; if (j) row[j - 1] = arSafeCell_(toCell_(rec[c[0]], colFmt_(c))); });
+    var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1;
+    sh.getRange(at, 1, 1, lc).setValues([row]);
+  } finally { lock.releaseLock(); }
+  try { rebuildAll_(); } catch (e) { }
+  return plain_({ ok: true, url: ar.url, name: ar.name, folder: ar.folder, total: total });
 }
 
 // =====================================================================  UPGRADE FILE VERSI 1 → VERSI 2

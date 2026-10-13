@@ -107,6 +107,29 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .kop-hd{position:absolute;left:0;top:0;width:210mm;height:auto}
 .kop-ft{position:absolute;left:23.7mm;top:277.2mm;font-family:Roboto,Arial,Helvetica,sans-serif;color:#0096E2;font-size:7pt;line-height:1.38;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .kop-ft b{font-size:8pt}
+/* surat permohonan percepatan pembayaran */
+.surat{width:210mm;height:297mm;font-family:Arial,Helvetica,"Liberation Sans",sans-serif;font-size:9.4pt;line-height:1.3}
+.surat .sb{position:absolute;left:22mm;right:20mm;top:33mm;bottom:31mm;overflow:hidden}
+.surat p{margin:0 0 2mm;text-align:justify}
+.surat .hd{width:100%;border-collapse:collapse}.surat .hd td{padding:0 1.5mm 1mm 0;vertical-align:top}
+.surat .kp{margin-top:3mm}.surat .kp p{margin:0;text-align:left}
+.surat .ph{font-weight:700;margin:3mm 0;text-align:left}
+.surat table.st{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.3pt;margin:1mm 0 2.5mm}
+.surat table.st th,.surat table.st td{border:.6pt solid #333;padding:.9mm 1.2mm;vertical-align:middle;overflow-wrap:anywhere}
+.surat table.st th{background:#1F3864;color:#fff;text-align:center;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.surat td.n{text-align:right;white-space:nowrap}.surat td.c{text-align:center;white-space:nowrap}
+.surat tr.tot td,.surat tr.prj td{font-weight:700;background:#EEF3FA;-webkit-print-color-adjust:exact;print-color-adjust:exact}.surat tr.prj td{font-size:7.9pt}
+.surat .red{color:#B00020;font-weight:700}
+.surat .rk{border:.8pt solid #1F3864;padding:1.6mm 3mm;margin:.5mm 0 2.5mm}.surat .rk td{padding:0 2mm .4mm 0}
+.surat .ttd{width:66mm;margin-left:auto}.surat .ttd p{margin:0;text-align:left}
+.surat .sm{font-size:8.4pt}.surat ol{margin:0;padding-left:5mm}.surat ol li{margin:0 0 .4mm}
+.surat h3{font-size:10.5pt;margin:0 0 1mm;text-align:center}.surat .sub{text-align:center;margin:0 0 3mm;font-size:9pt}
+.surat .lt th,.surat .lt td{font-size:7pt;padding:.8mm}.surat .nt{font-size:8.2pt;color:#333}
+.surat.over .sb{outline:2px dashed #C00;outline-offset:-1px}
+.sr-card{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 8px;cursor:pointer}.sr-card:hover{background:#F7FAFD}.sr-card.on{border-color:var(--blue);background:#EEF5FD}
+.sr-card h4{margin:0 0 2px;font-size:13px}.sr-card .meta{font-size:12px;color:var(--steel)}
+.sr-inv label,.sr-rek label{display:flex;gap:6px;align-items:flex-start;font-weight:400;margin:3px 0;font-size:12px}.sr-inv input,.sr-rek input{width:auto;margin-top:2px}
+.badge{display:inline-block;min-width:16px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;line-height:16px;margin-left:3px}
 .kw .panel{position:absolute;left:5.1mm;top:16.7mm;width:39.5mm;height:108.4mm;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' shape-rendering='crispEdges'%3E%3Cg fill='%235B9BD5'%3E%3Crect x='0' y='0' width='1' height='1'/%3E%3Crect x='2' y='1' width='1' height='1'/%3E%3Crect x='4' y='0' width='1' height='1'/%3E%3Crect x='6' y='1' width='1' height='1'/%3E%3Crect x='1' y='2' width='1' height='1'/%3E%3Crect x='3' y='3' width='1' height='1'/%3E%3Crect x='5' y='2' width='1' height='1'/%3E%3Crect x='7' y='3' width='1' height='1'/%3E%3Crect x='0' y='4' width='1' height='1'/%3E%3Crect x='2' y='5' width='1' height='1'/%3E%3Crect x='4' y='4' width='1' height='1'/%3E%3Crect x='6' y='5' width='1' height='1'/%3E%3Crect x='1' y='6' width='1' height='1'/%3E%3Crect x='3' y='7' width='1' height='1'/%3E%3Crect x='5' y='6' width='1' height='1'/%3E%3Crect x='7' y='7' width='1' height='1'/%3E%3Crect x='0' y='2' width='1' height='1'/%3E%3Crect x='4' y='6' width='1' height='1'/%3E%3C/g%3E%3C/svg%3E") 0 0/1.6mm 1.6mm;-webkit-print-color-adjust:exact;print-color-adjust:exact;overflow:hidden}
 .kw .panel .inner{position:absolute;left:7.6%;right:7%;top:2.75%;bottom:3.1%;border:.5pt solid #2E4D6B;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Cpath d='M0 4L4 0L8 4L4 8Z' fill='none' stroke='%23A9D18E' stroke-width='.7'/%3E%3C/svg%3E") 0 0/2.2mm 2.2mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .kw .panel .logo{position:absolute;left:-15.3mm;top:39mm;width:53.6mm;height:14mm;object-fit:contain;transform:rotate(-90deg)}
@@ -324,7 +347,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
   <aside>
     <div class="brand">
       <h1>AR CSU — Pengelolaan Piutang</h1>
-      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap">versi 2.8.0 · 12-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
+      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.1 · 13-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
     </div>
     <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div><div id="arRecovery" class="note warn" hidden></div><div id="arNotice" class="note warn" hidden></div><div id="arVersion" class="note err" hidden></div>
     <div class="modes" role="tablist">
@@ -332,6 +355,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <button role="tab" aria-selected="true" data-mode="buat">Penagihan</button>
       <button role="tab" aria-selected="false" data-mode="buka">Register Invoice</button>
       <button role="tab" aria-selected="false" data-mode="bayar">Penerimaan &amp; Alokasi</button>
+      <button role="tab" aria-selected="false" data-mode="surat">Surat Penagihan<span class="badge" id="srBadge" hidden></span></button>
       <button role="tab" aria-selected="false" data-mode="setuju">Otorisasi Dokumen AR</button>
     </div>
 
@@ -436,6 +460,23 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       </div>
     </div>
 
+    <!-- ===================== MODE SURAT PENAGIHAN -->
+    <div class="scroll" id="mode-surat" hidden>
+      <fieldset><legend>Pelanggan dengan invoice lewat jatuh tempo</legend><div id="srList"></div></fieldset>
+      <div id="srForm" hidden>
+        <fieldset><legend>Surat</legend>
+          <div class="row"><div><label for="srNo">Nomor surat</label><input id="srNo" placeholder="KU.03.03/WB-4C.____/2026"></div><div><label for="srTgl">Tanggal surat</label><input id="srTgl" type="date"></div></div>
+          <label for="srKepada">Kepada Yth. (satu baris per baris surat; dua baris pertama dicetak tebal)</label><textarea id="srKepada" rows="5"></textarea>
+          <div class="row"><div><label for="srTg">Tenggat pembayaran</label><select id="srTg"><option value="">Tanpa tenggat</option><option value="3">3 hari kalender</option><option value="7">7 hari kalender</option><option value="tgl">Pilih tanggal…</option></select></div><div><label for="srTgD">Tanggal tenggat</label><input id="srTgD" type="date" disabled></div></div>
+          <div class="note" id="srTgHint"></div>
+        </fieldset>
+        <fieldset><legend>Invoice yang dicantumkan</legend><div class="sr-inv" id="srInv"></div></fieldset>
+        <fieldset><legend>Rekening tujuan (boleh lebih dari satu)</legend><div class="sr-rek" id="srRek"></div></fieldset>
+        <fieldset><legend>Kontak penerima bukti transfer</legend><input id="srKontak" placeholder="mis. Fikri Zikra Akrama (AR Officer), email … / telp …"></fieldset>
+        <fieldset><legend>Surat sebelumnya ke pelanggan ini</legend><div id="srHist"></div></fieldset>
+      </div>
+    </div>
+
     <!-- ===================== MODE PERSETUJUAN & PAKET -->
     <div class="scroll" id="mode-setuju" hidden>
       <div class="who" id="whoBox"></div><div id="perBox"></div>
@@ -464,6 +505,11 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <button class="btn primary" id="btnSave">Simpan ke Monitoring</button>
       <div class="btns"><span>Cetak</span><button class="btn" id="btnPInv">Invoice</button><button class="btn" id="btnPKw">Kwitansi</button><button class="btn" id="btnPBap">BAP</button><button class="btn" id="btnPAll">Semua</button></div>
       <div class="btns"><span>Paket</span><button class="btn" id="btnPkgInv">Paket lampiran &amp; persetujuan</button></div>
+    </div>
+    <div class="actions" id="act-surat" hidden>
+      <div class="status" id="srStatus"></div>
+      <button class="btn primary" id="btnSrSave" disabled>Simpan PDF ke Drive &amp; catat surat</button>
+      <div class="btns"><span>Cetak</span><button class="btn" id="btnSrPrint" disabled>Surat + lampiran</button></div>
     </div>
     <div class="actions" id="act-bayar" hidden>
       <div class="status" id="payStatus"></div>
@@ -860,7 +906,7 @@ function nextDigit(year) { var mx = 0; B.invoices.forEach(function (i) { var m =
 /* ====================================================== boot */
 function boot() {
   call('apiBootstrap', [], function (b) {
-    B = b; checkEngineVersion(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
+    B = b; checkEngineVersion(); srBadge(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
     applyAccess(); setMode(B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
     $('pTgl').value = today(); $('kTgl').value = today();
   }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Akses belum tersedia: ' + esc(e.message || e) + '</div>'; });
@@ -869,6 +915,7 @@ function boot() {
 function checkEngineVersion() {
   var el = $('arVersion'), sv = String(B.version || ''), cv = String(E.VERSION || '');
   el.hidden = sv === cv;
+  if ($('verLabel')) $('verLabel').textContent = 'versi ' + cv;
   if (sv !== cv) el.textContent = 'Versi perhitungan server (' + sv + ') berbeda dengan aplikasi (' + cv + '). Salin Engine.gs dan EngineClient.html dari rilis yang sama, lalu terbitkan ulang aplikasi web sebelum menyimpan data.';
 }
 function fillPelanggan() {
@@ -1498,17 +1545,175 @@ function renderItems() {
   }).join('');
 }
 
+/* ====================================================== surat permohonan percepatan pembayaran */
+var SR = null; // { d: data server, pick: {nomor: true}, rek: {label: true} }
+function srDays(a, b) { return Math.round((Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 864e5); }
+function srBadge() { var n = ((B && B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length, el = $('srBadge'); if (!el) return; el.hidden = !n; el.textContent = n; }
+function renderSuratList() {
+  var L = (B && B.suratAlerts) || [];
+  $('srList').innerHTML = L.length ? L.map(function (a) {
+    return '<div class="sr-card' + (SR && SR.d.pelanggan === a.pelanggan ? ' on' : '') + '" data-srpel="' + esc(a.pelanggan) + '"><h4>' + esc(titleCase(a.pelanggan)) + (a.perlu ? ' <span class="pill o">perlu surat</span>' : ' <span class="pill l">sudah disurati</span>') + '</h4>' +
+      '<div class="meta">' + a.n + ' invoice · ' + a.proyek + ' proyek · sisa Rp ' + nfDot(a.sisa) + ' · lewat JT terlama ' + a.maxLewat + ' hari' +
+      (a.terakhir ? '<br>Surat terakhir ' + esc(a.terakhir.nomor) + ' · ' + esc(tg(a.terakhir.tgl)) + (a.terakhir.tenggat ? ' · tenggat ' + esc(tg(a.terakhir.tenggat)) : '') : '') +
+      (a.perlu && a.terakhir ? '<br>' + a.baru + ' invoice belum masuk surat dalam ' + esc(B.params.SURAT_ULANG_HARI || 14) + ' hari terakhir' : '') + '</div></div>';
+  }).join('') : '<div class="note ok">Tidak ada invoice yang lewat jatuh tempo. Invoice tanpa jatuh tempo (belum submit / belum tanda terima) tidak ikut.</div>';
+}
+function openSurat(pel) {
+  $('srStatus').textContent = 'Memuat invoice lewat jatuh tempo…';
+  call('apiSuratData', [pel], function (d) {
+    var kontak = ''; try { kontak = localStorage.getItem('ar_sr_kontak') || ''; } catch (e) { }
+    var mk = (B.roles || {}).PEMBUAT;
+    SR = { d: d, pick: {}, rek: {} };
+    d.projects.forEach(function (p) { p.invoices.forEach(function (i) { SR.pick[i.nomor] = true; }); });
+    $('srNo').value = ''; $('srTgl').value = B.today; $('srTg').value = ''; $('srTgD').value = ''; $('srTgD').disabled = true;
+    $('srKepada').value = ['Direksi', titleCase(d.nama)].concat(d.alamat).join('\n');
+    $('srKontak').value = kontak || (mk ? mk.nama + ' (' + (mk.jabatan || 'AR Officer') + '), email … / telp …' : '');
+    $('srInv').innerHTML = d.projects.map(function (p) {
+      return '<div style="margin:4px 0 2px;font-weight:600;font-size:12px">' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</div>' + p.invoices.map(function (i) {
+        return '<label><input type="checkbox" data-srinv="' + esc(i.nomor) + '" checked><span>' + esc(short(i.nomor)) + ' · ' + esc(i.invke) + '<br><span style="color:var(--steel)">JT ' + esc(tg(i.jt)) + ' · lewat ' + i.lewat + ' hari · sisa Rp ' + nfDot(i.sisa) + '</span></span></label>';
+      }).join('');
+    }).join('');
+    $('srRek').innerHTML = (B.rek || []).length ? B.rek.map(function (r) { return '<label><input type="checkbox" data-srrek="' + esc(r.label) + '"><span>' + esc(r.bank) + ' — ' + esc(r.no) + '</span></label>'; }).join('') : '<div class="note warn">Rekening penerimaan belum diisi di Parameter.</div>';
+    $('srHist').innerHTML = d.letters.length ? d.letters.slice().reverse().map(function (l) { return '<div class="meta" style="font-size:12px;margin:2px 0">' + esc(l.nomor) + ' · ' + esc(tg(l.tgl)) + (l.tenggat ? ' · tenggat ' + esc(tg(l.tenggat)) : '') + ' · Rp ' + nfDot(l.sisa) + (l.link ? ' · <a target="_blank" href="' + esc(l.link) + '">PDF</a>' : '') + '</div>'; }).join('') : '<div class="note">Belum ada.</div>';
+    $('srForm').hidden = false; $('srStatus').textContent = ''; renderSuratList(); srPreview();
+  }, function (e) { $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
+}
+/** isian formulir → data surat siap cetak */
+function srState() {
+  if (!SR) return null;
+  var tgl = $('srTgl').value || B.today, projects = SR.d.projects.map(function (p) {
+    return { npp: p.npp, singkat: p.singkat, pekerjaan: p.pekerjaan, kontrak: p.kontrak, tgl_kontrak: p.tgl_kontrak,
+      invoices: p.invoices.filter(function (i) { return SR.pick[i.nomor]; }).map(function (i) { var x = Object.assign({}, i); x.lewat = Math.max(0, srDays(tgl, i.jt)); return x; }) };
+  }).filter(function (p) { return p.invoices.length; });
+  var all = []; projects.forEach(function (p) { all = all.concat(p.invoices); });
+  var mode = $('srTg').value, tenggat = mode === '3' || mode === '7' ? E.addDays(tgl, +mode) : mode === 'tgl' ? $('srTgD').value : '';
+  return { nomor: $('srNo').value.trim(), tgl: tgl, kepada: $('srKepada').value.split('\n').map(function (x) { return x.trim(); }).filter(String), tenggat: tenggat,
+    rek: (B.rek || []).filter(function (r) { return SR.rek[r.label]; }), kontak: $('srKontak').value.trim(), projects: projects, all: all,
+    total: all.reduce(function (t, i) { return t + i.sisa; }, 0), kas: all.reduce(function (t, i) { return t + i.kas; }, 0), nama: titleCase(SR.d.nama) };
+}
+var SR_ANGKA = ['nol', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh'];
+function srPage1(o) {
+  var single = o.projects.length === 1, p0 = o.projects[0], h = '', n = 0;
+  var sg = (B.roles || {}).MENGETAHUI || { nama: 'Yusqi Audah Firdaus', jabatan: 'Manager of Concrete Services Unit' };
+  var tembusan = String(B.params.SURAT_TEMBUSAN || 'Direktur Teknik & Produksi, PT Wijaya Karya Beton Tbk;VP Concrete Infrastructure Services Division;Arsip').split(/\s*;\s*/).filter(String);
+  h += '<table class="hd"><tr><td style="width:16mm">Nomor</td><td style="width:3mm">:</td><td>' + esc(o.nomor || '……………………………') + '</td><td style="text-align:right">Jakarta, ' + esc(tglIndo(o.tgl)) + '</td></tr>' +
+    '<tr><td>Lamp</td><td>:</td><td>1 (satu) berkas</td><td></td></tr></table>';
+  h += '<div class="kp"><p>Kepada Yth.</p>' + o.kepada.map(function (l, i) { return '<p>' + (i < 2 ? '<b>' + esc(l) + '</b>' : esc(l)) + '</p>'; }).join('') + '</div>';
+  h += '<p class="ph">Perihal: Permohonan Percepatan Pembayaran Tagihan yang Telah Jatuh Tempo</p><p>Dengan hormat,</p>';
+  if (single) h += '<p>Sehubungan dengan pelaksanaan pekerjaan <b>' + esc(p0.pekerjaan || p0.singkat || p0.npp) + '</b>' + (p0.kontrak ? ', berdasarkan <b>' + esc(p0.kontrak) + '</b>' + (p0.tgl_kontrak ? ' tanggal <b>' + esc(tglIndo(p0.tgl_kontrak)) + '</b>' : '') : '') +
+    ', kami sampaikan bahwa per tanggal surat ini tagihan berikut <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>';
+  else h += '<p>Sehubungan dengan pelaksanaan pekerjaan antara ' + esc(o.nama) + ' dan PT Wijaya Karya Beton Tbk – Concrete Services Unit pada ' + o.projects.length + ' (' + (SR_ANGKA[o.projects.length] || E.terbilang(o.projects.length).toLowerCase()) + ') proyek berikut, kami sampaikan bahwa per tanggal surat ini terdapat tagihan yang <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>';
+  if (single) {
+    h += '<table class="st"><tr><th style="width:7mm">No</th><th>Uraian / Nomor Invoice</th><th style="width:19mm">Tgl Invoice</th><th style="width:19mm">Jatuh Tempo</th><th style="width:13mm">Lewat JT (hari)</th><th style="width:27mm">Sisa Tagihan (Rp)</th></tr>' +
+      p0.invoices.map(function (i) { n++; return '<tr><td class="c">' + n + '.</td><td>' + esc(i.invke) + '<br><span class="sm">' + esc(i.nomor) + '</span></td><td class="c">' + tg(i.tgl) + '</td><td class="c">' + tg(i.jt) + '</td><td class="c red">' + i.lewat + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>'; }).join('') +
+      '<tr class="tot"><td colspan="5">Total sisa tagihan (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr></table>';
+  } else {
+    h += '<table class="st"><tr><th style="width:7mm">No</th><th>Proyek / Dasar Kontrak</th><th style="width:14mm">Jumlah Invoice</th><th style="width:17mm">Lewat JT maks. (hari)</th><th style="width:27mm">Sisa Tagihan (Rp)</th></tr>' +
+      o.projects.map(function (p) { n++; var mx = Math.max.apply(null, p.invoices.map(function (i) { return i.lewat; })), sub = p.invoices.reduce(function (t, i) { return t + i.sisa; }, 0);
+        return '<tr><td class="c">' + n + '.</td><td><b>' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</b>' + (p.kontrak ? '<br><span class="sm">' + esc(p.kontrak) + (p.tgl_kontrak ? ' tgl ' + esc(tglIndo(p.tgl_kontrak)) : '') + '</span>' : '') + '</td><td class="c">' + p.invoices.length + '</td><td class="c red">' + mx + '</td><td class="n">' + nfDot(sub) + '</td></tr>'; }).join('') +
+      '<tr class="tot"><td colspan="4">Total sisa tagihan — ' + o.all.length + ' invoice (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr></table>';
+  }
+  h += '<p>Terbilang: <i><b>' + esc(E.terbilang(Math.round(o.total))) + ' Rupiah</b></i>. Rincian per invoice (nomor invoice dan faktur pajak, DPP, PPN, PPh, tanggal ' + (o.all.some(function (i) { return i.basisTT; }) ? 'tanda terima' : 'penerimaan dokumen') + ', dan jatuh tempo) terdapat pada lampiran.</p>';
+  h += '<p>Mempertimbangkan kebutuhan arus kas dan kelancaran operasional proyek, kami memohon pembayaran tersebut dapat segera direalisasikan' + (o.tenggat ? ' <b>selambat-lambatnya tanggal ' + esc(tglIndo(o.tenggat)) + '</b>' : '') +
+    (o.rek.length ? ' ke ' + (o.rek.length > 1 ? 'salah satu rekening' : 'rekening') + ' berikut:' : '.') + '</p>';
+  if (o.rek.length) h += '<div class="rk"><table>' + o.rek.map(function (r) { return '<tr><td>Bank ' + esc(titleCase(r.bank).replace(/\bBni\b/, 'BNI').replace(/\bBri\b/, 'BRI').replace(/\bBsi\b/, 'BSI').replace(/\bBca\b/, 'BCA').replace(/\bBtn\b/, 'BTN')) + '</td><td>: <b>' + esc(r.no) + '</b> a.n. PT Wijaya Karya Beton Tbk</td></tr>'; }).join('') +
+    '<tr><td>Berita transfer</td><td>: <b>nomor invoice yang dibayar</b></td></tr></table></div>';
+  h += '<p>Apabila pembayaran belum dapat segera direalisasikan, mohon konfirmasi tertulis mengenai jadwal realisasinya. Apabila pembayaran telah dilakukan, mohon surat ini diabaikan dan bukti transfer beserta bukti potong PPh dikirimkan kepada ' + (o.kontak ? esc(o.kontak) : 'kami') + '. Atas perhatian dan kerja sama yang baik, kami mengucapkan terima kasih.</p>';
+  h += '<div class="ttd"><p><b>Hormat kami,</b></p><p><b>PT Wijaya Karya Beton Tbk</b></p><p><b>Concrete Services Unit</b></p><p style="height:12mm"></p><p><b><u>' + esc(sg.nama) + '</u></b></p><p>' + esc(sg.jabatan || 'Manager of Concrete Services Unit') + '</p></div>';
+  h += '<div class="sm" style="margin-top:1mm"><p style="margin:0 0 .4mm;text-align:left"><b>Tembusan:</b></p><ol>' + tembusan.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol></div>';
+  return '<div class="page pg-inv surat">' + kop() + '<div class="sb"' + srFs() + '>' + h + '</div></div>';
+}
+/** ukuran huruf isi surat (diperkecil otomatis bila meluber; dipakai juga untuk cetak & PDF) */
+function srFs() { return SR && SR.fs && SR.fs < 9.4 ? ' style="font-size:' + SR.fs + 'pt"' : ''; }
+/** lampiran: tabel A (nilai) & B (dokumen/jatuh tempo) per proyek; dipecah ke beberapa halaman bila invoice banyak */
+function srLampiran(o) {
+  var hdA = '<tr><th style="width:6mm">No</th><th style="width:25mm">Nomor Invoice</th><th style="width:20mm">No. Faktur Pajak</th><th style="width:20mm">DPP</th><th style="width:19mm">PPN</th><th style="width:20mm">Nilai Tagihan</th><th style="width:18mm">PPh*</th><th style="width:13mm">Sudah Diterima</th><th style="width:20mm">Sisa Tagihan</th></tr>';
+  var hdB = '<tr><th style="width:8mm">No</th><th style="width:34mm">Nomor Invoice</th><th>Tgl Invoice</th><th>Tgl ' + (o.all.some(function (i) { return i.basisTT; }) ? 'Tanda Terima' : 'Diterima Pelanggan') + '</th><th>TOP (hari)</th><th>Jatuh Tempo</th><th>Lewat JT (hari)</th></tr>';
+  var A = [], Bt = [], n = 0, m = 0, sum = function (k) { return o.all.reduce(function (t, i) { return t + (i[k] || 0); }, 0); };
+  o.projects.forEach(function (p) {
+    var lbl = esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat);
+    A.push('<tr class="prj"><td colspan="9">' + lbl + '</td></tr>'); Bt.push('<tr class="prj"><td colspan="7">' + lbl + '</td></tr>');
+    p.invoices.forEach(function (i) {
+      n++; A.push('<tr><td class="c">' + n + '.</td><td>' + esc(i.nomor) + '</td><td style="text-align:center">' + esc(i.no_fp ? E.fpFmt(i.no_fp) || i.no_fp : '-') + '</td><td class="n">' + nfDot(i.dpp) + '</td><td class="n">' + nfDot(i.ppn) + '</td><td class="n">' + nfDot(i.tagihan) + '</td><td class="n">' + nfDot(i.pph) + '</td><td class="n">' + nfDot(i.diterima) + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>');
+      m++; Bt.push('<tr><td class="c">' + m + '.</td><td>' + esc(i.nomor) + '</td><td class="c">' + tg(i.tgl) + '</td><td class="c">' + tg(i.terima) + '</td><td class="c">' + esc(i.top) + '</td><td class="c">' + tg(i.jt) + '</td><td class="c red">' + i.lewat + '</td></tr>');
+    });
+  });
+  A.push('<tr class="tot"><td colspan="3">Jumlah</td><td class="n">' + nfDot(sum('dpp')) + '</td><td class="n">' + nfDot(sum('ppn')) + '</td><td class="n">' + nfDot(sum('tagihan')) + '</td><td class="n">' + nfDot(sum('pph')) + '</td><td class="n">' + nfDot(sum('diterima')) + '</td><td class="n">' + nfDot(sum('sisa')) + '</td></tr>');
+  var labels = {}; o.all.forEach(function (i) { labels[i.pphLabel] = 1; });
+  var noteA = '<p class="nt">* ' + esc(Object.keys(labels).join(' / ')) + ' dipotong saat pembayaran.' + (o.all.some(function (i) { return i.ret > 0; }) ? ' Nilai tagihan = DPP + PPN − retensi yang ditahan.' : ' Nilai tagihan = DPP + PPN.') + ' Kas yang kami harapkan diterima = Sisa Tagihan − PPh = <b>Rp ' + nfDot(o.kas) + '</b>. Mohon bukti potong PPh dikirimkan bersama bukti transfer.</p>';
+  var docs = '<p style="text-align:left;margin:3mm 0 1mm"><b>C. Dokumen pendukung yang telah kami sampaikan</b></p><ol class="sm"><li>Invoice dan kuitansi (nomor sesuai tabel di atas);</li><li>Faktur Pajak Keluaran (nomor sesuai tabel A);</li><li>Berita Acara Kemajuan Pekerjaan / Berita Acara Pembayaran;</li><li>Tanda terima dokumen tagihan (tanggal sesuai tabel B).</li></ol>' +
+    '<p class="nt" style="margin-top:3mm">Apabila terdapat perbedaan data dengan catatan Saudara, mohon dapat dikonfirmasi kepada kami agar dapat segera direkonsiliasi.</p>';
+  var head = function (lanjut) { return '<p style="text-align:left;margin-bottom:4mm" class="sm">Lampiran Surat Nomor ' + esc(o.nomor || '……………………') + ' tanggal ' + esc(tglIndo(o.tgl)) + (lanjut ? ' (lanjutan)' : '') + '</p>' +
+    (lanjut ? '' : '<h3>RINCIAN TAGIHAN YANG TELAH JATUH TEMPO</h3><p class="sub">' + esc(o.nama) + ' · posisi per ' + esc(tglIndo(o.tgl)) + '</p>'); };
+  var page = function (inner) { return '<div class="page pg-inv surat">' + kop() + '<div class="sb">' + inner + '</div></div>'; };
+  var tA = function (rows) { return '<table class="st lt">' + hdA + rows.join('') + '</table>'; }, tB = function (rows) { return '<table class="st lt">' + hdB + rows.join('') + '</table>'; };
+  var secA = '<p style="text-align:left;margin-bottom:1mm"><b>A. Rincian nilai invoice</b></p>', secB = '<p style="text-align:left;margin:3mm 0 1mm"><b>B. Riwayat dokumen &amp; jatuh tempo</b></p>';
+  if (A.length + Bt.length <= 26) return page(head(false) + secA + tA(A) + noteA + secB + tB(Bt) + docs);
+  // banyak invoice: A dipecah per 28 baris, B per 32 baris; bagian C di halaman terakhir
+  var out = [], chunk = function (L, k) { var r = []; for (var x = 0; x < L.length; x += k) r.push(L.slice(x, x + k)); return r; };
+  chunk(A, 28).forEach(function (c, ix, all) { out.push(page(head(ix > 0) + (ix ? '' : secA) + tA(c) + (ix === all.length - 1 ? noteA : ''))); });
+  chunk(Bt, 32).forEach(function (c, ix, all) { out.push(page(head(true) + (ix ? '' : secB) + tB(c) + (ix === all.length - 1 ? docs : ''))); });
+  return out.join('');
+}
+function srHtml() { var o = srState(); return o && o.all.length ? srPage1(o) + srLampiran(o) : ''; }
+function srPreview() {
+  if (MODE !== 'surat' || STACK) return;
+  var w = $('sheetwrap'), o = srState();
+  $('btnSrSave').disabled = $('btnSrPrint').disabled = !(o && o.all.length);
+  if (!o) { w.style.transform = ''; w.innerHTML = '<div class="empty">Pilih pelanggan di kiri untuk menyusun surat permohonan percepatan pembayaran.</div>'; return; }
+  if (!o.all.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Centang minimal satu invoice.</div>'; return; }
+  // saran tenggat (tidak otomatis dipakai): ≥ 7 hari lewat JT → 3 hari, baru jatuh tempo → 7 hari
+  var mx = Math.max.apply(null, o.all.map(function (i) { return i.lewat; }));
+  $('srTgHint').textContent = 'Saran: ' + (mx >= 7 ? '3 hari (ada invoice lewat jatuh tempo ' + mx + ' hari)' : '7 hari (invoice baru jatuh tempo)') + (o.tenggat ? ' · dipakai: ' + tglIndo(o.tenggat) : ' · saat ini tanpa tenggat');
+  var over = [];
+  for (SR.fs = 9.4; ; SR.fs = Math.round((SR.fs - 0.3) * 10) / 10) {
+    w.innerHTML = '<div class="stackwrap">' + srPage1(o) + srLampiran(o) + '</div>';
+    over = Array.prototype.slice.call(w.querySelectorAll('.surat')).filter(function (pg) { var b = pg.querySelector('.sb'); var bad = b && b.scrollHeight > b.clientHeight + 2; pg.classList.toggle('over', !!bad); return bad; });
+    if (!over.length || SR.fs <= 8.5) break;
+  }
+  fitZoom();
+  $('srStatus').innerHTML = over.length ? '<span style="color:var(--red)">Isi melebihi halaman (garis merah). Pendekkan Kepada Yth. / kontak, atau kurangi rekening / invoice.</span>' : (SR.fs < 9.4 ? 'Ukuran huruf isi surat disesuaikan menjadi ' + SR.fs + ' pt agar muat satu halaman.' : '');
+}
+function srPrint() { var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
+function srSave() {
+  var o = srState(); if (!o || !o.all.length) return;
+  if (o.nomor.length < 5) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor surat.</span>'; $('srNo').focus(); return; }
+  if ($('srTg').value === 'tgl' && !o.tenggat) { $('srStatus').innerHTML = '<span style="color:var(--red)">Pilih tanggal tenggat.</span>'; return; }
+  try { localStorage.setItem('ar_sr_kontak', o.kontak); } catch (e) { }
+  var name = 'Surat Penagihan_' + o.nama + '_' + o.nomor;
+  $('btnSrSave').disabled = true; $('srStatus').textContent = 'Membuat PDF…';
+  makePdf(srHtml(), name, { plain: true }).then(function (b64) {
+    $('srStatus').textContent = 'Menyimpan ke Google Drive dan mencatat surat…';
+    call('apiSuratSimpan', [{ pelanggan: SR.d.pelanggan, nomor: o.nomor, tgl: o.tgl, tenggat: o.tenggat, kepada: o.kepada.join(' / '), rekening: o.rek.map(function (r) { return r.label; }), kontak: o.kontak,
+      invoices: o.all.map(function (i) { return i.nomor; }), b64: b64 }], function (r) {
+      $('srStatus').innerHTML = 'Surat tersimpan di folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>';
+      toast('Surat ' + o.nomor + ' tercatat.'); var pel = SR.d.pelanggan;
+      refreshAll(function () { renderSuratList(); openSurat(pel); });
+    }, function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
+  }).catch(function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">PDF gagal dibuat: ' + esc(e.message || e) + '</span>'; });
+}
+function bindSurat() {
+  $('srList').onclick = function (e) { var c = e.target.closest('[data-srpel]'); if (c) openSurat(c.dataset.srpel); };
+  $('srInv').onchange = function (e) { var t = e.target; if (t.dataset.srinv) { SR.pick[t.dataset.srinv] = t.checked; srPreview(); } };
+  $('srRek').onchange = function (e) { var t = e.target; if (t.dataset.srrek) { SR.rek[t.dataset.srrek] = t.checked; srPreview(); } };
+  $('srTg').onchange = function () { $('srTgD').disabled = this.value !== 'tgl'; if (this.value === 'tgl' && !$('srTgD').value) $('srTgD').value = E.addDays($('srTgl').value || B.today, 3); srPreview(); };
+  var t = null, deb = function () { clearTimeout(t); t = setTimeout(srPreview, 300); };
+  ['srNo', 'srTgl', 'srKepada', 'srKontak', 'srTgD'].forEach(function (id) { $(id).oninput = deb; $(id).onchange = deb; });
+  $('btnSrSave').onclick = srSave; $('btnSrPrint').onclick = srPrint;
+}
+
 /* ====================================================== mode */
 function setMode(m) {
   if (B && B.access && !B.access.maker && m !== 'setuju') m = 'setuju';
   MODE = m;
   $('mode-dashboard').hidden = m !== 'dashboard';
   document.querySelectorAll('.modes [data-mode]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.mode === m); });
-  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju';
+  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'setuju' || m === 'dashboard';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'setuju' || m === 'dashboard' || m === 'surat';
+  if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
@@ -1518,6 +1723,7 @@ function setMode(m) {
 /* ====================================================== event */
 function bind() {
   document.querySelectorAll('.modes [data-mode]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
+  bindSurat();
   document.querySelectorAll('.tabs [data-doc]').forEach(function (b) { b.onclick = function () { setDoc(b.dataset.doc); }; });
   $('zoom').onchange = fitZoom; window.addEventListener('resize', fitZoom);
   var touched = function () { SAVED = false; };
@@ -2063,7 +2269,7 @@ function pdfLibs() {
     call('apiPdfLib', [], function (code) { try { var s = document.createElement('script'); s.text = code; document.head.appendChild(s); } catch (e) { } if (window.jspdf && window.html2canvas) ok(); else cdn().then(ok, no); }, function () { cdn().then(ok, no); });
   });
 }
-function makePdf(html, label) {
+function makePdf(html, label, opt) {
   return pdfLibs().then(function () {
     var root = $('pdf-root'); if (!root) { root = document.createElement('div'); root.id = 'pdf-root'; document.body.appendChild(root); }
     root.innerHTML = theadify(html);
@@ -2105,6 +2311,7 @@ function makePdf(html, label) {
       for (var i = 1; i <= n; i++) {
         pdf.setPage(i); pdf.setFontSize(7); pdf.setTextColor(122, 136, 156);
         var w = pdf.internal.pageSize.getWidth(), h = pdf.internal.pageSize.getHeight();
+        if (opt && opt.plain) continue; // surat resmi: tanpa catatan sistem / nomor halaman
         if (flowPages.indexOf(i) >= 0) pdf.text('Sistem AR CSU · ' + label, 11, h - 6);
         pdf.text('Halaman ' + i + ' dari ' + n, w - 11, h - 6, { align: 'right' });
       }
@@ -2189,7 +2396,7 @@ function decidePkg(setuju) {
       function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; refreshAll(); });
   });
 }
-function refreshAll(cb) { call('apiBootstrap', [], function (b) { B = b; applyAccess(); renderList(); fillOpenList(); renderSetuju(); if (cb) cb(); }); }
+function refreshAll(cb) { call('apiBootstrap', [], function (b) { B = b; srBadge(); applyAccess(); renderList(); fillOpenList(); renderSetuju(); if (cb) cb(); }); }
 
 /* ====================================================== v2: mode Otorisasi Dokumen AR */
 var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX' };

@@ -91,3 +91,20 @@ test('tutup buku otomatis tanggal 3 pukul 00.00 untuk bulan sebelumnya', () => {
   assert.strictEqual(t('2026-10-13', { PERIODE_DITUTUP_SAMPAI: '2026-07-31' }), '2026-09-30', 'manual tidak memundurkan');
   assert.strictEqual(t('2026-10-04', { TUTUP_BUKU_TANGGAL: 5 }), '2026-08-31');
 });
+
+test('surat penagihan: hanya invoice lewat jatuh tempo, dikelompokkan per proyek; alert per pelanggan', () => {
+  const input = fixture({ submit: '2026-09-01' }); // JT 01-10 → lewat 12 hari per 13-10
+  input.register.push(row(ENGINE.REG, { tgl: '2026-10-01', nomor: 'KU.02.02/WB-4C.0102/2026', jenis: 'PROGRES', pelanggan: 'PT CONTOH', npp: NPP, dpp: 50e6, ppn: 5.5e6, tarif: 0.0265, top: 30, status_inv: 'AKTIF' })); // belum submit → tidak ikut
+  const res = ENGINE.compute(input), d = ENGINE.suratData(res.ctx, 'PT CONTOH');
+  assert.strictEqual(d.projects.length, 1);
+  assert.deepStrictEqual(d.projects[0].invoices.map(i => i.nomor), [NOMOR]);
+  const i = d.projects[0].invoices[0];
+  assert.strictEqual(i.lewat, 12); assert.strictEqual(i.sisa, 111e6, 'sisa sebelum PPh = DPP + PPN'); assert.strictEqual(i.kas, 111e6 - 2650000, 'kas = sisa − PPh');
+  let a = ENGINE.suratAlerts(res.ctx);
+  assert.strictEqual(a.length, 1); assert.strictEqual(a[0].perlu, true);
+  // setelah surat tercatat: tidak perlu surat lagi dalam 14 hari; tenggat lewat → peringatan dini
+  input.surat = [row(ENGINE.SURAT, { nomor: 'KU.03.03/WB-4C.0001/2026', tgl: '2026-10-05', pelanggan: 'PT CONTOH', invoices: NOMOR, tenggat: '2026-10-08' })];
+  const res2 = ENGINE.compute(input); a = ENGINE.suratAlerts(res2.ctx);
+  assert.strictEqual(a[0].perlu, false);
+  assert.ok(ENGINE.kinerjaData(res2.ctx).ews.some(e => e.kat === 'TENGGAT SURAT TERLEWAT'));
+});

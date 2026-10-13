@@ -107,6 +107,14 @@ var ENGINE = (function () {
     sheet: 'Input Tagbrut', headerRow: 6, firstRow: 7,
     cols: [['npp', 'NPP / PELANGGAN (CATATAN)', 22], ['tgl', 'TANGGAL CATATAN', 12, 'date'], ['pic', 'PIC', 12], ['catatan', 'CATATAN TINDAK LANJUT', 60]]
   };
+  // surat permohonan percepatan pembayaran yang sudah diterbitkan (diisi aplikasi; dasar alert & peringatan tenggat)
+  var SURAT = {
+    sheet: 'Log Surat Penagihan', headerRow: 5, firstRow: 6,
+    cols: [['nomor', 'NOMOR SURAT', 'auto', 26], ['tgl', 'TANGGAL SURAT', 'auto', 12, 'date'], ['pelanggan', 'PELANGGAN', 'auto', 30],
+      ['invoices', 'INVOICE (DIPISAH ;)', 'auto', 44], ['sisa', 'TOTAL SISA TAGIHAN', 'auto', 16, 'money'], ['tenggat', 'TENGGAT PEMBAYARAN', 'auto', 12, 'date'],
+      ['kepada', 'KEPADA YTH.', 'auto', 30], ['rekening', 'REKENING DICANTUMKAN', 'auto', 30], ['kontak', 'KONTAK', 'auto', 30],
+      ['oleh', 'DIBUAT OLEH', 'auto', 24], ['waktu', 'WAKTU', 'auto', 16], ['link', 'ARSIP PDF', 'auto', 30]]
+  };
   var APPR = {
     sheet: 'Log Persetujuan', headerRow: 5, firstRow: 6,
     cols: [['id', 'ID', 'auto', 11], ['waktu', 'WAKTU PENGAJUAN', 'auto', 16], ['jenis', 'JENIS DOKUMEN', 'auto', 20], ['ref', 'REFERENSI', 'auto', 26],
@@ -670,6 +678,7 @@ var ENGINE = (function () {
     var lk = parseLK(input.lk || {});
 
     var ctx = { params: params, today: today, M: M, invs: invs.filter(function (i) { return !i._skip; }), pays: pays.filter(function (p) { return !p._skip; }),
+      surat: rowsToObjects(input.surat || [], SURAT.cols, SURAT.firstRow).filter(function (r) { return !r._empty && S(r.nomor); }).map(function (r) { r.tgl = D(r.tgl); r.tenggat = D(r.tenggat); r.pelanggan = U(r.pelanggan); return r; }),
       _input: input, issues: issues, sel: input.selectors || {}, appr: appr, latest: latest, payGroups: payGroups, valMap: valMap, valDec: VI.byRef, valFirst: VI.first, tag: tagRows, tagSkip: tagSkip, notes: notes, lk: lk };
 
     // ---- memorial akuntansi (v2.4): blok baru / revisi / koreksi dihitung dari data + sheet Memorial AR
@@ -2315,6 +2324,12 @@ var ENGINE = (function () {
       if (L.length) add('KUNING', 'PROYEK SELESAI BERSALDO', p.pelanggan, n, 'Proyek ' + p.singkat + ' berstatus SELESAI tetapi masih ada ' + L.length + ' invoice terbuka · Rp ' + fmtRp(sumBy(L, function (i) { return i._res.sisa; })), 'Tagih, atau tutup manual dengan alasan');
     });
     retensiRows(ctx).forEach(function (r) { var p = ctx.M.pro[r[1]]; if (p && p.selesai && r[9] > 0.5) add('KUNING', 'RETENSI BELUM DITAGIH', r[0], r[1], 'Proyek SELESAI, retensi belum ditagih Rp ' + fmtRp(r[9]), 'Cek masa pemeliharaan; terbitkan invoice retensi'); });
+    // surat permohonan dengan tenggat yang sudah lewat, invoice di dalamnya masih terbuka
+    (ctx.surat || []).forEach(function (r) {
+      if (!r.tenggat || r.tenggat >= today) return;
+      var keys = S(r.invoices).split(/\s*;\s*/).map(normInv), L = open.filter(function (i) { return keys.indexOf(normInv(i.nomor)) >= 0 && i._res.sisa > 1; });
+      if (L.length) add('MERAH', 'TENGGAT SURAT TERLEWAT', r.pelanggan, S(r.nomor), 'Tenggat ' + tglPanjang(r.tenggat) + ' lewat · ' + L.length + ' invoice belum lunas · sisa kas Rp ' + fmtRp(sumBy(L, function (i) { return i._res.sisa; })), 'Hubungi pelanggan; pertimbangkan surat kedua / eskalasi ke Manager');
+    });
     var pm = M[1], prevRef = pm.y + '-' + pad(pm.m, 2), pv = (ctx.valDec || {})[prevRef];
     if (pv) {
       var byK = {}; ctx.invs.forEach(function (i) { byK[normInv(i.nomor)] = i; });
@@ -2457,7 +2472,7 @@ var ENGINE = (function () {
     var y = +ctx.today.substring(0, 4), m = +ctx.today.substring(5, 7), months = [];
     for (var k2 = -12; k2 <= 2; k2++) { var yy = y + Math.floor((m - 1 + k2) / 12), mm = ((m - 1 + k2) % 12 + 12) % 12 + 1; months.push({ ref: yy + '-' + pad(mm, 2), label: monthLabel(yy, mm) }); }
     var dl = delegasiFor(P, me.email, null, ctx.today);
-    return { version: VERSION, today: ctx.today, user: me, roles: roles(P), delegasi: dl, pelanggan: pel, proyek: pro, params: params, signers: P.signers, invoices: invoices, payments: payments,
+    return { version: VERSION, today: ctx.today, user: me, roles: roles(P), delegasi: dl, suratAlerts: suratAlerts(ctx), pelanggan: pel, proyek: pro, params: params, signers: P.signers, invoices: invoices, payments: payments,
       approvals: approvalsPlain(ctx).slice(-200), months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup };
   }
   function packageFor(ctx, kind, ref, opt) {
@@ -2618,6 +2633,53 @@ var ENGINE = (function () {
     var man = D(params.PERIODE_DITUTUP_SAMPAI) || '';
     return man > auto ? man : auto;
   }
+  // ------------------------------------------------------------------ SURAT PERMOHONAN PERCEPATAN PEMBAYARAN
+  /** invoice yang lewat jatuh tempo per hari ini dan masih bersisa (invoice tanpa jatuh tempo — belum submit / tanda terima — tidak ikut) */
+  function suratOverdue(i, today) {
+    var r = i._res, a = i._a;
+    return !i._batal && !r.closed && !!r.jt && r.jt < today && (a.netto + a.ppn - r.diterima) > 1;
+  }
+  function suratItem(i, today) {
+    var a = i._a, r = i._res, pel = i._pel, tt = pel && pel.dasar_jt === 'TGL TANDA TERIMA';
+    var terima = tt ? D(i.tt) : D(i.submit);
+    return { nomor: i.nomor, invke: invLabel(i), npp: i.npp, tgl: i.tgl, terima: terima || '', basisTT: !!tt, top: terima && r.jt ? diffDays(r.jt, terima) : '', jt: r.jt,
+      lewat: diffDays(today, r.jt), dpp: rnd(a.dpp), ppn: rnd(a.ppn), ret: a.retpos === 'AKHIR' ? rnd(a.ret || 0) : 0, tagihan: rnd(a.netto + a.ppn), pph: rnd(a.pph), pphLabel: pphLabel(i.npp, a.tarif),
+      diterima: rnd(r.diterima), sisa: rnd(Math.max(0, a.netto + a.ppn - r.diterima)), kas: rnd(Math.max(0, r.sisa)), no_fp: S(i.no_fp), status: r.status };
+  }
+  /** data surat untuk satu pelanggan: invoice lewat jatuh tempo dikelompokkan per proyek */
+  function suratData(ctx, pelanggan) {
+    var key = U(pelanggan), today = ctx.today, P = ctx.M.pel[key] || null, groups = {}, order = [];
+    ctx.invs.forEach(function (i) {
+      if (U(i.pelanggan) !== key || !suratOverdue(i, today)) return;
+      if (!groups[i.npp]) {
+        var pro = ctx.M.pro[i.npp] || {};
+        groups[i.npp] = { npp: i.npp, singkat: S(pro.singkat), pekerjaan: S(pro.pekerjaan) || S(pro.nama_pe) || S(pro.singkat), kontrak: S(pro.kontrak), tgl_kontrak: D(pro.tgl_kontrak) || '', invoices: [] };
+        order.push(i.npp);
+      }
+      groups[i.npp].invoices.push(suratItem(i, today));
+    });
+    var projects = order.sort().map(function (n) { var g = groups[n]; g.invoices.sort(function (a, b) { return a.jt < b.jt ? -1 : a.jt > b.jt ? 1 : (a.nomor < b.nomor ? -1 : 1); }); return g; });
+    var letters = ctx.surat.filter(function (r) { return r.pelanggan === key; }).map(function (r) { return { nomor: S(r.nomor), tgl: r.tgl, tenggat: r.tenggat, invoices: S(r.invoices), sisa: N(r.sisa), kepada: S(r.kepada), kontak: S(r.kontak), rekening: S(r.rekening), link: S(r.link) }; });
+    return { today: today, pelanggan: key, nama: P ? (S(P.inv) || P.nama) : key, alamat: P ? [P.a1, P.a2, P.a3].map(S).filter(String) : [], projects: projects, letters: letters };
+  }
+  /** pelanggan yang perlu dikirimi surat: punya invoice lewat jatuh tempo yang belum masuk surat dalam SURAT_ULANG_HARI terakhir (bawaan 14) */
+  function suratAlerts(ctx) {
+    var today = ctx.today, ulang = N(ctx.params.SURAT_ULANG_HARI) || 14, by = {};
+    ctx.invs.forEach(function (i) {
+      if (!suratOverdue(i, today)) return;
+      var k = U(i.pelanggan), o = by[k] || (by[k] = { pelanggan: k, n: 0, sisa: 0, maxLewat: 0, proyek: {}, baru: 0 });
+      var it = suratItem(i, today), nk = normInv(i.nomor);
+      o.n++; o.sisa += it.sisa; o.maxLewat = Math.max(o.maxLewat, it.lewat); o.proyek[i.npp] = 1;
+      var covered = ctx.surat.some(function (r) { return r.pelanggan === k && r.tgl && diffDays(today, r.tgl) <= ulang && S(r.invoices).split(/\s*;\s*/).map(normInv).indexOf(nk) >= 0; });
+      if (!covered) o.baru++;
+    });
+    return Object.keys(by).map(function (k) {
+      var o = by[k], L = ctx.surat.filter(function (r) { return r.pelanggan === k; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : -1; })[0];
+      o.proyek = Object.keys(o.proyek).length; o.sisa = rnd(o.sisa); o.perlu = o.baru > 0;
+      o.terakhir = L ? { nomor: S(L.nomor), tgl: L.tgl, tenggat: L.tenggat } : null;
+      return o;
+    }).sort(function (a, b) { return (b.perlu ? 1 : 0) - (a.perlu ? 1 : 0) || b.sisa - a.sisa; });
+  }
   /** PPh yang sudah diakui pada pelunasan tetapi nomor bukti potong belum dicatat — tanpa bupot, PPh tidak bisa dikreditkan */
   function bupotPendingRows(ctx) {
     var out = [];
@@ -2643,7 +2705,7 @@ var ENGINE = (function () {
   }
 
   return {
-    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,
