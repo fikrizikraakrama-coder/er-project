@@ -16,7 +16,13 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 5. Parameter (kolom A–C) yang baru:
    | Kunci | Isi |
    |---|---|
-   | `PERIODE_DITUTUP_SAMPAI` | Diisi lewat menu/aplikasi **Tutup periode**. Transaksi bertanggal s.d. tanggal ini ditolak. |
+   | `TUTUP_BUKU_TANGGAL` | Bawaan `3`: bulan lalu otomatis tutup buku tanggal 3 pukul 00.00 WIB (laporan ke pusat). Setelah itu invoice, penerimaan, revisi & pembatalan bertanggal bulan itu ditolak. |
+   | `TUTUP_BUKU_OTOMATIS` | Isi `TIDAK` hanya bila tutup otomatis ingin dimatikan. |
+   | `PERIODE_DITUTUP_SAMPAI` | Opsional, lewat menu/aplikasi **Tutup periode**: menutup lebih awal (tidak bisa memundurkan tutup otomatis). |
    | `PERIODE_KOREKSI_SAMPAI`, `_OLEH`, `_ALASAN` | Diisi Section Head di aplikasi (Otorisasi Dokumen ▸ Izinkan koreksi), maks. 7 hari. |
-   | `ANALISIS_TANGGAL_OTOMATIS` | Tanggal paling cepat snapshot bulanan otomatis bila periode belum ditutup (bawaan 10). |
    | `NOTIF_PERSETUJUAN_CC` | Email tambahan penerima notifikasi keputusan (opsional, pisahkan dengan koma). |
+
+## Tutup buku & koreksi
+- Snapshot Analisis Bulanan dibuat otomatis setelah tutup buku (jadwal harian 06.00 pada tanggal tutup buku).
+- Koreksi periode tertutup: Section Head membuka izin (maks. 7 hari) di Otorisasi Dokumen AR → pembuat menyimpan dengan alasan →
+  data ditandai `[KOREKSI PERIODE TERTUTUP …]`, email ke Section Head, dan snapshot bulan itu otomatis direvisi (Rev.01, Rev.02, …; arsip lama tetap).

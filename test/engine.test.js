@@ -80,3 +80,14 @@ test('bupotPendingRows: daftar hanya memuat PPh diakui tanpa nomor bukti potong'
   assert.strictEqual(r.length, 1);
   assert.strictEqual(r[0][2], 'X1'); assert.strictEqual(r[0][7], 30);
 });
+
+test('tutup buku otomatis tanggal 3 pukul 00.00 untuk bulan sebelumnya', () => {
+  const t = (today, p) => ENGINE.periodeTutup(Object.assign({}, p || {}), today);
+  assert.strictEqual(t('2026-10-02'), '2026-08-31', '2 Okt: September masih terbuka');
+  assert.strictEqual(t('2026-10-03'), '2026-09-30', '3 Okt 00.00: September tertutup');
+  assert.strictEqual(t('2026-10-13'), '2026-09-30');
+  assert.strictEqual(t('2027-01-03'), '2026-12-31', 'lintas tahun');
+  assert.strictEqual(t('2026-10-13', { PERIODE_DITUTUP_SAMPAI: '2026-10-10' }), '2026-10-10', 'manual hanya memajukan');
+  assert.strictEqual(t('2026-10-13', { PERIODE_DITUTUP_SAMPAI: '2026-07-31' }), '2026-09-30', 'manual tidak memundurkan');
+  assert.strictEqual(t('2026-10-04', { TUTUP_BUKU_TANGGAL: 5 }), '2026-08-31');
+});

@@ -2609,6 +2609,15 @@ var ENGINE = (function () {
     });
     return out;
   }
+  /** tanggal terakhir periode tertutup per hari ini: tutup buku bulan lalu jatuh pada tanggal TUTUP_BUKU_TANGGAL (bawaan 3) pukul 00.00 WIB.
+   *  mis. 02-10 → tertutup s.d. 31-08; 03-10 → s.d. 30-09. PERIODE_DITUTUP_SAMPAI hanya bisa memajukan, tidak memundurkan. */
+  function periodeTutup(params, today) {
+    today = D(today); if (!today) return '';
+    var hari = Math.max(1, Math.min(28, Math.floor(N(params.TUTUP_BUKU_TANGGAL)) || 3));
+    var auto = U(params.TUTUP_BUKU_OTOMATIS) === 'TIDAK' ? '' : (+today.substring(8, 10) >= hari ? prevMonthEnd(today) : prevMonthEnd(prevMonthEnd(today)));
+    var man = D(params.PERIODE_DITUTUP_SAMPAI) || '';
+    return man > auto ? man : auto;
+  }
   /** PPh yang sudah diakui pada pelunasan tetapi nomor bukti potong belum dicatat — tanpa bupot, PPh tidak bisa dikreditkan */
   function bupotPendingRows(ctx) {
     var out = [];
@@ -2634,7 +2643,7 @@ var ENGINE = (function () {
   }
 
   return {
-    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,

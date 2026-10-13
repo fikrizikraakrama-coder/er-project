@@ -2195,9 +2195,9 @@ function refreshAll(cb) { call('apiBootstrap', [], function (b) { B = b; applyAc
 var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX' };
 /* tutup periode: PEMBUAT menutup (hanya maju); Section Head membuka koreksi sementara (maks. 7 hari) atau mencabutnya */
 function renderPeriode() {
-  var P = B.params || {}, tutup = P.PERIODE_DITUTUP_SAMPAI || '', kor = P.PERIODE_KOREKSI_SAMPAI && P.PERIODE_KOREKSI_SAMPAI >= B.today ? P.PERIODE_KOREKSI_SAMPAI : '';
+  var P = B.params || {}, tutup = E.periodeTutup(P, B.today), kor = P.PERIODE_KOREKSI_SAMPAI && P.PERIODE_KOREKSI_SAMPAI >= B.today ? P.PERIODE_KOREKSI_SAMPAI : '';
   var appr = !!(B.access && B.access.approver), maker = !!(B.access && B.access.maker), h = '';
-  h += '<div class="note' + (kor ? ' warn' : '') + '" style="margin-top:8px"><b>Periode ditutup s.d.:</b> ' + (tutup ? esc(tg(tutup)) : 'belum ada') +
+  h += '<div class="note' + (kor ? ' warn' : '') + '" style="margin-top:8px"><b>Tutup buku s.d.:</b> ' + (tutup ? esc(tg(tutup)) : 'belum ada') + ' <span style="color:var(--steel)">(otomatis tiap tanggal ' + esc(P.TUTUP_BUKU_TANGGAL || 3) + ' pukul 00.00 untuk bulan sebelumnya)</span>' +
     (kor ? '<br>Koreksi diizinkan sampai ' + esc(tg(kor)) + ' oleh ' + esc(P.PERIODE_KOREKSI_OLEH || '-') + ' — ' + esc(P.PERIODE_KOREKSI_ALASAN || '') : '') + '<div class="inline" style="margin-top:6px;gap:10px">' +
     (maker ? '<button class="linkbtn" type="button" onclick="periodeTutup()">Tutup periode…</button>' : '') +
     (appr && tutup && !kor ? '<button class="linkbtn" type="button" onclick="periodeBuka()">Izinkan koreksi periode tertutup…</button>' : '') +
@@ -2209,7 +2209,7 @@ function periodeAksi(act, tgl, alasan) {
 }
 function periodeTutup() {
   var def = E.prevMonthEnd(B.today);
-  confirmDlg('Tutup periode', 'Invoice & penerimaan bertanggal sampai tanggal ini ditolak, kecuali Section Head mengizinkan koreksi. Tutup periode setelah LK ditutup / laporan ke pusat terkirim.<input type="date" id="dlgPerT" style="margin-top:8px" value="' + esc(def) + '">', 'Tutup periode', function () { periodeAksi('tutup', ($('dlgPerT') || {}).value); });
+  confirmDlg('Tutup periode lebih awal', 'Bulan lalu otomatis tutup buku tanggal ' + esc(B.params.TUTUP_BUKU_TANGGAL || 3) + ' pukul 00.00. Gunakan ini hanya untuk menutup lebih awal: invoice, penerimaan & pembatalan bertanggal sampai tanggal ini ditolak, kecuali Section Head mengizinkan koreksi.<input type="date" id="dlgPerT" style="margin-top:8px" value="' + esc(def) + '">', 'Tutup periode', function () { periodeAksi('tutup', ($('dlgPerT') || {}).value); });
 }
 function periodeBuka() {
   confirmDlg('Izinkan koreksi periode tertutup', 'Pembuat boleh mencatat / merevisi transaksi di periode tertutup sampai tanggal berikut (maks. 7 hari), dengan alasan per transaksi. Setiap koreksi dikirim ke email Anda.<input type="date" id="dlgPerK" style="margin-top:8px" value="' + esc(B.today) + '"><textarea id="dlgPerA" style="margin-top:8px" placeholder="alasan / dasar izin (min. 10 karakter)"></textarea>', 'Izinkan', function () { periodeAksi('buka', ($('dlgPerK') || {}).value, ($('dlgPerA') || {}).value); });

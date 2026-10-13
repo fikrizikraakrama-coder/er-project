@@ -150,7 +150,8 @@ function arSavePayments_(rows, requestId, opt) {
     npps=ctx.invs.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}).map(function(i){return i.npp;});
   } finally { lock.releaseLock(); }
   var post=arAfterSave_(npps,months); saved.reportPending=post.reportPending;saved.warnings=post.warnings;
-  if (koreksi && !saved.duplicate) { var nw=arNotify_('Koreksi periode tertutup — penerimaan '+rows[0].tgl,['Pembuat: '+access.email,'Tanda: '+koreksi,'ID permintaan: '+token,''].concat(rows.map(function(r){return '• '+r.tgl+' · '+r.inv+' · Rp '+ENGINE.fmtRp(r.nominal)+(r.ref?' · ref '+r.ref:'');}))); if(nw) saved.warnings.push(nw); }
+  if (koreksi && !saved.duplicate) { var rf=arRefreshClosedMonths_(rows.map(function(r){return r.tgl;}),koreksi); saved.warnings=saved.warnings.concat(rf.warnings); saved.snapshots=rf.ids;
+    var nw=arNotify_('Koreksi periode tertutup — penerimaan '+rows[0].tgl,['Pembuat: '+access.email,'Tanda: '+koreksi,'ID permintaan: '+token,'Snapshot direvisi: '+(rf.ids.join(', ')||'-'),''].concat(rows.map(function(r){return '• '+r.tgl+' · '+r.inv+' · Rp '+ENGINE.fmtRp(r.nominal)+(r.ref?' · ref '+r.ref:'');}))); if(nw) saved.warnings.push(nw); }
   try { var b=ENGINE.bootstrap(compute_(),access.email); saved.invoices=b.invoices.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}); saved.payments=b.payments.filter(function(p){return (rows[0].ref && p.ref===rows[0].ref) || (!rows[0].ref && p.key===saved.key);}); } catch(e) { saved.reportPending=true;saved.warnings.push('Ringkasan belum termuat: '+e.message); }
   return plain_(saved);
 }
@@ -393,11 +394,17 @@ function arRenderMonthly_(r) {
   blocks.slice(1).forEach(function(b){sh.getRange(b.r,1,b.rows.length,3).mergeAcross().setWrap(true).setHorizontalAlignment('left').setVerticalAlignment('middle');sh.autoResizeRows(b.r,b.rows.length);});
   sh.setHiddenGridlines(true); sh.setFrozenRows(5);
 }
-// Snapshot otomatis menunggu tutup buku: dibuat setelah PERIODE_DITUTUP_SAMPAI mencapai akhir bulan itu;
-// tanpa parameter tersebut, paling cepat tanggal ANALISIS_TANGGAL_OTOMATIS (bawaan 10) bulan berikutnya.
-function arMonthlyDue_(month) {
-  var st=arPeriodState_(),end=arMonthEnd_(month),hari=Number((paramKV_('ANALISIS_TANGGAL_OTOMATIS')||{}).val)||10;
-  return st.tutup ? st.tutup>=end : Number(arToday_().slice(8))>=hari;
+// Snapshot otomatis dibuat setelah bulan itu tutup buku (tanggal 3 bulan berikutnya, jadwal harian 06.00).
+function arMonthlyDue_(month) { var st=arPeriodState_(); return !!st.tutup && st.tutup>=arMonthEnd_(month); }
+/** refresh setelah koreksi berizin di periode tertutup: snapshot bulan terdampak yang sudah ada direvisi (arsip lama tetap) */
+function arRefreshClosedMonths_(dates, alasan) {
+  var st=arPeriodState_(),done=[],warn=[],seen={};
+  (dates||[]).forEach(function(d){
+    d=String(d||'').slice(0,10); if(!arValidDate_(d)||!st.tutup||d>st.tutup)return; var m=d.slice(0,7); if(seen[m])return; seen[m]=1;
+    if(!arMonthlyRows_().some(function(r){return r[1]===m;}))return;
+    try{var r=arCreateMonthly_(m,true,'Koreksi periode tertutup — '+String(alasan||'').slice(0,300));done.push(r.id);}catch(e){warn.push('Snapshot '+m+' belum direvisi: '+e.message);}
+  });
+  return {ids:done,warnings:warn};
 }
 function arMonthlyAuto_(){if(!sheet_('Arsip Analisis AR'))return;var month=ENGINE.prevMonthEnd(arToday_()).slice(0,7);if(!arMonthlyDue_(month))return;try{arCreateMonthly_(month,false,'');arProps_().setProperty('MONTHLY_ERROR','');}catch(e){arProps_().setProperty('MONTHLY_ERROR',arNow_()+' '+e.message);var sh=sheet_('Analisis Bulanan AR');if(sh)sh.getRange('A3').setValue('Analisis otomatis belum berhasil: '+e.message);}}
 function arMonthlyMenu(){arRequireMaker_();var ui=SpreadsheetApp.getUi(),mo=ENGINE.prevMonthEnd(arToday_()).slice(0,7);if(!arPeriodState_().tutup||arPeriodState_().tutup<arMonthEnd_(mo)){if(ui.alert('Periode belum ditutup','Bulan '+mo+' belum ditutup (PERIODE_DITUTUP_SAMPAI). Snapshot sekarang bisa belum memuat penerimaan akhir bulan yang terlambat diinput. Tetap buat?',ui.ButtonSet.OK_CANCEL)!==ui.Button.OK)return;}var r=arCreateMonthly_(ENGINE.prevMonthEnd(arToday_()).slice(0,7),false,'');SpreadsheetApp.getUi().alert('Analisis tersedia: '+r.id);}
@@ -501,7 +508,7 @@ function arNotifyDecision_(n) {
 // kecuali Section Head membuka koreksi sementara (aplikasi) DAN pembuat menulis alasan. Setiap koreksi dikirim ke email Section Head.
 function arPeriodState_(P) {
   P = P || arParameters_();
-  var t = String(P.PERIODE_DITUTUP_SAMPAI || ''), k = String(P.PERIODE_KOREKSI_SAMPAI || '');
+  var t = ENGINE.periodeTutup(P, arToday_()), k = String(P.PERIODE_KOREKSI_SAMPAI || '');
   return { tutup: arValidDate_(t) ? t : '', koreksi: arValidDate_(k) && k >= arToday_() ? k : '', oleh: String(P.PERIODE_KOREKSI_OLEH || ''), alasan: String(P.PERIODE_KOREKSI_ALASAN || '') };
 }
 /** '' bila semua tanggal di periode terbuka; tanda koreksi bila diizinkan; selain itu error berkode PERIODE_TERTUTUP / PERIODE_TERTUTUP_ALASAN */
@@ -521,7 +528,7 @@ function apiPeriode(action, tanggal, alasan) {
     if (action === 'tutup') {
       if (!a.maker && !a.approver) throw new Error('Tidak berwenang menutup periode.');
       if (!arValidDate_(tanggal) || tanggal >= arToday_()) throw new Error('Tanggal tutup harus tanggal yang sudah lewat.');
-      if (st.tutup && tanggal < st.tutup) throw new Error('Periode tidak bisa dimundurkan (sekarang s.d. ' + st.tutup + '). Gunakan buka koreksi sementara oleh Section Head.');
+      if (st.tutup && tanggal <= st.tutup) throw new Error('Periode sudah tertutup s.d. ' + st.tutup + ' (otomatis tiap tanggal ' + ((paramKV_('TUTUP_BUKU_TANGGAL') || {}).val || 3) + ' pukul 00.00). Periode tidak bisa dimundurkan; gunakan izin koreksi Section Head.');
       setParamKV_('PERIODE_DITUTUP_SAMPAI', tanggal, 'Transaksi bertanggal s.d. tanggal ini ditolak (tutup buku)');
       msg = ['Periode ditutup s.d. ' + tanggal + ' oleh ' + a.email + '.'];
     } else if (action === 'buka' || action === 'cabut') {
@@ -583,4 +590,17 @@ function arPropsCleanup_() {
   try { var dp = PropertiesService.getDocumentProperties(); if (dp) { var dAll = dp.getProperties(); Object.keys(dAll).forEach(function(k) { if (sp.getProperty('AR28_' + k) !== null || /^(VOID_|PE28_|W_PE28_)/.test(k)) { dp.deleteProperty(k); out.hapus++; } }); } } catch (e) {}
   arProps_().setProperty('PROPS_BYTES', String(out.bytes));
   return out;
+}
+
+/** pengajuan / keputusan yang mengubah data periode tertutup (pembatalan invoice, lembar validasi) hanya boleh saat izin koreksi aktif */
+function arPeriodDateOf_(kind, d) {
+  if (kind === 'BATAL') return d && d.inv ? String(d.inv.tgl || '') : '';
+  if (kind === 'VAL' || kind === 'VALX') return /^\d{4}-\d{2}$/.test(String(d && d.ref || '')) ? arMonthEnd_(String(d.ref)) : '';
+  return '';
+}
+function arGuardClosed_(kind, d, what) {
+  var t = arPeriodDateOf_(kind, d), st = arPeriodState_();
+  if (!t || !st.tutup || t > st.tutup) return '';
+  if (!st.koreksi) throw new Error(what + ' menyangkut periode yang sudah tutup buku (s.d. ' + st.tutup + '). Setelah tanggal tutup buku data periode itu tidak bisa diubah / dibatalkan, kecuali Section Head membuka izin koreksi.');
+  return t;
 }

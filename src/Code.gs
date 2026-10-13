@@ -899,7 +899,8 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
   result.saved = true;
   var post = arAfterSave_([p.npp], [String(p.tgl || '').substring(0, 7)]);
   result.reportPending = post.reportPending; result.warnings = post.warnings;
-  if (koreksi) { var nw = arNotify_('Koreksi periode tertutup — invoice ' + nomor, ['Pembuat: ' + user, 'Mode: ' + result.mode + (result.mode === 'revisi' ? ' (rev ' + result.rev + ', alasan: ' + opt.alasan + ')' : ''), 'Tanggal invoice: ' + p.tgl, 'DPP Rp ' + ENGINE.fmtRp(p.dpp) + ' · PPN Rp ' + ENGINE.fmtRp(p.ppn), 'Tanda: ' + koreksi]); if (nw) result.warnings.push(nw); }
+  if (koreksi) { var rf = arRefreshClosedMonths_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], koreksi); result.warnings = result.warnings.concat(rf.warnings); result.snapshots = rf.ids;
+    var nw = arNotify_('Koreksi periode tertutup — invoice ' + nomor, ['Pembuat: ' + user, 'Mode: ' + result.mode + (result.mode === 'revisi' ? ' (rev ' + result.rev + ', alasan: ' + opt.alasan + ')' : ''), 'Tanggal invoice: ' + p.tgl, 'DPP Rp ' + ENGINE.fmtRp(p.dpp) + ' · PPN Rp ' + ENGINE.fmtRp(p.ppn), 'Tanda: ' + koreksi]); if (nw) result.warnings.push(nw); }
   return result;
 }
 /** baris Log Penerimaan dari aplikasi → array sesuai urutan skema LOG */
@@ -984,6 +985,9 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
       res = compute_(); d = ENGINE.packageFor(res.ctx, kind, ref, { fresh: true });
       var ue = ENGINE.valCheckUsulan(d, extra); if (ue) throw new Error(ue);
     }
+    // tutup buku: pembatalan invoice & lembar validasi periode tertutup hanya dengan izin koreksi; alasan wajib & ditandai
+    var kTgl = arGuardClosed_(kind, d, 'Pengajuan ' + kind + ' ' + d.ref);
+    if (kTgl && extra && extra.alasan !== undefined) extra.alasan = '[KOREKSI PERIODE TERTUTUP] ' + String(extra.alasan).trim();
     if (kind === 'VALX') {
       if (!d.canSubmit) throw new Error(d.blok);
       if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('Alasan pembatalan wajib diisi (minimal 10 huruf).');
@@ -1028,6 +1032,7 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
     if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Pengajuan ' + id + ' sudah berstatus ' + r.status + '.');
     // pemisahan tugas: berlaku juga untuk delegasi — pengaju tidak pernah memutuskan pengajuannya sendiri
     if (String(r.oleh).toLowerCase() === me) throw new Error('Pengajuan tidak dapat disetujui oleh pembuatnya sendiri.');
+    var kTglD = arGuardClosed_(kind, kind === 'BATAL' ? ENGINE.packageFor(res.ctx, kind, r.ref) : { ref: r.ref }, 'Keputusan ' + r.id);
     if (dl) catatan = '[DELEGASI a.n. ' + dl.atas + ' s.d. ' + dl.sampai + (dl.dasar ? ' · dasar: ' + dl.dasar : '') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : '');
     if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX') {
       var d = ENGINE.packageFor(res.ctx, kind, r.ref);
@@ -1064,12 +1069,13 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
     r.kode = sign_({ id: r.id, jenis: String(r.jenis).toUpperCase(), ref: r.ref, sidik: r.sidik, putus_oleh: me, putus_waktu: now, status: st });
     ['status', 'putus_oleh', 'putus_waktu', 'catatan', 'kode'].forEach(function (k) { if (A.map[k]) A.sh.getRange(r._row, A.map[k]).setNumberFormat('@').setValue(r[k]); });
     out = { ok: true, id: r.id, status: st, kode: r.kode };
-    var notif = { r: r, me: me, nama: (u && u.nama) || '', dl: dl };
+    var notif = { r: r, me: me, nama: (u && u.nama) || '', dl: dl, koreksi: kTglD };
   } finally { lock.releaseLock(); }
   // bukti di luar sistem: kode HMAC bisa dihitung ulang oleh editor proyek, email di kotak masuk Section Head tidak
   out.warnings = [];
   var w = arNotifyDecision_(notif); if (w) out.warnings.push(w);
   rebuildAll();
+  if (kTglD && out.status === 'DISETUJUI') { var rf = arRefreshClosedMonths_([kTglD], out.id + ' ' + (notif.r.catatan || notif.r.label || '')); out.warnings = out.warnings.concat(rf.warnings); out.snapshots = rf.ids; }
   return out;
 }
 /** folder arsip: <ARSIP_FOLDER>/<jenis paket>/<tahun>/<MM Bulan tahun> */
