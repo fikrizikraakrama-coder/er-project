@@ -29,7 +29,8 @@ function arProps_() {
   try { d = PropertiesService.getDocumentProperties(); } catch (e) {}
   return {
     getProperty: function(k) { var v = s.getProperty('AR28_' + k); return v !== null ? v : d ? d.getProperty(k) : null; },
-    setProperty: function(k,v) { s.setProperty('AR28_' + k, String(v)); if (d) d.setProperty(k,String(v)); return this; },
+    // hanya ditulis ke Script Properties; Document Properties lama tetap terbaca sampai dibersihkan arPropsCleanup_
+    setProperty: function(k,v) { s.setProperty('AR28_' + k, String(v)); return this; },
     deleteProperty: function(k) { s.deleteProperty('AR28_' + k); if (d) d.deleteProperty(k); return this; }
   };
 }
@@ -232,7 +233,10 @@ function arWriteReconciliation_(res) {
   sh.getRange('A2').setValue('Cocokkan invoice, kas, PPh diakui, bukti potong dan LK/SAP. Selisih basis kas vs buku pembantu tidak otomatis berarti salah.');
   sh.getRange('A3').setValue('Posisi '+res.today+' · '+arNow_()+' · tidak menolkan saldo berdasarkan nama pelanggan.');
   var hdr=['PELANGGAN','NPP','INVOICE','STATUS SISTEM','TAGIHAN DICATAT','KAS DITERIMA','PPh PERHITUNGAN','PPh DIAKUI','SALDO BUKU PEMBANTU','SISA KAS','BEDA BASIS','TINDAK LANJUT','BUKTI POTONG','NO DOK SAP'];
-  writeReport_(sh,{from:5,blocks:[arBlock_(5,[hdr].concat(ENGINE.reconciliationRows(res.ctx)),{4:'money0',5:'money0',6:'money0',7:'money0',8:'money0',9:'money0',10:'money0'})],wrapCols:[12,13],minW:{1:28,3:28,12:48}},'Rekonsiliasi Saldo');
+  var rec=[hdr].concat(ENGINE.reconciliationRows(res.ctx)),bp=ENGINE.bupotPendingRows(res.ctx),r2=5+rec.length+3;
+  var bpRows=[['PPh SUDAH DIAKUI — BUKTI POTONG BELUM DICATAT ('+bp.length+' penerimaan). Isi kolom BUKTI POTONG di Log Penerimaan setelah bupot diterima; tanpa bupot PPh tidak bisa dikreditkan.'],['PELANGGAN','NPP','INVOICE','TGL BAYAR','REF','JENIS PPh','PPh DIAKUI','UMUR (HARI)','ID PENERIMAAN']].concat(bp.length?bp:[['Tidak ada — semua PPh yang diakui sudah memiliki nomor bukti potong.']]);
+  var b2=arBlock_(r2,bpRows,{6:'money0',7:'int'});b2.styles=[{r:0,s:'title'},{r:1,s:'hdr'}];
+  writeReport_(sh,{from:5,blocks:[arBlock_(5,rec,{4:'money0',5:'money0',6:'money0',7:'money0',8:'money0',9:'money0',10:'money0'}),b2],wrapCols:[12,13],minW:{1:28,3:28,12:48}},'Rekonsiliasi Saldo');
   sh.setFrozenRows(5); sh.setHiddenGridlines(true);
 }
 
@@ -433,7 +437,7 @@ function apiResolvePayment(requestId) {
     if(found.some(function(r){return r[ui]!==a.email;}))throw new Error('Permintaan milik pengguna lain.');
     if(found.length)return {saved:true,count:found.length};
     // Cancel outstanding writes with this token under the same lock; a delayed RPC cannot commit later.
-    arProps_().setProperty('VOID_'+requestId,a.email);
+    arProps_().setProperty('VOID_'+requestId,a.email+'|'+arToday_());
     return {saved:false,canceled:true};
   }finally{l.releaseLock();}
 }
@@ -488,7 +492,7 @@ function arNotifyDecision_(n) {
     'Keputusan  : ' + r.status + (n.dl ? ' (DELEGASI a.n. ' + n.dl.atas + ')' : ''),
     'ID         : ' + r.id, 'Jenis      : ' + r.jenis, 'Referensi  : ' + r.ref, 'Label      : ' + (r.label || '-'),
     'Nilai      : Rp ' + ENGINE.fmtRp(Number(r.nilai) || 0),
-    'Diajukan   : ' + (r.oleh_nama || r.oleh) + ' <' + r.oleh + '> · ' + r.waktu,
+    'Diajukan   : ' + r.oleh + ' · ' + r.waktu,
     'Diputuskan : ' + (n.nama || n.me) + ' <' + n.me + '> · ' + r.putus_waktu + ' WIB',
     'Sidik data : ' + r.sidik, 'Kode verif.: ' + r.kode, 'Catatan    : ' + (r.catatan || '-')]);
 }
@@ -544,4 +548,39 @@ function arTutupPeriodeMenu() {
   if (q.getSelectedButton() !== ui.Button.OK) return;
   var r = apiPeriode('tutup', String(q.getResponseText() || '').trim());
   ui.alert('Periode ditutup s.d. ' + r.periode.tutup + (r.warnings.length ? '\n\n' + r.warnings.join('\n') : ''));
+}
+
+// ---------------- Angka invoice dihitung ulang di server dari isian form + Master Proyek; aplikasi tidak dipercaya begitu saja.
+function arCheckInvoiceNumbers_(p, nomor) {
+  if (!p || !p.form) throw new Error('Data form invoice tidak ada. Simpan dari aplikasi.');
+  var b = ENGINE.bootstrap(compute_(), email_()), pr = b.proyek.filter(function(x){return x.npp===p.npp;})[0];
+  if (!pr) throw new Error('NPP ' + p.npp + ' tidak ada di Master Proyek.');
+  if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Isian form tidak sesuai dengan data invoice. Muat ulang aplikasi.');
+  var ex = b.invoices.filter(function(i){return ENGINE.normInv(i.nomor)===nomor;})[0];
+  var c = ENGINE.calcInvoice(ENGINE.invoiceInput(pr, Object.assign({}, p.form, { tgl: p.tgl, jenis: p.jenis }), ex ? ex.umk : 0));
+  var want = { bruto: c.bruto, umk: c.umk || 0, retensi: c.retensi || 0, dpp: c.dpp, ppn: c.ppn, tagih: c.bayar }, beda = [];
+  Object.keys(want).forEach(function(k) { if (Math.abs((Number(p[k]) || 0) - (Number(want[k]) || 0)) > 1) beda.push(k.toUpperCase() + ' aplikasi Rp ' + ENGINE.fmtRp(Number(p[k]) || 0) + ' ≠ server Rp ' + ENGINE.fmtRp(Number(want[k]) || 0)); });
+  if (beda.length) throw new Error('Angka invoice berbeda dengan hitungan server (' + beda.join('; ') + '). Data proyek / sisa UM mungkin sudah berubah — muat ulang aplikasi lalu periksa kembali.');
+  if (p.jenis === 'RETENSI' && (pr.template === 'IKK' || pr.template === 'KIDOH') && Number(pr.ret_pct) > 0 && want.ppn > 0 && !String((p.form || {}).ppnRetensiAlasan || '').trim())
+    throw new Error('Pelepasan retensi proyek ' + p.npp + ' (retensi posisi AKHIR, template ' + pr.template + ') dikenai PPN, padahal PPN retensi sudah ditagih di invoice progres. Matikan "Kenakan PPN", atau isi dasar tertulis Pajak / Akuntansi pada kolom di bawah "Kenakan PPN".');
+  // atribut pajak & template selalu dari Master Proyek
+  p.template = pr.template; p.tarif = pr.tarif; p.dasar = pr.dasar_pph; p.retpos = c.retPos || 'TIDAK ADA';
+  ['bruto','umk','retensi','dpp','ppn'].forEach(function(k){ p[k] = Number(want[k]) || 0; }); p.tagih = Number(want.tagih) || 0;
+}
+
+// ---------------- Script Properties dibatasi ±500 KB: hapus data turunan yang sudah tidak dipakai (aman dijalankan berulang).
+function arPropsCleanup_() {
+  var sp = PropertiesService.getScriptProperties(), all = sp.getProperties(), today = arToday_(), out = { hapus: 0, bytes: 0 };
+  var pe = (paramKV_('FILE_PE_ID') || {}).val || '', voidLimit = ENGINE.addDays(today, -7), draftLimit = ENGINE.addDays(today, -186).slice(0, 7);
+  Object.keys(all).forEach(function(k) {
+    var v = String(all[k]), m, del = false;
+    if ((m = k.match(/^AR28_VOID_/))) { var d = v.split('|')[1]; del = !d || d < voidLimit; } // token batal lama: RPC tertunda tidak mungkin masih berjalan
+    else if (/^AR28_(?:W_)?PE28_/.test(k)) del = !!pe && k.indexOf('AR28_PE28_' + pe + '_') !== 0 && k.indexOf('AR28_W_PE28_' + pe + '_') !== 0; // digest / lebar kolom file P&E lama (ID Drive bisa memuat "_")
+    else if ((m = k.match(/^AR28_VALDRAFT_(\d{4}-\d{2})/))) del = m[1] < draftLimit;           // draf usulan validasi > 6 bulan
+    if (del) { sp.deleteProperty(k); out.hapus++; } else out.bytes += k.length + v.length;
+  });
+  // salinan lama di Document Properties yang sudah ada di Script Properties
+  try { var dp = PropertiesService.getDocumentProperties(); if (dp) { var dAll = dp.getProperties(); Object.keys(dAll).forEach(function(k) { if (sp.getProperty('AR28_' + k) !== null || /^(VOID_|PE28_|W_PE28_)/.test(k)) { dp.deleteProperty(k); out.hapus++; } }); } } catch (e) {}
+  arProps_().setProperty('PROPS_BYTES', String(out.bytes));
+  return out;
 }

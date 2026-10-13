@@ -367,6 +367,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
         <div id="grpDpp" hidden>
           <label for="fDpp" id="lblDpp">Tagihan saat ini / DPP (Rp)</label><input id="fDpp" inputmode="decimal" class="num">
           <div class="inline" id="ppnOnWrap" style="margin-top:6px"><input type="checkbox" id="fPpnOn" checked><label for="fPpnOn" style="margin:0">Kenakan PPN</label></div>
+          <input id="fPpnRetAls" style="margin-top:6px" placeholder="dasar tertulis PPN atas retensi (wajib bila dicentang)" hidden>
         </div>
         <div id="grpItems" hidden>
           <label>Rincian jasa (Uraian · Nilai · Jumlah bulan)</label>
@@ -895,7 +896,7 @@ function resetForm() {
 function toForm() {
   $('fPel').value = S.pelanggan; if (S.pelanggan) { var keep = S.npp; fillProyek(); if (keep) { S.npp = keep; $('fPro').value = keep; } } else $('fPro').innerHTML = '';
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
-  $('fProgres').value = S.progres ? nf(S.progres) : ''; $('fPct').value = S.pct; $('fDpp').value = S.dpp ? nf(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false;
+  $('fProgres').value = S.progres ? nf(S.progres) : ''; $('fPct').value = S.pct; $('fDpp').value = S.dpp ? nf(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
   $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fAlasan').value = S.alasan || '';
   fillSigner(); renderItems();
 }
@@ -931,10 +932,9 @@ function signer() {
 function compute() {
   var p = pro(); if (!p) return null;
   var tpl = p.template;
-  var ex = existing(), umSisa = (p.umLengkap === false || p.umSisa === '' || p.umSisa === null || p.umSisa === undefined) ? undefined : (+p.umSisa || 0) + (ex && E.normInv(ex.nomor) === E.normInv(nomorStr()) ? (+ex.umk || 0) : 0);
-  var f = { umSisa: umSisa, template: tpl, jenis: S.jenis, nilaiKontrak: kontrak(p).net, progres: num(S.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
-    dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: S.items.map(function (x) { return { uraian: x.uraian, nilai: num(x.nilai), bulan: num(x.bulan) }; }), dpp: num(S.dpp), ppnOn: S.ppnOn };
-  return E.calcInvoice(f);
+  var ex = existing();
+  // input disusun ENGINE agar server memeriksa angka yang sama saat menyimpan
+  return E.calcInvoice(E.invoiceInput(p, S, ex && E.normInv(ex.nomor) === E.normInv(nomorStr()) ? ex.umk : 0));
 }
 function update() {
   var p = pro(), pl = pel();
@@ -944,6 +944,7 @@ function update() {
   $('grpProgres').hidden = !(isProg && (tpl === 'UMUM' || tpl === 'IKK' || tpl === 'KIDOH'));
   $('grpDpp').hidden = !(tpl === 'FAJARPUTERA' || (!isProg && tpl !== 'WIKA-WITON'));
   $('ppnOnWrap').hidden = tpl === 'FAJARPUTERA';
+  $('fPpnRetAls').hidden = !(retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false);
   $('lblDpp').textContent = tpl === 'FAJARPUTERA' ? 'Tagihan saat ini (Rp, belum PPN)' : (S.jenis === 'RETENSI' ? 'Nilai retensi yang ditagih (Rp)' : 'Nilai tagihan / DPP (Rp)');
   $('grpBap').hidden = tpl !== 'FAJARPUTERA'; $('tabBap').hidden = tpl !== 'FAJARPUTERA'; $('btnPBap').hidden = tpl !== 'FAJARPUTERA';
   if (DOC === 'bap' && tpl !== 'FAJARPUTERA') setDoc('inv');
@@ -974,6 +975,8 @@ function update() {
   else $('pctInfo').textContent = '';
   renderSummary(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
 }
+/** template yang menghitung PPN dari DPP sebelum retensi dipotong (retensi di akhir) */
+function retAkhirPpn(p) { return !!(p && (p.template === 'IKK' || p.template === 'KIDOH') && +p.ret_pct > 0); }
 function renderSummary() {
   var c = CUR; if (!c) { $('sumTbl').innerHTML = '<tr><td>Pilih pelanggan dan proyek.</td><td></td></tr>'; return; }
   var r = [];
@@ -987,6 +990,7 @@ function renderSummary() {
   html += '<tr class="big"><td>Dicetak sebagai jumlah dibayar</td><td>Rp ' + nf(c.bayar) + '</td></tr>';
   $('sumTbl').innerHTML = html;
   var p = pro(), n = [];
+  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false) n.push('<div class="note err"><b>Risiko PPN dua kali.</b> Proyek ini memakai retensi posisi AKHIR (template ' + esc(p.template) + '): PPN atas retensi sudah ditagih di invoice progres. Matikan "Kenakan PPN" kecuali ada dasar tertulis dari Pajak / Akuntansi.</div>');
   if (c.umCapped) n.push('<div class="note warn"><b>Potongan uang muka dibatasi.</b> Hitungan normal Rp ' + nfDot(c.umAsli) + ', tetapi sisa UM proyek tinggal Rp ' + nfDot(c.umSisa) + ' — yang dipotong hanya sisa tersebut (lihat sheet Monitoring UM &amp; Retensi).</div>');
   else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap !== false && c.umSisa !== '' && c.umSisa <= 0) n.push('<div class="note ok">Uang muka proyek ini sudah habis dikembalikan — tidak ada potongan UM.</div>');
   else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap === false) n.push('<div class="note warn">Sisa UM proyek belum bisa dicek: invoice lama (migrasi) tidak menyimpan potongan UM. Isi kolom <b>UM SUDAH DIKEMBALIKAN SEBELUM SISTEM</b> di Master Proyek agar potongan UM dibatasi otomatis.</div>');
@@ -1522,7 +1526,9 @@ function bind() {
   $('fDigit').oninput = function () { S.digit = this.value.replace(/\D/g, ''); touched(); update(); };
   $('fYear').oninput = function () { S.year = this.value.replace(/\D/g, ''); touched(); update(); };
   $('fTgl').onchange = function () { var y = +this.value.slice(0, 4); if (S.tgl && +S.tgl.slice(0, 4) !== y && !existing()) { S.year = y; S.digit = nextDigit(y); $('fYear').value = y; $('fDigit').value = S.digit; } S.tgl = this.value; touched(); update(); };
-  $('fJenis').onchange = function () { S.jenis = this.value; S.judulAuto = true; S.invkeAuto = true; if (S.jenis === 'RETENSI' && pro() && !num(S.dpp)) S.dpp = pro().retSisa || ''; $('fDpp').value = S.dpp ? nf(S.dpp) : ''; touched(); update(); };
+  $('fJenis').onchange = function () { S.jenis = this.value; S.judulAuto = true; S.invkeAuto = true; if (S.jenis === 'RETENSI' && pro() && !num(S.dpp)) S.dpp = pro().retSisa || '';
+    // retensi posisi AKHIR: PPN-nya sudah ikut invoice progres → pelepasan retensi bawaan tanpa PPN
+    if (S.jenis === 'RETENSI' && retAkhirPpn(pro())) { S.ppnOn = false; $('fPpnOn').checked = false; } $('fDpp').value = S.dpp ? nf(S.dpp) : ''; touched(); update(); };
   $('fProgKe').oninput = function () { S.progKe = this.value.replace(/\D/g, ''); if (!S.termin || +S.termin === +S.progKe) { S.termin = S.progKe ? String(+S.progKe + 1) : ''; $('fTermin').value = S.termin; } touched(); update(); };
   $('fTermin').oninput = function () { S.termin = this.value.replace(/\D/g, ''); touched(); update(); };
   $('fProgres').oninput = function () { S.progres = num(this.value); S.pct = ''; $('fPct').value = ''; touched(); update(); };
@@ -1531,6 +1537,7 @@ function bind() {
   $('fDpp').oninput = function () { S.dpp = num(this.value); touched(); update(); };
   $('fDpp').onblur = function () { if (S.dpp) this.value = nf(S.dpp); };
   $('fPpnOn').onchange = function () { S.ppnOn = this.checked; touched(); update(); };
+  $('fPpnRetAls').oninput = function () { S.ppnRetensiAlasan = this.value; touched(); };
   $('fJudul').oninput = function () { S.judul = this.value; S.judulAuto = false; touched(); update(); };
   $('judulAuto').onclick = function () { S.judulAuto = true; update(); };
   $('fInvke').oninput = function () { S.invke = this.value; S.invkeAuto = false; };

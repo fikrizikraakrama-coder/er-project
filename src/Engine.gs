@@ -2468,6 +2468,16 @@ var ENGINE = (function () {
   // ------------------------------------------------------------------ PERHITUNGAN FORM INVOICE (dipakai aplikasi)
   /** f: {template, jenis, nilaiKontrak, progres, umDiterima, retPct, retPos, tarif, dasar, tampilPPh, items[], dpp, pctUM, ppnOn}
    *  menghasilkan semua angka cetak + angka register. */
+  /** angka ketikan form (1.234.567 / 1.234,5 / 1234.5) — sama dengan num() di aplikasi */
+  function numForm(v) { if (isNum(v)) return v; var s = S(v); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
+  /** input calcInvoice dari data proyek (bentuk bootstrap) + isian form; dipakai aplikasi (pratinjau) dan server (pemeriksaan saat simpan)
+   *  exUmk = potongan UM invoice yang sedang direvisi (dikembalikan ke sisa UM) */
+  function invoiceInput(p, form, exUmk) {
+    var umSisa = (p.umLengkap === false || p.umSisa === '' || p.umSisa === null || p.umSisa === undefined) ? undefined : (+p.umSisa || 0) + (+exUmk || 0);
+    var k = kontrakAt({ nilai_awal: p.nilai, adds: p.adendum || [], nilai_ok: p.nilai_ok }, form.tgl);
+    return { umSisa: umSisa, template: p.template, jenis: form.jenis, nilaiKontrak: k.net, progres: numForm(form.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
+      dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: (form.items || []).map(function (x) { return { uraian: x.uraian, nilai: numForm(x.nilai), bulan: numForm(x.bulan) }; }), dpp: numForm(form.dpp), ppnOn: form.ppnOn };
+  }
   function calcInvoice(f) {
     // Meniru rumus form Excel: angka mentah (desimal) dipakai berantai, dibulatkan saat ditampilkan / di sel ber-ROUND.
     var T = U(f.template) || 'UMUM', J = U(f.jenis) || 'PROGRES', K = N(f.nilaiKontrak), tarif = N(f.tarif) || 0.0265;
@@ -2598,6 +2608,16 @@ var ENGINE = (function () {
     });
     return out;
   }
+  /** PPh yang sudah diakui pada pelunasan tetapi nomor bukti potong belum dicatat — tanpa bupot, PPh tidak bisa dikreditkan */
+  function bupotPendingRows(ctx) {
+    var out = [];
+    ctx.pays.forEach(function(p) {
+      var i = p._inv, x = (p._pph || 0) + (p._sel || 0);
+      if (!i || i._batal || x <= 0 || S(p.bupot)) return;
+      out.push([i.pelanggan, i.npp, i.nomor, p.tgl, S(p.ref), pphLabel(i.npp, i._a.tarif), rnd(x), diffDays(ctx.today, p.tgl), p.idp || '']);
+    });
+    return out.sort(function(a, b) { return b[7] - a[7]; });
+  }
   function monthlyMetrics(input, cutoff) {
     var res = computeAt(input, cutoff), ctx = res.ctx, start = cutoff.slice(0,7) + '-01', prev = computeAt(input, prevMonthEnd(cutoff)), customers = {}, saldo = 0, opening = 0, overdue = 0, cash = 0, receipt = 0, buckets = [0,0,0,0,0,0];
     function ledger(c, collect) { var total = 0; proyekAR(c).forEach(function(n) { var k = kartuData(c,n,c.today); if (!k) return; total += k.T.saldo; if (collect) k.groups.forEach(function(g) { var i = g.inv, s = g.saldo; if (s <= 1) return; customers[i.pelanggan] = (customers[i.pelanggan] || 0) + s; }); }); return rnd(total); }
@@ -2613,7 +2633,7 @@ var ENGINE = (function () {
   }
 
   return {
-    computeAt: computeAt, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,

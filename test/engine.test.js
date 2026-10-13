@@ -53,3 +53,30 @@ test('contextAt di-cache per tanggal', () => {
   assert.deepStrictEqual(a, b);
   assert.strictEqual(Object.keys(res.ctx._atCache || {}).length, 1);
 });
+
+test('numForm sama dengan num() di aplikasi', () => {
+  const idx = fs.readFileSync(path.join(__dirname, '..', 'src', 'Index.html'), 'utf8');
+  const num = new Function(idx.match(/function num\(v\) \{.*\}/)[0] + ';return num;')();
+  ['1.234.567', '1.234,5', '1234.5', '1,234,567', '', '0', 'Rp 25.000', '-1.000', 12.5, '12'].forEach(v => assert.strictEqual(ENGINE.numForm(v), num(v), String(v)));
+});
+
+test('invoiceInput = susunan input lama di aplikasi (server & aplikasi menghitung sama)', () => {
+  const p = { template: 'IKK', nilai: 1e9, adendum: [{ ke: 1, tgl: '2026-08-01', jenis: 'TAMBAH', nilai: 1e8 }], nilai_ok: 1e9, um: 1e8, ret_pct: 0.05, ret_pos: 'AKHIR', tarif: 0.0265, dasar_pph: '', tampil_pph: 'YA', umLengkap: true, umSisa: 4e7 };
+  const S = { tgl: '2026-10-01', jenis: 'PROGRES', progres: '250.000.000', items: [{ uraian: 'a', nilai: '1.000', bulan: '2' }], dpp: '', ppnOn: true };
+  const num = ENGINE.numForm, k = ENGINE.kontrakAt({ nilai_awal: p.nilai, adds: p.adendum, nilai_ok: p.nilai_ok }, S.tgl);
+  const old = { umSisa: (+p.umSisa || 0) + 5e6, template: p.template, jenis: S.jenis, nilaiKontrak: k.net, progres: num(S.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
+    dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: S.items.map(x => ({ uraian: x.uraian, nilai: num(x.nilai), bulan: num(x.bulan) })), dpp: num(S.dpp), ppnOn: S.ppnOn };
+  assert.deepStrictEqual(ENGINE.invoiceInput(p, S, 5e6), old);
+  const c = ENGINE.calcInvoice(old);
+  assert.ok(c.retPos === 'AKHIR' && c.ppn > 0 && c.retensi > 0, 'IKK: PPN dihitung dari DPP sebelum retensi');
+});
+
+test('bupotPendingRows: daftar hanya memuat PPh diakui tanpa nomor bukti potong', () => {
+  const ctx = { today: '2026-10-13', pays: [
+    { _inv: { pelanggan: 'A', npp: '264C 1236 JT', nomor: 'X1', _a: { tarif: 0.0265 } }, _pph: 2650000, tgl: '2026-09-13', ref: 'R1', bupot: '', idp: 'PNR-00001' },
+    { _inv: { pelanggan: 'B', npp: '264C 1236 JL', nomor: 'X2', _a: { tarif: 0.02 } }, _pph: 100, tgl: '2026-10-01', bupot: 'BP-9', idp: 'PNR-00002' },
+    { _inv: { pelanggan: 'C', npp: '264C 1236 JT', nomor: 'X3', _a: { tarif: 0.0265 } }, _pph: 0, tgl: '2026-10-01', idp: 'PNR-00003' }] };
+  const r = ENGINE.bupotPendingRows(ctx);
+  assert.strictEqual(r.length, 1);
+  assert.strictEqual(r[0][2], 'X1'); assert.strictEqual(r[0][7], 30);
+});

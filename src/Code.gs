@@ -57,7 +57,7 @@ function setupTriggers() {
   SpreadsheetApp.getUi().alert('Otomatisasi aktif.\n\n• Setiap perubahan di sheet input memperbarui laporan (langsung bila sistem tidak sibuk, paling lambat 5 menit).\n• Setiap pagi pukul 06.00 status jatuh tempo diperbarui.\n• Setiap jam file Akuntansi (memorial) & P&E diperbarui, dan centang verifikasi Akuntansi ditarik ke sistem.');
 }
 // Fungsi pemicu juga bisa dipanggil lewat google.script.run, jadi tanpa event trigger yang sah tetap diperlakukan sebagai panggilan pengguna.
-function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_(); rebuildAll_({ format: true }); arMonthlyAuto_(); }
+function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_(); rebuildAll_({ format: true }); arMonthlyAuto_(); try { arPropsCleanup_(); } catch (x) { } }
 /** jadwal 5 menit: menyelesaikan pembaruan yang ditandai saat sistem sibuk */
 function rebuildIfDirty(e) { if (!arFromTrigger_(e)) arRequireMaker_(); arRebuildIfDirty_(25000); }
 
@@ -867,6 +867,7 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
     if (row && opt.revisi && !String(opt.alasan || '').trim()) throw new Error('Alasan revisi wajib diisi.');
     if (row && map.status_inv && /^BATAL/i.test(String(sh.getRange(row, map.status_inv).getValue()))) throw new Error('Invoice ' + nomor + ' sudah dibatalkan — tidak bisa direvisi. Buat invoice baru dengan nomor lain.');
     checkNppSave_(p.npp, p.pelanggan);
+    arCheckInvoiceNumbers_(p, nomor);
     // tutup periode: tanggal invoice baru, dan tanggal lama bila revisi, tidak boleh berada di periode tertutup tanpa izin koreksi
     var tglLama = row && map.tgl ? sh.getRange(row, map.tgl).getValue() : '';
     var koreksi = arCheckPeriod_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], opt.periodeAlasan, 'Invoice');
