@@ -73,6 +73,8 @@ pencegahan PPN dobel pada retensi AKHIR, daftar bukti potong PPh, dan menu baru 
   </table>
   Sebaiknya memakai <b>email kantor</b>. Pastikan juga tabel <b>Rekening Penerimaan</b> (kolom AF–AH) berisi BNI, Mandiri, BSI, BTN dengan nomor yang benar.</div></div>
 <div class="step"><div class="num">9</div><div><b>Delegasi persetujuan.</b> Delegasi ke akun PEMBUAT kini otomatis tidak berlaku. Bila masih perlu delegasi, jalankan <span class="menu">AR CSU ▸ Delegasi persetujuan (sementara)…</span> dan isi email pejabat lain (bukan PEMBUAT) yang terdaftar di Parameter.</div></div>
+<div class="step"><div class="num">9b</div><div><b>Folder arsip PDF.</b> Jalankan <span class="menu">AR CSU ▸ Siapkan folder arsip PDF</span> (sekali, oleh pemilik). Folder arsip dibuat/ditemukan, ID-nya disimpan di Parameter ▸ <b>ARSIP_FOLDER_ID</b>, dan dibagikan ke PEMBUAT &amp; PENYETUJU.
+  <p class="small">Tanpa langkah ini ARSIP_FOLDER_ID bisa tetap kosong (akun yang mengarsipkan tidak boleh mengubah Parameter yang dikunci), sehingga PDF tiap akun tersimpan di Drive masing-masing. Sekarang sistem menolak mengarsipkan sebelum folder disiapkan.</p></div></div>
 <div class="step"><div class="num">10</div><div>Jalankan <span class="menu">AR CSU ▸ Kunci struktur &amp; periksa hak akses</span> agar sheet baru (Jejak Edit Langsung, Log Surat Penagihan, Rekonsiliasi Saldo, Analisis Bulanan AR) ikut terkunci.
   <p class="small">Sheet Log Surat Penagihan dan Jejak Edit Langsung dibuat otomatis saat pertama kali dipakai. Bila belum ada, jalankan langkah ini lagi setelah surat pertama dibuat.</p></div></div>
 
@@ -89,7 +91,7 @@ pencegahan PPN dobel pada retensi AKHIR, daftar bukti potong PPh, dan menu baru 
   <li>Section Head mengedit satu sel di sheet (mis. TGL SUBMIT) ▸ laporan diperbarui dalam ≤ 5 menit, tanpa error.</li>
   <li>Ketik angka langsung di kolom NOMINAL Log Penerimaan ▸ tercatat di sheet <b>Jejak Edit Langsung</b> + email ke Section Head. <i>(Kembalikan nilainya setelah uji.)</i></li>
   <li>Coba simpan penerimaan bertanggal September dari aplikasi ▸ ditolak "periode sudah tutup buku" (sesuai aturan tanggal 3).</li>
-  <li>Surat Penagihan: pilih satu pelanggan ▸ isi nomor &amp; tanggal ▸ periksa pratinjau ▸ <b>Cetak</b> (jangan simpan dulu bila nomor surat belum resmi).</li>
+  <li>Surat Penagihan: pilih satu pelanggan ▸ ketik nomor urut (mis. 032) &amp; tanggal ▸ periksa pratinjau (surat berlanjut ke halaman berikut bila panjang; tanda tangan &amp; tembusan selalu ada) ▸ <b>Cetak</b> (jangan simpan dulu bila nomor surat belum resmi).</li>
   <li>Bila nomor resmi sudah ada: <b>Simpan PDF ke Drive &amp; catat surat</b> ▸ PDF ada di folder arsip <i>Surat Penagihan</i> dan baris baru di <b>Log Surat Penagihan</b>.</li>
 </ul>
 
@@ -111,6 +113,7 @@ pencegahan PPN dobel pada retensi AKHIR, daftar bukti potong PPh, dan menu baru 
   <tr><td>TUTUP_BUKU_TANGGAL</td><td>3 — tanggal tutup buku bulan sebelumnya</td></tr>
   <tr><td>NOTIF_PERSETUJUAN_CC</td><td>(kosong) — email tambahan penerima notifikasi, pisahkan dengan koma</td></tr>
   <tr><td>SURAT_JEDA_HARI</td><td>7 — jeda sebelum surat berikutnya disarankan bila surat tanpa tenggat</td></tr>
+  <tr><td>SURAT_NOMOR_FORMAT</td><td>KU.03.03/WB-4C.{no}/{tahun} — di aplikasi cukup ketik nomor urut (mis. 032); tahun mengikuti tanggal surat</td></tr>
   <tr><td>SURAT_TEMBUSAN</td><td>Direktur Teknik &amp; Produksi; VP CIS Division; Arsip — pisahkan dengan titik koma</td></tr>
 </table>
 

@@ -44,6 +44,7 @@ function onOpen() {
     .addItem('Kunci struktur & periksa hak akses', 'lockSystem')
     .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
     .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
+    .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();
 }
@@ -1088,6 +1089,17 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   if (kTglD && out.status === 'DISETUJUI') { var rf = arRefreshClosedMonths_([kTglD], out.id + ' ' + (notif.r.catatan || notif.r.label || '')); out.warnings = out.warnings.concat(rf.warnings); out.snapshots = rf.ids; }
   return out;
 }
+/** menu: buat / temukan folder arsip, simpan ID di Parameter, bagikan ke PEMBUAT & PENYETUJU (sekali, oleh pemilik) */
+function setupArsipFolder() {
+  arRequireMaker_();
+  var P = arParameters_(), ui = SpreadsheetApp.getUi(), x = paramKV_('ARSIP_FOLDER_ID'), root;
+  if (x && x.val) { try { root = DriveApp.getFolderById(x.val); } catch (e) { root = null; } }
+  if (!root) { var it = DriveApp.getFoldersByName(String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU')); root = it.hasNext() ? it.next() : DriveApp.createFolder(String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU')); }
+  setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)');
+  var have = {}, add = []; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; });
+  P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { try { root.addEditor(u.email); add.push(u.email); have[u.email] = 1; } catch (e) { } } });
+  ui.alert('Folder arsip siap', 'Folder: ' + root.getName() + '\n' + root.getUrl() + '\n\nID tersimpan di Parameter ▸ ARSIP_FOLDER_ID.' + (add.length ? '\nDibagikan ke: ' + add.join(', ') : ''), ui.ButtonSet.OK);
+}
 /** folder arsip: <ARSIP_FOLDER>/<jenis paket>/<tahun>/<MM Bulan tahun> */
 function archiveFolder_(P, kind, month) {
   var folderName = String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU'), sub = function (parent, name) { var it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); };
@@ -1095,7 +1107,9 @@ function archiveFolder_(P, kind, month) {
   if (x && x.val) { try { root = DriveApp.getFolderById(x.val); } catch (e) { throw new Error('Folder arsip tidak bisa dibuka oleh akun ini — minta pemilik folder membagikannya, atau kosongkan ARSIP_FOLDER_ID di Parameter.'); } }
   if (!root) {
     var it = DriveApp.getFoldersByName(folderName); root = it.hasNext() ? it.next() : DriveApp.createFolder(folderName);
-    try { setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)'); } catch (e) { }
+    // ID wajib tersimpan: tanpa itu setiap akun membuat folder arsip sendiri di Drive-nya dan arsip tercecer
+    try { setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)'); }
+    catch (e) { throw new Error('Folder arsip belum disiapkan. Pemilik spreadsheet: jalankan menu AR CSU ▸ Siapkan folder arsip PDF, lalu ulangi.'); }
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }

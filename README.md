@@ -42,7 +42,11 @@ Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
   surat berikutnya ditahan sampai janji); **Tutup surat** dengan alasan (sengketa, invoice dibatalkan/diganti).
   Peringatan dini: TENGGAT SURAT TERLEWAT, JANJI BAYAR TERLEWAT, ESKALASI PENAGIHAN.
 - Satu surat per pelanggan; pelanggan multi-proyek → tabel ringkasan per proyek, rincian per invoice di lampiran.
-- Diisi pengguna: nomor surat, tanggal surat, Kepada Yth., tenggat (tanpa / 3 / 7 hari / tanggal), rekening (centang dari Parameter), kontak.
+  Isi mengalir ke halaman berikut bila panjang (kop di setiap halaman, judul tabel diulang, tanda tangan tidak terpotong).
+- Diisi pengguna: nomor urut surat (format `SURAT_NOMOR_FORMAT`, bawaan `KU.03.03/WB-4C.{no}/{tahun}`), tanggal surat, Kepada Yth., tenggat (tanpa / 3 / 7 hari / tanggal), rekening (centang dari Parameter), kontak.
 - Penandatangan: peran `MENGETAHUI` di Parameter (Manager CSU). Tembusan: `SURAT_TEMBUSAN` (dipisah `;`).
 - **Simpan PDF ke Drive & catat surat** → folder arsip `Surat Penagihan/<tahun>/<bulan>` dan sheet **Log Surat Penagihan**.
   Tenggat yang terlewat dengan invoice masih terbuka muncul sebagai peringatan dini **TENGGAT SURAT TERLEWAT**.
+
+## Arsip PDF
+Jalankan sekali **AR CSU ▸ Siapkan folder arsip PDF** (pemilik) agar `ARSIP_FOLDER_ID` terisi dan semua akun mengarsip ke folder yang sama.

@@ -125,7 +125,9 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .surat .sm{font-size:8.4pt}.surat ol{margin:0;padding-left:5mm}.surat ol li{margin:0 0 .4mm}
 .surat h3{font-size:10.5pt;margin:0 0 1mm;text-align:center}.surat .sub{text-align:center;margin:0 0 3mm;font-size:9pt}
 .surat .lt th,.surat .lt td{font-size:7pt;padding:.8mm}.surat .nt{font-size:8.2pt;color:#333}
-.surat.over .sb{outline:2px dashed #C00;outline-offset:-1px}
+.surat .sec{text-align:left;margin:3mm 0 1mm;font-weight:700}.surat .cont{font-size:8pt;color:#4A5A72;text-align:left;margin:0 0 3mm}
+.surat .tbs{margin-top:4mm}.surat .tbs p{margin:0 0 .4mm;text-align:left}.surat .ttd{margin-top:2mm}
+.surat .lt td.n{font-variant-numeric:tabular-nums;letter-spacing:-.1px}.surat .lt td.fp{white-space:normal;font-size:6.6pt}
 .sr-card{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:0 0 8px;cursor:pointer}.sr-card:hover{background:#F7FAFD}.sr-card.on{border-color:var(--blue);background:#EEF5FD}
 .sr-card h4{margin:0 0 2px;font-size:13px}.sr-card .meta{font-size:12px;color:var(--steel)}
 .sr-inv label,.sr-rek label{display:flex;gap:6px;align-items:flex-start;font-weight:400;margin:3px 0;font-size:12px}.sr-inv input,.sr-rek input{width:auto;margin-top:2px}
@@ -465,7 +467,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <fieldset><legend>Pelanggan dengan invoice lewat jatuh tempo</legend><div id="srList"></div></fieldset>
       <div id="srForm" hidden>
         <fieldset><legend>Surat</legend>
-          <div class="row"><div><label for="srNo">Nomor surat</label><input id="srNo" placeholder="KU.03.03/WB-4C.____/2026"></div><div><label for="srTgl">Tanggal surat</label><input id="srTgl" type="date"></div></div>
+          <div class="row"><div><label for="srNo">Nomor surat (angka setelah WB-4C.)</label><input id="srNo" inputmode="numeric" placeholder="mis. 032"><div class="sub" id="srNoFull" style="font-size:11px;color:var(--steel);margin-top:2px"></div></div><div><label for="srTgl">Tanggal surat</label><input id="srTgl" type="date"></div></div>
           <label for="srKepada">Kepada Yth. (satu baris per baris surat; dua baris pertama dicetak tebal)</label><textarea id="srKepada" rows="5"></textarea>
           <div class="row"><div><label for="srTg">Tenggat pembayaran</label><select id="srTg"><option value="">Tanpa tenggat</option><option value="3">3 hari kalender</option><option value="7">7 hari kalender</option><option value="tgl">Pilih tanggal…</option></select></div><div><label for="srTgD">Tanggal tenggat</label><input id="srTgD" type="date" disabled></div></div>
           <div class="note" id="srTgHint"></div>
@@ -1617,107 +1619,139 @@ function srState() {
   var ke = 1, ruj = {}; all.forEach(function (i) { ke = Math.max(ke, Math.min(3, i.stage.ke || 1)); (i.stage.chain || []).forEach(function (c) { ruj[c.nomor] = c; }); });
   var rujukan = Object.keys(ruj).map(function (k) { return ruj[k]; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; });
   var mode = $('srTg').value, tenggat = mode === '3' || mode === '7' ? E.addDays(tgl, +mode) : mode === 'tgl' ? $('srTgD').value : '';
-  return { nomor: $('srNo').value.trim(), tgl: tgl, kepada: $('srKepada').value.split('\n').map(function (x) { return x.trim(); }).filter(String), tenggat: tenggat,
+  return { nomor: srNomor($('srNo').value, tgl), no: $('srNo').value.trim(), tgl: tgl, kepada: $('srKepada').value.split('\n').map(function (x) { return x.trim(); }).filter(String), tenggat: tenggat,
     rek: (B.rek || []).filter(function (r) { return SR.rek[r.label]; }), kontak: $('srKontak').value.trim(), projects: projects, all: all,
     total: all.reduce(function (t, i) { return t + i.sisa; }, 0), kas: all.reduce(function (t, i) { return t + i.kas; }, 0), nama: titleCase(SR.d.nama),
     ke: ke, rujukan: rujukan, campur: all.some(function (i) { return (i.stage.ke || 1) < ke; }), ditanggapi: rujukan.some(function (c) { return c.tanggap; }), eskalasi: all.some(function (i) { return i.stage.ke > 3; }),
     maxLewat: all.reduce(function (m, i) { return Math.max(m, i.lewat); }, 0) };
 }
 var SR_ANGKA = ['nol', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh'];
-function srPage1(o) {
-  var single = o.projects.length === 1, p0 = o.projects[0], h = '', n = 0;
+/** nomor surat lengkap dari angka yang diketik: format Parameter SURAT_NOMOR_FORMAT (bawaan KU.03.03/WB-4C.{no}/{tahun}) */
+function srNomor(no, tgl) { no = String(no || '').trim(); return no ? String(B.params.SURAT_NOMOR_FORMAT || 'KU.03.03/WB-4C.{no}/{tahun}').replace('{no}', no).replace('{tahun}', String(tgl || B.today).slice(0, 4)) : ''; }
+/** isi surat sebagai blok berurutan; { h: html, next: tetap bersama blok berikutnya } atau { t: tabel yang boleh dipotong per baris } */
+function srBlocksSurat(o) {
+  var single = o.projects.length === 1, p0 = o.projects[0], L = [], n = 0, P = function (h, next) { L.push({ h: h, next: !!next }); };
   var sg = (B.roles || {}).MENGETAHUI || { nama: 'Yusqi Audah Firdaus', jabatan: 'Manager of Concrete Services Unit' };
   var tembusan = String(B.params.SURAT_TEMBUSAN || 'Direktur Teknik & Produksi, PT Wijaya Karya Beton Tbk;VP Concrete Infrastructure Services Division;Arsip').split(/\s*;\s*/).filter(String);
-  h += '<table class="hd"><tr><td style="width:16mm">Nomor</td><td style="width:3mm">:</td><td>' + esc(o.nomor || '……………………………') + '</td><td style="text-align:right">Jakarta, ' + esc(tglIndo(o.tgl)) + '</td></tr>' +
-    '<tr><td>Lamp</td><td>:</td><td>1 (satu) berkas</td><td></td></tr></table>';
-  h += '<div class="kp"><p>Kepada Yth.</p>' + o.kepada.map(function (l, i) { return '<p>' + (i < 2 ? '<b>' + esc(l) + '</b>' : esc(l)) + '</p>'; }).join('') + '</div>';
-  h += '<p class="ph">Perihal: ' + ['Permohonan Percepatan Pembayaran', 'Permohonan Pembayaran Kedua atas', 'Penegasan Penyelesaian Pembayaran atas'][o.ke - 1] + ' Tagihan yang Telah Jatuh Tempo</p><p>Dengan hormat,</p>';
+  P('<table class="hd"><tr><td style="width:16mm">Nomor</td><td style="width:3mm">:</td><td>' + esc(o.nomor || '……………………………') + '</td><td style="text-align:right">Jakarta, ' + esc(tglIndo(o.tgl)) + '</td></tr>' +
+    '<tr><td>Lamp</td><td>:</td><td>1 (satu) berkas</td><td></td></tr></table>');
+  P('<div class="kp"><p>Kepada Yth.</p>' + o.kepada.map(function (l, i) { return '<p>' + (i < 2 ? '<b>' + esc(l) + '</b>' : esc(l)) + '</p>'; }).join('') + '</div>');
+  P('<p class="ph">Perihal: ' + ['Permohonan Percepatan Pembayaran', 'Permohonan Pembayaran Kedua atas', 'Penegasan Penyelesaian Pembayaran atas'][o.ke - 1] + ' Tagihan yang Telah Jatuh Tempo</p>', true);
+  P('<p>Dengan hormat,</p>', true);
   var ref = o.rujukan.map(function (c) { return 'Nomor <b>' + esc(c.nomor) + '</b> tanggal <b>' + esc(tglIndo(c.tgl)) + '</b>'; }), proyekTxt = single ? 'pekerjaan <b>' + esc(p0.pekerjaan || p0.singkat || p0.npp) + '</b>' : o.projects.length + ' (' + (SR_ANGKA[o.projects.length] || E.terbilang(o.projects.length).toLowerCase()) + ') proyek';
-  if (o.ke === 2) h += '<p>Menindaklanjuti surat kami ' + ref.join(' dan ') + ' perihal Permohonan Percepatan Pembayaran Tagihan yang Telah Jatuh Tempo, sampai dengan tanggal surat ini kami belum menerima pembayaran' + (o.ditanggapi ? '' : ' maupun tanggapan') + ' atas tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat tersebut)' : '') + ':</p>';
-  else if (o.ke === 3) h += '<p>Menindaklanjuti surat kami ' + ref.join(', ').replace(/, ([^,]*)$/, ' dan $1') + ', hingga tanggal surat ini tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + ' belum diselesaikan' + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat-surat tersebut)' : '') + ':</p>';
-  else if (single) h += '<p>Sehubungan dengan pelaksanaan pekerjaan <b>' + esc(p0.pekerjaan || p0.singkat || p0.npp) + '</b>' + (p0.kontrak ? ', berdasarkan <b>' + esc(p0.kontrak) + '</b>' + (p0.tgl_kontrak ? ' tanggal <b>' + esc(tglIndo(p0.tgl_kontrak)) + '</b>' : '') : '') +
-    ', kami sampaikan bahwa per tanggal surat ini tagihan berikut <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>';
-  else if (o.ke === 1) h += '<p>Sehubungan dengan pelaksanaan pekerjaan antara ' + esc(o.nama) + ' dan PT Wijaya Karya Beton Tbk – Concrete Services Unit pada ' + o.projects.length + ' (' + (SR_ANGKA[o.projects.length] || E.terbilang(o.projects.length).toLowerCase()) + ') proyek berikut, kami sampaikan bahwa per tanggal surat ini terdapat tagihan yang <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>';
-  if (single) {
-    h += '<table class="st"><tr><th style="width:7mm">No</th><th>Uraian / Nomor Invoice</th><th style="width:19mm">Tgl Invoice</th><th style="width:19mm">Jatuh Tempo</th><th style="width:13mm">Lewat JT (hari)</th><th style="width:27mm">Sisa Tagihan (Rp)</th></tr>' +
-      p0.invoices.map(function (i) { n++; return '<tr><td class="c">' + n + '.</td><td>' + esc(i.invke) + '<br><span class="sm">' + esc(i.nomor) + '</span></td><td class="c">' + tg(i.tgl) + '</td><td class="c">' + tg(i.jt) + '</td><td class="c red">' + i.lewat + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>'; }).join('') +
-      '<tr class="tot"><td colspan="5">Total sisa tagihan (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr></table>';
-  } else {
-    h += '<table class="st"><tr><th style="width:7mm">No</th><th>Proyek / Dasar Kontrak</th><th style="width:14mm">Jumlah Invoice</th><th style="width:17mm">Lewat JT maks. (hari)</th><th style="width:27mm">Sisa Tagihan (Rp)</th></tr>' +
-      o.projects.map(function (p) { n++; var mx = Math.max.apply(null, p.invoices.map(function (i) { return i.lewat; })), sub = p.invoices.reduce(function (t, i) { return t + i.sisa; }, 0);
-        return '<tr><td class="c">' + n + '.</td><td><b>' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</b>' + (p.kontrak ? '<br><span class="sm">' + esc(p.kontrak) + (p.tgl_kontrak ? ' tgl ' + esc(tglIndo(p.tgl_kontrak)) : '') + '</span>' : '') + '</td><td class="c">' + p.invoices.length + '</td><td class="c red">' + mx + '</td><td class="n">' + nfDot(sub) + '</td></tr>'; }).join('') +
-      '<tr class="tot"><td colspan="4">Total sisa tagihan — ' + o.all.length + ' invoice (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr></table>';
-  }
-  h += '<p>Terbilang: <i><b>' + esc(E.terbilang(Math.round(o.total))) + ' Rupiah</b></i>. Rincian per invoice (nomor invoice dan faktur pajak, DPP, PPN, PPh, tanggal ' + (o.all.some(function (i) { return i.basisTT; }) ? 'tanda terima' : 'penerimaan dokumen') + ', dan jatuh tempo) terdapat pada lampiran.</p>';
+  if (o.ke === 2) P('<p>Menindaklanjuti surat kami ' + ref.join(' dan ') + ' perihal Permohonan Percepatan Pembayaran Tagihan yang Telah Jatuh Tempo, sampai dengan tanggal surat ini kami belum menerima pembayaran' + (o.ditanggapi ? '' : ' maupun tanggapan') + ' atas tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat tersebut)' : '') + ':</p>', true);
+  else if (o.ke === 3) P('<p>Menindaklanjuti surat kami ' + ref.join(', ').replace(/, ([^,]*)$/, ' dan $1') + ', hingga tanggal surat ini tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + ' belum diselesaikan' + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat-surat tersebut)' : '') + ':</p>', true);
+  else if (single) P('<p>Sehubungan dengan pelaksanaan pekerjaan <b>' + esc(p0.pekerjaan || p0.singkat || p0.npp) + '</b>' + (p0.kontrak ? ', berdasarkan <b>' + esc(p0.kontrak) + '</b>' + (p0.tgl_kontrak ? ' tanggal <b>' + esc(tglIndo(p0.tgl_kontrak)) + '</b>' : '') : '') +
+    ', kami sampaikan bahwa per tanggal surat ini tagihan berikut <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>', true);
+  else P('<p>Sehubungan dengan pelaksanaan pekerjaan antara ' + esc(o.nama) + ' dan PT Wijaya Karya Beton Tbk – Concrete Services Unit pada ' + proyekTxt + ' berikut, kami sampaikan bahwa per tanggal surat ini terdapat tagihan yang <b>telah melewati tanggal jatuh tempo</b> dan belum kami terima pembayarannya:</p>', true);
+  if (single) L.push({ t: { cls: 'st', head: '<tr><th style="width:8mm">No</th><th>Uraian / Nomor Invoice</th><th style="width:20mm">Tgl Invoice</th><th style="width:20mm">Jatuh Tempo</th><th style="width:15mm">Lewat JT (hari)</th><th style="width:30mm">Sisa Tagihan (Rp)</th></tr>',
+    rows: p0.invoices.map(function (i) { n++; return '<tr><td class="c">' + n + '.</td><td>' + esc(i.invke) + '<br><span class="sm">' + esc(i.nomor) + '</span></td><td class="c">' + tg(i.tgl) + '</td><td class="c">' + tg(i.jt) + '</td><td class="c red">' + i.lewat + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>'; })
+      .concat(['<tr class="tot"><td colspan="5">Total sisa tagihan (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr>']) } });
+  else L.push({ t: { cls: 'st', head: '<tr><th style="width:8mm">No</th><th>Proyek / Dasar Kontrak</th><th style="width:16mm">Jumlah Invoice</th><th style="width:18mm">Lewat JT maks. (hari)</th><th style="width:30mm">Sisa Tagihan (Rp)</th></tr>',
+    rows: o.projects.map(function (p) { n++; var mx = Math.max.apply(null, p.invoices.map(function (i) { return i.lewat; })), sub = p.invoices.reduce(function (t, i) { return t + i.sisa; }, 0);
+      return '<tr><td class="c">' + n + '.</td><td><b>' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</b>' + (p.kontrak ? '<br><span class="sm">' + esc(p.kontrak) + (p.tgl_kontrak ? ' tgl ' + esc(tglIndo(p.tgl_kontrak)) : '') + '</span>' : '') + '</td><td class="c">' + p.invoices.length + '</td><td class="c red">' + mx + '</td><td class="n">' + nfDot(sub) + '</td></tr>'; })
+      .concat(['<tr class="tot"><td colspan="4">Total sisa tagihan — ' + o.all.length + ' invoice (termasuk PPN, sebelum PPh)</td><td class="n">' + nfDot(o.total) + '</td></tr>']) } });
+  P('<p>Terbilang: <i><b>' + esc(E.terbilang(Math.round(o.total))) + ' Rupiah</b></i>. Rincian per invoice (nomor invoice dan faktur pajak, DPP, PPN, PPh, tanggal ' + (o.all.some(function (i) { return i.basisTT; }) ? 'tanda terima' : 'penerimaan dokumen') + ', dan jatuh tempo) terdapat pada lampiran.</p>');
   var kepadaRek = o.rek.length ? ' ke ' + (o.rek.length > 1 ? 'salah satu rekening' : 'rekening') + ' berikut:' : '.', batas = o.tenggat ? ' <b>selambat-lambatnya tanggal ' + esc(tglIndo(o.tenggat)) + '</b>' : '';
-  if (o.ke === 2) h += '<p>Kami kembali memohon pembayaran tersebut dapat ' + (o.tenggat ? 'direalisasikan' + batas : 'segera direalisasikan') + kepadaRek + '</p>';
-  else if (o.ke === 3) h += '<p>Mengingat tagihan tersebut telah melewati jatuh tempo hingga <b>' + o.maxLewat + ' hari</b>, kami memohon penyelesaian pembayaran' + (batas || ' dalam waktu sesegera mungkin') + kepadaRek + '</p>';
-  else h += '<p>Mempertimbangkan kebutuhan arus kas dan kelancaran operasional proyek, kami memohon pembayaran tersebut dapat segera direalisasikan' + batas + kepadaRek + '</p>';
-  if (o.rek.length) h += '<div class="rk"><table>' + o.rek.map(function (r) { return '<tr><td>Bank ' + esc(titleCase(r.bank).replace(/\bBni\b/, 'BNI').replace(/\bBri\b/, 'BRI').replace(/\bBsi\b/, 'BSI').replace(/\bBca\b/, 'BCA').replace(/\bBtn\b/, 'BTN')) + '</td><td>: <b>' + esc(r.no) + '</b> a.n. PT Wijaya Karya Beton Tbk</td></tr>'; }).join('') +
-    '<tr><td>Berita transfer</td><td>: <b>nomor invoice yang dibayar</b></td></tr></table></div>';
+  if (o.ke === 2) P('<p>Kami kembali memohon pembayaran tersebut dapat ' + (o.tenggat ? 'direalisasikan' + batas : 'segera direalisasikan') + kepadaRek + '</p>', !!o.rek.length);
+  else if (o.ke === 3) P('<p>Mengingat tagihan tersebut telah melewati jatuh tempo hingga <b>' + o.maxLewat + ' hari</b>, kami memohon penyelesaian pembayaran' + (batas || ' dalam waktu sesegera mungkin') + kepadaRek + '</p>', !!o.rek.length);
+  else P('<p>Mempertimbangkan kebutuhan arus kas dan kelancaran operasional proyek, kami memohon pembayaran tersebut dapat segera direalisasikan' + batas + kepadaRek + '</p>', !!o.rek.length);
+  if (o.rek.length) P('<div class="rk"><table>' + o.rek.map(function (r) { return '<tr><td>Bank ' + esc(titleCase(r.bank).replace(/\b(Bni|Bri|Bsi|Bca|Btn)\b/, function (x) { return x.toUpperCase(); })) + '</td><td>: <b>' + esc(r.no) + '</b> a.n. PT Wijaya Karya Beton Tbk</td></tr>'; }).join('') +
+    '<tr><td>Berita transfer</td><td>: <b>nomor invoice yang dibayar</b></td></tr></table></div>');
   var kirim = 'bukti transfer beserta bukti potong PPh dikirimkan kepada ' + (o.kontak ? esc(o.kontak) : 'kami') + '. Atas perhatian dan kerja sama yang baik, kami mengucapkan terima kasih.';
-  if (o.ke === 2) h += '<p>Apabila terdapat kendala dalam proses pembayaran, kami mengharapkan konfirmasi tertulis beserta <b>jadwal pembayaran yang pasti</b>, atau kesediaan Saudara untuk bertemu guna membahas penyelesaiannya. Apabila pembayaran telah dilakukan, mohon surat ini diabaikan dan ' + kirim + '</p>';
-  else if (o.ke === 3) h += '<p>Apabila sampai dengan ' + (o.tenggat ? 'tanggal tersebut' : 'batas waktu yang wajar') + ' belum terdapat pembayaran ataupun kepastian jadwal pembayaran secara tertulis, dengan menyesal kami akan menyampaikan permasalahan ini kepada manajemen kedua perusahaan untuk penyelesaian lebih lanjut sesuai ketentuan kontrak. Bukti transfer beserta bukti potong PPh mohon dikirimkan kepada ' + (o.kontak ? esc(o.kontak) : 'kami') + '. Atas perhatian dan kerja sama yang baik, kami mengucapkan terima kasih.</p>';
-  else h += '<p>Apabila pembayaran belum dapat segera direalisasikan, mohon konfirmasi tertulis mengenai jadwal realisasinya. Apabila pembayaran telah dilakukan, mohon surat ini diabaikan dan ' + kirim + '</p>';
-  h += '<div class="ttd"><p><b>Hormat kami,</b></p><p><b>PT Wijaya Karya Beton Tbk</b></p><p><b>Concrete Services Unit</b></p><p style="height:12mm"></p><p><b><u>' + esc(sg.nama) + '</u></b></p><p>' + esc(sg.jabatan || 'Manager of Concrete Services Unit') + '</p></div>';
-  h += '<div class="sm" style="margin-top:1mm"><p style="margin:0 0 .4mm;text-align:left"><b>Tembusan:</b></p><ol>' + tembusan.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol></div>';
-  return '<div class="page pg-inv surat">' + kop() + '<div class="sb"' + srFs() + '>' + h + '</div></div>';
+  if (o.ke === 2) P('<p>Apabila terdapat kendala dalam proses pembayaran, kami mengharapkan konfirmasi tertulis beserta <b>jadwal pembayaran yang pasti</b>, atau kesediaan Saudara untuk bertemu guna membahas penyelesaiannya. Apabila pembayaran telah dilakukan, mohon surat ini diabaikan dan ' + kirim + '</p>');
+  else if (o.ke === 3) P('<p>Apabila sampai dengan ' + (o.tenggat ? 'tanggal tersebut' : 'batas waktu yang wajar') + ' belum terdapat pembayaran ataupun kepastian jadwal pembayaran secara tertulis, dengan menyesal kami akan menyampaikan permasalahan ini kepada manajemen kedua perusahaan untuk penyelesaian lebih lanjut sesuai ketentuan kontrak. Bukti transfer beserta bukti potong PPh mohon dikirimkan kepada ' + (o.kontak ? esc(o.kontak) : 'kami') + '. Atas perhatian dan kerja sama yang baik, kami mengucapkan terima kasih.</p>');
+  else P('<p>Apabila pembayaran belum dapat segera direalisasikan, mohon konfirmasi tertulis mengenai jadwal realisasinya. Apabila pembayaran telah dilakukan, mohon surat ini diabaikan dan ' + kirim + '</p>');
+  P('<div class="ttd"><p><b>Hormat kami,</b></p><p><b>PT Wijaya Karya Beton Tbk</b></p><p><b>Concrete Services Unit</b></p><p style="height:16mm"></p><p><b><u>' + esc(sg.nama) + '</u></b></p><p>' + esc(sg.jabatan || 'Manager of Concrete Services Unit') + '</p></div>');
+  P('<div class="sm tbs"><p><b>Tembusan:</b></p><ol>' + tembusan.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ol></div>');
+  return L;
 }
-/** ukuran huruf isi surat (diperkecil otomatis bila meluber; dipakai juga untuk cetak & PDF) */
-function srFs() { return SR && SR.fs && SR.fs < 9.4 ? ' style="font-size:' + SR.fs + 'pt"' : ''; }
-/** lampiran: tabel A (nilai) & B (dokumen/jatuh tempo) per proyek; dipecah ke beberapa halaman bila invoice banyak */
-function srLampiran(o) {
-  var hdA = '<tr><th style="width:6mm">No</th><th style="width:25mm">Nomor Invoice</th><th style="width:20mm">No. Faktur Pajak</th><th style="width:20mm">DPP</th><th style="width:19mm">PPN</th><th style="width:20mm">Nilai Tagihan</th><th style="width:18mm">PPh*</th><th style="width:13mm">Sudah Diterima</th><th style="width:20mm">Sisa Tagihan</th></tr>';
-  var hdB = '<tr><th style="width:8mm">No</th><th style="width:34mm">Nomor Invoice</th><th>Tgl Invoice</th><th>Tgl ' + (o.all.some(function (i) { return i.basisTT; }) ? 'Tanda Terima' : 'Diterima Pelanggan') + '</th><th>TOP (hari)</th><th>Jatuh Tempo</th><th>Lewat JT (hari)</th></tr>';
-  var A = [], Bt = [], n = 0, m = 0, sum = function (k) { return o.all.reduce(function (t, i) { return t + (i[k] || 0); }, 0); };
+/** lampiran: A (nilai) & B (dokumen/jatuh tempo) per proyek, C dokumen pendukung */
+function srBlocksLampiran(o) {
+  var L = [], n = 0, m = 0, A = [], Bt = [], sum = function (k) { return o.all.reduce(function (t, i) { return t + (i[k] || 0); }, 0); };
   o.projects.forEach(function (p) {
     var lbl = esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat);
     A.push('<tr class="prj"><td colspan="9">' + lbl + '</td></tr>'); Bt.push('<tr class="prj"><td colspan="7">' + lbl + '</td></tr>');
     p.invoices.forEach(function (i) {
-      n++; A.push('<tr><td class="c">' + n + '.</td><td>' + esc(i.nomor) + '</td><td style="text-align:center">' + esc(i.no_fp ? E.fpFmt(i.no_fp) || i.no_fp : '-') + '</td><td class="n">' + nfDot(i.dpp) + '</td><td class="n">' + nfDot(i.ppn) + '</td><td class="n">' + nfDot(i.tagihan) + '</td><td class="n">' + nfDot(i.pph) + '</td><td class="n">' + nfDot(i.diterima) + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>');
+      n++; A.push('<tr><td class="c">' + n + '.</td><td>' + esc(i.nomor) + '</td><td class="c fp">' + esc(i.no_fp ? E.fpFmt(i.no_fp) || i.no_fp : '-') + '</td><td class="n">' + nfDot(i.dpp) + '</td><td class="n">' + nfDot(i.ppn) + '</td><td class="n">' + nfDot(i.tagihan) + '</td><td class="n">' + nfDot(i.pph) + '</td><td class="n">' + nfDot(i.diterima) + '</td><td class="n">' + nfDot(i.sisa) + '</td></tr>');
       m++; Bt.push('<tr><td class="c">' + m + '.</td><td>' + esc(i.nomor) + '</td><td class="c">' + tg(i.tgl) + '</td><td class="c">' + tg(i.terima) + '</td><td class="c">' + esc(i.top) + '</td><td class="c">' + tg(i.jt) + '</td><td class="c red">' + i.lewat + '</td></tr>');
     });
   });
   A.push('<tr class="tot"><td colspan="3">Jumlah</td><td class="n">' + nfDot(sum('dpp')) + '</td><td class="n">' + nfDot(sum('ppn')) + '</td><td class="n">' + nfDot(sum('tagihan')) + '</td><td class="n">' + nfDot(sum('pph')) + '</td><td class="n">' + nfDot(sum('diterima')) + '</td><td class="n">' + nfDot(sum('sisa')) + '</td></tr>');
   var labels = {}; o.all.forEach(function (i) { labels[i.pphLabel] = 1; });
-  var noteA = '<p class="nt">* ' + esc(Object.keys(labels).join(' / ')) + ' dipotong saat pembayaran.' + (o.all.some(function (i) { return i.ret > 0; }) ? ' Nilai tagihan = DPP + PPN − retensi yang ditahan.' : ' Nilai tagihan = DPP + PPN.') + ' Kas yang kami harapkan diterima = Sisa Tagihan − PPh = <b>Rp ' + nfDot(o.kas) + '</b>. Mohon bukti potong PPh dikirimkan bersama bukti transfer.</p>';
-  var docs = '<p style="text-align:left;margin:3mm 0 1mm"><b>C. Dokumen pendukung yang telah kami sampaikan</b></p><ol class="sm"><li>Invoice dan kuitansi (nomor sesuai tabel di atas);</li><li>Faktur Pajak Keluaran (nomor sesuai tabel A);</li><li>Berita Acara Kemajuan Pekerjaan / Berita Acara Pembayaran;</li><li>Tanda terima dokumen tagihan (tanggal sesuai tabel B).</li></ol>' +
-    '<p class="nt" style="margin-top:3mm">Apabila terdapat perbedaan data dengan catatan Saudara, mohon dapat dikonfirmasi kepada kami agar dapat segera direkonsiliasi.</p>';
-  var head = function (lanjut) { return '<p style="text-align:left;margin-bottom:4mm" class="sm">Lampiran Surat Nomor ' + esc(o.nomor || '……………………') + ' tanggal ' + esc(tglIndo(o.tgl)) + (lanjut ? ' (lanjutan)' : '') + '</p>' +
-    (lanjut ? '' : '<h3>RINCIAN TAGIHAN YANG TELAH JATUH TEMPO</h3><p class="sub">' + esc(o.nama) + ' · posisi per ' + esc(tglIndo(o.tgl)) + '</p>'); };
-  var page = function (inner) { return '<div class="page pg-inv surat">' + kop() + '<div class="sb">' + inner + '</div></div>'; };
-  var tA = function (rows) { return '<table class="st lt">' + hdA + rows.join('') + '</table>'; }, tB = function (rows) { return '<table class="st lt">' + hdB + rows.join('') + '</table>'; };
-  var secA = '<p style="text-align:left;margin-bottom:1mm"><b>A. Rincian nilai invoice</b></p>', secB = '<p style="text-align:left;margin:3mm 0 1mm"><b>B. Riwayat dokumen &amp; jatuh tempo</b></p>';
-  if (A.length + Bt.length <= 26) return page(head(false) + secA + tA(A) + noteA + secB + tB(Bt) + docs);
-  // banyak invoice: A dipecah per 28 baris, B per 32 baris; bagian C di halaman terakhir
-  var out = [], chunk = function (L, k) { var r = []; for (var x = 0; x < L.length; x += k) r.push(L.slice(x, x + k)); return r; };
-  chunk(A, 28).forEach(function (c, ix, all) { out.push(page(head(ix > 0) + (ix ? '' : secA) + tA(c) + (ix === all.length - 1 ? noteA : ''))); });
-  chunk(Bt, 32).forEach(function (c, ix, all) { out.push(page(head(true) + (ix ? '' : secB) + tB(c) + (ix === all.length - 1 ? docs : ''))); });
-  return out.join('');
+  L.push({ h: '<p class="sm" style="text-align:left;margin-bottom:4mm">Lampiran Surat Nomor ' + esc(o.nomor || '……………………') + ' tanggal ' + esc(tglIndo(o.tgl)) + '</p><h3>RINCIAN TAGIHAN YANG TELAH JATUH TEMPO</h3><p class="sub">' + esc(o.nama) + ' · posisi per ' + esc(tglIndo(o.tgl)) + '</p>', next: true });
+  L.push({ h: '<p class="sec">A. Rincian nilai invoice (Rp)</p>', next: true });
+  // lebar kolom (mm, total 168) cukup untuk angka miliaran; nomor invoice & faktur boleh dua baris
+  L.push({ t: { cls: 'st lt', head: '<tr><th style="width:6mm">No</th><th style="width:25mm">Nomor Invoice</th><th style="width:19mm">No. Faktur Pajak</th><th style="width:20mm">DPP</th><th style="width:18mm">PPN</th><th style="width:21mm">Nilai Tagihan</th><th style="width:18mm">PPh*</th><th style="width:20mm">Sudah Diterima</th><th style="width:21mm">Sisa Tagihan</th></tr>', rows: A } });
+  L.push({ h: '<p class="nt">* ' + esc(Object.keys(labels).join(' / ')) + ' dipotong saat pembayaran.' + (o.all.some(function (i) { return i.ret > 0; }) ? ' Nilai tagihan = DPP + PPN − retensi yang ditahan.' : ' Nilai tagihan = DPP + PPN.') + ' Kas yang kami harapkan diterima = Sisa Tagihan − PPh = <b>Rp ' + nfDot(o.kas) + '</b>. Mohon bukti potong PPh dikirimkan bersama bukti transfer.</p>' });
+  L.push({ h: '<p class="sec">B. Riwayat dokumen &amp; jatuh tempo</p>', next: true });
+  L.push({ t: { cls: 'st lt', head: '<tr><th style="width:8mm">No</th><th style="width:36mm">Nomor Invoice</th><th>Tgl Invoice</th><th>Tgl ' + (o.all.some(function (i) { return i.basisTT; }) ? 'Tanda Terima' : 'Diterima Pelanggan') + '</th><th>TOP (hari)</th><th>Jatuh Tempo</th><th>Lewat JT (hari)</th></tr>', rows: Bt } });
+  L.push({ h: '<p class="sec">C. Dokumen pendukung yang telah kami sampaikan</p><ol class="sm"><li>Invoice dan kuitansi (nomor sesuai tabel di atas);</li><li>Faktur Pajak Keluaran (nomor sesuai tabel A);</li><li>Berita Acara Kemajuan Pekerjaan / Berita Acara Pembayaran;</li><li>Tanda terima dokumen tagihan (tanggal sesuai tabel B).</li></ol>' +
+    '<p class="nt" style="margin-top:3mm">Apabila terdapat perbedaan data dengan catatan Saudara, mohon dapat dikonfirmasi kepada kami agar dapat segera direkonsiliasi.</p>' });
+  return L;
 }
-function srHtml() { var o = srState(); return o && o.all.length ? srPage1(o) + srLampiran(o) : ''; }
+/** susun blok ke halaman A4 berkop: blok yang tidak muat pindah ke halaman berikut, tabel dipotong per baris dengan judul kolom diulang */
+function srPaginate(groups) {
+  var box = $('srMeasure'); if (!box) { box = document.createElement('div'); box.id = 'srMeasure'; box.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden'; document.body.appendChild(box); }
+  box.innerHTML = '';
+  var pages = [], sb = null;
+  var over = function () { return sb.scrollHeight > sb.clientHeight + 1; };
+  var newPage = function (cont) { var pg = document.createElement('div'); pg.className = 'page pg-inv surat'; pg.innerHTML = kop() + '<div class="sb"></div>'; box.appendChild(pg); pages.push(pg); sb = pg.querySelector('.sb'); if (cont) sb.insertAdjacentHTML('beforeend', '<p class="cont">' + cont + '</p>'); };
+  var el = function (html) { var d = document.createElement('div'); d.className = 'blk'; d.innerHTML = html; return d; };
+  // pindah ke halaman baru; blok "tetap bersama" di akhir halaman lama (judul, kalimat pengantar tabel) ikut pindah
+  var move = function (cont) { var carry = []; while (sb.lastElementChild && sb.lastElementChild.dataset.next === '1' && sb.children.length > 1) carry.unshift(sb.removeChild(sb.lastElementChild)); newPage(cont); carry.forEach(function (c) { sb.appendChild(c); }); };
+  groups.forEach(function (g) {
+    newPage('');
+    g.blocks.forEach(function (b) {
+      if (!b.t) {
+        var d = el(b.h); if (b.next) d.dataset.next = '1'; sb.appendChild(d);
+        if (over() && sb.children.length > 1) { sb.removeChild(d); move(g.cont); sb.appendChild(d); }
+        return;
+      }
+      var mk = function () { var w = el('<table class="' + b.t.cls + '"><thead>' + b.t.head + '</thead><tbody></tbody></table>'); sb.appendChild(w); return w.querySelector('tbody'); };
+      var tb = mk();
+      b.t.rows.forEach(function (r) {
+        tb.insertAdjacentHTML('beforeend', r);
+        if (!over()) return;
+        var held = [tb.removeChild(tb.lastElementChild)];
+        // jangan sisakan judul proyek sendirian di bawah halaman
+        while (tb.lastElementChild && tb.lastElementChild.classList.contains('prj')) held.unshift(tb.removeChild(tb.lastElementChild));
+        var dataRows = Array.prototype.filter.call(tb.children, function (x) { return !x.classList.contains('prj'); }).length;
+        if (dataRows <= 1) { // tabel baru sempat 0–1 baris data: pindahkan utuh bersama judulnya
+          while (tb.lastElementChild) held.unshift(tb.removeChild(tb.lastElementChild));
+          var w = tb.closest('.blk'); sb.removeChild(w); move(g.cont); sb.appendChild(w);
+        } else { newPage(g.cont); tb = mk(); }
+        held.forEach(function (x) { tb.appendChild(x); });
+      });
+    });
+  });
+  var html = pages.map(function (p) { return p.outerHTML; }).join('');
+  box.innerHTML = '';
+  return { html: html, n: pages.length };
+}
+function srLayout(o) {
+  var cont = 'Lanjutan Surat Nomor ' + esc(o.nomor || '……') + ' tanggal ' + esc(tglIndo(o.tgl));
+  return srPaginate([{ blocks: srBlocksSurat(o), cont: cont }, { blocks: srBlocksLampiran(o), cont: 'Lampiran Surat Nomor ' + esc(o.nomor || '……') + ' (lanjutan)' }]);
+}
+function srHtml() { var o = srState(); return o && o.all.length ? srLayout(o).html : ''; }
 function srPreview() {
   if (MODE !== 'surat' || STACK) return;
   var w = $('sheetwrap'), o = srState();
   $('btnSrSave').disabled = $('btnSrPrint').disabled = !(o && o.all.length);
+  if ($('srNoFull')) $('srNoFull').textContent = o && o.nomor ? 'Nomor lengkap: ' + o.nomor : 'Ketik nomor urut saja, mis. 032';
   if (!o) { w.style.transform = ''; w.innerHTML = '<div class="empty">Pilih pelanggan di kiri untuk menyusun surat permohonan percepatan pembayaran.</div>'; return; }
   if (!o.all.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Centang minimal satu invoice.</div>'; return; }
   // saran tenggat (tidak otomatis dipakai): ≥ 7 hari lewat JT → 3 hari, baru jatuh tempo → 7 hari
   var mx = Math.max.apply(null, o.all.map(function (i) { return i.lewat; }));
   $('srTgHint').textContent = 'Surat ke-' + o.ke + (o.eskalasi ? ' (ada invoice yang sudah melewati surat ke-3 — sebaiknya eskalasi ke manajemen)' : '') + ' · Saran tenggat: ' + (mx >= 7 ? '3 hari (ada invoice lewat jatuh tempo ' + mx + ' hari)' : '7 hari (invoice baru jatuh tempo)') + (o.tenggat ? ' · dipakai: ' + tglIndo(o.tenggat) : ' · saat ini tanpa tenggat');
-  var over = [];
-  for (SR.fs = 9.4; ; SR.fs = Math.round((SR.fs - 0.3) * 10) / 10) {
-    w.innerHTML = '<div class="stackwrap">' + srPage1(o) + srLampiran(o) + '</div>';
-    over = Array.prototype.slice.call(w.querySelectorAll('.surat')).filter(function (pg) { var b = pg.querySelector('.sb'); var bad = b && b.scrollHeight > b.clientHeight + 2; pg.classList.toggle('over', !!bad); return bad; });
-    if (!over.length || SR.fs <= 8.5) break;
-  }
-  fitZoom();
-  $('srStatus').innerHTML = over.length ? '<span style="color:var(--red)">Isi melebihi halaman (garis merah). Pendekkan Kepada Yth. / kontak, atau kurangi rekening / invoice.</span>' : (SR.fs < 9.4 ? 'Ukuran huruf isi surat disesuaikan menjadi ' + SR.fs + ' pt agar muat satu halaman.' : '');
+  var r = srLayout(o);
+  w.innerHTML = '<div class="stackwrap">' + r.html + '</div>'; fitZoom();
+  $('srStatus').textContent = r.n + ' halaman (surat + lampiran).';
 }
 function srPrint() { var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
 function srSave() {
   var o = srState(); if (!o || !o.all.length) return;
-  if (o.nomor.length < 5) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor surat.</span>'; $('srNo').focus(); return; }
+  if (!/^[0-9]{1,5}[A-Za-z]?$/.test(o.no)) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor urut surat (angka saja, mis. 032).</span>'; $('srNo').focus(); return; }
   if ($('srTg').value === 'tgl' && !o.tenggat) { $('srStatus').innerHTML = '<span style="color:var(--red)">Pilih tanggal tenggat.</span>'; return; }
   try { localStorage.setItem('ar_sr_kontak', o.kontak); } catch (e) { }
   var name = 'Surat Penagihan_' + o.nama + '_' + o.nomor;
