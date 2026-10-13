@@ -654,6 +654,7 @@ function lockEditors_(ss) {
   try { var o = ss.getOwner(); if (o && o.getEmail()) out.push(o.getEmail().toLowerCase()); } catch (e) { }
   try { var me = Session.getEffectiveUser().getEmail(); if (me) out.push(me.toLowerCase()); } catch (e) { }
   res.params.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran)) out.push(u.email); });
+  var dl = String(res.params.DELEGASI_EMAIL || '').toLowerCase(); if (dl && ENGINE.delegasiFor(res.params, dl, null, res.ctx.today)) out.push(dl); // delegasi aktif perlu menulis Log Persetujuan
   return out.filter(function (v, i, a) { return v && a.indexOf(v) === i; });
 }
 function protectRange_(target, editors, desc) {
@@ -1015,7 +1016,8 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
     var dl = (!u || u.peran.indexOf('PENYETUJU') !== 0) ? ENGINE.delegasiFor(P, me, kind, res.ctx.today) : null;
     if ((!u || u.peran.indexOf('PENYETUJU') !== 0) && !dl) throw new Error('Hanya pengguna dengan peran PENYETUJU (Section Head) yang dapat memutuskan' + (String(P.DELEGASI_EMAIL || '').toLowerCase() === me ? ' (delegasi Anda tidak berlaku untuk jenis ini atau sudah lewat ' + P.DELEGASI_SAMPAI + ')' : '') + '. Akun Anda: ' + (me || '(tidak dikenal)'));
     if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Pengajuan ' + id + ' sudah berstatus ' + r.status + '.');
-    if (String(r.oleh).toLowerCase() === me && !dl) throw new Error('Pengajuan tidak dapat disetujui oleh pembuatnya sendiri.');
+    // pemisahan tugas: berlaku juga untuk delegasi — pengaju tidak pernah memutuskan pengajuannya sendiri
+    if (String(r.oleh).toLowerCase() === me) throw new Error('Pengajuan tidak dapat disetujui oleh pembuatnya sendiri.');
     if (dl) catatan = '[DELEGASI a.n. ' + dl.atas + ' s.d. ' + dl.sampai + (dl.dasar ? ' · dasar: ' + dl.dasar : '') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : '');
     if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX') {
       var d = ENGINE.packageFor(res.ctx, kind, r.ref);
@@ -1604,16 +1606,24 @@ function applyV24() { arRequireMaker_();
 // =====================================================================  DELEGASI PERSETUJUAN SEMENTARA
 /** menu: akun pengganti boleh menyetujui a.n. Section Head sampai tanggal tertentu (tercatat sebagai DELEGASI di cap & Log Persetujuan) */
 function aturDelegasi() { arRequireMaker_();
-  var ui = SpreadsheetApp.getUi(), cur = paramKV_('DELEGASI_EMAIL'), sd = paramKV_('DELEGASI_SAMPAI');
+  var ui = SpreadsheetApp.getUi(), cur = paramKV_('DELEGASI_EMAIL'), sd = paramKV_('DELEGASI_SAMPAI'), P = arParameters_(), me = email_();
   var aktif = cur && cur.val ? '\n\nSaat ini: ' + cur.val + ' s.d. ' + (sd ? sd.val : '-') + ' (' + ((paramKV_('DELEGASI_JENIS') || {}).val || 'PAY,VAL') + ')' : '';
-  var b = ui.alert('Delegasi persetujuan Oktober 2026', 'Akun fikrizikraakrama@gmail.com diberi wewenang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk:\n• Paket penerimaan termin (PAY)\n• Validasi rencana cair (VAL)\n\nCap persetujuan tertulis "DISETUJUI a.n. SECTION HEAD oleh Fikri Zikra Akrama (DELEGASI)". Setelah 31-10-2026 delegasi berhenti sendiri.' + aktif + '\n\nOK = aktifkan · Batal = tidak diubah. (Untuk menghentikan lebih cepat: kosongkan DELEGASI_EMAIL di Parameter.)', ui.ButtonSet.OK_CANCEL);
-  if (b !== ui.Button.OK) return;
-  setParamKV_('DELEGASI_EMAIL', 'fikrizikraakrama@gmail.com', 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut)');
+  var q = ui.prompt('Delegasi persetujuan Oktober 2026', 'Email akun pengganti yang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk:\n• Paket penerimaan termin (PAY)\n• Validasi rencana cair (VAL)\n\nSyarat pemisahan tugas: akun ini harus terdaftar di Parameter ▸ Pengguna & Peran dan BUKAN berperan PEMBUAT (AR Officer tidak boleh menyetujui pekerjaannya sendiri). Akun pengganti juga perlu akses edit ke spreadsheet ini.' + aktif + '\n\nKosongkan lalu OK untuk mencabut delegasi.', ui.ButtonSet.OK_CANCEL);
+  if (q.getSelectedButton() !== ui.Button.OK) return;
+  var mail = String(q.getResponseText() || '').trim().toLowerCase();
+  if (!mail) { setParamKV_('DELEGASI_EMAIL', '', 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut)'); rebuildAll(); ui.alert('Delegasi dicabut.'); return; }
+  var du = ENGINE.userBy(P, mail);
+  if (!du) throw new Error(mail + ' belum terdaftar di Parameter ▸ Pengguna & Peran. Daftarkan dulu (peran selain PEMBUAT).');
+  if (/^PEMBUAT/i.test(du.peran) || AR28_MAKERS_.indexOf(mail) >= 0 || mail === me) throw new Error('Delegasi tidak boleh jatuh ke akun PEMBUAT (' + mail + '). Pilih pejabat lain yang tidak menyusun paket penerimaan / validasi.');
+  if (/^PENYETUJU/i.test(du.peran)) throw new Error(mail + ' sudah berperan PENYETUJU; delegasi tidak diperlukan.');
+  var nama = du.nama || mail;
+  if (ui.alert('Konfirmasi delegasi', 'Akun ' + mail + ' (' + nama + ') diberi wewenang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk PAY dan VAL.\n\nCap persetujuan tertulis "DISETUJUI a.n. SECTION HEAD oleh ' + nama + ' (DELEGASI)". Pengajuan yang dibuat akun ini sendiri tetap tidak dapat ia setujui. Setelah 31-10-2026 delegasi berhenti sendiri.\n\nOK = aktifkan · Batal = tidak diubah.', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  setParamKV_('DELEGASI_EMAIL', mail, 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut; tidak boleh akun PEMBUAT)');
   setParamKV_('DELEGASI_SAMPAI', '2026-10-31', 'Delegasi berlaku sampai tanggal ini (yyyy-mm-dd)');
   setParamKV_('DELEGASI_JENIS', 'PAY,VAL', 'Jenis yang boleh didelegasikan: PAY, VAL, INV, KP, REK, TUTUP atau SEMUA');
   setParamKV_('DELEGASI_DASAR', 'Persetujuan Pak Anas Afifudin (Section Head) untuk laporan ke pusat Oktober 2026', 'Dasar delegasi (tampil di catatan persetujuan)');
   rebuildAll();
-  ui.alert('Delegasi aktif sampai 31 Oktober 2026. Terbitkan ulang aplikasi web (Kelola deployment ▸ Versi baru) bila belum, lalu buka aplikasi dengan akun fikrizikraakrama@gmail.com: tombol Setujui / Tolak muncul pada paket penerimaan dan validasi rencana cair.');
+  ui.alert('Delegasi aktif sampai 31 Oktober 2026. Terbitkan ulang aplikasi web (Kelola deployment ▸ Versi baru) bila belum, lalu buka aplikasi dengan akun ' + mail + ': tombol Setujui / Tolak muncul pada paket penerimaan dan validasi rencana cair yang tidak diajukan oleh akun tersebut.');
 }
 
 // =====================================================================  v2.5: VALIDASI PER INVOICE, RA/RI GABUNGAN, KINERJA & PERINGATAN DINI

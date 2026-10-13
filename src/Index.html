@@ -1990,7 +1990,7 @@ function closePackage() { STACK = false; PKG = null; VDEC = null; VUS = null; $(
 function canDecideNow() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah;
   var dlg = B.delegasi && B.delegasi.jenis && (B.delegasi.jenis.indexOf(PKG.kind) >= 0 || B.delegasi.jenis.indexOf('SEMUA') >= 0);
-  return !!(pend && ((/^PENYETUJU/.test(role) && String(a.oleh).toLowerCase() !== String(me.email).toLowerCase()) || dlg));
+  return !!(pend && String(a.oleh).toLowerCase() !== String(me.email).toLowerCase() && (/^PENYETUJU/.test(role) || dlg));
 }
 function pkgActions() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah, ok = a && a.status === 'DISETUJUI' && !a.berubah;

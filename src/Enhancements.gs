@@ -39,6 +39,8 @@ function arParameters_() {
 function arRequireAccess_() {
   var email = email_(), p = arParameters_(), u = ENGINE.userBy(p,email);
   if (!email) throw new Error('Identitas Google tidak terbaca. Masuk dengan akun terdaftar; deployment harus dijalankan sebagai pengguna yang mengakses.');
+  // delegasi aktif (bukan PEMBUAT — dijaga ENGINE.delegasiFor) hanya membuka mode Otorisasi Dokumen
+  if (u && !/^(PEMBUAT|PENYETUJU)/.test(u.peran) && ENGINE.delegasiFor(p,email,null,arToday_())) return { email:email, maker:false, approver:false, delegate:true, role:u.peran };
   if (!u || !/^(PEMBUAT|PENYETUJU)/.test(u.peran)) throw new Error('Akun ini tidak memiliki akses ke aplikasi utama AR. Hubungi Pembuat.');
   return { email:email, maker:/^PEMBUAT/.test(u.peran), approver:/^PENYETUJU/.test(u.peran), role:u.peran };
 }

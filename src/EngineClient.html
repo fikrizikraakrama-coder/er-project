@@ -284,6 +284,8 @@ var ENGINE = (function () {
   function delegasiFor(params, email, kind, today) {
     var e = S(email).toLowerCase(), de = S(params.DELEGASI_EMAIL).toLowerCase(), until = D(params.DELEGASI_SAMPAI);
     if (!e || !de || e !== de || !until || (today && today > until)) return null;
+    // pemisahan tugas: delegasi tidak pernah jatuh ke akun PEMBUAT (pembuat tidak boleh menyetujui paket yang ia susun)
+    var du = userBy(params, e); if (du && /^PEMBUAT/.test(U(du.peran))) return null;
     var J = U(params.DELEGASI_JENIS || 'PAY,VAL').split(/[,;\s]+/).filter(String);
     var kk = U(kind) === 'VALX' ? 'VAL' : U(kind); // pembatalan lembar validasi = bagian dari validasi rencana cair
     if (kind && J.indexOf(kk) < 0 && J.indexOf('SEMUA') < 0) return null;
