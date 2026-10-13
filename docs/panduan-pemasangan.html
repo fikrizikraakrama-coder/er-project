@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><title>Panduan Pemasangan AR CSU v2.8.1</title>
+<style>
+@page { size: A4; margin: 16mm 16mm 18mm; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1b2433; line-height: 1.45; }
+h1 { font-size: 18pt; color: #1F3864; margin: 0 0 1mm; }
+.sub { color: #4A5A72; margin: 0 0 6mm; }
+h2 { font-size: 12.5pt; color: #fff; background: #1F3864; padding: 2mm 3mm; margin: 7mm 0 3mm; border-radius: 1.5mm; break-after: avoid; }
+h3 { font-size: 10.5pt; color: #1F3864; margin: 4mm 0 1.5mm; break-after: avoid; }
+p { margin: 0 0 2.2mm; }
+ol, ul { margin: 0 0 2.5mm; padding-left: 6mm; } li { margin: 0 0 1.3mm; }
+.step { display: flex; gap: 3mm; margin: 0 0 3mm; }
+.num { flex: 0 0 7mm; height: 7mm; border-radius: 50%; background: #137C8B; color: #fff; font-weight: bold; text-align: center; line-height: 7mm; }
+.step > div:not(.num) { flex: 1; min-width: 0; }
+.menu { font-family: Consolas, "Courier New", monospace; background: #EEF3FA; border: 0.6pt solid #c9d6ea; padding: 0.3mm 1.5mm; border-radius: 1mm; font-size: 8.6pt; overflow-wrap: anywhere; }
+.box { border-left: 3.5pt solid #D89532; background: #FFF6E5; padding: 2.5mm 3.5mm; margin: 2mm 0 3.5mm; break-inside: avoid; }
+.box.red { border-color: #B00020; background: #FDECEE; }
+.box.ok { border-color: #2E7D32; background: #EAF5EC; }
+table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3.5mm; font-size: 9pt; break-inside: avoid; }
+th, td { border: 0.6pt solid #b8c4d6; padding: 1.5mm 2mm; vertical-align: top; text-align: left; }
+th { background: #EEF3FA; color: #1F3864; }
+td.c { text-align: center; }
+.chk li { list-style: none; margin-left: -5mm; } .chk li::before { content: "☐  "; font-size: 11pt; }
+.small { font-size: 8.6pt; color: #4A5A72; }
+.cover { border: 1pt solid #1F3864; border-radius: 2mm; padding: 4mm 5mm; margin-bottom: 4mm; }
+</style></head><body>
+
+<h1>Panduan Pemasangan Sistem AR CSU v2.8.1</h1>
+<p class="sub">Pembaruan dari v2.8.0 · 13 Oktober 2026 · waktu pemasangan ± 30–45 menit</p>
+
+<div class="cover">
+<b>Isi pembaruan ini:</b> pemisahan tugas pada delegasi persetujuan, email bukti keputusan ke Section Head, akun pengguna diatur di Parameter (tidak di kode),
+pembaruan laporan yang stabil untuk semua akun, tutup buku otomatis tanggal 3 pukul 00.00, jejak edit langsung di sheet, pemeriksaan angka invoice di server,
+pencegahan PPN dobel pada retensi AKHIR, daftar bukti potong PPh, dan menu baru <b>Surat Penagihan</b> (surat ke-1 s.d. ke-3, tanggapan, janji bayar).
+</div>
+
+<h2>A. Sebelum mulai</h2>
+<div class="box red"><b>Wajib:</b> pemasangan dilakukan oleh <b>pemilik spreadsheet utama</b>, di luar jam input (tidak ada yang sedang mencatat invoice/penerimaan).</div>
+<ol>
+  <li><b>Buat cadangan file.</b> Di spreadsheet utama: <span class="menu">File ▸ Buat salinan</span>, beri nama mis. <i>SISTEM AR CSU — BACKUP sebelum v2.8.1</i>.</li>
+  <li><b>Catat versi web app yang sedang aktif</b> (untuk kembali bila perlu): di editor Apps Script <span class="menu">Terapkan ▸ Kelola deployment</span>, lihat nomor versinya.</li>
+  <li><b>Masukkan transaksi September yang tertinggal.</b> Begitu versi ini terpasang, periode s.d. 30 September 2026 langsung terkunci (tutup buku tanggal 3 Oktober sudah lewat).</li>
+  <li><b>Siapkan 5 berkas kode</b> dari lampiran (<i>AR-CSU-v2.8.1-kode.zip</i>, ekstrak dulu):
+    <table><tr><th>Berkas</th><th>Jenis di Apps Script</th><th>Keterangan</th></tr>
+      <tr><td>Code.gs</td><td>Skrip (.gs)</td><td>Menu, simpan data, persetujuan, surat penagihan</td></tr>
+      <tr><td>Engine.gs</td><td>Skrip (.gs)</td><td>Perhitungan inti (server)</td></tr>
+      <tr><td>Enhancements.gs</td><td>Skrip (.gs)</td><td>Tutup periode, notifikasi, trigger, jejak edit</td></tr>
+      <tr><td>EngineClient.html</td><td>HTML</td><td>Perhitungan inti (aplikasi) — <b>harus dari rilis yang sama dengan Engine.gs</b></td></tr>
+      <tr><td>Index.html</td><td>HTML</td><td>Tampilan aplikasi web</td></tr>
+    </table>
+    <p class="small">PdfLib.html <b>tidak diganti</b> — biarkan berkas yang sudah ada di proyek Anda.</p></li>
+</ol>
+
+<h2>B. Mengganti kode</h2>
+<div class="step"><div class="num">1</div><div>Buka spreadsheet utama ▸ <span class="menu">Ekstensi ▸ Apps Script</span>.</div></div>
+<div class="step"><div class="num">2</div><div>Di panel kiri (Berkas), klik <b>Code.gs</b>. Klik di area kode, tekan <b>Ctrl + A</b> lalu <b>Delete</b>. Buka berkas <i>Code.gs</i> dari lampiran dengan Notepad, <b>Ctrl + A</b>, <b>Ctrl + C</b>, kembali ke editor, <b>Ctrl + V</b>.</div></div>
+<div class="step"><div class="num">3</div><div>Ulangi langkah 2 untuk <b>Engine.gs</b>, <b>Enhancements.gs</b>, <b>EngineClient.html</b>, dan <b>Index.html</b>.
+  <p class="small">Nama berkas harus persis sama (huruf besar/kecil). Jangan membuat berkas baru bernama sama — ganti isinya. Pastikan tidak ada sisa kode lama di bagian bawah.</p></div></div>
+<div class="step"><div class="num">4</div><div>Tekan <b>Ctrl + S</b> (atau ikon disket) untuk menyimpan semua berkas. Bila muncul pesan kesalahan sintaks, kemungkinan isi berkas tidak tersalin utuh — ulangi penyalinan berkas itu.</div></div>
+<div class="step"><div class="num">5</div><div><b>Izin email (sekali periksa).</b> Klik ikon ⚙ <span class="menu">Setelan Proyek</span>. Bila opsi <i>"Tampilkan file manifes appsscript.json di editor"</i> aktif dan file itu berisi daftar <span class="menu">"oauthScopes"</span>, tambahkan baris
+  <span class="menu">"https://www.googleapis.com/auth/script.send_mail"</span> ke dalam daftar tersebut lalu simpan. Bila tidak ada <i>oauthScopes</i>, lewati langkah ini.</div></div>
+
+<h2>C. Mengaktifkan di spreadsheet</h2>
+<div class="step"><div class="num">6</div><div>Kembali ke spreadsheet, tekan <b>F5</b> (muat ulang). Tunggu menu <b>AR CSU</b> muncul. Bila v2.8 sudah pernah dipasang, menu <i>"Pasang pembaruan v2.8"</i> tidak lagi tampil — itu normal.</div></div>
+<div class="step"><div class="num">7</div><div>Jalankan <span class="menu">AR CSU ▸ Aktifkan otomatisasi (sekali saja)</span>.
+  Google akan meminta izin baru (<i>"Mengirim email atas nama Anda"</i>) — pilih akun Anda ▸ <b>Lanjutkan / Izinkan</b>.
+  <p class="small">Langkah ini memasang trigger baru: pembaruan otomatis tiap 5 menit (agar edit tidak gagal "Lock timeout") dan pendeteksi penghapusan baris.</p></div></div>
+<div class="step"><div class="num">8</div><div><b>Periksa Parameter ▸ Pengguna &amp; Peran</b> (kolom U–Y). Tidak ada lagi akun yang tertulis di kode, jadi tabel ini harus benar:
+  <table><tr><th>Peran (kolom Y)</th><th>Siapa</th><th>Dipakai untuk</th></tr>
+    <tr><td>PEMBUAT</td><td>AR Officer</td><td>Input invoice, penerimaan, membuat surat</td></tr>
+    <tr><td>PENYETUJU</td><td>Section Head Finance &amp; HR</td><td>Menyetujui; <b>penerima email</b> keputusan &amp; peringatan</td></tr>
+    <tr><td>MENGETAHUI (TTD BASAH)</td><td>Manager CSU</td><td><b>Penandatangan surat penagihan</b></td></tr>
+  </table>
+  Sebaiknya memakai <b>email kantor</b>. Pastikan juga tabel <b>Rekening Penerimaan</b> (kolom AF–AH) berisi BNI, Mandiri, BSI, BTN dengan nomor yang benar.</div></div>
+<div class="step"><div class="num">9</div><div><b>Delegasi persetujuan.</b> Delegasi ke akun PEMBUAT kini otomatis tidak berlaku. Bila masih perlu delegasi, jalankan <span class="menu">AR CSU ▸ Delegasi persetujuan (sementara)…</span> dan isi email pejabat lain (bukan PEMBUAT) yang terdaftar di Parameter.</div></div>
+<div class="step"><div class="num">10</div><div>Jalankan <span class="menu">AR CSU ▸ Kunci struktur &amp; periksa hak akses</span> agar sheet baru (Jejak Edit Langsung, Log Surat Penagihan, Rekonsiliasi Saldo, Analisis Bulanan AR) ikut terkunci.
+  <p class="small">Sheet Log Surat Penagihan dan Jejak Edit Langsung dibuat otomatis saat pertama kali dipakai. Bila belum ada, jalankan langkah ini lagi setelah surat pertama dibuat.</p></div></div>
+
+<h2>D. Menerbitkan ulang aplikasi web</h2>
+<div class="step"><div class="num">11</div><div>Di editor Apps Script: <span class="menu">Terapkan ▸ Kelola deployment</span> ▸ pilih deployment aktif ▸ ikon ✏ (Edit) ▸ <b>Versi: Versi baru</b> ▸ isi keterangan <i>v2.8.1</i> ▸ <b>Terapkan</b>.
+  <div class="box ok">Gunakan <b>Edit</b> pada deployment yang ada — jangan "Deployment baru" — agar link aplikasi yang sudah dibagikan tetap sama.</div></div></div>
+<div class="step"><div class="num">12</div><div>Buka aplikasi web. Saat pertama kali, setiap pengguna (termasuk Section Head) akan diminta <b>izin baru</b> untuk mengirim email — pilih <b>Izinkan</b>.
+  Di kiri atas harus tertulis <b>versi 2.8.1 · 13-10-2026</b> dan <b>tidak ada</b> kotak merah "Versi perhitungan server berbeda".</div></div>
+
+<h2>E. Uji setelah pasang (± 15 menit)</h2>
+<ul class="chk">
+  <li>Aplikasi terbuka tanpa peringatan versi; tab <b>Surat Penagihan</b> tampil (angka merah = pelanggan yang perlu disurati).</li>
+  <li>Section Head membuka aplikasi dengan akunnya, menyetujui satu paket ▸ <b>email keputusan diterima</b> di kotak masuk Section Head.</li>
+  <li>Section Head mengedit satu sel di sheet (mis. TGL SUBMIT) ▸ laporan diperbarui dalam ≤ 5 menit, tanpa error.</li>
+  <li>Ketik angka langsung di kolom NOMINAL Log Penerimaan ▸ tercatat di sheet <b>Jejak Edit Langsung</b> + email ke Section Head. <i>(Kembalikan nilainya setelah uji.)</i></li>
+  <li>Coba simpan penerimaan bertanggal September dari aplikasi ▸ ditolak "periode sudah tutup buku" (sesuai aturan tanggal 3).</li>
+  <li>Surat Penagihan: pilih satu pelanggan ▸ isi nomor &amp; tanggal ▸ periksa pratinjau ▸ <b>Cetak</b> (jangan simpan dulu bila nomor surat belum resmi).</li>
+  <li>Bila nomor resmi sudah ada: <b>Simpan PDF ke Drive &amp; catat surat</b> ▸ PDF ada di folder arsip <i>Surat Penagihan</i> dan baris baru di <b>Log Surat Penagihan</b>.</li>
+</ul>
+
+<h2>F. Perubahan cara kerja yang perlu diketahui tim</h2>
+<table>
+  <tr><th style="width:32%">Hal</th><th>Sekarang</th></tr>
+  <tr><td>Tutup buku</td><td>Bulan lalu otomatis terkunci <b>tanggal 3 pukul 00.00 WIB</b>. Invoice, penerimaan, revisi &amp; pembatalan bertanggal bulan itu ditolak. Koreksi hanya bila Section Head membuka <b>izin koreksi</b> (Otorisasi Dokumen AR, maks. 7 hari) + alasan; snapshot bulan itu direvisi otomatis.</td></tr>
+  <tr><td>Persetujuan</td><td>Pembuat tidak bisa menyetujui pengajuannya sendiri, termasuk lewat delegasi. Setiap keputusan dikirim ke email Section Head.</td></tr>
+  <tr><td>Penerimaan 1 transfer untuk &gt;1 invoice</td><td><b>Ref. transfer dan nominal transfer wajib diisi.</b></td></tr>
+  <tr><td>Edit langsung di sheet</td><td>Tetap bisa, tetapi kolom angka/kunci tercatat di <b>Jejak Edit Langsung</b> dan dikirim ke Section Head. Invoice &amp; penerimaan sebaiknya selalu lewat aplikasi.</td></tr>
+  <tr><td>Retensi AKHIR (IKK/KIDOH)</td><td>Invoice pelepasan retensi bawaan tanpa PPN; bila dicentang PPN wajib mengisi dasar tertulis.</td></tr>
+  <tr><td>Surat Penagihan</td><td>Surat ke-1 → ke-2 → ke-3 otomatis. Pembayaran menutup surat otomatis; balasan pelanggan dicatat lewat <b>Catat tanggapan</b>; penyelesaian lain lewat <b>Tutup surat</b>.</td></tr>
+  <tr><td>Bukti potong PPh</td><td>Daftar "PPh diakui, bukti potong belum dicatat" ada di sheet Rekonsiliasi Saldo.</td></tr>
+</table>
+
+<h3>Parameter baru (opsional, kolom A–C sheet Parameter)</h3>
+<table>
+  <tr><th style="width:32%">Kunci</th><th>Bawaan &amp; fungsi</th></tr>
+  <tr><td>TUTUP_BUKU_TANGGAL</td><td>3 — tanggal tutup buku bulan sebelumnya</td></tr>
+  <tr><td>NOTIF_PERSETUJUAN_CC</td><td>(kosong) — email tambahan penerima notifikasi, pisahkan dengan koma</td></tr>
+  <tr><td>SURAT_JEDA_HARI</td><td>7 — jeda sebelum surat berikutnya disarankan bila surat tanpa tenggat</td></tr>
+  <tr><td>SURAT_TEMBUSAN</td><td>Direktur Teknik &amp; Produksi; VP CIS Division; Arsip — pisahkan dengan titik koma</td></tr>
+</table>
+
+<h2>G. Bila terjadi masalah</h2>
+<ul>
+  <li><b>Kotak merah "Versi perhitungan berbeda"</b>: Engine.gs dan EngineClient.html tidak dari rilis yang sama, atau web app belum diterbitkan ulang. Salin ulang keduanya lalu ulangi langkah 11.</li>
+  <li><b>"Identitas Google tidak terbaca"</b> saat membuka aplikasi: pastikan deployment dijalankan sebagai <i>Pengguna yang mengakses aplikasi web</i> dan akun terdaftar di Parameter.</li>
+  <li><b>Email tidak terkirim</b>: email PENYETUJU di Parameter kosong/salah, atau izin email belum diberikan (langkah 7 &amp; 12).</li>
+  <li><b>Kembali ke versi sebelumnya</b>: <span class="menu">Terapkan ▸ Kelola deployment ▸ Edit ▸ Versi</span> pilih nomor versi lama (dicatat di langkah A.2) ▸ Terapkan. Untuk kode di editor: <span class="menu">ikon jam (Riwayat proyek)</span> ▸ pilih versi lama ▸ pulihkan. Data spreadsheet tidak terhapus oleh pembaruan ini.</li>
+</ul>
+<p class="small" style="margin-top:6mm">Sistem AR CSU — dirancang &amp; dikembangkan oleh Fikri Zikra Akrama. Panduan ini menyertai berkas kode v2.8.1 (13-10-2026).</p>
+</body></html>
