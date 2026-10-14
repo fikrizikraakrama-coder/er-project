@@ -41,6 +41,10 @@ Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
 - Status surat: **SELESAI – LUNAS** / **SEBAGIAN DIBAYAR** otomatis dari penerimaan; **Catat tanggapan** (bentuk, ringkasan, janji bayar →
   surat berikutnya ditahan sampai janji); **Tutup surat** dengan alasan (sengketa, invoice dibatalkan/diganti).
   Peringatan dini: TENGGAT SURAT TERLEWAT, JANJI BAYAR TERLEWAT, ESKALASI PENAGIHAN.
+- Revisi surat yang sudah disimpan: **Revisi (belum dikirim)** → nomor sama, tercatat Rev.N, PDF lama ke "Revisi lama";
+  **Ganti (sudah diterima pelanggan)** → nomor + huruf (212 → 212A → 212B), surat lama berstatus DIGANTI (invoice tetap ditagih),
+  surat pengganti tetap di tingkat yang sama dan memuat "Surat ini menggantikan surat kami Nomor … tanggal …". Keduanya wajib alasan
+  dan dikirim ke email Section Head. Surat yang hanya dicetak (belum disimpan) cukup diubah lalu dicetak ulang.
 - Satu surat per pelanggan; pelanggan multi-proyek → tabel ringkasan per proyek, rincian per invoice di lampiran.
   Isi mengalir ke halaman berikut bila panjang (kop di setiap halaman, judul tabel diulang, tanda tangan tidak terpotong).
 - Diisi pengguna: nomor urut surat (format `SURAT_NOMOR_FORMAT`, bawaan `KU.03.03/WB-4C.{no}/{tahun}`), tanggal surat, Kepada Yth., tenggat (tanpa / 3 / 7 hari / tanggal), rekening (centang dari Parameter), kontak.

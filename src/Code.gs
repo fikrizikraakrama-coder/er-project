@@ -1144,38 +1144,60 @@ function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.surat
 /** arsipkan PDF surat ke Drive lalu catat di Log Surat Penagihan (nomor surat unik; invoice diperiksa ulang di server) */
 function apiSuratSimpan(m) {
   var a = arRequireMaker_(); m = m || {};
+  // mode: 'baru' · 'revisi' (belum dikirim: nomor sama, Rev.N) · 'ganti' (sudah sampai pelanggan: nomor + huruf, mis. 212A)
+  var mode = ['revisi', 'ganti'].indexOf(m.mode) >= 0 ? m.mode : 'baru', alasan = String(m.alasan || '').trim();
   var nomor = String(m.nomor || '').trim(), tgl = String(m.tgl || ''), tenggat = String(m.tenggat || ''), list = (m.invoices || []).map(function (x) { return ENGINE.normInv(x); });
   if (nomor.length < 5) throw new Error('Nomor surat wajib diisi.');
   if (!arValidDate_(tgl)) throw new Error('Tanggal surat tidak valid.');
   if (tenggat && (!arValidDate_(tenggat) || tenggat < tgl)) throw new Error('Tenggat pembayaran tidak boleh sebelum tanggal surat.');
   if (!list.length) throw new Error('Pilih minimal satu invoice.');
   if (!m.b64) throw new Error('PDF surat belum dibuat.');
-  var used = function () { return readSchema_(sheet_(ENGINE.SURAT.sheet), ENGINE.SURAT).some(function (r) { return String(r[0]).trim().toUpperCase() === nomor.toUpperCase(); }); };
-  if (sheet_(ENGINE.SURAT.sheet) && used()) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
-  var d = ENGINE.suratData(compute_().ctx, m.pelanggan), ok = {}, total = 0, ke = 1, ruj = {};
+  if (mode !== 'baru' && alasan.length < 10) throw new Error('Isi alasan ' + (mode === 'revisi' ? 'revisi' : 'penggantian') + ' minimal 10 karakter.');
+  var allNo = function () { return readSchema_(sheet_(ENGINE.SURAT.sheet), ENGINE.SURAT).map(function (r) { return String(r[0]).trim(); }).filter(String); };
+  var used = function (n) { return allNo().some(function (x) { return x.toUpperCase() === n.toUpperCase(); }); };
+  var d = ENGINE.suratData(compute_().ctx, m.pelanggan), ok = {}, total = 0, ke = 1, ruj = {}, asal = null;
+  if (mode !== 'baru') {
+    asal = d.letters.filter(function (l) { return l.nomor.toUpperCase() === String(m.asal || '').trim().toUpperCase(); })[0];
+    if (!asal) throw new Error('Surat asal ' + m.asal + ' tidak ditemukan untuk ' + d.nama + '.');
+    if (asal.tutup || asal.ganti) throw new Error('Surat ' + asal.nomor + ' sudah ' + (asal.ganti ? 'diganti surat ' + asal.ganti : 'ditutup') + '.');
+    if (mode === 'revisi' && nomor.toUpperCase() !== asal.nomor.toUpperCase()) throw new Error('Revisi surat yang belum dikirim memakai nomor yang sama (' + asal.nomor + ').');
+    if (mode === 'ganti') { var exp = ENGINE.suratNoGanti(asal.nomor, arParameters_().SURAT_NOMOR_FORMAT, allNo()); if (!exp || nomor.toUpperCase() !== exp.toUpperCase()) throw new Error('Nomor surat pengganti seharusnya ' + (exp || '(format nomor asal tidak dikenali)') + '. Muat ulang aplikasi.'); }
+  } else if (sheet_(ENGINE.SURAT.sheet) && used(nomor)) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
   d.projects.forEach(function (p) { p.invoices.forEach(function (i) { ok[ENGINE.normInv(i.nomor)] = i; }); });
   list.forEach(function (n) {
     if (!ok[n]) throw new Error('Invoice ' + n + ' tidak lewat jatuh tempo atau bukan milik ' + d.nama + '. Muat ulang aplikasi.');
     total += ok[n].sisa; ke = Math.max(ke, Math.min(3, ok[n].stage.ke || 1));
     (ok[n].stage.chain || []).forEach(function (c) { ruj[c.nomor] = c; });
   });
-  // surat ke berapa ditentukan riwayat surat atas invoice yang sama (ke-1 → ke-2 → ke-3); PDF dari aplikasi harus sama
-  if (m.ke && Number(m.ke) !== ke) throw new Error('Data surat sebelumnya berubah (seharusnya surat ke-' + ke + '). Muat ulang aplikasi lalu periksa kembali.');
   var rujukan = Object.keys(ruj).map(function (k) { return ruj[k]; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; }).map(function (c) { return c.nomor + ' (' + c.tgl + ')'; }).join('; ');
-  var ar = apiArchive('SURAT', nomor, { b64: m.b64, name: 'Surat Penagihan_' + d.nama + '_' + nomor, month: tgl.slice(0, 7) });
-  var lock = arLock_(); lock.waitLock(28000);
-  try {
-    var ss = arSpreadsheet_(), sh = setupDataSheet_(ss, ENGINE.SURAT, 'LOG SURAT PERMOHONAN PERCEPATAN PEMBAYARAN', 'Dicatat otomatis saat surat dibuat di aplikasi ▸ Surat Penagihan. Dasar alert pelanggan & peringatan TENGGAT SURAT TERLEWAT. Jangan diubah manual.', 'Log Persetujuan', '#C55A11').sh;
-    if (used()) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
-    var map = colMap_(sh, ENGINE.SURAT), lc = Math.max(sh.getLastColumn(), ENGINE.SURAT.cols.length), row = Array(lc).fill('');
-    var rec = { nomor: nomor, tgl: tgl, pelanggan: d.pelanggan, invoices: list.join('; '), sisa: Math.round(total), tenggat: tenggat, kepada: String(m.kepada || '').slice(0, 500),
-      rekening: (m.rekening || []).join('; '), kontak: String(m.kontak || '').slice(0, 300), oleh: a.email, waktu: arNow_(), link: ar.url, ke: ke, rujukan: rujukan };
-    ENGINE.SURAT.cols.forEach(function (c) { var j = map[c[0]]; if (j) row[j - 1] = arSafeCell_(toCell_(rec[c[0]], colFmt_(c))); });
-    var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1;
-    sh.getRange(at, 1, 1, lc).setValues([row]);
-  } finally { lock.releaseLock(); }
-  try { rebuildAll_(); } catch (e) { }
-  return plain_({ ok: true, url: ar.url, name: ar.name, folder: ar.folder, total: total, ke: ke });
+  // revisi / pengganti tetap di tingkat surat asal (tidak naik ke surat berikutnya) dan merujuk surat yang sama
+  if (asal) { ke = asal.ke; rujukan = asal.rujukan; }
+  if (m.ke && Number(m.ke) !== ke) throw new Error('Data surat sebelumnya berubah (seharusnya surat ke-' + ke + '). Muat ulang aplikasi lalu periksa kembali.');
+  var base = 'Surat Penagihan_' + d.nama + '_' + nomor, rev = mode === 'revisi' ? (asal.rev || 0) + 1 : 0;
+  // revisi: PDF lama (awalan nama sama) dipindah ke subfolder "Revisi lama"
+  var ar = apiArchive('SURAT', nomor, { b64: m.b64, name: base + (rev ? ' Rev.' + rev : ''), month: tgl.slice(0, 7), prefix: mode === 'revisi' ? base.replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim() : '' });
+  var rec = { nomor: nomor, tgl: tgl, pelanggan: d.pelanggan, invoices: list.join('; '), sisa: Math.round(total), tenggat: tenggat, kepada: String(m.kepada || '').slice(0, 500),
+    rekening: (m.rekening || []).join('; '), kontak: String(m.kontak || '').slice(0, 300), oleh: a.email, waktu: arNow_(), link: ar.url, ke: ke, rujukan: rujukan };
+  if (mode === 'revisi') {
+    rec.rev = rev; rec.rev_ket = ((asal.rev_ket ? asal.rev_ket + ' · ' : '') + 'Rev.' + rev + ' ' + arNow_() + ' ' + a.email + ': ' + alasan).slice(0, 2000);
+    delete rec.nomor; suratUpdate_(asal.nomor, rec);
+  } else {
+    if (asal) rec.menggantikan = asal.nomor + ' (' + asal.tgl + ') — ' + alasan;
+    var lock = arLock_(); lock.waitLock(28000);
+    try {
+      var ss = arSpreadsheet_(), sh = setupDataSheet_(ss, ENGINE.SURAT, 'LOG SURAT PERMOHONAN PERCEPATAN PEMBAYARAN', 'Dicatat otomatis saat surat dibuat di aplikasi ▸ Surat Penagihan. Dasar alert pelanggan & peringatan TENGGAT SURAT TERLEWAT. Jangan diubah manual.', 'Log Persetujuan', '#C55A11').sh;
+      if (used(nomor)) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di Log Surat Penagihan.');
+      var map = colMap_(sh, ENGINE.SURAT), lc = Math.max(sh.getLastColumn(), ENGINE.SURAT.cols.length), row = Array(lc).fill('');
+      ENGINE.SURAT.cols.forEach(function (c) { var j = map[c[0]]; if (j) row[j - 1] = arSafeCell_(toCell_(rec[c[0]], colFmt_(c))); });
+      var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1;
+      sh.getRange(at, 1, 1, lc).setValues([row]);
+    } finally { lock.releaseLock(); }
+    if (asal) suratUpdate_(asal.nomor, { ganti: nomor }); else { try { rebuildAll_(); } catch (e) { } }
+  }
+  var warn = mode === 'baru' ? '' : arNotify_((mode === 'revisi' ? 'Revisi surat ' + nomor + ' Rev.' + rev : 'Surat ' + asal.nomor + ' diganti ' + nomor) + ' — ' + d.nama,
+    ['Pelanggan: ' + d.nama, mode === 'revisi' ? 'Surat ' + nomor + ' direvisi sebelum dikirim (Rev.' + rev + ').' : 'Surat ' + asal.nomor + ' tanggal ' + asal.tgl + ' (sudah diterima pelanggan) diganti surat ' + nomor + ' tanggal ' + tgl + '.',
+      'Alasan: ' + alasan, 'Total sisa tagihan: Rp ' + ENGINE.fmtRp(total), 'Dibuat oleh: ' + a.email, 'PDF: ' + ar.url]);
+  return plain_({ ok: true, url: ar.url, name: ar.name, folder: ar.folder, total: total, ke: ke, mode: mode, rev: rev, warnings: warn ? [warn] : [] });
 }
 /** ubah kolom tindak lanjut satu surat di Log Surat Penagihan (dicari dari nomor surat) */
 function suratUpdate_(nomor, fields) {
@@ -1188,6 +1210,7 @@ function suratUpdate_(nomor, fields) {
     nos.forEach(function (r, i) { if (String(r[0]).trim().toUpperCase() === String(nomor).trim().toUpperCase()) at = f0 + i; });
     if (at < 0) throw new Error('Surat ' + nomor + ' tidak ditemukan di Log Surat Penagihan.');
     if (String(sh.getRange(at, map.tutup).getValue()).trim()) throw new Error('Surat ' + nomor + ' sudah ditutup.');
+    if (map.ganti && String(sh.getRange(at, map.ganti).getValue()).trim()) throw new Error('Surat ' + nomor + ' sudah diganti surat ' + sh.getRange(at, map.ganti).getValue() + '.');
     ENGINE.SURAT.cols.forEach(function (c) { if (fields[c[0]] !== undefined && map[c[0]]) sh.getRange(at, map[c[0]]).setNumberFormat(colFmt_(c) === 'date' ? NUMF.date : '@').setValue(arSafeCell_(toCell_(fields[c[0]], colFmt_(c)))); });
   } finally { lock.releaseLock(); }
   try { rebuildAll_(); } catch (e) { }

@@ -466,6 +466,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
     <div class="scroll" id="mode-surat" hidden>
       <fieldset><legend>Pelanggan dengan invoice lewat jatuh tempo</legend><div id="srList"></div></fieldset>
       <div id="srForm" hidden>
+        <div class="note warn" id="srModeBox" hidden></div>
         <fieldset><legend>Surat</legend>
           <div class="row"><div><label for="srNo">Nomor surat (angka setelah WB-4C.)</label><input id="srNo" inputmode="numeric" placeholder="mis. 032"><div class="sub" id="srNoFull" style="font-size:11px;color:var(--steel);margin-top:2px"></div></div><div><label for="srTgl">Tanggal surat</label><input id="srTgl" type="date"></div></div>
           <label for="srKepada">Kepada Yth. (satu baris per baris surat; dua baris pertama dicetak tebal)</label><textarea id="srKepada" rows="5"></textarea>
@@ -1566,7 +1567,7 @@ function openSurat(pel) {
   call('apiSuratData', [pel], function (d) {
     var kontak = ''; try { kontak = localStorage.getItem('ar_sr_kontak') || ''; } catch (e) { }
     var mk = (B.roles || {}).PEMBUAT;
-    SR = { d: d, pick: {}, rek: {} };
+    SR = { d: d, pick: {}, rek: {}, mode: null }; $('srNo').disabled = false; $('srModeBox').hidden = true;
     // bawaan: hanya invoice yang sudah waktunya disurati (bila tidak ada, semua — pengguna memutuskan)
     var anyDue = false; d.projects.forEach(function (p) { p.invoices.forEach(function (i) { if (i.stage.due && i.stage.ke <= 3) anyDue = true; }); });
     d.projects.forEach(function (p) { p.invoices.forEach(function (i) { SR.pick[i.nomor] = !anyDue || (i.stage.due && i.stage.ke <= 3); }); });
@@ -1584,13 +1585,14 @@ function openSurat(pel) {
     $('srForm').hidden = false; $('srStatus').textContent = ''; renderSuratList(); srPreview();
   }, function (e) { $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
 }
-var SR_PILL = { 'SELESAI – LUNAS': 'l', 'DITUTUP': '', 'SEBAGIAN DIBAYAR': 'c', 'DITANGGAPI': 'c', 'MENUNGGU TANGGAPAN': 'o' };
+var SR_PILL = { 'SELESAI – LUNAS': 'l', 'DITUTUP': '', 'DIGANTI': '', 'SEBAGIAN DIBAYAR': 'c', 'DITANGGAPI': 'c', 'MENUNGGU TANGGAPAN': 'o' };
 function srLetterCard(l) {
-  return '<div class="sr-card" style="cursor:default"><h4>Surat ke-' + l.ke + ' · ' + esc(l.nomor) + ' <span class="pill ' + (SR_PILL[l.status] || '') + '">' + esc(l.status) + '</span></h4><div class="meta">' +
+  return '<div class="sr-card" style="cursor:default"><h4>Surat ke-' + l.ke + ' · ' + esc(l.nomor) + (l.rev ? ' Rev.' + l.rev : '') + ' <span class="pill ' + (SR_PILL[l.status] || '') + '">' + esc(l.status) + '</span></h4><div class="meta">' +
     esc(tg(l.tgl)) + (l.tenggat ? ' · tenggat ' + esc(tg(l.tenggat)) : ' · tanpa tenggat') + ' · Rp ' + nfDot(l.sisa) + (l.sisaKini !== l.sisa && l.status !== 'DITUTUP' ? ' → sisa kini Rp ' + nfDot(l.sisaKini) : '') + (l.link ? ' · <a target="_blank" href="' + esc(l.link) + '">PDF</a>' : '') +
     (l.tanggap_tgl ? '<br>Tanggapan ' + esc(tg(l.tanggap_tgl)) + ' (' + esc(l.tanggap_jenis) + '): ' + esc(l.tanggap_isi) + (l.janji ? ' · <b>janji bayar ' + esc(tg(l.janji)) + '</b>' : '') : '') +
-    (l.tutup ? '<br>Ditutup: ' + esc(l.tutup) + ' · ' + esc(l.tutup_oleh) : '') + '</div>' +
-    (l.aktif ? '<div class="inline" style="gap:12px;margin-top:4px"><button class="linkbtn" type="button" data-srtgp="' + esc(l.nomor) + '">Catat tanggapan…</button><button class="linkbtn" type="button" data-srttp="' + esc(l.nomor) + '">Tutup surat…</button></div>' : '') + '</div>';
+    (l.tutup ? '<br>Ditutup: ' + esc(l.tutup) + ' · ' + esc(l.tutup_oleh) : '') +
+    (l.ganti ? '<br>Diganti surat <b>' + esc(l.ganti) + '</b>' : '') + (l.menggantikan ? '<br>Menggantikan ' + esc(l.menggantikan) : '') + (l.rev_ket ? '<br>Revisi: ' + esc(l.rev_ket) : '') + '</div>' +
+    (l.aktif ? '<div class="inline" style="gap:12px;margin-top:4px;flex-wrap:wrap"><button class="linkbtn" type="button" data-srtgp="' + esc(l.nomor) + '">Catat tanggapan…</button><button class="linkbtn" type="button" data-srrev="' + esc(l.nomor) + '">Revisi (belum dikirim)</button><button class="linkbtn" type="button" data-srgnt="' + esc(l.nomor) + '">Ganti (sudah diterima pelanggan)</button><button class="linkbtn" type="button" data-srttp="' + esc(l.nomor) + '">Tutup surat…</button></div>' : '') + '</div>';
 }
 function srTanggapan(nomor) {
   confirmDlg('Catat tanggapan — ' + nomor, 'Surat berikutnya ditahan sampai tanggal janji bayar (atau ' + esc(B.params.SURAT_JEDA_HARI || 7) + ' hari setelah tanggapan bila tanpa janji). Pembayaran tidak perlu dicatat di sini — penerimaan di menu Pembayaran otomatis mengubah status surat.' +
@@ -1606,6 +1608,29 @@ function srTutup(nomor) {
     call('apiSuratTutup', [nomor, $('dlgTtA').value], function () { toast('Surat ditutup.'); srReload(); }, function (e) { toast(e.message || e); });
   });
 }
+/** revisi (belum dikirim: nomor sama) / ganti (sudah sampai pelanggan: nomor + huruf): formulir diisi dari surat asal */
+function srStartMode(type, nomor) {
+  var l = SR && SR.d.letters.filter(function (x) { return x.nomor === nomor; })[0]; if (!l) return;
+  SR.mode = { type: type, asal: l };
+  var urut = E.suratNoUrut(type === 'ganti' ? E.suratNoGanti(l.nomor, B.params.SURAT_NOMOR_FORMAT, SR.d.letters.map(function (x) { return x.nomor; })) : l.nomor, B.params.SURAT_NOMOR_FORMAT);
+  $('srNo').value = urut; $('srNo').disabled = true;
+  $('srTgl').value = type === 'revisi' ? l.tgl : B.today;
+  if (l.kepada) $('srKepada').value = l.kepada.split(' / ').join('\n');
+  if (l.kontak) $('srKontak').value = l.kontak;
+  SR.rek = {}; String(l.rekening || '').split(/\s*;\s*/).filter(String).forEach(function (r) { SR.rek[r] = true; });
+  document.querySelectorAll('#srRek [data-srrek]').forEach(function (c) { c.checked = !!SR.rek[c.dataset.srrek]; });
+  if (l.tenggat) { $('srTg').value = 'tgl'; $('srTgD').disabled = false; $('srTgD').value = l.tenggat; } else { $('srTg').value = ''; $('srTgD').disabled = true; $('srTgD').value = ''; }
+  var keys = String(l.invoices || '').split(/\s*;\s*/).map(E.normInv);
+  Object.keys(SR.pick).forEach(function (k) { SR.pick[k] = keys.indexOf(E.normInv(k)) >= 0; });
+  document.querySelectorAll('#srInv [data-srinv]').forEach(function (c) { c.checked = !!SR.pick[c.dataset.srinv]; });
+  $('srModeBox').hidden = false;
+  $('srModeBox').innerHTML = (type === 'revisi' ? '<b>Revisi surat ' + esc(l.nomor) + '</b> (belum dikirim) — nomor tetap, tercatat Rev.' + ((l.rev || 0) + 1) + '; PDF lama dipindah ke "Revisi lama".'
+    : '<b>Surat pengganti untuk ' + esc(l.nomor) + '</b> (sudah diterima pelanggan) — nomor baru ' + esc(srNomor(urut, $('srTgl').value)) + '; surat lama berstatus DIGANTI, invoice tetap ditagih.') +
+    ' Surat ke-' + l.ke + ' (tidak naik tingkat). <button class="linkbtn" type="button" id="srModeOff">Batalkan</button>';
+  $('srModeOff').onclick = function () { openSurat(SR.d.pelanggan); };
+  $('srForm').scrollIntoView ? $('srForm').scrollIntoView({ behavior: 'smooth' }) : 0;
+  srPreview();
+}
 function srReload() { var pel = SR && SR.d.pelanggan; refreshAll(function () { renderSuratList(); if (pel) openSurat(pel); }); }
 /** isian formulir → data surat siap cetak */
 function srState() {
@@ -1616,10 +1641,11 @@ function srState() {
   }).filter(function (p) { return p.invoices.length; });
   var all = []; projects.forEach(function (p) { all = all.concat(p.invoices); });
   // surat ke berapa = tahap tertinggi invoice terpilih (maks. ke-3); rujukan = surat sebelumnya atas invoice tersebut
-  var ke = 1, ruj = {}; all.forEach(function (i) { ke = Math.max(ke, Math.min(3, i.stage.ke || 1)); (i.stage.chain || []).forEach(function (c) { ruj[c.nomor] = c; }); });
+  var md = SR.mode, ke = 1, ruj = {}; all.forEach(function (i) { ke = Math.max(ke, Math.min(3, i.stage.ke || 1)); (i.stage.chain || []).forEach(function (c) { if (!md || c.nomor !== md.asal.nomor) ruj[c.nomor] = c; }); });
+  if (md) { ke = md.asal.ke; Object.keys(ruj).forEach(function (k) { if (ruj[k].tgl > md.asal.tgl || (ruj[k].ke || 0) >= ke) delete ruj[k]; }); }
   var rujukan = Object.keys(ruj).map(function (k) { return ruj[k]; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; });
   var mode = $('srTg').value, tenggat = mode === '3' || mode === '7' ? E.addDays(tgl, +mode) : mode === 'tgl' ? $('srTgD').value : '';
-  return { nomor: srNomor($('srNo').value, tgl), no: $('srNo').value.trim(), tgl: tgl, kepada: $('srKepada').value.split('\n').map(function (x) { return x.trim(); }).filter(String), tenggat: tenggat,
+  return { nomor: md && md.type === 'revisi' ? md.asal.nomor : srNomor($('srNo').value, tgl), no: $('srNo').value.trim(), tgl: tgl, mode: md ? md.type : 'baru', gantiDari: md && md.type === 'ganti' ? md.asal : null, kepada: $('srKepada').value.split('\n').map(function (x) { return x.trim(); }).filter(String), tenggat: tenggat,
     rek: (B.rek || []).filter(function (r) { return SR.rek[r.label]; }), kontak: $('srKontak').value.trim(), projects: projects, all: all,
     total: all.reduce(function (t, i) { return t + i.sisa; }, 0), kas: all.reduce(function (t, i) { return t + i.kas; }, 0), nama: titleCase(SR.d.nama),
     ke: ke, rujukan: rujukan, campur: all.some(function (i) { return (i.stage.ke || 1) < ke; }), ditanggapi: rujukan.some(function (c) { return c.tanggap; }), eskalasi: all.some(function (i) { return i.stage.ke > 3; }),
@@ -1638,6 +1664,7 @@ function srBlocksSurat(o) {
   P('<div class="kp"><p>Kepada Yth.</p>' + o.kepada.map(function (l, i) { return '<p>' + (i < 2 ? '<b>' + esc(l) + '</b>' : esc(l)) + '</p>'; }).join('') + '</div>');
   P('<p class="ph">Perihal: ' + ['Permohonan Percepatan Pembayaran', 'Permohonan Pembayaran Kedua atas', 'Penegasan Penyelesaian Pembayaran atas'][o.ke - 1] + ' Tagihan yang Telah Jatuh Tempo</p>', true);
   P('<p>Dengan hormat,</p>', true);
+  if (o.gantiDari) P('<p>Surat ini menggantikan surat kami Nomor <b>' + esc(o.gantiDari.nomor) + '</b> tanggal <b>' + esc(tglIndo(o.gantiDari.tgl)) + '</b>.</p>', true);
   var ref = o.rujukan.map(function (c) { return 'Nomor <b>' + esc(c.nomor) + '</b> tanggal <b>' + esc(tglIndo(c.tgl)) + '</b>'; }), proyekTxt = single ? 'pekerjaan <b>' + esc(p0.pekerjaan || p0.singkat || p0.npp) + '</b>' : o.projects.length + ' (' + (SR_ANGKA[o.projects.length] || E.terbilang(o.projects.length).toLowerCase()) + ') proyek';
   if (o.ke === 2) P('<p>Menindaklanjuti surat kami ' + ref.join(' dan ') + ' perihal Permohonan Percepatan Pembayaran Tagihan yang Telah Jatuh Tempo, sampai dengan tanggal surat ini kami belum menerima pembayaran' + (o.ditanggapi ? '' : ' maupun tanggapan') + ' atas tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat tersebut)' : '') + ':</p>', true);
   else if (o.ke === 3) P('<p>Menindaklanjuti surat kami ' + ref.join(', ').replace(/, ([^,]*)$/, ' dan $1') + ', hingga tanggal surat ini tagihan ' + (single ? proyekTxt : 'pada ' + proyekTxt + ' berikut') + ' belum diselesaikan' + (o.campur ? ' (termasuk tagihan yang jatuh tempo setelah surat-surat tersebut)' : '') + ':</p>', true);
@@ -1749,32 +1776,38 @@ function srPreview() {
   $('srStatus').textContent = r.n + ' halaman (surat + lampiran).';
 }
 function srPrint() { var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
-function srSave() {
+function srSave(alasan) {
   var o = srState(); if (!o || !o.all.length) return;
-  if (!/^[0-9]{1,5}[A-Za-z]?$/.test(o.no)) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor urut surat (angka saja, mis. 032).</span>'; $('srNo').focus(); return; }
+  if (o.mode !== 'baru' && !alasan) {
+    confirmDlg(o.mode === 'revisi' ? 'Revisi surat ' + o.nomor : 'Surat pengganti ' + o.nomor, (o.mode === 'revisi' ? 'Surat belum dikirim ke pelanggan: nomor tetap, PDF lama dipindah ke "Revisi lama".' : 'Surat ' + esc(SR.mode.asal.nomor) + ' sudah diterima pelanggan dan akan berstatus DIGANTI. Section Head menerima email pemberitahuan.') +
+      '<textarea id="dlgRvA" style="margin-top:8px" placeholder="alasan (min. 10 karakter)"></textarea>', 'Simpan', function () { var a = (($('dlgRvA') || {}).value || '').trim(); if (a.length < 10) { toast('Alasan minimal 10 karakter.'); return; } srSave(a); });
+    return;
+  }
+  if (o.mode === 'baru' && !/^[0-9]{1,5}[A-Za-z]?$/.test(o.no)) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor urut surat (angka saja, mis. 032).</span>'; $('srNo').focus(); return; }
   if ($('srTg').value === 'tgl' && !o.tenggat) { $('srStatus').innerHTML = '<span style="color:var(--red)">Pilih tanggal tenggat.</span>'; return; }
   try { localStorage.setItem('ar_sr_kontak', o.kontak); } catch (e) { }
   var name = 'Surat Penagihan_' + o.nama + '_' + o.nomor;
   $('btnSrSave').disabled = true; $('srStatus').textContent = 'Membuat PDF…';
   makePdf(srHtml(), name, { plain: true }).then(function (b64) {
     $('srStatus').textContent = 'Menyimpan ke Google Drive dan mencatat surat…';
-    call('apiSuratSimpan', [{ pelanggan: SR.d.pelanggan, ke: o.ke, nomor: o.nomor, tgl: o.tgl, tenggat: o.tenggat, kepada: o.kepada.join(' / '), rekening: o.rek.map(function (r) { return r.label; }), kontak: o.kontak,
+    call('apiSuratSimpan', [{ pelanggan: SR.d.pelanggan, mode: o.mode, asal: SR.mode ? SR.mode.asal.nomor : '', alasan: alasan || '', ke: o.ke, nomor: o.nomor, tgl: o.tgl, tenggat: o.tenggat, kepada: o.kepada.join(' / '), rekening: o.rek.map(function (r) { return r.label; }), kontak: o.kontak,
       invoices: o.all.map(function (i) { return i.nomor; }), b64: b64 }], function (r) {
       $('srStatus').innerHTML = 'Surat tersimpan di folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>';
-      toast('Surat ke-' + r.ke + ' ' + o.nomor + ' tercatat.'); var pel = SR.d.pelanggan;
+      toast(r.mode === 'revisi' ? 'Revisi Rev.' + r.rev + ' surat ' + o.nomor + ' tersimpan.' : r.mode === 'ganti' ? 'Surat pengganti ' + o.nomor + ' tercatat.' : 'Surat ke-' + r.ke + ' ' + o.nomor + ' tercatat.'); var pel = SR.d.pelanggan;
       refreshAll(function () { renderSuratList(); openSurat(pel); });
     }, function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
   }).catch(function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">PDF gagal dibuat: ' + esc(e.message || e) + '</span>'; });
 }
 function bindSurat() {
   $('srList').onclick = function (e) { var c = e.target.closest('[data-srpel]'); if (c) openSurat(c.dataset.srpel); };
-  $('srHist').onclick = function (e) { var t = e.target; if (t.dataset.srtgp) srTanggapan(t.dataset.srtgp); if (t.dataset.srttp) srTutup(t.dataset.srttp); };
+  $('srHist').onclick = function (e) { var t = e.target; if (t.dataset.srtgp) srTanggapan(t.dataset.srtgp); if (t.dataset.srttp) srTutup(t.dataset.srttp); if (t.dataset.srrev) srStartMode('revisi', t.dataset.srrev); if (t.dataset.srgnt) srStartMode('ganti', t.dataset.srgnt); };
+  $('btnSrSave').onclick = function () { srSave(); };
   $('srInv').onchange = function (e) { var t = e.target; if (t.dataset.srinv) { SR.pick[t.dataset.srinv] = t.checked; srPreview(); } };
   $('srRek').onchange = function (e) { var t = e.target; if (t.dataset.srrek) { SR.rek[t.dataset.srrek] = t.checked; srPreview(); } };
   $('srTg').onchange = function () { $('srTgD').disabled = this.value !== 'tgl'; if (this.value === 'tgl' && !$('srTgD').value) $('srTgD').value = E.addDays($('srTgl').value || B.today, 3); srPreview(); };
   var t = null, deb = function () { clearTimeout(t); t = setTimeout(srPreview, 300); };
   ['srNo', 'srTgl', 'srKepada', 'srKontak', 'srTgD'].forEach(function (id) { $(id).oninput = deb; $(id).onchange = deb; });
-  $('btnSrSave').onclick = srSave; $('btnSrPrint').onclick = srPrint;
+  $('btnSrPrint').onclick = srPrint;
 }
 
 /* ====================================================== mode */

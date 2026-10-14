@@ -116,7 +116,8 @@ var ENGINE = (function () {
       ['oleh', 'DIBUAT OLEH', 'auto', 24], ['waktu', 'WAKTU', 'auto', 16], ['link', 'ARSIP PDF', 'auto', 30],
       ['ke', 'SURAT KE-', 'auto', 7, 'int'], ['rujukan', 'MERUJUK SURAT', 'auto', 30],
       ['tanggap_tgl', 'TGL TANGGAPAN', 'auto', 12, 'date'], ['tanggap_jenis', 'BENTUK TANGGAPAN', 'auto', 16], ['tanggap_isi', 'RINGKASAN TANGGAPAN', 'auto', 40],
-      ['janji', 'JANJI BAYAR', 'auto', 12, 'date'], ['tutup', 'DITUTUP (ALASAN)', 'auto', 30], ['tutup_oleh', 'DITUTUP OLEH / WAKTU', 'auto', 26]]
+      ['janji', 'JANJI BAYAR', 'auto', 12, 'date'], ['tutup', 'DITUTUP (ALASAN)', 'auto', 30], ['tutup_oleh', 'DITUTUP OLEH / WAKTU', 'auto', 26],
+      ['rev', 'REVISI KE-', 'auto', 7, 'int'], ['rev_ket', 'RIWAYAT REVISI', 'auto', 40], ['menggantikan', 'MENGGANTIKAN SURAT', 'auto', 26], ['ganti', 'DIGANTI OLEH SURAT', 'auto', 26]]
   };
   var APPR = {
     sheet: 'Log Persetujuan', headerRow: 5, firstRow: 6,
@@ -2656,11 +2657,30 @@ var ENGINE = (function () {
       lewat: diffDays(today, r.jt), dpp: rnd(a.dpp), ppn: rnd(a.ppn), ret: a.retpos === 'AKHIR' ? rnd(a.ret || 0) : 0, tagihan: rnd(a.netto + a.ppn), pph: rnd(a.pph), pphLabel: pphLabel(i.npp, a.tarif),
       diterima: rnd(r.diterima), sisa: rnd(Math.max(0, a.netto + a.ppn - r.diterima)), kas: rnd(Math.max(0, r.sisa)), no_fp: S(i.no_fp), status: r.status };
   }
+  /** bagian nomor surat lengkap sesuai format (mis. KU.03.03/WB-4C.{no}/{tahun}) → { no: '212' / '212A', tahun } */
+  function suratNoParts(nomor, fmt) {
+    fmt = S(fmt) || 'KU.03.03/WB-4C.{no}/{tahun}';
+    var order = fmt.indexOf('{no}') < fmt.indexOf('{tahun}') || fmt.indexOf('{tahun}') < 0 ? ['no', 'tahun'] : ['tahun', 'no'];
+    var esc = fmt.replace(/[.*+?^$()|[\]\\\/]/g, '\\$&').replace('{no}', '([0-9]+[A-Za-z]?)').replace('{tahun}', '([0-9]{4})');
+    var m = S(nomor).match(new RegExp('^' + esc + '$')), o = {};
+    if (!m) return null;
+    order.forEach(function (k, ix) { o[k] = m[ix + 1] || ''; }); o.no = U(o.no); return o;
+  }
+  function suratNoUrut(nomor, fmt) { var p = suratNoParts(nomor, fmt); return p ? p.no : ''; }
+  /** nomor surat pengganti (surat yang sudah sampai ke pelanggan): 212 → 212A → 212B …, yang belum dipakai */
+  function suratNoGanti(nomor, fmt, used) {
+    fmt = S(fmt) || 'KU.03.03/WB-4C.{no}/{tahun}';
+    var p = suratNoParts(nomor, fmt); if (!p) return '';
+    var base = p.no.replace(/[A-Z]$/, ''), c = /[A-Z]$/.test(p.no) ? p.no.slice(-1).charCodeAt(0) + 1 : 65, u = (used || []).map(function (x) { return U(x); });
+    for (; c <= 90; c++) { var cand = fmt.replace('{no}', base + String.fromCharCode(c)).replace('{tahun}', p.tahun); if (u.indexOf(U(cand)) < 0) return cand; }
+    return '';
+  }
   /** status satu surat: DITUTUP (manual) · SELESAI – LUNAS / SEBAGIAN DIBAYAR (otomatis dari penerimaan) · DITANGGAPI · MENUNGGU TANGGAPAN */
   function suratStatus(ctx, r) {
     var by = ctx._invByNo || (ctx._invByNo = (function () { var m = {}; ctx.invs.forEach(function (i) { m[normInv(i.nomor)] = i; }); return m; })());
     var open = r._inv.filter(function (k) { var i = by[k]; return i && !i._batal && !i._res.closed && (i._a.netto + i._a.ppn - i._res.diterima) > 1; });
     var sisa = rnd(sumBy(open, function (k) { var i = by[k]; return i._a.netto + i._a.ppn - i._res.diterima; }));
+    if (S(r.ganti)) return { status: 'DIGANTI', aktif: false, open: open, sisaKini: sisa };
     var st = S(r.tutup) ? 'DITUTUP' : !open.length ? 'SELESAI – LUNAS' : sisa < N(r.sisa) - 1 ? 'SEBAGIAN DIBAYAR' : r.tanggap_tgl ? 'DITANGGAPI' : 'MENUNGGU TANGGAPAN';
     return { status: st, aktif: !S(r.tutup) && open.length > 0, open: open, sisaKini: sisa };
   }
@@ -2668,7 +2688,7 @@ var ENGINE = (function () {
    *  ke = surat berikutnya (1–3; 4 = eskalasi), due = surat berikutnya sudah boleh dibuat, tunggu = sampai tanggal berapa ditahan */
   function suratStage(ctx, nk, today) {
     var jeda = N(ctx.params.SURAT_JEDA_HARI) || 7;
-    var L = ctx.surat.filter(function (r) { return r._inv.indexOf(nk) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.ke - b.ke; });
+    var L = ctx.surat.filter(function (r) { return !S(r.ganti) && r._inv.indexOf(nk) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : a.ke - b.ke; });
     var last = L[L.length - 1];
     if (!last) return { ke: 1, due: true, last: null, chain: [] };
     var chain = L.map(function (r) { return { nomor: S(r.nomor), tgl: r.tgl, ke: r.ke, tanggap: !!r.tanggap_tgl }; }), lk = { nomor: S(last.nomor), tgl: last.tgl, ke: last.ke, tenggat: last.tenggat, janji: last.janji, tanggap: last.tanggap_tgl };
@@ -2694,7 +2714,8 @@ var ENGINE = (function () {
     var letters = ctx.surat.filter(function (r) { return r.pelanggan === key; }).map(function (r) {
       var st = suratStatus(ctx, r);
       return { nomor: S(r.nomor), tgl: r.tgl, ke: r.ke, tenggat: r.tenggat, invoices: S(r.invoices), sisa: N(r.sisa), sisaKini: st.sisaKini, status: st.status, aktif: st.aktif, link: S(r.link),
-        tanggap_tgl: r.tanggap_tgl, tanggap_jenis: S(r.tanggap_jenis), tanggap_isi: S(r.tanggap_isi), janji: r.janji, tutup: S(r.tutup), tutup_oleh: S(r.tutup_oleh), rujukan: S(r.rujukan) };
+        tanggap_tgl: r.tanggap_tgl, tanggap_jenis: S(r.tanggap_jenis), tanggap_isi: S(r.tanggap_isi), janji: r.janji, tutup: S(r.tutup), tutup_oleh: S(r.tutup_oleh), rujukan: S(r.rujukan),
+        kepada: S(r.kepada), kontak: S(r.kontak), rekening: S(r.rekening), rev: N(r.rev), rev_ket: S(r.rev_ket), menggantikan: S(r.menggantikan), ganti: S(r.ganti) };
     });
     return { today: today, pelanggan: key, nama: P ? (S(P.inv) || P.nama) : key, alamat: P ? [P.a1, P.a2, P.a3].map(S).filter(String) : [], projects: projects, letters: letters };
   }
@@ -2712,7 +2733,7 @@ var ENGINE = (function () {
       else if (st.tunggu && (!o.tunggu || st.tunggu < o.tunggu)) o.tunggu = st.tunggu;
     });
     return Object.keys(by).map(function (k) {
-      var o = by[k], L = ctx.surat.filter(function (r) { return r.pelanggan === k; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : -1; })[0];
+      var o = by[k], L = ctx.surat.filter(function (r) { return r.pelanggan === k && !S(r.ganti); }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : -1; })[0];
       o.proyek = Object.keys(o.proyek).length; o.sisa = rnd(o.sisa); o.perlu = o.baru > 0;
       o.terakhir = L ? { nomor: S(L.nomor), tgl: L.tgl, tenggat: L.tenggat, ke: L.ke, status: suratStatus(ctx, L).status } : null;
       return o;
@@ -2743,7 +2764,7 @@ var ENGINE = (function () {
   }
 
   return {
-    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,

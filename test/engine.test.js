@@ -138,3 +138,19 @@ test('surat penagihan: lunas lewat penerimaan → SELESAI – LUNAS otomatis', (
   assert.strictEqual(ENGINE.suratAlerts(r.ctx).length, 0);
   assert.ok(!ENGINE.kinerjaData(r.ctx).ews.some(e => /SURAT|JANJI/.test(e.kat)));
 });
+
+test('revisi & penggantian surat: nomor 212 → 212A → 212B; surat DIGANTI tidak aktif, invoice tetap ditagih', () => {
+  assert.strictEqual(ENGINE.suratNoGanti('KU.03.03/WB-4C.212/2026', '', []), 'KU.03.03/WB-4C.212A/2026');
+  assert.strictEqual(ENGINE.suratNoGanti('KU.03.03/WB-4C.212A/2026', '', []), 'KU.03.03/WB-4C.212B/2026');
+  assert.strictEqual(ENGINE.suratNoGanti('KU.03.03/WB-4C.212/2026', '', ['KU.03.03/WB-4C.212A/2026']), 'KU.03.03/WB-4C.212B/2026');
+  assert.strictEqual(ENGINE.suratNoGanti('KU.03.03/WB-4C.2026/2026', '', []), 'KU.03.03/WB-4C.2026A/2026', 'nomor sama dengan tahun');
+  const input = fixture({ submit: '2026-09-01' });
+  input.surat = [row(ENGINE.SURAT, { nomor: 'S-212', tgl: '2026-10-05', pelanggan: 'PT CONTOH', invoices: NOMOR, ke: 1, tenggat: '2026-10-20', ganti: 'S-212A' }),
+                 row(ENGINE.SURAT, { nomor: 'S-212A', tgl: '2026-10-07', pelanggan: 'PT CONTOH', invoices: NOMOR, ke: 1, tenggat: '2026-10-20', menggantikan: 'S-212' })];
+  const r = ENGINE.compute(input), d = ENGINE.suratData(r.ctx, 'PT CONTOH'), a = ENGINE.suratAlerts(r.ctx)[0];
+  assert.strictEqual(d.letters[0].status, 'DIGANTI'); assert.strictEqual(d.letters[0].aktif, false);
+  assert.strictEqual(d.letters[1].status, 'MENUNGGU TANGGAPAN');
+  const st = d.projects[0].invoices[0].stage;
+  assert.deepStrictEqual(st.chain.map(c => c.nomor), ['S-212A'], 'surat yang diganti tidak dihitung sebagai riwayat');
+  assert.strictEqual(st.ke, 2); assert.strictEqual(a.perlu, false); assert.strictEqual(a.terakhir.nomor, 'S-212A');
+});
