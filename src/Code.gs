@@ -229,6 +229,7 @@ function rebuildAll_(opt) {
     if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
     writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
     writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
+    try { arHideArsip_(ss, res.arsipRows); } catch (err) { }
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) writeReport_(sh, res.reports[n], n); });
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
     ensureSelectors_(ss, res);
@@ -291,6 +292,25 @@ function writeAutoColumns_(sh, schema, aliases, out) {
     var vals = out.map(function (o) { return r.items.map(function (x) { return o ? toCell_(o[x.key], x.fmt) : ''; }); });
     sh.getRange(schema.firstRow, r.start, vals.length, r.items.length).setValues(vals);
   });
+}
+
+/** proyek AKTIF = ARSIP: sembunyikan barisnya di Monitoring Invoice, Log Penerimaan & Input Tagbrut (data tidak dihapus).
+ *  Baris yang disembunyikan pada pembaruan sebelumnya tetapi tidak lagi ARSIP ditampilkan kembali. */
+function arHideArsip_(ss, rows) {
+  if (!rows) return;
+  var pr = arProps_(), prev = {};
+  try { prev = JSON.parse(pr.getProperty('ARSIP_ROWS') || '{}'); } catch (e) { prev = {}; }
+  var sheets = { reg: 'Monitoring Invoice', log: 'Log Penerimaan', tag: ENGINE.TAG.sheet }, next = {};
+  Object.keys(sheets).forEach(function (k) {
+    var sh = ss.getSheetByName(sheets[k]); if (!sh) return;
+    var now = (rows[k] || []).slice().sort(function (a, b) { return a - b; }), was = prev[k] || [], on = {}, max = sh.getMaxRows();
+    now.forEach(function (r) { on[r] = 1; });
+    was.forEach(function (r) { if (!on[r] && r <= max) sh.showRows(r); });
+    for (var i = 0; i < now.length;) { var j = i; while (j + 1 < now.length && now[j + 1] === now[j] + 1) j++; sh.hideRows(now[i], now[j] - now[i] + 1); i = j + 1; }
+    next[k] = now;
+  });
+  var js = JSON.stringify(next);
+  if (js !== JSON.stringify(prev) && js.length < 8500) pr.setProperty('ARSIP_ROWS', js);
 }
 
 /** tampilan teks sel (perkiraan jumlah karakter) untuk menghitung lebar kolom */
@@ -642,7 +662,7 @@ function applyV22() { arRequireMaker_();
   if (lm.rekening) lp.getRange(ENGINE.LOG.firstRow, lm.rekening, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(V22_REK.map(function (r) { return r[0] + ' ' + r[1]; }), true).setAllowInvalid(true).build());
   if (lm.jenis_trx) lp.getRange(ENGINE.LOG.firstRow, lm.jenis_trx, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.jenis_trx, true).setAllowInvalid(true).setHelpText('Kosong = transfer biasa. PINDAH BUKU = kompensasi antar invoice (baris − di invoice asal, + di invoice tujuan, REF sama).').build());
   var mp = ss.getSheetByName('Master Proyek'), pm = colMap_(mp, ENGINE.MPRO, ENGINE.MPRO_ALIAS);
-  if (pm.aktif) mp.getRange(ENGINE.MPRO.firstRow, pm.aktif, Math.max(mp.getMaxRows() - 2, 1), 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro, true).setAllowInvalid(true).setHelpText('SELESAI = proyek selesai & lunas (tidak muncul di aplikasi, tidak dicek kelengkapannya).').build());
+  if (pm.aktif) mp.getRange(ENGINE.MPRO.firstRow, pm.aktif, Math.max(mp.getMaxRows() - 2, 1), 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro, true).setAllowInvalid(true).setHelpText('SELESAI = proyek selesai & lunas (tidak muncul di aplikasi, tidak dicek kelengkapannya). ARSIP = selesai & lunas sebelum sistem dipakai: semua invoice, penerimaan & tagbrut-nya diabaikan sistem dan barisnya disembunyikan (tidak dihapus).').build());
   var it = ss.getSheetByName('Input Tagbrut');
   if (it) it.getRange(ENGINE.TAG.firstRow, 1, 500, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInRange(mp.getRange('A3:A400'), true).setAllowInvalid(false).setHelpText('Hanya NPP proyek jasa dari Master Proyek.').build());
   // zona waktu

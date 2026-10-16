@@ -129,7 +129,7 @@ var ENGINE = (function () {
   var MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   var OPT = {
     validasi: ['✓ CAIR', '◇ CADANGAN', '→ BULAN DEPAN', '⏸ HOLD'],
-    status_inv: ['AKTIF', 'BATAL'], /* v2.6: STATUS DOKUMEN otomatis — pembatalan lewat aplikasi */ tutup: ['CLOSE MANUAL'], lunas: ['✓'], alokasi: ['OTOMATIS', 'NETTO', 'PPN'], jenis_trx: ['PINDAH BUKU'], aktif_pro: ['YA', 'TIDAK', 'SELESAI'],
+    status_inv: ['AKTIF', 'BATAL'], /* v2.6: STATUS DOKUMEN otomatis — pembatalan lewat aplikasi */ tutup: ['CLOSE MANUAL'], lunas: ['✓'], alokasi: ['OTOMATIS', 'NETTO', 'PPN'], jenis_trx: ['PINDAH BUKU'], aktif_pro: ['YA', 'TIDAK', 'SELESAI', 'ARSIP'],
     jenis: ['PROGRES', 'UANG MUKA', 'RETENSI', 'LAINNYA'], jenis_add: ['TAMBAH', 'KURANG'], template: ['UMUM', 'IKK', 'KIDOH', 'FAJARPUTERA', 'WIKA-WITON'],
     ret_pos: ['AWAL', 'AKHIR', 'TIDAK ADA'], dasar_pph: ['SETELAH RETENSI', 'SEBELUM RETENSI'], yatidak: ['YA', 'TIDAK'],
     jenis_pel: ['WIKA', 'BUMN', 'SWASTA', 'JO'], kelompok: ['PIHAK BERELASI', 'PIHAK KETIGA'], dasar_jt: ['TGL SUBMIT', 'TGL TANDA TERIMA'],
@@ -374,7 +374,11 @@ var ENGINE = (function () {
       pro[n].produk.forEach(function (x) { if (pro[x.npp] && x.npp !== n) { pro[x.npp]._produkOf = n; } });
       pro[n].adendumNpp.forEach(function (x) { if (pro[x.npp] && x.npp !== n) { pro[x.npp]._adendumOf = n; } });
     });
-    return { pel: pel, pro: pro, issues: issues };
+    // AKTIF = ARSIP: proyek selesai & lunas sebelum sistem dipakai — invoice, penerimaan & tagbrut-nya diabaikan seluruh sistem (baris disembunyikan, tidak dihapus)
+    var arsip = {};
+    Object.keys(pro).forEach(function (n) { if (pro[n].aktif === 'ARSIP') { arsip[n] = pro[n]; delete pro[n]; } });
+    if (Object.keys(arsip).length) issues = issues.filter(function (x) { var r = S(x[2]); return !arsip[r] && !Object.keys(arsip).some(function (n) { return r.indexOf('(' + n + ')') >= 0; }); });
+    return { pel: pel, pro: pro, issues: issues, arsip: arsip };
   }
   /** nilai kontrak yang berlaku pada tanggal tertentu (adendum dengan tanggal berlaku ≤ tgl, atau tanpa tanggal) */
   function kontrakAt(p, tgl) {
@@ -526,6 +530,7 @@ var ENGINE = (function () {
       if (inv._empty || !S(inv.nomor)) { inv._skip = true; return; }
       inv.nomor = S(inv.nomor);
       var key = normInv(inv.nomor);
+      if (M.arsip[S(inv.npp)]) { inv._skip = true; inv._arsip = true; if (!byNo[key]) byNo[key] = inv; return; }
       if (byNo[key]) { issues.push(['REGISTER', REG.sheet, inv.nomor, 'Nomor invoice ganda (baris ' + byNo[key]._row + ' & ' + inv._row + ')', 'Nomor harus unik; gunakan fitur revisi untuk mengubah invoice']); }
       else byNo[key] = inv;
       if (inv.nomor.indexOf('#') >= 0 && !(batalLama ? batalLama[key] : /^BATAL/.test(U(inv.status_inv))) && !batalOk[key]) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Nomor invoice ditandai ganda dari data lama (#)', 'Cek arsip, ganti dengan nomor yang benar']);
@@ -567,6 +572,7 @@ var ENGINE = (function () {
       if (!S(p.idp)) p.idp = 'PNR-' + pad(++maxId, 5); else p.idp = S(p.idp);
       if (jam.test(S(p.tgl))) issues.push(['PENERIMAAN', LOG.sheet, 'baris ' + p._row, 'Tanggal bayar tersimpan dengan jam (' + S(p.tgl) + ') — kemungkinan bergeser karena zona waktu', 'Jalankan menu AR CSU ▸ Perbaiki zona waktu & tanggal']);
       p.tgl = D(p.tgl); p.inv = S(p.inv); p.nominal = N(p.nominal); p._cek = []; p.sap_doc = S(p.sap_doc);
+      var invA = byNo[normInv(p.inv)]; if (invA && invA._arsip) { p._skip = true; p._arsip = true; return; }
       p._migr = U(p.ref) === 'MIGRASI' || /^MIGRASI/.test(U(p.ket));
       var al = U(p.alokasi); if (al && OPT.alokasi.indexOf(al) < 0) p._cek.push('⚠ ALOKASI HARUS OTOMATIS / NETTO / PPN');
       var key = normInv(p.inv), inv = byNo[key];
@@ -685,7 +691,8 @@ var ENGINE = (function () {
     var tagAll = rowsToObjects(input.tagbrut || [], TAG.cols, TAG.firstRow).filter(function (r) { return !r._empty && S(r.npp); }).map(function (r) {
       return { npp: S(r.npp), tgl: D(r.tgl), nodok: S(r.nodok), nilai: N(r.nilai), sumber: S(r.sumber), ket: S(r.ket), _row: r._row };
     });
-    var tagRows = tagAll.filter(function (r) { return !!M.pro[r.npp]; }), tagSkip = tagAll.length - tagRows.length;
+    var tagArsip = tagAll.filter(function (r) { return !!M.arsip[r.npp]; });
+    var tagRows = tagAll.filter(function (r) { return !!M.pro[r.npp]; }), tagSkip = tagAll.length - tagRows.length - tagArsip.length;
     tagRows.forEach(function (r) { if (!r.tgl) issues.push(['TAGBRUT', TAG.sheet, 'baris ' + r._row, 'Tanggal pengakuan kosong', 'Isi tanggal']); });
     var notes = rowsToObjects(input.notes || [], NOTE.cols, NOTE.firstRow).filter(function (r) { return !r._empty && S(r.catatan); }).map(function (r) {
       return { npp: U(r.npp), tgl: D(r.tgl), pic: S(r.pic), catatan: S(r.catatan) };
@@ -696,14 +703,19 @@ var ENGINE = (function () {
       surat: rowsToObjects(input.surat || [], SURAT.cols, SURAT.firstRow).filter(function (r) { return !r._empty && S(r.nomor); }).map(function (r) {
         r.tgl = D(r.tgl); r.tenggat = D(r.tenggat); r.tanggap_tgl = D(r.tanggap_tgl); r.janji = D(r.janji); r.pelanggan = U(r.pelanggan); r.ke = N(r.ke) || 1;
         r._inv = S(r.invoices).split(/\s*;\s*/).filter(String).map(normInv); return r; }),
-      _input: input, issues: issues, sel: input.selectors || {}, appr: appr, latest: latest, payGroups: payGroups, valMap: valMap, valDec: VI.byRef, valFirst: VI.first, tag: tagRows, tagSkip: tagSkip, notes: notes, lk: lk };
+      _input: input, issues: issues, sel: input.selectors || {}, appr: appr, latest: latest, payGroups: payGroups, valMap: valMap, valDec: VI.byRef, valFirst: VI.first, tag: tagRows, tagSkip: tagSkip, notes: notes, lk: lk,
+      arsipRefs: {} };
+    invs.forEach(function (i) { if (i._arsip) ctx.arsipRefs['INV|' + normInv(i.nomor)] = 1; });
+    pays.forEach(function (p) { if (p._arsip && p.idp) ctx.arsipRefs['TRM|' + p.idp] = 1; });
+    var arsipRows = { reg: invs.filter(function (i) { return i._arsip; }).map(function (i) { return i._row; }), log: pays.filter(function (p) { return p._arsip; }).map(function (p) { return p._row; }),
+      tag: tagArsip.map(function (r) { return r._row; }), npp: Object.keys(M.arsip) };
 
     // ---- memorial akuntansi (v2.4): blok baru / revisi / koreksi dihitung dari data + sheet Memorial AR
     if (!input.light && input.memo !== undefined) { try { ctx.memo = memorial(ctx, input.memo); } catch (e) { issues.push(['MEMORIAL', MEMO.sheet, '-', 'Memorial gagal dihitung: ' + e.message, 'Laporkan ke pengembang']); ctx.memo = null; } }
     var mst = ctx.memo ? ctx.memo.status : {};
     // ---- kolom otomatis register & log
     var regOut = invs.map(function (inv, idx) {
-      if (inv._skip) return null;
+      if (inv._skip) return inv._arsip ? { status_inv: 'ARSIP', status: 'ARSIP — proyek selesai sebelum sistem' } : null;
       var a = inv._a, r = inv._res;
       var bi = inv._batalInfo, stDok = inv._batal ? 'BATAL' + (bi ? ' · ' + bi.tgl.split('-').reverse().join('-') + ' · ' + bi.id : '') : (inv._batalPend ? 'AKTIF · ⏳ pembatalan menunggu (' + inv._batalPend + ')' : 'AKTIF');
       return { status_inv: stDok, no: idx + 1, proyek: inv._pro ? inv._pro.singkat : S(inv.proyek), total: a.total, netto: a.netto, pph: a.pph, kas: a.kas, jt: r.jt, jt_akt: r.jt_akt,
@@ -713,14 +725,14 @@ var ENGINE = (function () {
     });
     var n = 0;
     var logOut = pays.map(function (p) {
-      if (p._skip) return null;
+      if (p._skip) return p._arsip ? { idp: p.idp, cek: 'ARSIP' } : null;
       n++;
       var g = payGroups[payKey(p)], st = g ? apprStatusText(latest(DOC.PAY, payKey(p)), fpPayGroup(g)) : '';
       return { no: n, idp: p.idp, pelanggan: p._inv ? p._inv.pelanggan : '', npp: p._inv ? p._inv.npp : '', ke_ppn: p._inv ? (p._keP || 0) : '', ke_net: p._inv ? (p._keN || 0) : '',
         aturan: p._rule || '', pph_cat: p._pph || p._sel ? (p._pph || 0) + (p._sel || 0) : '', adm_cat: p._adm || '', cicil: p._ke || '', persetujuan: st,
         cek: p._cek.length ? p._cek.join('; ') : '✓ OK', memorial: mst[p._pb ? 'PB|' + S(p.ref) : 'TRM|' + p.idp] || '' };
     });
-    if (input.light) return { regOut: regOut, logOut: logOut, reports: {}, issues: issues, params: params, master: M, today: today, ctx: ctx };
+    if (input.light) return { regOut: regOut, logOut: logOut, reports: {}, issues: issues, params: params, master: M, today: today, ctx: ctx, arsipRows: arsipRows };
     // ---- cek data tambahan (faktur, SAP, persetujuan, parameter)
     extraChecks(ctx);
     peCheck(ctx, input.peref);
@@ -733,7 +745,7 @@ var ENGINE = (function () {
     try { reports['Kinerja & Peringatan Dini'] = repKinerja(ctx); } catch (e) { issues.push(['KINERJA', 'Kinerja & Peringatan Dini', '-', 'Gagal dihitung: ' + e.message, 'Laporkan ke pengembang']); }
     reports['Dashboard Summary'] = repDashboard(ctx);
     reports['Cek Data'] = repCek(ctx);
-    return { regOut: regOut, logOut: logOut, reports: reports, issues: issues, params: params, master: M, today: today, ctx: ctx };
+    return { regOut: regOut, logOut: logOut, reports: reports, issues: issues, params: params, master: M, today: today, ctx: ctx, arsipRows: arsipRows };
   }
 
   // ------------------------------------------------------------------ PEMILIH BULAN & BLOK LAPORAN
@@ -1883,7 +1895,7 @@ var ENGINE = (function () {
     var final = [];
     order.forEach(function (ref) {
       var L = byRef[ref], g = G[ref] || null;
-      if (/^MANUAL\|/.test(ref)) { L.forEach(function (b) { final.push(b); }); return; }
+      if (/^MANUAL\|/.test(ref) || (!g && ctx.arsipRefs && ctx.arsipRefs[ref])) { L.forEach(function (b) { final.push(b); }); return; } // proyek ARSIP: memorial lama dibiarkan apa adanya
       var live = L.filter(function (b) { return !/DIKOREKSI|^BATAL/.test(U(b.status)); }), eff = live.length ? live[live.length - 1] : null;
       var kN = L.filter(function (b) { return /-K\d+$/.test(b.kode); }).length;
       if (!L.length) { if (g) { L.push({ kode: g.kode, ref: ref, jenis: g.jenis, bulan: g.bulan, sumber: 'OTOMATIS', sidik: g.sidik, status: 'BARU', verif: false, verif_at: '', rows: g.rows, info: g.info, _new: 1 }); log.push('baru ' + g.kode); } }

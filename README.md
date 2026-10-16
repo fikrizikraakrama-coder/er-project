@@ -32,6 +32,12 @@ Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom 
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
 
+## Proyek ARSIP (selesai sebelum sistem dipakai)
+Master Proyek kolom **AKTIF = ARSIP** untuk proyek yang sudah selesai & lunas sebelum sistem dibangun. Semua invoice, penerimaan dan
+tagbrut proyek itu diabaikan seluruh sistem (laporan, Cek Data, aplikasi, Kartu Piutang, memorial lama dibiarkan) dan barisnya
+**disembunyikan** di Monitoring Invoice, Log Penerimaan & Input Tagbrut saat **Perbarui semua laporan** — tidak dihapus.
+Kembalikan ke YA / SELESAI untuk menampilkannya lagi. Jangan dipakai untuk proyek yang masih punya sisa piutang.
+
 ## Surat Penagihan (permohonan percepatan pembayaran)
 Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
 - Alert per pelanggan yang punya invoice lewat jatuh tempo (invoice tanpa jatuh tempo — belum submit / tanda terima — tidak ikut).

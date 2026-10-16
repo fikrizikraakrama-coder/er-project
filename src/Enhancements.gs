@@ -197,6 +197,10 @@ function arFormatSourceSheets_(ss) {
     });
   });
   ['Parameter','Data LK (Tempel)','Tempel SAP','Riwayat Revisi'].forEach(function(n){var sh=ss.getSheetByName(n);if(sh&&sh.getLastRow())arFormatGeneric_(sh);});
+  // pilihan AKTIF Master Proyek selalu mengikuti daftar terbaru (termasuk ARSIP)
+  try{var mp=ss.getSheetByName(ENGINE.MPRO.sheet),pm=mp?colMap_(mp,ENGINE.MPRO,ENGINE.MPRO_ALIAS):{};
+    if(pm.aktif)mp.getRange(ENGINE.MPRO.firstRow,pm.aktif,Math.max(mp.getMaxRows()-ENGINE.MPRO.firstRow+1,1),1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro,true).setAllowInvalid(true)
+      .setHelpText('YA = aktif · TIDAK = bukan proyek AR · SELESAI = selesai & lunas (tidak muncul di aplikasi) · ARSIP = selesai & lunas sebelum sistem dipakai: invoice, penerimaan & tagbrut-nya diabaikan dan barisnya disembunyikan (tidak dihapus).').build());}catch(e){}
 }
 function arFormatGeneric_(sh) {
   var rg=sh.getDataRange(),v=rg.getValues(),headers={},leftCols={};
@@ -305,6 +309,9 @@ function arPushPE_(res,npps,onlyName) {
   });
   // Never delete old project tabs: closed projects remain available for historical review.
   ss.getSheets().forEach(function(sheet){if(names.indexOf(sheet.getName())>=0){sheet.setColumnWidth(5,Math.max(190,sheet.getColumnWidth(5)));sheet.getRange('E4').setWrap(true);}});
+  // proyek ARSIP (selesai sebelum sistem): tab kartunya disembunyikan, tidak dihapus
+  var arsipN=Object.keys(res.ctx.M.arsip||{});
+  if(arsipN.length)ss.getSheets().forEach(function(sheet){var nm=sheet.getName();if(arsipN.some(function(n){return nm.indexOf(n)===0;})&&!sheet.isSheetHidden()){try{sheet.hideSheet();}catch(e){}}});
   arOrderNamed_(ss,names);dropDefaultSheet_(ss);
   return count;
 }

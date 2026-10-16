@@ -182,3 +182,24 @@ test('IKK dasar PPh SEBELUM RETENSI: pelepasan retensi tanpa PPh (dan tanpa PPN 
   const i = ENGINE.compute(input).ctx.invs[0];
   assert.strictEqual(i._a.pph, 0); assert.strictEqual(i._a.kas, 277209737);
 });
+
+test('proyek ARSIP: invoice, penerimaan & tagbrut diabaikan, tanpa temuan Cek Data, baris dilaporkan untuk disembunyikan', () => {
+  const ARS = '254C 0001 JT', NO2 = 'KU.02.02/WB-4C.0007/2024';
+  const input = fixture();
+  input.pelanggan.push(row(ENGINE.MPEL, { nama: 'PT LAMA', inv: 'PT LAMA', aktif: 'YA' }));
+  input.proyek.push(row(ENGINE.MPRO, { npp: ARS, pelanggan: 'PT LAMA', singkat: 'LAMA', nilai: 5e8, ret_pct: 0.05, aktif: 'ARSIP' }).concat(['']));
+  input.register.push(row(ENGINE.REG, { tgl: '2024-03-01', nomor: NO2, jenis: 'PROGRES', pelanggan: 'PT LAMA', npp: ARS, dpp: 1e8, ppn: 11e6 }));
+  input.log = [row(ENGINE.LOG, { tgl: '2024-04-01', ref: 'MIGRASI', inv: NO2, nominal: 1e8 })];
+  input.tagbrut = [row(ENGINE.TAG, { npp: ARS, nilai: 1e6 })];
+  const r = ENGINE.compute(input);
+  assert.ok(!r.ctx.invs.some(i => i.npp === ARS), 'invoice arsip tidak ikut dihitung');
+  assert.strictEqual(r.ctx.pays.length, 0);
+  assert.ok(!r.ctx.M.pro[ARS] && r.ctx.M.arsip[ARS]);
+  assert.ok(!r.issues.some(x => JSON.stringify(x).indexOf(ARS) >= 0 || JSON.stringify(x).indexOf('0007/2024') >= 0 || JSON.stringify(x).indexOf('PT LAMA') >= 0), 'tidak ada temuan Cek Data');
+  assert.deepStrictEqual(r.arsipRows.reg, [ENGINE.REG.firstRow + 1]);
+  assert.deepStrictEqual(r.arsipRows.log, [ENGINE.LOG.firstRow]);
+  assert.deepStrictEqual(r.arsipRows.tag, [ENGINE.TAG.firstRow]);
+  assert.strictEqual(r.regOut[1].status_inv, 'ARSIP');
+  assert.strictEqual(r.logOut[0].cek, 'ARSIP');
+  assert.ok(invOf(r), 'invoice aktif tetap dihitung');
+});
