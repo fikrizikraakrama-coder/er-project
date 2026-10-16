@@ -1489,8 +1489,11 @@ var ENGINE = (function () {
       ['per ' + tglPanjang(k.asOf), T.brutoProg, k.pctTagih, T.debit, T.kas, T.pot, T.saldo, T.sN, T.sP, T.ret, k.sisaKontrak]];
     var r2 = top + info.length + 1, b2 = block(r2, 1, sm, { styles: [sty(0, 'hdr'), sty(1, 'kpi')], fmt: { 1: 'money', 2: 'pct', 3: 'money', 4: 'money', 5: 'money', 6: 'money', 7: 'money0', 8: 'money0', 9: 'money', 10: 'money' } });
     // A. rincian tagihan per invoice
+    // judul kolom retensi mengikuti posisinya: AKHIR = ditahan dari pembayaran (bukan pengurang DPP), AWAL = dipotong sebelum DPP
+    var rpos = {}; k.groups.forEach(function (g) { if (g.A.ret) rpos[g.A.retpos === 'AKHIR' ? 'AKHIR' : 'AWAL'] = 1; });
+    var hRet = rpos.AKHIR && !rpos.AWAL ? 'RETENSI (DITAHAN)' : rpos.AWAL && !rpos.AKHIR ? 'RETENSI (DIPOTONG SEBELUM DPP)' : 'RETENSI';
     var ra = [['A. RINCIAN TAGIHAN PER INVOICE — nilai progres asli, potongan uang muka & retensi, dasar pengenaan pajak'],
-      ['TGL INVOICE', 'NO. INVOICE · TAGIHAN', 'NILAI PROGRES', 'POT. UANG MUKA', 'RETENSI', 'DPP', 'PPN', 'TOTAL INVOICE (DPP + PPN)', 'PIUTANG DICATAT']], sa = [sty(0, 'title'), sty(1, 'hdr')], TA = [0, 0, 0, 0, 0, 0, 0], anyLama = false, anyAkhir = false;
+      ['TGL INVOICE', 'NO. INVOICE · TAGIHAN', 'NILAI PROGRES', 'POT. UANG MUKA', hRet, 'DPP', 'PPN', 'TOTAL INVOICE (DPP + PPN)', 'PIUTANG DICATAT (NETTO + PPN)']], sa = [sty(0, 'title'), sty(1, 'hdr')], TA = [0, 0, 0, 0, 0, 0, 0], anyLama = false, anyAkhir = false;
     k.groups.forEach(function (g) {
       var A = g.A, lb = A.nomor + ' · ' + A.invke + (A.jenis === 'UANG MUKA' ? ' (uang muka)' : A.jenis === 'RETENSI' ? ' (pelepasan retensi)' : '') + (A.lama ? ' *' : '') + (A.retpos === 'AKHIR' && A.ret ? ' **' : '');
       ra.push([A.tgl, lb, A.progres || '', A.umk || '', A.ret || '', A.dpp, A.ppn, A.total, A.dicatat]);
@@ -1499,8 +1502,8 @@ var ENGINE = (function () {
     });
     if (!k.groups.length) ra.push(['', 'Belum ada invoice untuk proyek ini']);
     ra.push(['', 'TOTAL'].concat(TA)); sa.push(sty(ra.length - 1, 'total'));
-    var na = 'Nilai progres − pot. uang muka − retensi (bila dipotong sebelum DPP) = DPP. Piutang dicatat = DPP + PPN − retensi yang ditahan dari pembayaran.';
-    if (anyAkhir) na += ' ** retensi ditahan dari pembayaran (ditagih di akhir).';
+    var na = 'DPP = nilai progres − pot. uang muka − retensi (hanya bila retensi dipotong sebelum DPP). Netto = DPP − retensi yang ditahan. Piutang dicatat = Netto + PPN = total invoice − retensi ditahan.';
+    if (anyAkhir) na += ' ** retensi ditahan dari pembayaran: tidak mengurangi DPP (dasar PPN/PPh tetap penuh), ditagih terpisah di akhir.';
     if (anyLama) na += ' * invoice lama: nilai progres / pot. UM belum dilengkapi — isi kolom NILAI PROGRES / BRUTO, PENGEMBALIAN UM, RETENSI di Monitoring Invoice.';
     ra.push([na]); sa.push(sty(ra.length - 1, 'note'));
     var r3 = r2 + sm.length + 1, b3 = block(r3, 1, ra, { styles: sa, fmt: { 0: 'date', 2: 'money', 3: 'money', 4: 'money', 5: 'money', 6: 'money', 7: 'money', 8: 'money' } });
