@@ -62,3 +62,6 @@ Saat invoice yang sudah ada disimpan ulang (dengan alasan), sistem membandingkan
 - **REVISI DOKUMEN BAP** (tanggal BAP, progress, Nomor/Tanggal SPK di BAP): Rev & persetujuan tetap, cukup tercatat.
 Semua tercatat di sheet Riwayat Revisi (kolom JENIS REVISI & PERUBAHAN: nilai lama → baru). Dokumen dicetak tanpa tanda revisi.
 Nomor/Tanggal SPK di BAP bisa diisi per invoice (kosong = Master Proyek) untuk koreksi typo tanpa mengubah dokumen lain.
+
+## Format tanggal di sheet
+Menu **AR CSU ▸ Format tanggal Indonesia (dd/mm/yyyy)…**: lokal file Indonesia (05/10/2026 = 5 Oktober) dan validasi tanggal sah pada kolom tanggal manual. Cek Data menandai tanggal dokumen sebelum tanggal invoice atau di masa depan (kemungkinan tanggal & bulan tertukar).

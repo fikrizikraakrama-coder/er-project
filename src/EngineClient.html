@@ -538,6 +538,12 @@ var ENGINE = (function () {
       inv.no_fp = digits(inv.no_fp); inv.sap_doc = S(inv.sap_doc); inv.uraian = S(inv.uraian);
       if (!inv.tgl) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Tanggal invoice kosong / tidak terbaca', 'Isi TANGGAL INVOICE']);
       else if (inv.tgl > today) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Tanggal invoice di masa depan (' + inv.tgl + ')', 'Kemungkinan salah ketik tahun']);
+      // tanggal yang diketik manual di sheet: tanggal & bulan sering tertukar bila lokal file bukan Indonesia (05/10 terbaca 10 Mei)
+      [['submit', 'TGL SUBMIT DOKUMEN'], ['tt', 'TGL TANDA TERIMA'], ['tgl_fp', 'TANGGAL FAKTUR PAJAK'], ['ba_tgl', 'TGL BA / MEMO']].forEach(function (x) {
+        var d = D(inv[x[0]]); if (!d) return;
+        if (d > today) issues.push(['TANGGAL', REG.sheet, inv.nomor, x[1] + ' di masa depan (' + tglPanjang(d) + ')', 'Kemungkinan tanggal & bulan tertukar — ketik dd/mm/yyyy dan pastikan lokal file Indonesia (menu AR CSU ▸ Format tanggal Indonesia)']);
+        else if (inv.tgl && d < inv.tgl && x[0] !== 'tgl_fp') issues.push(['TANGGAL', REG.sheet, inv.nomor, x[1] + ' (' + tglPanjang(d) + ') sebelum tanggal invoice (' + tglPanjang(inv.tgl) + ')', 'Kemungkinan tanggal & bulan tertukar — periksa dan ketik ulang dd/mm/yyyy']);
+      });
       inv._a = invoiceAmounts(inv, inv._pro, params);
       inv._batalInfo = batalOk[key] || null; inv._batal = !!inv._batalInfo || (batalLama ? !!batalLama[key] : /^BATAL/.test(U(inv.status_inv))); inv._batalPend = inv._batal ? '' : (batalPend[key] || '');
       inv._berelasi = inv._pel ? inv._pel.berelasi : false;

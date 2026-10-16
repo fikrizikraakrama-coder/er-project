@@ -45,6 +45,7 @@ function onOpen() {
     .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
     .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
     .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
+    .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal')
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();
 }
@@ -1128,6 +1129,23 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   rebuildAll();
   if (kTglD && out.status === 'DISETUJUI') { var rf = arRefreshClosedMonths_([kTglD], out.id + ' ' + (notif.r.catatan || notif.r.label || '')); out.warnings = out.warnings.concat(rf.warnings); out.snapshots = rf.ids; }
   return out;
+}
+/** menu: lokal file Indonesia (ketikan 05/10/2026 = 5 Oktober) + validasi "harus tanggal" di kolom tanggal yang diisi manual */
+function aturFormatTanggal() {
+  arRequireMaker_();
+  var ui = SpreadsheetApp.getUi(), ss = arSpreadsheet_(), lama = ss.getSpreadsheetLocale();
+  if (ui.alert('Format tanggal Indonesia', 'Lokal file sekarang: ' + lama + '.\n\nSetelah diubah ke Indonesia:\n• Ketikan 05/10/2026 dibaca 5 Oktober 2026 (tanggal/bulan/tahun) dan tampil 05-Okt-2026.\n• Angka desimal diketik dengan KOMA (mis. 0,0265 atau 2,65%), ribuan dengan titik. Nilai yang sudah ada tidak berubah.\n• Kolom tanggal yang diisi manual hanya menerima tanggal yang sah.\n\nLanjutkan?', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  var ok = '';
+  ['id_ID', 'in_ID'].some(function (lc) { try { ss.setSpreadsheetLocale(lc); if (/^(id|in)/i.test(ss.getSpreadsheetLocale())) { ok = ss.getSpreadsheetLocale(); return true; } } catch (e) { } return false; });
+  var help = 'Ketik tanggal dengan format tanggal/bulan/tahun, mis. 05/10/2026', n = 0;
+  var rule = SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).setHelpText(help).build();
+  [[ENGINE.REG, ['submit', 'tt', 'tgl_fp', 'rencana', 'ba_tgl'], ENGINE.REG_ALIAS], [ENGINE.LOG, ['tgl']], [ENGINE.ADD, ['tgl']], [ENGINE.TAG, ['tgl']], [ENGINE.MPRO, ['tgl_kontrak'], ENGINE.MPRO_ALIAS]].forEach(function (x) {
+    var sh = ss.getSheetByName(x[0].sheet); if (!sh) return;
+    var map = colMap_(sh, x[0], x[2] || null), rows = Math.max(sh.getMaxRows() - x[0].firstRow + 1, 1);
+    x[1].forEach(function (k) { if (!map[k]) return; sh.getRange(x[0].firstRow, map[k], rows, 1).setDataValidation(rule).setNumberFormat(NUMF.date); n++; });
+  });
+  ui.alert('Selesai', (ok ? 'Lokal file: ' + ok + ' (Indonesia).' : 'Lokal tidak bisa diubah otomatis — ubah manual: File ▸ Setelan ▸ Lokal: Indonesia.') + '\n' + n + ' kolom tanggal kini hanya menerima tanggal sah (tampil dd-mmm-yyyy).\n\nTanggal yang terlanjur tertukar ditandai di sheet Cek Data (kategori TANGGAL) setelah laporan diperbarui.', ui.ButtonSet.OK);
+  rebuildAll();
 }
 /** menu: buat / temukan folder arsip, simpan ID di Parameter, bagikan ke PEMBUAT & PENYETUJU (sekali, oleh pemilik) */
 function setupArsipFolder() {

@@ -154,3 +154,11 @@ test('revisi & penggantian surat: nomor 212 → 212A → 212B; surat DIGANTI tid
   assert.deepStrictEqual(st.chain.map(c => c.nomor), ['S-212A'], 'surat yang diganti tidak dihitung sebagai riwayat');
   assert.strictEqual(st.ke, 2); assert.strictEqual(a.perlu, false); assert.strictEqual(a.terakhir.nomor, 'S-212A');
 });
+
+test('tanggal tertukar di sheet (05/10 terbaca 10 Mei) ditandai di Cek Data', () => {
+  const swap = ENGINE.compute(fixture({ submit: '2026-05-10' })).ctx.issues.filter(x => x[0] === 'TANGGAL');
+  assert.strictEqual(swap.length, 1); assert.match(swap[0][3], /TGL SUBMIT DOKUMEN .* sebelum tanggal invoice/);
+  const fut = ENGINE.compute(fixture({ submit: '2026-09-22', tt: '2026-12-09' })).ctx.issues.filter(x => x[0] === 'TANGGAL');
+  assert.strictEqual(fut.length, 1); assert.match(fut[0][3], /TGL TANDA TERIMA di masa depan/);
+  assert.strictEqual(ENGINE.compute(fixture({ submit: '2026-09-22' })).ctx.issues.filter(x => x[0] === 'TANGGAL').length, 0);
+});
