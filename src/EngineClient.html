@@ -753,7 +753,7 @@ var ENGINE = (function () {
     if (sel.auto) { var pe = prevMonthEnd(today), y = +pe.substring(0, 4), m = +pe.substring(5, 7); return { y: y, m: m, start: monthStart(y, m), end: pe, label: monthLabel(y, m) + ' (otomatis: akhir bulan lalu)' }; }
     return sel;
   }
-  function block(r, c, rows, opt) { opt = opt || {}; return { r: r, c: c || 1, rows: rows, styles: opt.styles || [], fmt: opt.fmt || {}, edit: opt.edit || null, merge: opt.merge || [], span: opt.span || 1, noWidth: !!opt.noWidth, group: !!opt.group }; }
+  function block(r, c, rows, opt) { opt = opt || {}; return { r: r, c: c || 1, rows: rows, styles: opt.styles || [], fmt: opt.fmt || {}, edit: opt.edit || null, merge: opt.merge || [], span: opt.span || 1, noWidth: !!opt.noWidth, group: !!opt.group, align: opt.align || null }; }
   function sty(rowOff, s, n) { return { r: rowOff, s: s, n: n || 1 }; }
   function openInv(ctx) { return ctx.invs.filter(function (i) { return !i._batal && !i._res.closed; }); }
   function planDate(inv) { return inv.rencana || inv._res.jt || ''; }
@@ -1791,7 +1791,8 @@ var ENGINE = (function () {
     var rows = [['NO', 'KATEGORI', 'SHEET', 'REFERENSI', 'MASALAH', 'SARAN PERBAIKAN']];
     ctx.issues.forEach(function (x, ix) { rows.push([ix + 1, x[0], x[1], x[2], x[3], x[4]]); });
     if (rows.length === 1) rows.push(['', '✓', '', '', 'Tidak ada data yang perlu dicek', '']);
-    return { from: 6, blocks: [block(6, 1, rows, { styles: [sty(0, 'hdr')] })], wrapCols: [5, 6] };
+    // NO rata tengah, kolom teks rata kiri (judul kolom tetap di tengah)
+    return { from: 6, blocks: [block(6, 1, rows, { styles: [sty(0, 'hdr')], align: ['center', 'left', 'left', 'left', 'left', 'left'] })], wrapCols: [4, 5, 6] };
   }
 
   // ================================================================== v2.4: MEMORIAL AKUNTANSI, RINGKASAN P&E, TEMPEL SAP, SELARAS P&E
