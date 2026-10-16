@@ -879,23 +879,29 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
     if (row && map.status_inv && /^BATAL/i.test(String(sh.getRange(row, map.status_inv).getValue()))) throw new Error('Invoice ' + nomor + ' sudah dibatalkan — tidak bisa direvisi. Buat invoice baru dengan nomor lain.');
     checkNppSave_(p.npp, p.pelanggan);
     arCheckInvoiceNumbers_(p, nomor);
-    // tutup periode: tanggal invoice baru, dan tanggal lama bila revisi, tidak boleh berada di periode tertutup tanpa izin koreksi
-    var tglLama = row && map.tgl ? sh.getRange(row, map.tgl).getValue() : '';
-    var koreksi = arCheckPeriod_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], opt.periodeAlasan, 'Invoice');
+    var lc = sh.getLastColumn(), old = row ? sh.getRange(row, 1, 1, lc).getValues()[0] : null, oo = {};
+    if (row) cols.forEach(function (c) { var j = map[c[0]]; oo[c[0]] = j ? (isDate_(old[j - 1]) ? dstr_(old[j - 1]) : old[j - 1]) : ''; });
+    // jenis revisi ditentukan dari perubahan sebenarnya: NILAI / INVOICE (teks invoice-kwitansi) → Rev naik & ajukan ulang; BAP saja → cukup tercatat
+    var rj = row ? revisiJenis_(oo, p) : null;
+    if (rj && !rj.jenis) throw new Error('Tidak ada perubahan untuk disimpan.');
+    // tutup periode hanya untuk invoice baru / revisi yang mengubah nilai atau tanggal (revisi teks tidak berdampak akuntansi)
+    var koreksi = !row || rj.jenis === 'NILAI' ? arCheckPeriod_([p.tgl, row ? String(oo.tgl || '') : ''], opt.periodeAlasan, 'Invoice') : '';
     var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), user = email_() || 'pengguna';
     p.nomor = nomor; p.json = JSON.stringify(p.form || {}); p.dibuat = now + ' · ' + user + (koreksi ? ' · ' + koreksi : ''); p.sumber = 'APLIKASI';
     if (row) {
-      var lc = sh.getLastColumn(), old = sh.getRange(row, 1, 1, lc).getValues()[0], oo = {};
-      cols.forEach(function (c) { var j = map[c[0]]; oo[c[0]] = j ? (isDate_(old[j - 1]) ? dstr_(old[j - 1]) : old[j - 1]) : ''; });
       if (opt.expectedRev !== undefined && Number(opt.expectedRev) !== (Number(oo.rev) || 0)) throw new Error('Invoice telah direvisi pengguna lain. Buka ulang sebelum menyimpan.');
-      var rev = (Number(oo.rev) || 0) + 1; p.rev = rev;
+      // revisi BAP saja: nomor revisi tetap → sidik & persetujuan paket invoice tetap sah
+      var rev = rj.jenis === 'BAP' ? (Number(oo.rev) || 0) : (Number(oo.rev) || 0) + 1; p.rev = rev;
       var perluFP = (Math.round(Number(oo.dpp) || 0) !== Math.round(p.dpp) || Math.round(Number(oo.ppn) || 0) !== Math.round(p.ppn)) ? 'YA — DPP/PPN berubah' : 'TIDAK';
-      ss.getSheetByName('Riwayat Revisi').appendRow([now, nomor, rev, (koreksi ? koreksi + ' ' : '') + opt.alasan, user, perluFP, Number(oo.dpp) || 0, Number(oo.ppn) || 0, (Number(oo.dpp) || 0) + (Number(oo.ppn) || 0),
-        p.dpp, p.ppn, p.dpp + p.ppn, JSON.stringify(oo).substring(0, 49000)]);
+      var jenisTxt = { NILAI: 'REVISI NILAI — ajukan ulang persetujuan', INVOICE: 'REVISI INVOICE/KWITANSI (nilai tetap) — ajukan ulang persetujuan', BAP: 'REVISI DOKUMEN BAP (nilai & persetujuan tetap)' }[rj.jenis];
+      var rr = ss.getSheetByName('Riwayat Revisi');
+      rr.appendRow([now, nomor, rev, (koreksi ? koreksi + ' ' : '') + opt.alasan, user, perluFP, Number(oo.dpp) || 0, Number(oo.ppn) || 0, (Number(oo.dpp) || 0) + (Number(oo.ppn) || 0),
+        p.dpp, p.ppn, p.dpp + p.ppn, JSON.stringify(oo).substring(0, 49000), jenisTxt, rj.diff.join('; ').substring(0, 49000)]);
+      revisiHeader_(rr);
       var nv = old.slice();
       cols.forEach(function (c) { var j = map[c[0]]; if (j && colType_(c) === 'app' && p[c[0]] !== undefined) nv[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
       sh.getRange(row, 1, 1, lc).setValues([nv]);
-      result = { ok: true, mode: 'revisi', nomor: nomor, rev: rev, perluFP: perluFP };
+      result = { ok: true, mode: 'revisi', nomor: nomor, rev: rev, perluFP: perluFP, jenis: rj.jenis, perubahan: rj.diff };
     } else {
       p.rev = 0; p.status_inv = 'AKTIF';
       var target = lastDataRow_(sh, ENGINE.REG.firstRow, [map.nomor]) + 1, lc2 = sh.getLastColumn(), arr = [];
@@ -913,6 +919,40 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
   if (koreksi) { var rf = arRefreshClosedMonths_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], koreksi); result.warnings = result.warnings.concat(rf.warnings); result.snapshots = rf.ids;
     var nw = arNotify_('Koreksi periode tertutup — invoice ' + nomor, ['Pembuat: ' + user, 'Mode: ' + result.mode + (result.mode === 'revisi' ? ' (rev ' + result.rev + ', alasan: ' + opt.alasan + ')' : ''), 'Tanggal invoice: ' + p.tgl, 'DPP Rp ' + ENGINE.fmtRp(p.dpp) + ' · PPN Rp ' + ENGINE.fmtRp(p.ppn), 'Tanda: ' + koreksi]); if (nw) result.warnings.push(nw); }
   return result;
+}
+// ---------------------------------------------------------------------  JENIS REVISI INVOICE
+var REV_NILAI_ = { tgl: 'Tanggal invoice', jenis: 'Jenis tagihan', pelanggan: 'Pelanggan', npp: 'NPP', bruto: 'Bruto', umk: 'Potongan UM', retensi: 'Retensi', retpos: 'Posisi retensi', dpp: 'DPP', ppn: 'PPN', tarif: 'Tarif PPh', dasar: 'Dasar PPh', tagih: 'Nilai di invoice' };
+var REV_DOK_ = { invke: 'Invoice ke-', ttd: 'Penandatangan', uraian: 'Uraian tagihan' };
+var REV_BAP_ = { bapTgl: 'Tanggal BAP', bapProg: 'Progress penagihan (BAP)', bapSpk: 'Nomor SPK (BAP)', bapSpkTgl: 'Tanggal SPK (BAP)' };
+var REV_ABAI_ = ['alasan', '_loadedRev', 'judulAuto', 'invkeAuto', 'bapProgAuto', 'ppnRetensiAlasan'];
+/** bandingkan baris lama (oo) dengan simpanan baru (p) → { jenis: NILAI | INVOICE | BAP | '', diff: ['DPP: a → b', …] } */
+function revisiJenis_(oo, p) {
+  var txt = function (v) { return v === null || v === undefined ? '' : String(v).trim(); }, diff = [], has = { NILAI: 0, INVOICE: 0, BAP: 0 };
+  var add = function (g, lbl, a, b) { has[g] = 1; diff.push(lbl + ': "' + (txt(a) || '-') + '" → "' + (txt(b) || '-') + '"'); };
+  Object.keys(REV_NILAI_).forEach(function (k) {
+    if (p[k] === undefined) return;
+    var num = ['bruto', 'umk', 'retensi', 'dpp', 'ppn', 'tagih'].indexOf(k) >= 0, a = oo[k], b = p[k];
+    var same = num ? Math.round(Number(a) || 0) === Math.round(Number(b) || 0) : k === 'tarif' ? Math.abs((Number(a) || 0) - (Number(b) || 0)) < 1e-9 : txt(a).toUpperCase() === txt(b).toUpperCase();
+    if (!same) add('NILAI', REV_NILAI_[k], a, b);
+  });
+  Object.keys(REV_DOK_).forEach(function (k) { if (p[k] !== undefined && txt(oo[k]) !== txt(p[k])) add('INVOICE', REV_DOK_[k], oo[k], p[k]); });
+  var of = {}; try { of = JSON.parse(String(oo.json || '{}')) || {}; } catch (e) { of = {}; }
+  var nf = p.form || {}, legacy = !String(oo.json || '').trim(), keys = {};
+  Object.keys(of).concat(Object.keys(nf)).forEach(function (k) { keys[k] = 1; });
+  Object.keys(keys).forEach(function (k) {
+    if (REV_ABAI_.indexOf(k) >= 0) return;
+    var a = of[k], b = nf[k], same = JSON.stringify(a === undefined ? '' : a) === JSON.stringify(b === undefined ? '' : b);
+    if (same) return;
+    if (REV_BAP_[k]) add('BAP', REV_BAP_[k] + (/^bapSpk/.test(k) && !txt(a) ? ' (sebelumnya dari Master Proyek)' : ''), a, b);
+    else if (!legacy && !/^(judul|invke)$/.test(k)) add('INVOICE', 'Isian form ' + k, typeof a === 'object' ? JSON.stringify(a) : a, typeof b === 'object' ? JSON.stringify(b) : b);
+  });
+  return { jenis: has.NILAI ? 'NILAI' : has.INVOICE ? 'INVOICE' : has.BAP ? 'BAP' : '', diff: diff };
+}
+/** judul kolom tambahan Riwayat Revisi (ditambahkan sekali) */
+function revisiHeader_(rr) {
+  var top = rr.getRange(1, 1, Math.min(6, rr.getLastRow()), 2).getValues(), hr = 0;
+  top.forEach(function (r, i) { if (!hr && /NOMOR|INVOICE/i.test(String(r[1]))) hr = i + 1; });
+  if (hr && !String(rr.getRange(hr, 14).getValue()).trim()) rr.getRange(hr, 14, 1, 2).setValues([['JENIS REVISI', 'PERUBAHAN']]).setFontWeight('bold');
 }
 /** baris Log Penerimaan dari aplikasi → array sesuai urutan skema LOG */
 function payRow_(p) { return ENGINE.LOG.cols.map(function (c) { var v = p[c[0]]; return v === undefined || v === null ? '' : v; }); }

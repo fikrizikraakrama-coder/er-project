@@ -54,3 +54,11 @@ Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):
 
 ## Arsip PDF
 Jalankan sekali **AR CSU ▸ Siapkan folder arsip PDF** (pemilik) agar `ARSIP_FOLDER_ID` terisi dan semua akun mengarsip ke folder yang sama.
+
+## Revisi invoice / kwitansi / BAP
+Saat invoice yang sudah ada disimpan ulang (dengan alasan), sistem membandingkan data lama-baru dan menentukan jenisnya sendiri:
+- **REVISI NILAI** (tanggal, DPP, PPN, UM, retensi, pelanggan, proyek …): Rev naik, ajukan ulang persetujuan, kena tutup buku, tanda faktur pengganti bila DPP/PPN berubah.
+- **REVISI INVOICE/KWITANSI** (uraian, invoice ke-, penandatangan, isian form lain; nilai tetap): Rev naik, ajukan ulang persetujuan; tidak kena tutup buku.
+- **REVISI DOKUMEN BAP** (tanggal BAP, progress, Nomor/Tanggal SPK di BAP): Rev & persetujuan tetap, cukup tercatat.
+Semua tercatat di sheet Riwayat Revisi (kolom JENIS REVISI & PERUBAHAN: nilai lama → baru). Dokumen dicetak tanpa tanda revisi.
+Nomor/Tanggal SPK di BAP bisa diisi per invoice (kosong = Master Proyek) untuk koreksi typo tanpa mengubah dokumen lain.

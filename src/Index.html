@@ -410,6 +410,8 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <fieldset id="grpBap" hidden>
         <legend>Berita Acara Penagihan (Fajarputera)</legend>
         <div class="row"><div><label for="fBapTgl">Tanggal BAP</label><input id="fBapTgl" type="date"></div><div><label for="fBapProg">Progress penagihan</label><input id="fBapProg"></div></div>
+        <div class="row"><div><label for="fBapSpk">Nomor SPK di BAP</label><input id="fBapSpk"></div><div><label for="fBapSpkTgl">Tanggal SPK di BAP</label><input id="fBapSpkTgl" type="date"></div></div>
+        <div class="note" id="bapSpkNote" style="font-size:11px">Kosong = mengikuti Master Proyek. Isi hanya bila BAP invoice ini perlu nomor/tanggal SPK yang berbeda (mis. koreksi typo).</div>
       </fieldset>
       <fieldset>
         <legend>Ringkasan</legend>
@@ -940,14 +942,14 @@ function fillSigner() {
 }
 function resetForm() {
   S = { pelanggan: '', npp: '', tgl: today(), year: +today().slice(0, 4), digit: '', jenis: 'PROGRES', progKe: '', termin: '', progres: '', pct: '', dpp: '', ppnOn: true,
-    items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: '', invkeAuto: true, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, alasan: '' };
+    items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: '', invkeAuto: true, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
   S.digit = nextDigit(S.year); SAVED = false; toForm(); update();
 }
 function toForm() {
   $('fPel').value = S.pelanggan; if (S.pelanggan) { var keep = S.npp; fillProyek(); if (keep) { S.npp = keep; $('fPro').value = keep; } } else $('fPro').innerHTML = '';
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
   $('fProgres').value = S.progres ? nf(S.progres) : ''; $('fPct').value = S.pct; $('fDpp').value = S.dpp ? nf(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
-  $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fAlasan').value = S.alasan || '';
+  $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fBapSpk').value = S.bapSpk || ''; $('fBapSpkTgl').value = S.bapSpkTgl || ''; $('fAlasan').value = S.alasan || '';
   fillSigner(); renderItems();
 }
 
@@ -986,7 +988,17 @@ function compute() {
   // input disusun ENGINE agar server memeriksa angka yang sama saat menyimpan
   return E.calcInvoice(E.invoiceInput(p, S, ex && E.normInv(ex.nomor) === E.normInv(nomorStr()) ? ex.umk : 0));
 }
+/** isian SPK khusus BAP: placeholder dari Master Proyek; tandai bila berbeda */
+function bapSpkNote() {
+  var p = pro(); if (!p || !$('fBapSpk')) return;
+  $('fBapSpk').placeholder = p.kontrak || '(Master Proyek kosong)'; $('fBapSpkTgl').title = 'Master: ' + (p.tgl_kontrak || '-');
+  var beda = (S.bapSpk && S.bapSpk !== p.kontrak) || (S.bapSpkTgl && S.bapSpkTgl !== p.tgl_kontrak);
+  $('bapSpkNote').className = 'note' + (beda ? ' warn' : ''); $('bapSpkNote').style.fontSize = '11px';
+  $('bapSpkNote').innerHTML = beda ? 'BAP invoice ini memakai SPK <b>' + esc(S.bapSpk || p.kontrak) + '</b>' + (S.bapSpkTgl ? ' tgl ' + esc(tg(S.bapSpkTgl)) : '') + ', berbeda dengan Master Proyek (<b>' + esc(p.kontrak || '-') + '</b>). Bila Master juga typo, perbaiki di Master Proyek agar invoice berikutnya benar.'
+    : 'Kosong = mengikuti Master Proyek. Isi hanya bila BAP invoice ini perlu nomor/tanggal SPK yang berbeda (mis. koreksi typo).';
+}
 function update() {
+  bapSpkNote();
   var p = pro(), pl = pel();
   // tampilkan grup sesuai template
   var tpl = p ? p.template : 'UMUM', isProg = S.jenis === 'PROGRES';
@@ -1280,7 +1292,7 @@ function renderBap(d) {
     '<p style="margin:0 0 2.4mm">Dengan ini menyatakan bahwa :</p>' +
     '<p style="margin:0 0 2mm" class="j">Telah dilakukan penagihan atas pekerjaan yang berdasarkan laporan fisik yang diserahkan PT Wijaya Karya Beton Tbk dan telah disetujui ' + esc(plNama) + ', mengenai :</p>' +
     '<table style="margin:1mm 0 6mm 9mm;width:145mm">' +
-    det('Pekerjaan', '<i>' + esc(d.p.pekerjaan || d.p.singkat) + '.</i>') + det('Lokasi', esc(d.p.lokasi)) + det('Nomor SPK', esc(d.p.kontrak)) + det('Tanggal SPK', tglIndo(d.p.tgl_kontrak, true)) +
+    det('Pekerjaan', '<i>' + esc(d.p.pekerjaan || d.p.singkat) + '.</i>') + det('Lokasi', esc(d.p.lokasi)) + det('Nomor SPK', esc(S.bapSpk || d.p.kontrak)) + det('Tanggal SPK', tglIndo(S.bapSpkTgl || d.p.tgl_kontrak, true)) +
     det('Progress Penagihan', esc(S.bapProg || '')) +
     det('Nilai Tagihan', '<b>Rp. ' + nfDot(c.total) + ',- Terbilang:</b> <i>' + esc(E.terbilang(c.total)) + ' Rupiah,-</i>') +
     det('Nomor Invoice/ Kwitansi', '<b><i>' + esc(d.nomor) + '</i></b>') + det('Tanggal Invoice/ Kwitansi', tglIndo(d.tgl)) + '</table>' +
@@ -1356,7 +1368,10 @@ function save(revisi) {
       $('btnSave').disabled = false; $('saveStatus').textContent = ''; return;
     }
     SAVED = true;
-    $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode === 'revisi' ? 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : '.') : 'Tersimpan di Monitoring Invoice.') + '</span>';
+    $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode !== 'revisi' ? 'Tersimpan di Monitoring Invoice.'
+      : r.jenis === 'BAP' ? 'Revisi BAP tercatat (Riwayat Revisi). Nilai invoice, nomor revisi, dan persetujuan tetap. Bila paket sudah diarsipkan, buka paket invoice ▸ Arsip ke Drive agar PDF lama pindah ke "Revisi lama".'
+      : 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : ' (nilai tetap).') + ' Ajukan ulang paket invoice ke Section Head.') +
+      (r.perubahan && r.perubahan.length ? '<br><span style="color:var(--steel);font-size:11px">Perubahan: ' + esc(r.perubahan.join(' · ')) + '</span>' : '') + '</span>';
     toast('Invoice ' + r.nomor + ' tersimpan.' + (r.reportPending ? ' Laporan perlu diperbarui.' : ' Laporan sudah diperbarui.'));
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); update(); });
   }, function (e) { save._busy = false; $('btnSave').disabled = false;
@@ -1389,7 +1404,7 @@ function openInvoice(no) {
     if (o.form) { S = o.form; S.alasan = ''; }
     else {
       S = { pelanggan: o.pelanggan, npp: o.npp, tgl: o.tgl, year: m ? +m[2] : +today().slice(0, 4), digit: m ? +m[1] : '', jenis: o.jenis || 'LAINNYA', progKe: '', termin: '', progres: o.bruto || '', pct: '',
-        dpp: o.dpp || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, alasan: '' };
+        dpp: o.dpp || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
       var pm = String(o.invke || '').match(/(\d+)/); if (pm) S.progKe = pm[1];
       toast('Invoice hasil migrasi: angka perlu diisi ulang sebelum dicetak / direvisi.');
     }
@@ -1858,6 +1873,8 @@ function bind() {
   $('fTtd').onchange = function () { S.ttd = this.value; touched(); update(); };
   $('fBapTgl').onchange = function () { S.bapTgl = this.value; update(); };
   $('fBapProg').oninput = function () { S.bapProg = this.value; S.bapProgAuto = false; renderDocs(); };
+  $('fBapSpk').oninput = function () { S.bapSpk = this.value.trim(); touched(); bapSpkNote(); renderDocs(); };
+  $('fBapSpkTgl').onchange = function () { S.bapSpkTgl = this.value; touched(); bapSpkNote(); renderDocs(); };
   $('fAlasan').oninput = function () { S.alasan = this.value; };
   $('itemsTbl').oninput = function (e) { var t = e.target; if (!t.dataset.f) return; S.items[+t.dataset.k][t.dataset.f] = t.dataset.f === 'uraian' ? t.value : t.value; touched(); update(); };
   $('itemsTbl').onclick = function (e) { var k = e.target.dataset.del; if (k === undefined) return; S.items.splice(+k, 1); if (!S.items.length) S.items.push({ uraian: '', nilai: '', bulan: '' }); renderItems(); touched(); update(); };
