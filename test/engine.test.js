@@ -162,3 +162,23 @@ test('tanggal tertukar di sheet (05/10 terbaca 10 Mei) ditandai di Cek Data', ()
   assert.strictEqual(fut.length, 1); assert.match(fut[0][3], /TGL TANDA TERIMA di masa depan/);
   assert.strictEqual(ENGINE.compute(fixture({ submit: '2026-09-22' })).ctx.issues.filter(x => x[0] === 'TANGGAL').length, 0);
 });
+
+test('baris Log Penerimaan tanpa isian (sisa NO / ID otomatis) diabaikan', () => {
+  const input = fixture({ submit: '2026-09-01' });
+  input.log = [row(ENGINE.LOG, { no: 295, idp: 'PNR-00295' })];
+  const r = ENGINE.compute(input);
+  assert.strictEqual(r.logOut[0], null, 'kolom otomatis dikosongkan');
+  assert.ok(!r.ctx.issues.some(x => x[0] === 'PEMBAYARAN'), 'tidak muncul di Cek Data');
+});
+
+test('IKK dasar PPh SEBELUM RETENSI: pelepasan retensi tanpa PPh (dan tanpa PPN bawaan)', () => {
+  const c = ENGINE.calcInvoice({ template: 'IKK', jenis: 'RETENSI', dpp: 277209737, tarif: 0.0265, dasar: 'SEBELUM RETENSI', ppnOn: false });
+  assert.strictEqual(c.pph, 0); assert.strictEqual(c.ppn, 0); assert.strictEqual(c.bayar, 277209737);
+  const c2 = ENGINE.calcInvoice({ template: 'IKK', jenis: 'RETENSI', dpp: 277209737, tarif: 0.0265, dasar: 'SETELAH RETENSI', ppnOn: false });
+  assert.ok(c2.pph > 0, 'dasar SETELAH RETENSI: PPh retensi dipotong saat pelepasan');
+  const input = fixture();
+  input.proyek[0] = row(ENGINE.MPRO, { npp: NPP, pelanggan: 'PT CONTOH', singkat: 'CONTOH', nilai: 1e10, nilai_ok: 1e10, tarif: 0.0265, top: 30, aktif: 'YA', template: 'IKK', dasar_pph: 'SEBELUM RETENSI', ret_pct: 0.05, ret_pos: 'AKHIR' }).concat(['']);
+  input.register = [row(ENGINE.REG, { tgl: '2026-09-20', nomor: NOMOR, jenis: 'RETENSI', pelanggan: 'PT CONTOH', npp: NPP, dpp: 277209737, ppn: 0, tarif: 0.0265, dasar: 'SEBELUM RETENSI', template: 'IKK', status_inv: 'AKTIF' })];
+  const i = ENGINE.compute(input).ctx.invs[0];
+  assert.strictEqual(i._a.pph, 0); assert.strictEqual(i._a.kas, 277209737);
+});

@@ -395,10 +395,12 @@ var ENGINE = (function () {
     var dasar = U(inv.dasar) || (proj ? proj.dasar_pph : 'SETELAH RETENSI');
     var base = dasar === 'SEBELUM RETENSI' ? dpp : netto;
     var tpl = U(inv.template) || (proj ? proj.template : 'UMUM');
-    var pph = tpl === 'KIDOH' ? flo(tarif * base) : rnd(tarif * base);
-    var altBase = dasar === 'SEBELUM RETENSI' ? netto : dpp;
-    var pphAlt = tpl === 'KIDOH' ? flo(tarif * altBase) : rnd(tarif * altBase);
     var jenis = U(inv.jenis) || 'PROGRES';
+    // retensi posisi AKHIR (IKK/KIDOH) dengan dasar PPh SEBELUM RETENSI: PPh atas retensi sudah dipotong di invoice progres → pelepasan retensi tanpa PPh
+    var pphRetLunas = jenis === 'RETENSI' && (tpl === 'IKK' || tpl === 'KIDOH') && dasar === 'SEBELUM RETENSI';
+    var pph = pphRetLunas ? 0 : tpl === 'KIDOH' ? flo(tarif * base) : rnd(tarif * base);
+    var altBase = dasar === 'SEBELUM RETENSI' ? netto : dpp;
+    var pphAlt = pphRetLunas ? 0 : tpl === 'KIDOH' ? flo(tarif * altBase) : rnd(tarif * altBase);
     // nilai bruto (pengurang tagbrut): progres sebelum potongan UM & retensi
     var bruto = N(inv.bruto) > 0 ? rnd(N(inv.bruto)) : netto + ret + umk;
     return { dpp: dpp, ppn: ppn, ret: ret, umk: umk, retpos: retpos, total: dpp + ppn, netto: netto, tarif: tarif, dasar: dasar, pph: pph, pphAlt: pphAlt,
@@ -553,7 +555,10 @@ var ENGINE = (function () {
     pays.forEach(function (p) { var m = S(p.idp).match(/^PNR-(\d+)$/); if (m) maxId = Math.max(maxId, +m[1]); });
     // ---- pembayaran
     var refSum = {}, pbRef = {}, rekMulai = D(params.REKENING_WAJIB_MULAI) || '2026-10-09', newFrom = isNum(input.newFrom) ? input.newFrom : Infinity;
+    // baris yang kolom isiannya kosong semua (sisa NO / ID otomatis) dianggap kosong: diabaikan & kolom otomatisnya dikosongkan
+    var logManual = LOG.cols.filter(function (c) { return c[2] === 'manual'; }).map(function (c) { return c[0]; });
     pays.forEach(function (p) {
+      if (!p._empty && logManual.every(function (k) { return p[k] === '' || p[k] === null || p[k] === undefined; })) p._empty = true;
       if (p._empty) { p._skip = true; return; }
       p._new = (p._row - LOG.firstRow) >= newFrom;
       p._pb = U(p.jenis_trx) === 'PINDAH BUKU';
@@ -2531,7 +2536,9 @@ var ENGINE = (function () {
       o.netto = o.dpp; o.pph = ROUND(tarif * o.dpp); o.bayar = o.total; o.showPPh = false; return o;
     }
     if (J !== 'PROGRES') {
-      var b = N(f.dpp), p = f.ppnOn === false ? 0 : b * 11 / 12 * 0.12, pph0 = T === 'KIDOH' ? flo(tarif * b) : ROUND(tarif * b);
+      // pelepasan retensi AKHIR (IKK/KIDOH) dengan dasar PPh SEBELUM RETENSI: PPh sudah dipotong dari nilai penuh di invoice progres
+      var retLunas = J === 'RETENSI' && (T === 'IKK' || T === 'KIDOH') && U(f.dasar) === 'SEBELUM RETENSI';
+      var b = N(f.dpp), p = f.ppnOn === false ? 0 : b * 11 / 12 * 0.12, pph0 = retLunas ? 0 : T === 'KIDOH' ? flo(tarif * b) : ROUND(tarif * b);
       o.dpp = ROUND(b); o.ppn = f.ppnOn === false ? 0 : ROUND(p); o.total = ROUND(b + o.ppn); o.bruto = o.dpp; o.umk = 0; o.retensi = 0; o.retPos = 'TIDAK ADA';
       o.netto = o.dpp; o.pph = pph0;
       o.showPPh = U(f.tampilPPh) !== 'TIDAK' && T !== 'IKK';

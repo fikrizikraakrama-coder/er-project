@@ -656,7 +656,10 @@ function arAuditEdit_(e, sh, name) {
 function arAuditCounts_(input) {
   var ixI = ENGINE.colIndex(ENGINE.LOG, 'idp'), ixN = ENGINE.colIndex(ENGINE.REG, 'nomor'), pr = arProps_(), ss = arSpreadsheet_();
   var now = { LOG: [], REG: [] }, seen = {};
-  (input.log || []).forEach(function(r) { var k = String(r[ixI] || '').trim(); if (k && !seen['L' + k]) { seen['L' + k] = 1; now.LOG.push(k); } });
+  var man = ENGINE.LOG.cols.map(function(c, i) { return c[2] === 'manual' ? i : -1; }).filter(function(i) { return i >= 0; });
+  (input.log || []).forEach(function(r) {
+    if (!man.some(function(i) { return r[i] !== '' && r[i] !== null && r[i] !== undefined; })) return; // baris kosong (hanya sisa ID otomatis) bukan data
+    var k = String(r[ixI] || '').trim(); if (k && !seen['L' + k]) { seen['L' + k] = 1; now.LOG.push(k); } });
   (input.register || []).forEach(function(r) { var k = ENGINE.normInv(String(r[ixN] || '').trim()); if (k && !seen['R' + k]) { seen['R' + k] = 1; now.REG.push(k); } });
   var dig = arDigest_(JSON.stringify(now));
   if (pr.getProperty('AUDIT_IDS_DIGEST') === dig) return;

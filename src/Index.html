@@ -1052,6 +1052,7 @@ function renderSummary() {
   html += '<tr class="big"><td>Dicetak sebagai jumlah dibayar</td><td>Rp ' + nf(c.bayar) + '</td></tr>';
   $('sumTbl').innerHTML = html;
   var p = pro(), n = [];
+  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && String(p.dasar_pph || '').toUpperCase() === 'SEBELUM RETENSI') n.push('<div class="note ok">PPh retensi sudah dipotong pelanggan di invoice progres (dasar PPh <b>SEBELUM RETENSI</b>, dari nilai penuh di faktur pajak) — pelepasan retensi ini <b>tanpa PPh</b>.</div>');
   if (retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false) n.push('<div class="note err"><b>Risiko PPN dua kali.</b> Proyek ini memakai retensi posisi AKHIR (template ' + esc(p.template) + '): PPN atas retensi sudah ditagih di invoice progres. Matikan "Kenakan PPN" kecuali ada dasar tertulis dari Pajak / Akuntansi.</div>');
   if (c.umCapped) n.push('<div class="note warn"><b>Potongan uang muka dibatasi.</b> Hitungan normal Rp ' + nfDot(c.umAsli) + ', tetapi sisa UM proyek tinggal Rp ' + nfDot(c.umSisa) + ' — yang dipotong hanya sisa tersebut (lihat sheet Monitoring UM &amp; Retensi).</div>');
   else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap !== false && c.umSisa !== '' && c.umSisa <= 0) n.push('<div class="note ok">Uang muka proyek ini sudah habis dikembalikan — tidak ada potongan UM.</div>');
