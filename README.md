@@ -33,10 +33,12 @@ dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di she
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
 
 ## Proyek ARSIP (selesai sebelum sistem dipakai)
-Master Proyek kolom **AKTIF = ARSIP** untuk proyek yang sudah selesai & lunas sebelum sistem dibangun. Semua invoice, penerimaan dan
-tagbrut proyek itu diabaikan seluruh sistem (laporan, Cek Data, aplikasi, Kartu Piutang, memorial lama dibiarkan) dan barisnya
-**disembunyikan** di Monitoring Invoice, Log Penerimaan & Input Tagbrut saat **Perbarui semua laporan** — tidak dihapus.
-Kembalikan ke YA / SELESAI untuk menampilkannya lagi. Jangan dipakai untuk proyek yang masih punya sisa piutang.
+1. Master Proyek kolom **AKTIF = ARSIP** untuk proyek yang sudah selesai & lunas sebelum sistem dibangun → invoice, penerimaan dan
+   tagbrut proyek itu langsung diabaikan seluruh sistem (laporan, Cek Data, aplikasi, Kartu Piutang; memorial lama dibiarkan).
+2. Menu **AR CSU ▸ Pindahkan proyek ARSIP ke sheet arsip…** memindahkan barisnya dari Monitoring Invoice, Log Penerimaan & Input Tagbrut
+   (kolom tagbrut saja) ke sheet **Arsip Data Lama** (hanya baca) lalu menghapusnya dari sheet kerja — tidak ada baris tersembunyi.
+   Ringkasan ditampilkan dulu; bila data menunjukkan masih ada sisa tagihan, harus diketik PINDAHKAN. Tercatat di Jejak Edit Langsung + email Section Head.
+3. **Kembalikan proyek dari arsip…** (per NPP) menaruh barisnya kembali di bawah sheet asal; lalu ubah AKTIF ke YA / SELESAI.
 
 ## Surat Penagihan (permohonan percepatan pembayaran)
 Menu aplikasi **Surat Penagihan** (khusus PEMBUAT):

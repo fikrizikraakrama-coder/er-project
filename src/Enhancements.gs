@@ -660,7 +660,7 @@ function arAuditEdit_(e, sh, name) {
 }
 /** baris yang hilang (dihapus / ID diubah) dibandingkan pembaruan sebelumnya — dipanggil rebuildAll_.
  *  Daftar ID disimpan di sheet tersembunyi (Script Properties dibatasi 9 KB per nilai); ditulis hanya bila berubah. */
-function arAuditCounts_(input) {
+function arAuditCounts_(input, opt) {
   var ixI = ENGINE.colIndex(ENGINE.LOG, 'idp'), ixN = ENGINE.colIndex(ENGINE.REG, 'nomor'), pr = arProps_(), ss = arSpreadsheet_();
   var now = { LOG: [], REG: [] }, seen = {};
   var man = ENGINE.LOG.cols.map(function(c, i) { return c[2] === 'manual' ? i : -1; }).filter(function(i) { return i >= 0; });
@@ -675,7 +675,7 @@ function arAuditCounts_(input) {
   var prev = { LOG: [], REG: [] }, last = sh.getLastRow(), had = !!pr.getProperty('AUDIT_IDS_DIGEST');
   if (last > 1) sh.getRange(2, 1, last - 1, 2).getValues().forEach(function(r) { if (r[0]) prev.LOG.push(String(r[0])); if (r[1]) prev.REG.push(String(r[1])); });
   var out = [], ts = arNow_();
-  if (had) [['LOG', 'Log Penerimaan'], ['REG', 'Monitoring Invoice']].forEach(function(x) {
+  if (had && !(opt && opt.silent)) [['LOG', 'Log Penerimaan'], ['REG', 'Monitoring Invoice']].forEach(function(x) {
     var cur = {}; now[x[0]].forEach(function(k) { cur[k] = 1; });
     prev[x[0]].forEach(function(k) { if (!cur[k]) out.push([ts, '(terdeteksi saat pembaruan)', x[1], '', k, 'BARIS', k, '(hilang / dihapus / ID diubah)', 'BARIS HILANG', '']); });
   });
@@ -685,4 +685,139 @@ function arAuditCounts_(input) {
   sh.getRange(2, 1, n, 2).setNumberFormat('@').setValues(grid);
   pr.setProperty('AUDIT_IDS_DIGEST', dig);
   if (out.length) arAuditLog_(out, 'Baris hilang dari ' + out.map(function(r){return r[2];}).filter(function(v,i,a){return a.indexOf(v)===i;}).join(' & ') + ' (' + out.length + ')');
+}
+
+
+// =====================================================================  ARSIP PROYEK LAMA (AKTIF = ARSIP)
+/* Baris invoice, penerimaan & tagbrut proyek ARSIP (selesai & lunas sebelum sistem dipakai) dipindah ke sheet "Arsip Data Lama"
+ * (bukan disembunyikan: baris tersembunyi rawan tertimpa saat tempel / tarik isi). Kolom: ASAL SHEET · NPP · KUNCI · DIPINDAH · isi baris asal. */
+var AR_ARSIP_SHEET_ = 'Arsip Data Lama', AR_ARSIP_META_ = 4, AR_ARSIP_FIRST_ = 5;
+function arArsipSheet_(ss) {
+  var sh = ss.getSheetByName(AR_ARSIP_SHEET_);
+  if (sh) return sh;
+  sh = ss.insertSheet(AR_ARSIP_SHEET_);
+  sh.getRange('A1').setValue('ARSIP DATA LAMA — proyek AKTIF = ARSIP (selesai & lunas sebelum sistem dipakai)').setFontSize(13).setFontWeight('bold').setFontColor(C.navy);
+  sh.getRange('A2').setValue('Hanya baca. Diabaikan seluruh perhitungan. Kembalikan lewat menu AR CSU ▸ Kembalikan proyek dari arsip…');
+  sh.getRange(4, 1, 1, 5).setValues([['ASAL SHEET', 'NPP', 'KUNCI', 'DIPINDAH (WAKTU · OLEH)', 'ISI BARIS ASAL (kolom A dst.) →']]).setFontWeight('bold').setBackground(C.navy).setFontColor('#FFFFFF');
+  sh.setFrozenRows(4); sh.setTabColor('#7F7F7F');
+  try { sh.protect().setDescription('Arsip data lama — hanya baca').setWarningOnly(true); } catch (e) {}
+  return sh;
+}
+/** kunci baris arsip (dipakai ENGINE agar memorial lama tidak dibatalkan) */
+function readArsipKeys_() {
+  var sh = arSpreadsheet_().getSheetByName(AR_ARSIP_SHEET_);
+  if (!sh || sh.getLastRow() < AR_ARSIP_FIRST_) return [];
+  return sh.getRange(AR_ARSIP_FIRST_, 3, sh.getLastRow() - AR_ARSIP_FIRST_ + 1, 1).getValues().map(function(r) { return String(r[0] || ''); }).filter(function(k) { return /^(INV|TRM)\|/.test(k); });
+}
+/** sisa tagihan proyek ARSIP bila proyek dihitung seperti biasa (pengaman sebelum dipindah) */
+function arArsipSisa_(input, npps) {
+  var x = JSON.parse(JSON.stringify(input)), ia = ENGINE.colIndex(ENGINE.MPRO, 'aktif'), ip = ENGINE.colIndex(ENGINE.MPRO, 'npp'), out = {};
+  x.proyek.forEach(function(r) { if (npps.indexOf(String(r[ip]).trim()) >= 0) r[ia] = 'YA'; });
+  x.light = true;
+  ENGINE.compute(x).ctx.invs.forEach(function(i) {
+    if (npps.indexOf(i.npp) < 0) return;
+    var o = out[i.npp] || (out[i.npp] = { inv: 0, sisa: 0, terbuka: [] });
+    o.inv++;
+    if (!i._batal && !i._res.closed && i._res.sisa > 1) { o.sisa += i._res.sisa; o.terbuka.push(i.nomor.replace(/^KU\.02\.02\/WB-4C\./, '')); }
+  });
+  return out;
+}
+function arArsipPindahMenu() {
+  var ui = SpreadsheetApp.getUi(), acc = arRequireAccess_();
+  if (acc.delegate) throw new Error('Menu ini hanya untuk Pembuat / Section Head.');
+  var ss = arSpreadsheet_(), input = readAll_(), res = ENGINE.compute(JSON.parse(JSON.stringify(Object.assign({}, input, { light: true })))), R = res.arsipRows, npps = R.npp;
+  if (!npps.length) { ui.alert('Arsip data lama', 'Belum ada proyek dengan AKTIF = ARSIP di Master Proyek.', ui.ButtonSet.OK); return; }
+  if (!R.reg.length && !R.log.length && !R.tag.length) { ui.alert('Arsip data lama', 'Semua baris proyek ARSIP (' + npps.join(', ') + ') sudah dipindah.', ui.ButtonSet.OK); return; }
+  var sisa = arArsipSisa_(input, npps), warn = [];
+  var lines = npps.map(function(n) { var p = res.ctx.M.arsip[n], o = sisa[n] || { inv: 0, sisa: 0, terbuka: [] };
+    if (o.sisa > 1) warn.push('• ' + n + ': sisa Rp ' + ENGINE.fmtRp(o.sisa) + ' (' + o.terbuka.slice(0, 8).join(', ') + (o.terbuka.length > 8 ? ', …' : '') + ')');
+    return '• ' + n + ' ' + p.pelanggan + ' — ' + o.inv + ' invoice'; });
+  var msg = 'Baris berikut dipindah ke sheet "' + AR_ARSIP_SHEET_ + '" lalu dihapus dari sheet kerja:\n\n' + lines.join('\n') +
+    '\n\nMonitoring Invoice: ' + R.reg.length + ' baris · Log Penerimaan: ' + R.log.length + ' baris · Input Tagbrut: ' + R.tag.length + ' baris.' +
+    '\nData tidak hilang (bisa dikembalikan), tercatat di ' + AR_AUDIT_SHEET_ + ' dan dikirim ke email Section Head. Lanjutkan?';
+  if (ui.alert('Pindahkan proyek ARSIP', msg, ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  if (warn.length) {
+    var r2 = ui.prompt('⚠ Masih ada sisa menurut data', 'Bila proyek dihitung biasa, data menunjukkan sisa tagihan:\n\n' + warn.join('\n') +
+      '\n\nBisa karena data lama tidak lengkap. Bila Anda yakin proyek sudah lunas, ketik PINDAHKAN untuk tetap memindahkan.', ui.ButtonSet.OK_CANCEL);
+    if (r2.getSelectedButton() !== ui.Button.OK || String(r2.getResponseText()).trim().toUpperCase() !== 'PINDAHKAN') { ui.alert('Dibatalkan. Tidak ada data yang dipindah.'); return; }
+  }
+  var lock = arLock_(), moved = []; lock.waitLock(28000);
+  try {
+    var ar = arArsipSheet_(ss), stamp = arNow_() + ' · ' + acc.email, out = [], aud = [];
+    var regSh = ss.getSheetByName('Monitoring Invoice'), regMap = colMap_(regSh, ENGINE.REG, ENGINE.REG_ALIAS);
+    var nppOf = {}; input.register.forEach(function(r) { var no = ENGINE.normInv(String(r[ENGINE.colIndex(ENGINE.REG, 'nomor')] || '')); if (no) nppOf[no] = String(r[ENGINE.colIndex(ENGINE.REG, 'npp')] || '').trim(); });
+    // Monitoring Invoice & Log Penerimaan: seluruh baris dipindah lalu dihapus
+    [['Monitoring Invoice', ENGINE.REG, R.reg], ['Log Penerimaan', ENGINE.LOG, R.log]].forEach(function(x) {
+      var sh = ss.getSheetByName(x[0]); if (!sh || !x[2].length) return;
+      var lc = sh.getLastColumn(), map = colMap_(sh, x[1], x[1] === ENGINE.REG ? ENGINE.REG_ALIAS : null), data = sh.getRange(1, 1, sh.getLastRow(), lc).getValues();
+      out.push(['#JUDUL ' + x[0], '', '', stamp].concat(data[x[1].headerRow - 1]));
+      x[2].forEach(function(r) {
+        var v = data[r - 1], key, npp;
+        if (x[1] === ENGINE.REG) { var no = String(v[map.nomor - 1] || '').trim(); key = 'INV|' + ENGINE.normInv(no); npp = String(v[map.npp - 1] || '').trim(); aud.push([arNow_(), acc.email, x[0], 'baris ' + r, no, 'BARIS', '', 'dipindah ke ' + AR_ARSIP_SHEET_, 'DIPINDAH KE ARSIP (proyek ARSIP)', '']); }
+        else { var idp = String(v[map.idp - 1] || '').trim(), inv = String(v[map.inv - 1] || '').trim(); key = 'TRM|' + idp; npp = nppOf[ENGINE.normInv(inv)] || ''; aud.push([arNow_(), acc.email, x[0], 'baris ' + r, idp + ' (' + inv + ')', 'BARIS', '', 'dipindah ke ' + AR_ARSIP_SHEET_, 'DIPINDAH KE ARSIP (proyek ARSIP)', '']); }
+        out.push([x[0], npp, key, stamp].concat(v));
+      });
+      moved.push([sh, x[2]]);
+    });
+    // Input Tagbrut: hanya kolom tagbrut yang dipindah & dikosongkan (sheet yang sama juga memuat catatan)
+    var tsh = ss.getSheetByName(ENGINE.TAG.sheet);
+    if (tsh && R.tag.length) {
+      var tm = colMap_(tsh, ENGINE.TAG), tcols = ENGINE.TAG.cols.map(function(c) { return tm[c[0]]; }).filter(Boolean);
+      out.push(['#JUDUL ' + ENGINE.TAG.sheet, '', '', stamp].concat(tcols.map(function(j) { return tsh.getRange(ENGINE.TAG.headerRow, j).getValue(); })));
+      R.tag.forEach(function(r) {
+        var v = tcols.map(function(j) { return tsh.getRange(r, j).getValue(); });
+        out.push([ENGINE.TAG.sheet, String(tsh.getRange(r, tm.npp).getValue()).trim(), 'TAG|' + tcols.join(','), stamp].concat(v));
+        tcols.forEach(function(j) { tsh.getRange(r, j).clearContent(); });
+      });
+    }
+    var w = out.reduce(function(m, r) { return Math.max(m, r.length); }, 0), row0 = Math.max(ar.getLastRow() + 1, AR_ARSIP_FIRST_);
+    if (ar.getMaxColumns() < w) ar.insertColumnsAfter(ar.getMaxColumns(), w - ar.getMaxColumns());
+    ar.getRange(row0, 1, out.length, w).setValues(out.map(function(r) { while (r.length < w) r.push(''); return r; }));
+    out.forEach(function(r, i) { if (/^#JUDUL/.test(r[0])) ar.getRange(row0 + i, 1, 1, w).setFontWeight('bold').setBackground(C.tot); });
+    // hapus dari bawah ke atas, per rentang berurutan
+    moved.forEach(function(m) {
+      var rows = m[1].slice().sort(function(a, b) { return b - a; });
+      for (var i = 0; i < rows.length;) { var j = i; while (j + 1 < rows.length && rows[j + 1] === rows[j] - 1) j++; m[0].deleteRows(rows[j], rows[i] - rows[j] + 1); i = j + 1; }
+    });
+    SpreadsheetApp.flush();
+    arAuditCounts_(readAll_(), { silent: true });
+    arAuditLog_(aud, 'Proyek ARSIP dipindah ke ' + AR_ARSIP_SHEET_ + ' (' + npps.join(', ') + ')');
+  } finally { lock.releaseLock(); }
+  rebuildAll_();
+  ui.alert('Selesai', 'Baris proyek ARSIP sudah dipindah ke sheet "' + AR_ARSIP_SHEET_ + '" dan laporan sudah diperbarui.', ui.ButtonSet.OK);
+}
+function arArsipKembalikanMenu() {
+  var ui = SpreadsheetApp.getUi(), acc = arRequireAccess_();
+  if (acc.delegate) throw new Error('Menu ini hanya untuk Pembuat / Section Head.');
+  var ss = arSpreadsheet_(), ar = ss.getSheetByName(AR_ARSIP_SHEET_);
+  if (!ar || ar.getLastRow() < AR_ARSIP_FIRST_) { ui.alert('Sheet "' + AR_ARSIP_SHEET_ + '" masih kosong.'); return; }
+  var r = ui.prompt('Kembalikan proyek dari arsip', 'Ketik NPP proyek yang dikembalikan (mis. 244C 0660 JT):', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var npp = String(r.getResponseText()).trim().toUpperCase().replace(/\s+/g, ' ');
+  var data = ar.getRange(AR_ARSIP_FIRST_, 1, ar.getLastRow() - AR_ARSIP_FIRST_ + 1, ar.getLastColumn()).getValues(), pick = [];
+  data.forEach(function(v, i) { if (!/^#JUDUL/.test(String(v[0])) && String(v[1]).trim().toUpperCase() === npp) pick.push({ i: i, v: v }); });
+  if (!pick.length) { ui.alert('Tidak ada baris arsip untuk NPP ' + npp + '.'); return; }
+  if (ui.alert('Kembalikan ' + pick.length + ' baris', pick.length + ' baris NPP ' + npp + ' dikembalikan ke sheet asalnya (ditambahkan di bawah). Setelah itu ubah AKTIF proyek di Master Proyek menjadi YA atau SELESAI. Lanjutkan?', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var bySheet = {}; pick.forEach(function(p) { (bySheet[p.v[0]] = bySheet[p.v[0]] || []).push(p); });
+    Object.keys(bySheet).forEach(function(name) {
+      var sh = ss.getSheetByName(name); if (!sh) return;
+      var L = bySheet[name];
+      if (name === ENGINE.TAG.sheet) {
+        L.forEach(function(p) {
+          var cols = String(p.v[2]).replace(/^TAG\|/, '').split(',').map(Number), tm = colMap_(sh, ENGINE.TAG), npc = tm.npp, row = ENGINE.TAG.firstRow;
+          var vals = sh.getRange(ENGINE.TAG.firstRow, npc, Math.max(sh.getLastRow() - ENGINE.TAG.firstRow + 1, 1), 1).getValues();
+          while (row - ENGINE.TAG.firstRow < vals.length && String(vals[row - ENGINE.TAG.firstRow][0]).trim()) row++;
+          cols.forEach(function(j, k) { sh.getRange(row, j).setValue(p.v[AR_ARSIP_META_ + k]); });
+        });
+      } else {
+        var lc = sh.getLastColumn(), rows = L.map(function(p) { return p.v.slice(AR_ARSIP_META_, AR_ARSIP_META_ + lc); });
+        sh.getRange(sh.getLastRow() + 1, 1, rows.length, lc).setValues(rows);
+      }
+    });
+    pick.slice().reverse().forEach(function(p) { ar.deleteRow(AR_ARSIP_FIRST_ + p.i); });
+    arAuditLog_([[arNow_(), acc.email, AR_ARSIP_SHEET_, '', npp, 'BARIS', '', pick.length + ' baris dikembalikan', 'DIKEMBALIKAN DARI ARSIP', '']], 'Proyek ' + npp + ' dikembalikan dari ' + AR_ARSIP_SHEET_);
+  } finally { lock.releaseLock(); }
+  ui.alert('Selesai', 'Baris dikembalikan. Ubah AKTIF proyek ' + npp + ' di Master Proyek menjadi YA / SELESAI, lalu jalankan Perbarui semua laporan.', ui.ButtonSet.OK);
 }

@@ -37,7 +37,9 @@ function onOpen() {
     .addItem('Bangun ulang blok memorial (baris terpilih)', 'memoRebuildSelected')
     .addItem('Ekspor Buku Penjualan (bulan di Rekap Invoice Keluar)', 'exportBukuPenjualan')
     .addSeparator()
-    .addItem('Ganti NPP proyek…', 'renameNpp');
+    .addItem('Ganti NPP proyek…', 'renameNpp')
+    .addItem('Pindahkan proyek ARSIP ke sheet arsip…', 'arArsipPindahMenu')
+    .addItem('Kembalikan proyek dari arsip…', 'arArsipKembalikanMenu');
   if (!v26) m = m.addItem('Terapkan pembaruan v2.6 (sekali jalan)', 'applyV26');
   m.addSeparator()
     .addItem('Aktifkan otomatisasi (sekali saja)', 'setupTriggers')
@@ -203,7 +205,8 @@ function readAll_() {
     surat: readSchema_(ss.getSheetByName(ENGINE.SURAT.sheet), ENGINE.SURAT),
     lk: readLK_(), selectors: sel,
     memo: ss.getSheetByName(ENGINE.MEMO.sheet) ? readSchema_(ss.getSheetByName(ENGINE.MEMO.sheet), ENGINE.MEMO) : undefined,
-    peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF)
+    peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF),
+    arsipKeys: readArsipKeys_()
   };
 }
 function toCell_(v, type) {
@@ -229,7 +232,7 @@ function rebuildAll_(opt) {
     if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
     writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
     writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
-    try { arHideArsip_(ss, res.arsipRows); } catch (err) { }
+    try { arHideArsip_(ss, {}); } catch (err) { } // versi sebelumnya menyembunyikan baris ARSIP: tampilkan kembali (kini dipindah lewat menu)
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) writeReport_(sh, res.reports[n], n); });
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
     ensureSelectors_(ss, res);
@@ -294,8 +297,8 @@ function writeAutoColumns_(sh, schema, aliases, out) {
   });
 }
 
-/** proyek AKTIF = ARSIP: sembunyikan barisnya di Monitoring Invoice, Log Penerimaan & Input Tagbrut (data tidak dihapus).
- *  Baris yang disembunyikan pada pembaruan sebelumnya tetapi tidak lagi ARSIP ditampilkan kembali. */
+/** menyembunyikan baris (rows per sheet); baris yang disembunyikan pada pembaruan sebelumnya tetapi tidak ada di rows ditampilkan kembali.
+ *  Dipanggil dengan {} agar baris ARSIP yang dulu disembunyikan muncul lagi (baris ARSIP kini dipindah ke sheet Arsip Data Lama). */
 function arHideArsip_(ss, rows) {
   if (!rows) return;
   var pr = arProps_(), prev = {};

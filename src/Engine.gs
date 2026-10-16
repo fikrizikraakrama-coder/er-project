@@ -373,7 +373,7 @@ var ENGINE = (function () {
       pro[n].produk.forEach(function (x) { if (pro[x.npp] && x.npp !== n) { pro[x.npp]._produkOf = n; } });
       pro[n].adendumNpp.forEach(function (x) { if (pro[x.npp] && x.npp !== n) { pro[x.npp]._adendumOf = n; } });
     });
-    // AKTIF = ARSIP: proyek selesai & lunas sebelum sistem dipakai — invoice, penerimaan & tagbrut-nya diabaikan seluruh sistem (baris disembunyikan, tidak dihapus)
+    // AKTIF = ARSIP: proyek selesai & lunas sebelum sistem dipakai — invoice, penerimaan & tagbrut-nya diabaikan seluruh sistem (dipindah ke sheet Arsip Data Lama lewat menu)
     var arsip = {};
     Object.keys(pro).forEach(function (n) { if (pro[n].aktif === 'ARSIP') { arsip[n] = pro[n]; delete pro[n]; } });
     if (Object.keys(arsip).length) issues = issues.filter(function (x) { var r = S(x[2]); return !arsip[r] && !Object.keys(arsip).some(function (n) { return r.indexOf('(' + n + ')') >= 0; }); });
@@ -704,6 +704,7 @@ var ENGINE = (function () {
         r._inv = S(r.invoices).split(/\s*;\s*/).filter(String).map(normInv); return r; }),
       _input: input, issues: issues, sel: input.selectors || {}, appr: appr, latest: latest, payGroups: payGroups, valMap: valMap, valDec: VI.byRef, valFirst: VI.first, tag: tagRows, tagSkip: tagSkip, notes: notes, lk: lk,
       arsipRefs: {} };
+    (input.arsipKeys || []).forEach(function (k) { if (k) ctx.arsipRefs[S(k)] = 1; }); // baris yang sudah dipindah ke sheet Arsip Data Lama
     invs.forEach(function (i) { if (i._arsip) ctx.arsipRefs['INV|' + normInv(i.nomor)] = 1; });
     pays.forEach(function (p) { if (p._arsip && p.idp) ctx.arsipRefs['TRM|' + p.idp] = 1; });
     var arsipRows = { reg: invs.filter(function (i) { return i._arsip; }).map(function (i) { return i._row; }), log: pays.filter(function (p) { return p._arsip; }).map(function (p) { return p._row; }),
