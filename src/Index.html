@@ -344,6 +344,27 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
 
 
 .ar-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0}.ar-chart{background:#fff;border:1px solid #dae4ee;border-radius:14px;padding:20px;min-width:0}.ar-chart.wide{grid-column:1/-1}.ar-chart h3{margin:0 0 5px;font-size:18px}.ar-chart svg{width:100%;height:auto;display:block;margin-top:14px}.ar-chart summary{cursor:pointer;color:#137c8b;font-size:12px;margin-top:12px}.ar-chart table{width:100%;font-size:12px;border-collapse:collapse}.ar-chart td,.ar-chart th{padding:7px;border-bottom:1px solid #edf1f5;text-align:right}.ar-chart td:first-child,.ar-chart th:first-child{text-align:left}.ar-chart .sub{font-size:12px;line-height:1.5}.ar-legend{display:flex;gap:20px;font-size:12px;margin-top:10px}.ar-legend i{display:inline-block;width:11px;height:11px;margin-right:5px;border-radius:3px}@media(max-width:1050px){.ar-charts{grid-template-columns:1fr}.ar-chart.wide{grid-column:auto}}
+
+/* v2.8.3: menu vertikal berkelompok */
+.nav{border-bottom:1px solid var(--line);padding:6px 10px 8px}
+.navCur{display:flex;align-items:center;gap:8px;width:100%;border:1px solid #C9D3DF;background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer;text-align:left;font:inherit}
+.navCur .nc{flex:1;display:flex;flex-direction:column}.navCur small{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#7A889C}.navCur b{font-size:13.5px;color:#0B4F56}
+.navCur .car{color:#5B6B80;font-size:12px}
+#navList.modes{display:block;padding:2px 0 0;border:0}
+#navList .ngl{font-size:10px;font-weight:700;color:#7A889C;letter-spacing:.6px;text-transform:uppercase;margin:9px 6px 3px}
+#navList button{display:flex;align-items:center;gap:9px;width:100%;border:1px solid transparent;border-bottom:1px solid transparent;background:none;border-radius:7px;padding:6px 8px;text-align:left;cursor:pointer;font:inherit;color:#26384D}
+#navList button i{font-style:normal;width:24px;height:24px;flex:none;border-radius:6px;background:#EEF3FA;display:grid;place-items:center;font-size:13px}
+#navList button .nt{flex:1;display:flex;flex-direction:column;min-width:0}#navList button b{font-size:12.8px;font-weight:600}#navList button small{font-size:10.8px;color:#7A889C;font-weight:400;line-height:1.3}
+#navList button[aria-selected=true]{background:#E3F1F2;border-color:#B8DCDC}#navList button[aria-selected=true] i{background:#0F6E78;color:#fff}#navList button[aria-selected=true] b{color:#0B4F56}
+#navList button:hover{background:#F2F6F9}
+#navList .badge,.navCur .badge{position:static;margin-left:auto;background:#B42318;color:#fff;border-radius:10px;font-size:10.5px;padding:1px 7px;font-weight:700}
+#navList #dokBadge{background:#9C6500}
+#navList .ro{margin-left:auto;font-size:9.5px;color:#5B6B80;border:1px solid #C9D3DF;border-radius:8px;padding:0 6px;font-weight:600}
+.dcard{display:flex;align-items:center;gap:8px;border:1px solid #DDE4EC;border-radius:8px;padding:8px 9px;margin-bottom:7px}
+.dcard .dt{flex:1;display:flex;flex-direction:column;min-width:0}.dcard .dt b{font-size:12.8px}.dcard .dt small{font-size:10.8px;color:#7A889C}
+.dst{font-size:10.5px;font-weight:700;border-radius:10px;padding:2px 7px;white-space:nowrap}.dst.ok{background:#E5F4EA;color:#14532D}.dst.wt{background:#FFF4D6;color:#5C3D00}.dst.no{background:#F1F3F6;color:#5B6B80}.dst.bad{background:#FDECEA;color:#B42318}
+.btn.sm{padding:5px 10px;font-size:12px;width:auto;flex:none}
+#navList[hidden],.navCur[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -351,19 +372,15 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
   <aside>
     <div class="brand">
       <h1>AR CSU — Pengelolaan Piutang</h1>
-      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.2 · 20-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
+      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.3 · 20-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
     </div>
     <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div><div id="arRecovery" class="note warn" hidden></div><div id="arNotice" class="note warn" hidden></div><div id="arVersion" class="note err" hidden></div>
-    <div class="modes" role="tablist">
-      <button role="tab" aria-selected="false" data-mode="dashboard">Dashboard Piutang</button>
-      <button role="tab" aria-selected="true" data-mode="buat">Penagihan</button>
-      <button role="tab" aria-selected="false" data-mode="buka">Register Invoice</button>
-      <button role="tab" aria-selected="false" data-mode="bayar">Penerimaan &amp; Alokasi</button>
-      <button role="tab" aria-selected="false" data-mode="surat">Surat Penagihan<span class="badge" id="srBadge" hidden></span></button>
-      <button role="tab" aria-selected="false" data-mode="setuju">Otorisasi Dokumen AR</button>
-    </div>
+    <nav class="nav" id="nav">
+      <button type="button" class="navCur" id="navCur" aria-expanded="true"><span class="nc"><small id="navGrp">Menu</small><b id="navNm">—</b></span><span class="badge" id="navBadge" hidden></span><span class="car" id="navCar">▴</span></button>
+      <div class="modes" role="tablist" id="navList"></div>
+    </nav>
 
-    <div class="scroll" id="mode-dashboard" hidden><fieldset><legend>Ruang kerja AR</legend><p>Monitoring piutang, penerimaan, dan dokumen yang membutuhkan tindak lanjut.</p><button class="btn" id="btnRefreshReports" type="button">Perbarui laporan</button><p><a id="arSheetLink" target="_blank" rel="noopener">Buka laporan spreadsheet</a></p><div class="note">Rekonsiliasi Saldo dan Analisis Bulanan AR tersedia di spreadsheet utama.</div></fieldset></div>
+    <div class="scroll" id="mode-dashboard" hidden><fieldset><legend>Ruang kerja AR</legend><p>Monitoring piutang, penerimaan, dan dokumen yang membutuhkan tindak lanjut.</p><button class="btn" id="btnRefreshReports" type="button">Perbarui laporan</button><p><a id="arSheetLink" target="_blank" rel="noopener">Buka laporan spreadsheet</a></p><div class="note">Analisis Bulanan AR ada di menu Tutup Buku Bulanan; Rekonsiliasi Saldo di spreadsheet utama.</div></fieldset></div>
     <!-- ===================== MODE BUAT -->
     <div class="scroll" id="mode-buat">
       <fieldset>
@@ -430,6 +447,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
     <div class="scroll" id="mode-buka" hidden>
       <label for="qInv">Cari nomor, pelanggan, atau proyek</label><input id="qInv" placeholder="mis. 0153/2026 atau INDAH KIAT">
       <table class="list" style="margin-top:10px"><thead><tr><th>Nomor</th><th>Pelanggan / proyek</th><th>Status</th></tr></thead><tbody id="invList"></tbody></table>
+      <fieldset style="margin-top:14px"><legend>Penutupan manual (CLOSE MANUAL) menunggu diajukan / diputuskan</legend><div id="tutupList"></div></fieldset>
     </div>
 
     <!-- ===================== MODE BAYAR -->
@@ -464,6 +482,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
           <datalist id="dlAll"></datalist>
         </fieldset>
       </div>
+      <fieldset style="margin-top:14px"><legend>Penerimaan termin terakhir</legend><div id="payList"></div></fieldset>
     </div>
 
     <!-- ===================== MODE SURAT PENAGIHAN -->
@@ -486,19 +505,20 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
 
     <!-- ===================== MODE PERSETUJUAN & PAKET -->
     <div class="scroll" id="mode-setuju" hidden>
-      <div class="who" id="whoBox"></div><div id="perBox"></div>
-      <fieldset><legend>Menunggu persetujuan Section Head</legend><div class="apTabs" id="apTabs"></div><div id="pendList"></div></fieldset>
-      <fieldset><legend>Dokumen bulanan</legend>
-        <label for="mSel">Bulan</label><select id="mSel"></select>
-        <div class="row" style="margin-top:8px"><button class="btn" type="button" id="btnVal">Lembar Validasi Rencana Cair</button><button class="btn" type="button" id="btnRek">Rekap Bulanan Akuntansi</button></div>
-      </fieldset>
+      <div class="who" id="whoBox"></div>
+      <fieldset><legend id="pendLegend">Menunggu persetujuan Section Head</legend><div class="apTabs" id="apTabs"></div><div id="pendList"></div></fieldset>
+      <fieldset><legend>Riwayat keputusan</legend><div id="histList"></div></fieldset>
+    </div>
+
+    <!-- ===================== MODE TUTUP BUKU BULANAN -->
+    <div class="scroll" id="mode-dok" hidden>
+      <label for="mSel">Bulan</label><select id="mSel"></select>
+      <fieldset><legend>Dokumen bulan ini</legend><div id="dokList"></div></fieldset>
       <fieldset><legend>Kartu piutang proyek (tanda tangan AR Officer &amp; Section Head)</legend>
         <label for="kNpp">Proyek</label><input id="kNpp" list="dlNpp" placeholder="ketik NPP atau nama proyek"><datalist id="dlNpp"></datalist>
         <div class="row" style="margin-top:2px"><div><label for="kTgl">Posisi per</label><input id="kTgl" type="date"></div><div style="display:flex;align-items:flex-end"><button class="btn" type="button" id="btnKp" style="width:100%">Buka kartu piutang</button></div></div>
       </fieldset>
-      <fieldset><legend>Penutupan manual (CLOSE MANUAL) menunggu diajukan / diputuskan</legend><div id="tutupList"></div></fieldset>
-      <fieldset><legend>Penerimaan termin terakhir</legend><div id="payList"></div></fieldset>
-      <fieldset><legend>Riwayat keputusan</legend><div id="histList"></div></fieldset>
+      <fieldset><legend>Status tutup buku</legend><div id="perBox"></div></fieldset>
     </div>
 
     <div class="actions" id="act-pkg" hidden>
@@ -1569,7 +1589,7 @@ function renderItems() {
 /* ====================================================== surat permohonan percepatan pembayaran */
 var SR = null; // { d: data server, pick: {nomor: true}, rek: {label: true} }
 function srDays(a, b) { return Math.round((Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 864e5); }
-function srBadge() { var n = ((B && B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length, el = $('srBadge'); if (!el) return; el.hidden = !n; el.textContent = n; }
+function srBadge() { var n = ((B && B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length, el = $('srBadge'); if (el) { el.hidden = !n; el.textContent = n; } if ($('navBadge')) navBadges(); }
 function renderSuratList() {
   var L = (B && B.suratAlerts) || [];
   $('srList').innerHTML = L.length ? L.map(function (a) {
@@ -1830,25 +1850,27 @@ function bindSurat() {
 
 /* ====================================================== mode */
 function setMode(m) {
-  if (B && B.access && !B.access.maker && m !== 'setuju') m = 'setuju';
+  if (B && B.access && !B.access.maker && ['setuju', 'dashboard', 'dok'].indexOf(m) < 0) m = 'setuju';
   MODE = m;
   $('mode-dashboard').hidden = m !== 'dashboard';
   document.querySelectorAll('.modes [data-mode]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.mode === m); });
-  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
+  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'setuju' || m === 'dashboard' || m === 'surat';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
-  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih pengajuan, penerimaan termin, atau dokumen bulanan untuk melihat pratinjau.</div>'; }
+  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih pengajuan untuk melihat pratinjau.</div>'; }
+  if (m === 'dok') { renderDok(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih dokumen bulanan atau kartu piutang untuk melihat pratinjau.</div>'; }
 }
 
 /* ====================================================== event */
 function bind() {
-  document.querySelectorAll('.modes [data-mode]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
+  buildNav(true); $('navCur').onclick = function () { navOpen($('navList').hidden); };
   bindSurat();
   document.querySelectorAll('.tabs [data-doc]').forEach(function (b) { b.onclick = function () { setDoc(b.dataset.doc); }; });
   $('zoom').onchange = fitZoom; window.addEventListener('resize', fitZoom);
@@ -1909,9 +1931,9 @@ function bind() {
   $('btnPkgInv').onclick = function () { if (!SAVED) { toast('Simpan invoice ke Monitoring terlebih dahulu.'); return; } openPackage('INV', E.normInv(nomorStr())); };
   $('btnPayPkg').onclick = function () { if (LASTPAY) { setMode('setuju'); openPackage('PAY', LASTPAY); } };
   $('btnPkgPrint').onclick = function () { if (PKG) printHtml(PKG._pages.all); };
-  $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(document.querySelector('.modes [aria-selected=true]').dataset.mode); };
+  $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(MODE); };
   $('btnPkgSubmit').onclick = submitPkg; $('btnPkgOk').onclick = function () { decidePkg(true); }; $('btnPkgNo').onclick = function () { decidePkg(false); };
-  $('btnVal').onclick = function () { openPackage('VAL', $('mSel').value); }; $('btnRek').onclick = function () { openPackage('REK', $('mSel').value); };
+  $('mSel').onchange = function () { renderDok(); };
   $('mode-setuju').onclick = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'); openPackage(x[0], x.slice(1).join('|')); };
 }
 
@@ -2557,7 +2579,8 @@ function renderSetuju() {
   $('whoBox').innerHTML = 'Masuk sebagai <b>' + esc(me.nama || me.email || 'pengguna tidak dikenal') + '</b>' + (role ? ' · ' + esc(role) : '') + (me.email ? '<br><span style="color:var(--steel)">' + esc(me.email) + '</span>' : '') +
     (!role ? '<div class="note warn">Email ini belum terdaftar di Parameter ▸ Pengguna & Peran, jadi tidak bisa mengajukan/menyetujui.</div>' : '') +
     (B.delegasi ? '<div class="note warn">Delegasi aktif: Anda boleh menyetujui a.n. ' + esc(B.delegasi.atas) + ' sampai ' + esc(tg(B.delegasi.sampai)) + ' untuk ' + esc(B.delegasi.jenis.map(function (j) { return { PAY: 'penerimaan termin', VAL: 'validasi rencana cair', INV: 'invoice keluar', KP: 'kartu piutang', REK: 'rekap bulanan', TUTUP: 'penutupan manual', SEMUA: 'semua jenis' }[j] || j; }).join(', ')) + '. Cap tertulis "a.n. Section Head (delegasi)".</div>' : '');
-  renderPeriode();
+  renderPeriode(); navBadges(); renderDok(true);
+  $('pendLegend').textContent = B.access && B.access.maker ? 'Pengajuan Anda yang menunggu Section Head' : 'Menunggu keputusan Anda';
   // dipisah per jenis agar daftar tidak terlalu panjang; tab pertama = yang paling banyak menunggu
   var all = B.approvals.filter(function (a) { return a.status === 'MENUNGGU'; }).reverse(), cnt = {};
   AP_TABS.forEach(function (t) { cnt[t[0]] = all.filter(function (a) { return apGroup(a) === t[0]; }).length; });
@@ -2575,6 +2598,87 @@ function renderSetuju() {
     return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'belum diajukan') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">Lihat paket</button></div></div>';
   }).join('');
 }
+/* ====================================================== menu vertikal berkelompok (alur kerja piutang) */
+var NAV_MAKER = [
+  ['Ringkasan', [['dashboard', '📊', 'Dashboard Piutang', 'saldo, umur piutang, overdue, target INKASO']]],
+  ['Penagihan', [['buat', '🧾', 'Penerbitan Invoice', 'invoice, kwitansi, BAP, draft faktur pajak'], ['buka', '📚', 'Register Invoice', 'cari, revisi, batalkan, penutupan manual'],
+    ['surat', '✉️', 'Surat Penagihan', 'percepatan pembayaran & eskalasi', 'srBadge']]],
+  ['Penerimaan Kas', [['bayar', '🏦', 'Penerimaan Pembayaran', 'catat uang masuk, alokasi PPN/Netto, riwayat penerimaan']]],
+  ['Tutup Buku & Pelaporan', [['dok', '🗂️', 'Tutup Buku Bulanan', 'validasi rencana cair, rekap akuntansi, analisis, kartu piutang', 'dokBadge']]],
+  ['Pengendalian Internal', [['setuju', '✅', 'Status Persetujuan', 'pengajuan Anda & keputusan Section Head', 'apBadge']]]];
+var NAV_APPR = [
+  ['Persetujuan', [['setuju', '✅', 'Otorisasi Dokumen AR', 'yang menunggu keputusan Anda', 'apBadge']]],
+  ['Pemantauan', [['dashboard', '📊', 'Dashboard Piutang', 'posisi piutang & overdue', '', 'lihat'], ['dok', '🗂️', 'Tutup Buku Bulanan', 'kartu piutang, rekap, validasi, analisis — lihat & cetak', '', 'lihat']]]];
+var NAV = NAV_MAKER, NAV_FIXED = false;
+function buildNav(maker) {
+  NAV = maker ? NAV_MAKER : NAV_APPR; NAV_FIXED = !maker; // Section Head: menu pendek, selalu terbuka
+  $('navList').innerHTML = NAV.map(function (g) {
+    return '<div class="ngl">' + esc(g[0]) + '</div>' + g[1].map(function (it) {
+      return '<button type="button" role="tab" data-mode="' + it[0] + '" aria-selected="' + (it[0] === MODE) + '"><i>' + it[1] + '</i><span class="nt"><b>' + esc(it[2]) + '</b><small>' + esc(it[3]) + '</small></span>' +
+        (it[4] ? '<span class="badge" id="' + it[4] + '" hidden></span>' : '') + (it[5] ? '<span class="ro">' + it[5] + '</span>' : '') + '</button>';
+    }).join('');
+  }).join('');
+  document.querySelectorAll('#navList [data-mode]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); if (!NAV_FIXED) navOpen(false); }; });
+  $('navCur').hidden = NAV_FIXED; if (NAV_FIXED) $('navList').hidden = false;
+  navShow(MODE);
+}
+function navShow(m) {
+  document.querySelectorAll('#navList [data-mode]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.mode === m); });
+  NAV.forEach(function (g) { g[1].forEach(function (it) { if (it[0] === m) { $('navGrp').textContent = g[0]; $('navNm').textContent = it[2]; } }); });
+}
+function navOpen(on) { if (NAV_FIXED) on = true; $('navList').hidden = !on; $('navCur').setAttribute('aria-expanded', on); $('navCar').textContent = on ? '▴' : '▾'; }
+function navBadges() {
+  if (!B) return;
+  var me = String((B.user || {}).email || '').toLowerCase(), maker = !!(B.access && B.access.maker);
+  var ap = B.approvals.filter(function (a) { return a.status === 'MENUNGGU' && (maker || String(a.oleh).toLowerCase() !== me); }).length;
+  var dk = maker ? dokPending() : 0, sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
+  [['apBadge', ap], ['dokBadge', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
+  var tot = maker ? ap + dk + sr : ap; $('navBadge').hidden = !tot; $('navBadge').textContent = tot;
+}
+/* ====================================================== Tutup Buku Bulanan */
+var DOK_AN = {};
+function dokStatus(jenis, ref) {
+  var L = B.approvals.filter(function (a) { return a.jenis === jenis && a.ref === ref && a.status !== 'DIBATALKAN'; }), a = L[L.length - 1];
+  if (!a) return ['no', 'Belum diajukan'];
+  if (a.status === 'DISETUJUI') return a.berubah ? ['bad', 'Data berubah — ajukan ulang'] : ['ok', '✓ Disetujui ' + tg(a.putus_waktu)];
+  if (a.status === 'MENUNGGU') return ['wt', '⏳ Menunggu persetujuan'];
+  if (a.status === 'DITOLAK') return ['bad', '✗ Ditolak'];
+  return ['no', a.status];
+}
+/** dokumen yang belum disetujui: validasi rencana cair bulan berjalan + rekap akuntansi bulan lalu */
+function dokPending() {
+  var cur = B.today.substring(0, 7), prev = E.prevMonthEnd(B.today).substring(0, 7), n = 0;
+  if (dokStatus(B.DOC.VAL, cur)[0] !== 'ok') n++;
+  if (dokStatus(B.DOC.REK, prev)[0] !== 'ok') n++;
+  return n;
+}
+function renderDok(quiet) {
+  if (!B || !$('dokList')) return;
+  var ms = $('mSel'), m = ms.value || B.today.substring(0, 7), maker = !!(B.access && B.access.maker), an = DOK_AN[m];
+  var card = function (t, sub, st, btn) { return '<div class="dcard"><div class="dt"><b>' + t + '</b><small>' + sub + '</small></div><span class="dst ' + st[0] + '">' + esc(st[1]) + '</span>' + btn + '</div>'; };
+  var anSt = !an ? ['no', 'memeriksa…'] : an.err ? ['bad', an.err] : an.ada ? ['ok', '✓ Tersedia' + (an.rev ? ' · Rev.' + an.rev : '')] : ['no', an.tutup ? 'Belum dibuat' : 'Bulan belum tutup buku'];
+  var anBtn = an && an.ada ? '<button class="btn sm" type="button" onclick="openAnalisis(false)">Lihat</button>' : an && !an.ada && an.tutup && maker ? '<button class="btn sm" type="button" onclick="openAnalisis(true)">Buat</button>' : '';
+  $('dokList').innerHTML =
+    card('Lembar Validasi Rencana Cair', 'rencana penerimaan termin bulan ini', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="openPackage(\'VAL\',$(\'mSel\').value)">Buka</button>') +
+    card('Rekap Bulanan untuk Akuntansi', 'invoice keluar, penerimaan, CKPN', dokStatus(B.DOC.REK, m), '<button class="btn sm" type="button" onclick="openPackage(\'REK\',$(\'mSel\').value)">Buka</button>') +
+    card('Analisis Bulanan AR', 'untuk rapat bulanan · dibuat setelah tutup buku', anSt, anBtn);
+  if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'gagal dibaca' }; renderDok(true); });
+}
+function openAnalisis(buat) {
+  var m = $('mSel').value;
+  $('sheetwrap').innerHTML = '<div class="empty">' + (buat ? 'Membuat analisis bulanan…' : 'Memuat analisis…') + '</div>';
+  call('apiAnalisis', [m, !!buat], function (d) { DOK_AN[m] = d; renderDok(true); renderAnalisis(d); }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">' + esc(e.message || e) + '</div>'; });
+}
+function renderAnalisis(d) {
+  if (!d || !d.ada) { $('sheetwrap').innerHTML = '<div class="empty">Analisis bulan ini belum tersedia.</div>'; return; }
+  var m = d.m || {}, rows = [['Saldo buku pembantu awal', m.opening], ['Saldo buku pembantu akhir', m.saldo], ['Perubahan saldo', m.perubahan], ['Sisa kas terbuka', m.kasTerbuka], ['Kas lewat jatuh tempo', m.overdue],
+    ['Penerimaan bulan ini', m.penerimaan], ['Target INKASO', m.targetInkaso], ['RA awal', m.raAwal], ['RA final', m.raFinal], ['RI atas RA final', m.riAtasRA], ['Total RI', m.totalRI]];
+  var h = '<div class="page pg-flow">' + docHead('ANALISIS BULANAN AR — ' + d.id, 'Cutoff ' + esc(tg(m.cutoff)) + ' · dibuat ' + esc(d.waktu) + (d.rev ? ' · revisi: ' + esc(d.alasan) : '')) +
+    '<table class="t"><thead><tr><th style="text-align:left">Ukuran</th><th>Nilai (Rp)</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="n">' + nd(r[1]) + '</td></tr>'; }).join('') + '</tbody></table>' +
+    '<h3>Analisis otomatis</h3>' + String(d.narasi || '').split('\n\n').map(function (p) { return '<p style="font-size:8.6pt;line-height:1.5">' + esc(p) + '</p>'; }).join('') +
+    (d.ai ? '<h3>Narasi AI</h3><p style="font-size:8.6pt;line-height:1.5">' + esc(d.ai) + '</p>' : '') + docFoot(null) + '</div>';
+  $('sheetwrap').innerHTML = h; if (typeof fitZoom === 'function') fitZoom();
+}
 var AP_TABS = [['PAY', 'Penerimaan Termin'], ['INV', 'Invoice'], ['VAL', 'Validasi Rencana Cair'], ['LAIN', 'Lainnya']], AP_TAB = '';
 function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
 function apprCard(a) {
@@ -2587,7 +2691,8 @@ function apprCard(a) {
 
 function applyAccess() {
   var maker = !!(B.access && B.access.maker); document.body.classList.toggle('ar-approver',!maker);
-  document.querySelectorAll('.modes [data-mode]').forEach(function(b){ b.hidden = !maker && b.dataset.mode !== 'setuju'; });
+  buildNav(maker); srBadge(); navBadges();
+  $('btnRefreshReports').hidden = !maker;
   $('accessBadge').textContent = (maker ? 'Pembuat · Seluruh menu' : 'Section Head · Otorisasi dokumen') + ' · ' + ((B.user || {}).nama || '');
   $('arSheetLink').href = B.sheetUrl || '#';
   $('btnRefreshReports').onclick = refreshReports;

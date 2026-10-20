@@ -824,3 +824,23 @@ function arArsipKembalikanMenu() {
   } finally { lock.releaseLock(); }
   ui.alert('Selesai', 'Baris dikembalikan. Ubah AKTIF proyek ' + npp + ' di Master Proyek menjadi YA / SELESAI, lalu jalankan Perbarui semua laporan.', ui.ButtonSet.OK);
 }
+
+
+/** Analisis Bulanan AR untuk menu Tutup Buku Bulanan di aplikasi: baca snapshot terakhir bulan itu; buat = hanya Pembuat & bulan sudah tutup buku */
+function apiAnalisis(month, buat) {
+  var acc = arRequireAccess_();
+  month = String(month || '');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus yyyy-mm.');
+  var st = arPeriodState_(), tutup = !!st.tutup && st.tutup >= arMonthEnd_(month), rows;
+  try { rows = arMonthlyRows_(); } catch (e) { return { ada: false, tutup: tutup, err: 'Arsip analisis belum dipasang' }; }
+  var L = rows.filter(function(r) { return String(r[1]) === month; });
+  if (!L.length && buat) {
+    if (!acc.maker) throw new Error('Analisis bulanan dibuat oleh Pembuat.');
+    if (!tutup) throw new Error('Bulan ' + month + ' belum tutup buku. Analisis dibuat setelah tutup buku (tanggal 3 bulan berikutnya).');
+    arCreateMonthly_(month, false, '');
+    L = arMonthlyRows_().filter(function(r) { return String(r[1]) === month; });
+  }
+  if (!L.length) return { ada: false, tutup: tutup };
+  var r = L[L.length - 1], m = {}; try { m = JSON.parse(r[8]); } catch (e) {}
+  return { ada: true, tutup: tutup, id: String(r[0]), rev: Number(r[2]) || 0, waktu: String(r[4]), alasan: String(r[7] || ''), m: m, narasi: String(r[9] || ''), ai: String(r[10] || ''), aiStatus: String(r[11] || '') };
+}
