@@ -427,7 +427,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 .ov-hd .sp{flex:1}.ov-sel{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #D6DEE8;border-radius:9px;padding:0 10px;color:#33475B}.ov-sel select{border:0;padding:8px 2px;font-weight:600;width:auto;background:none}
 .ov-hd .ibtn{padding:9px 13px;font-size:12.5px}
 .ov-k{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:14px}
-.ov-kp{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:13px 15px;min-width:0}.ov-kp small{color:#5F6F86;font-size:12px;display:block}.ov-kp b{display:block;font-size:21px;margin:5px 0 4px;letter-spacing:-.3px;white-space:nowrap}.ov-kp span{font-size:11.8px;color:#5F6F86}
+.ov-kp{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:13px 15px;min-width:0}.ov-kp small{color:#5F6F86;font-size:12px;display:block}.ov-kp b{display:block;font-size:clamp(16px,1.4vw,21px);margin:5px 0 4px;letter-spacing:-.3px;white-space:nowrap}.ov-kp span{font-size:11.8px;color:#5F6F86}
 .ov-kp .up{color:#B42318;font-weight:600}.ov-kp .gd{color:#1E7A45;font-weight:600}
 .ov-row{display:grid;gap:14px;margin-bottom:14px}.ov-r1{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}.ov-r2{grid-template-columns:repeat(3,minmax(0,1fr))}
 .ov-p{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:15px 17px;min-width:0}
@@ -2917,7 +2917,7 @@ function renderAnalisis(d) {
 var AP_TABS = [['PAY', 'Cash Receipts'], ['INV', 'Invoices'], ['VAL', 'Validation'], ['LAIN', 'Other']], AP_TAB = '', AP_SEL = '', AP_HIST = false, AP_NEXT = false;
 function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
 function dayDiff(a, b) { return Math.round((Date.parse(String(b).substring(0, 10)) - Date.parse(String(a).substring(0, 10))) / 864e5); }
-function rpShort(v) { v = Number(v) || 0; return v >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' bn' : v >= 1e6 ? 'Rp ' + (v / 1e6).toFixed(1).replace('.', ',') + ' mn' : 'Rp ' + nfDot(v); }
+function rpShort(v) { v = Number(v) || 0; return v >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' Miliar' : v >= 1e6 ? 'Rp ' + (v / 1e6).toFixed(1).replace('.', ',') + ' juta' : 'Rp ' + nfDot(v); }
 var PA_COL = [['#E8EEF8', '#2F5597'], ['#FDEFE4', '#A0521B'], ['#E5F5EB', '#1E6B3E'], ['#F3E8FA', '#6B3FA0'], ['#E3F4F5', '#0F6E78']];
 function paHtml(pel) {
   var n = String(pel || '').toUpperCase().replace(/\bPT\.?\s+|\bCV\.?\s+|,?\s*TBK\.?|\(PERSERO\)/g, ' ').replace(/[^A-Z0-9 \-]/g, ' ').split(/[\s\-]+/).filter(String);
@@ -3069,7 +3069,7 @@ function ovRender(d) {
     (R.belum.length ? '<table class="ov-t"><tr><th>Not yet collected (RA ✓)</th><th>Planned</th><th class="n">Amount</th></tr>' + R.belum.slice(0, 5).map(function (x) { return '<tr><td class="w">' + esc(titleCaseS(x.pelanggan).replace(/^PT\s+/, '')) + ' · ' + esc(short(x.nomor).replace(/^(\d{4}).*$/, '4C.$1')) + (x.sebagian ? ' <span class="chp wt">partial</span>' : '') + '</td><td>' + (x.rencana ? tg(x.rencana).substring(0, 5) : '–') + '</td><td class="n">' + rpShort(x.nilai).replace('Rp ', '') + '</td></tr>'; }).join('') + '</table>' + (R.belum.length > 5 ? '<button class="more" type="button" data-ovgo="dok">+ ' + (R.belum.length - 5) + ' more · see RA–RI report</button>' : '') :
       R.raFinal ? '<div class="ov-empty">All planned collections (RA ✓) have been received.</div>' : '') + '</div></div>';
   // tren, umur piutang, tindakan
-  h += '<div class="ov-row ov-r2"><div class="ov-p ov-trend"><h3>12-month trend<span class="r">Rp billion</span></h3><div class="s">Invoices issued vs cash received · rolls across year-end</div>' + ovTrend(d.trend) +
+  h += '<div class="ov-row ov-r2"><div class="ov-p ov-trend"><h3>12-month trend<span class="r">Rp miliar</span></h3><div class="s">Invoices issued vs cash received · rolls across year-end</div>' + ovTrend(d.trend) +
     '<div class="ov-lg"><span><i style="background:#C9D6E8"></i>Invoices issued</span><span><i style="background:#19A0A8"></i>Cash received</span></div></div>';
   var AG = [['No due date', '#8B9BB4'], ['Not yet due', '#19A0A8'], ['1–30 days', '#D69A1C'], ['31–90 days', '#E07B39'], ['91–180 days', '#D9534F'], ['> 180 days', '#A1271F']], mx = Math.max.apply(null, d.aging.concat([1]));
   h += '<div class="ov-p"><h3>AR aging<span class="r">' + (d.cur ? 'position today' : 'as of ' + dateEn(d.asOf)) + '</span></h3><div class="s">' + rpShort(d.open) + ' open · days past due date</div><div class="ov-ag">' +
