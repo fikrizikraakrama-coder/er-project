@@ -865,11 +865,32 @@ function openAppDialog() {
   var html = HtmlService.createTemplateFromFile('Index').evaluate().setWidth(1400).setHeight(900);
   SpreadsheetApp.getUi().showModalDialog(html, 'AR CSU — Penagihan, Penerimaan & Otorisasi Dokumen');
 }
+/** link resmi aplikasi web: disimpan lewat menu (Script Properties) karena ScriptApp.getService().getUrl() bisa mengembalikan ID deployment lain */
+var AR_URL_RE_ = /^https:\/\/script\.google\.com\/(a\/[^\/]+\/)?macros\/s\/[\w-]+\/exec$/;
+function arAppUrl_() {
+  var u = ''; try { u = PropertiesService.getScriptProperties().getProperty('APP_URL') || ''; } catch (e) { }
+  return { url: u || ScriptApp.getService().getUrl() || '', saved: !!u };
+}
+function setAppUrl(url) {
+  arRequireMaker_();
+  url = String(url || '').trim().replace(/\?.*$/, '');
+  if (!AR_URL_RE_.test(url)) throw new Error('Link harus berbentuk https://script.google.com/macros/s/…/exec (salin dari Terapkan ▸ Kelola deployment ▸ URL aplikasi web).');
+  PropertiesService.getScriptProperties().setProperty('APP_URL', url); arBootBust_();
+  return url;
+}
 function showAppLink() {
-  var url = ScriptApp.getService().getUrl();
-  var msg = url ? 'Link aplikasi:\n\n' + url + '\n\nBagikan ke Fikri dan Pak Anas (keduanya perlu akses edit ke spreadsheet ini).' :
-    'Aplikasi belum di-deploy sebagai Web App.\n\nEkstensi ▸ Apps Script ▸ Terapkan ▸ Deployment baru ▸ Aplikasi web ▸\nJalankan sebagai: Pengguna yang mengakses aplikasi web ▸ Akses: Siapa saja yang memiliki akun Google ▸ Terapkan.';
-  SpreadsheetApp.getUi().alert(msg);
+  var a = arAppUrl_(), e = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var h = '<div style="font:13px/1.5 Arial,sans-serif;color:#14213D">' +
+    (a.url ? '<p style="margin:0 0 6px">Link aplikasi' + (a.saved ? '' : ' <b style="color:#B42318">(belum disimpan — bisa salah deployment)</b>') + ':</p>' +
+      '<p style="margin:0 0 10px;word-break:break-all"><a id="u" href="' + e(a.url) + '" target="_blank">' + e(a.url) + '</a></p>' +
+      '<input id="c" readonly value="' + e(a.url) + '" style="position:absolute;left:-9999px">' +
+      '<button onclick="var c=document.getElementById(\'c\');c.select();var ok=false;try{ok=document.execCommand(\'copy\');}catch(x){}document.getElementById(\'m\').textContent=ok?\'✓ Link disalin\':\'Tekan Ctrl/Cmd+C untuk menyalin\';" style="padding:7px 14px;border:0;border-radius:7px;background:#0F6E78;color:#fff;font-weight:700;cursor:pointer">Salin link</button> <span id="m" style="color:#1E7A45"></span>' +
+      '<p style="margin:12px 0 4px">Bagikan ke Fikri dan Pak Anas (keduanya perlu akses edit ke spreadsheet ini). Bila terbuka halaman "Maaf, saat ini tidak dapat membuka file", buka di jendela Incognito / profil Chrome dengan satu akun saja.</p>' :
+      '<p>Aplikasi belum di-deploy sebagai Web App.</p>') +
+    '<hr style="border:0;border-top:1px solid #DCE3EB;margin:12px 0"><p style="margin:0 0 4px"><b>Ganti / simpan link resmi</b> — tempel URL dari <i>Terapkan ▸ Kelola deployment ▸ URL aplikasi web</i>:</p>' +
+    '<input id="n" style="width:100%;box-sizing:border-box;padding:7px;border:1px solid #BFC8D4;border-radius:6px" placeholder="https://script.google.com/macros/s/…/exec">' +
+    '<p><button onclick="var v=document.getElementById(\'n\').value;google.script.run.withSuccessHandler(function(u){document.getElementById(\'m2\').textContent=\'✓ Tersimpan. Tutup lalu buka menu ini lagi.\';}).withFailureHandler(function(x){document.getElementById(\'m2\').textContent=x.message;}).setAppUrl(v)" style="padding:7px 14px;border:1px solid #0F6E78;border-radius:7px;background:#fff;color:#0F6E78;font-weight:700;cursor:pointer">Simpan link</button> <span id="m2"></span></p></div>';
+  SpreadsheetApp.getUi().showModalDialog(HtmlService.createHtmlOutput(h).setWidth(560).setHeight(a.saved ? 330 : 360), 'Link aplikasi AR CSU');
 }
 function plain_(o) { return JSON.parse(JSON.stringify(nd_(o), function (k, v) { return v === Infinity ? null : v; })); }
 function email_() { var e = ''; try { e = Session.getActiveUser().getEmail(); } catch (x) { } return String(e || '').toLowerCase(); }
@@ -880,7 +901,7 @@ function apiBootstrap() {
   if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; return b0; }
   var input = readAll_(); input.light = true;
   var res = ENGINE.compute(input), b = ENGINE.bootstrap(res, em);
-  b.appUrl = ScriptApp.getService().getUrl() || '';
+  b.appUrl = arAppUrl_().url;
   b.charts = access.maker ? arChartsCached_() : null;
   b.access = access; b.summary = arDashboard_(res.ctx); b.sheetUrl = arSpreadsheet_().getUrl();
   var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300);
