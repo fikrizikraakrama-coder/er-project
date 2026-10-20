@@ -1985,18 +1985,20 @@ function stampHtml(a) {
 }
 function signBlock(pkg, withManager, withReceiver) {
   var R = pkg.roles || {}, a = pkg.appr, mode = (pkg.params && pkg.params.TTD_MODE) || 'KEDUANYA', box = [];
-  var cell = function (role, who, inner, note) {
+  var DOTS = '..................', tglOf = function (w) { return w ? esc(tglIndo(String(w).substring(0, 10))) : DOTS; };
+  var cell = function (role, who, inner, note, tgl) {
     who = who || { nama: '', jabatan: '' };
-    return '<div><div class="rl">' + role + '</div><div class="sp">' + (inner || '') + '</div>' + (note || '') + '<div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + (inner && /stamp/.test(inner) ? '' : '..................') + '</div></div>';
+    return '<div><div class="rl">' + role + '</div><div class="sp">' + (inner || '') + '</div>' + (note || '') + '<div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + (tgl || DOTS) + '</div></div>';
   };
   var dig = mode !== 'BASAH';
   // pembuat: cukup satu baris kecil (ruang tanda tangan basah tetap lega); cap Section Head tetap sebagai bukti persetujuan
-  box.push(cell('Dibuat oleh,', R.PEMBUAT, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : ''));
+  var ok = a && a.status === 'DISETUJUI' && !a.berubah && a.valid !== false;
+  box.push(cell('Dibuat oleh,', R.PEMBUAT, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '', a ? tglOf(a.waktu) : ''));
   // menunggu: cukup satu baris kecil agar ruang tanda tangan basah tetap lega; cap DISETUJUI tetap sebagai bukti
   var wait = dig && a && a.status === 'MENUNGGU';
-  box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : ''));
+  box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : '', ok ? tglOf(a.putus_waktu) : ''));
   if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>'));
-  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '', '<div class="ajx">tanda tangan basah · input ke SAP</div>'));
+  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '', '<div class="ajx">tanda tangan basah · input ke SAP</div>', '<span class="prd">' + DOTS + '</span>'));
   // v2.5: dokumen internal — yang menyetujui di kiri, pembuat di kanan
   box.reverse();
   return '<div class="sign" style="grid-template-columns:repeat(' + box.length + ',1fr)">' + box.join('') + '</div>';
@@ -2399,7 +2401,7 @@ function pkgActions() {
 }
 /** tabel internal: baris judul menjadi <thead> agar berulang di setiap halaman cetak */
 function theadify(h) { return String(h).replace(/<table class="t"><tr>(<th[\s\S]*?<\/tr>)/g, '<table class="t"><thead><tr>$1</thead>'); }
-function printHtml(html) { $('print-root').innerHTML = theadify(html); setTimeout(function () { window.print(); }, 80); }
+function printHtml(html) { html = String(html).replace(/<span class="prd">[^<]*<\/span>/g, esc(tglIndo(today()))); $('print-root').innerHTML = theadify(html); setTimeout(function () { window.print(); }, 80); }
 function pkgFileName() { return archiveMeta(PKG).name; }
 /** nama file arsip: 4C0134_FAJARPUTERA DINASTI_Termin 3_Rev.00_<kode verifikasi>, folder per bulan */
 function cleanPel(s) { return String(s || '').toUpperCase().replace(/\bPT\.?\s+/g, '').replace(/\s*\(PERSERO\)/g, '').replace(/,?\s*TBK\.?/g, '').replace(/[,.]/g, ' ').replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim(); }
