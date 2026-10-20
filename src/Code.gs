@@ -393,7 +393,7 @@ function writeReport_(sh, rep, name, opt) {
       else if (s.s === 'signname') x.setFontWeight('bold').setFontLine('underline');
       else if (s.s === 'kpi') x.setBackground(C.kpi).setFontWeight('bold').setFontColor(C.navy).setFontSize(10).setBorder(true, true, true, true, true, true, '#A6A6A6', SpreadsheetApp.BorderStyle.SOLID);
       else if (s.s === 'tileL') x.setFontSize(8).setFontWeight('bold').setFontColor('#52514E').setVerticalAlignment('middle');
-      else if (s.s === 'tileV') x.setFontSize(18).setFontWeight('bold').setFontColor(C.navy).setHorizontalAlignment('left');
+      else if (s.s === 'tileV') x.setFontSize(18).setFontWeight('bold').setFontColor(C.navy).setHorizontalAlignment('center');
       else if (s.s === 'tileS') x.setFontSize(8).setFontColor('#52514E');
       else if (s.s === 'tileF') { x.setFontSize(9).setFontWeight('bold'); (b.flags || []).forEach(function (fl, ix) { var col = b.c + [3, 9, 12][ix]; sh.getRange(b.r + s.r, col, 1, 3).setFontColor(fl === 'R' ? '#B42318' : fl === 'G' ? '#0A5A0A' : '#7A5200'); }); }
     });

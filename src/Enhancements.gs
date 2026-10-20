@@ -178,22 +178,46 @@ function arLeftLabel_(value) {
   var label=String(value||'').toUpperCase().replace(/\s+/g,' ').trim();
   return /^(NO\.?|NOMOR)\s+INVOICE(?:$|[\s.(·])/.test(label) || /^(REF\s*\/\s*BUKTI|BUKTI\s*\/\s*REF)$/.test(label) || /^(URAIAN|DESKRIPSI|PRODUK)(?:$|\s)/.test(label) || /^(NAMA )?PELANGGAN(?:$|\s*\()/.test(label) || /^(NAMA )?PROYEK(?:$|\s*\()/.test(label) || /^INVOICE\s+KE(?:[\s\-:]|$)/.test(label) || /^NAMA DI INVOICE(?:$|\s*\()/.test(label);
 }
+/** perataan laporan: NO di tengah · kolom berisi tulisan rata kiri · tanggal, jumlah (bilangan bulat) & persen di tengah · nilai uang rata kanan.
+ *  Laporan ditulis ulang setiap pembaruan, jadi aturan ini (bukan perataan manual) yang berlaku. */
 function arAlignBlock_(sh,b,vals,pw,fmts) {
-  var headers={},special={},labels={};
+  var headers={},special={},labels={},tile=/tile/.test(JSON.stringify(b.styles));
   b.styles.forEach(function(s){for(var k=0;k<(s.n||1);k++){if(s.s==='hdr')headers[s.r+k]=true;if(s.s==='lbl')labels[s.r+k]=true;if(['title','note','stamp','signname','lbl'].indexOf(s.s)>=0)special[s.r+k]=true;}});
-  var leftCols={},noteCols={};Object.keys(headers).forEach(function(r){(b.rows[r]||[]).forEach(function(v,j){if(arLeftLabel_(v))leftCols[physCol_(b,j)-b.c]=true;if(/CATATAN|KETERANGAN|TINDAK LANJUT/i.test(String(v)))noteCols[physCol_(b,j)-b.c]=true;});});
-  var align=vals.map(function(row,r){return row.map(function(v,c){if(headers[r])return 'center';if(b.align&&b.align[c])return b.align[c];if(labels[r]&&[0,1,3,7,8].indexOf(c)>=0)return 'left';if(special[r]&&c===0)return 'left';if(noteCols[c])return 'right';if(leftCols[c])return 'left';if(c>0&&arLeftLabel_(row[c-1]))return 'left';return typeof v==='number' || /^Rp\s?[\d.]+/.test(String(v)) ? 'right':'center';});});
+  var hdrTxt={};Object.keys(headers).forEach(function(r){(b.rows[r]||[]).forEach(function(v,j){var c=physCol_(b,j)-b.c;if(String(v).trim())hdrTxt[c]=String(v).replace(/\s+/g,' ').trim().toUpperCase();});});
+  var fmtOf=function(c){for(var j=0;j<vals[0].length;j++)if(physCol_(b,j)-b.c===c)return b.fmt[j]||'';return '';};
+  var isDate=function(v){return v instanceof Date||/^\d{4}-\d{2}-\d{2}$/.test(String(v))||/^\d{1,2}[-\/ ](\d{1,2}|[A-Za-z]{3,9})[-\/ ]\d{4}$/.test(String(v));};
+  var colAl={};
+  for(var c=0;c<pw;c++){
+    var num=0,txt=0,dt=0,ints=0,big=false,f=fmtOf(c),h=hdrTxt[c]||'';
+    vals.forEach(function(row,r){if(headers[r]||special[r])return;var v=row[c];if(v===''||v===null||v===undefined)return;
+      if(typeof v==='number'){num++;if(Math.round(v)===v)ints++;if(Math.abs(v)>=100000)big=true;}
+      else if(isDate(v))dt++;else if(/^Rp\s?-?[\d.]+/.test(String(v)))num++,big=true;else if(!/^[-–—]$/.test(String(v).trim()))txt++;});
+    if(/^NO\.?$/.test(h)||h==='#')colAl[c]='center';
+    else if(f==='date'||(dt&&dt>=num&&dt>=txt))colAl[c]='center';
+    else if(num>txt){colAl[c]=f==='money'||f==='money0'||f==='num2'||(!f&&(big||ints<num))?'right':'center';}
+    else if(txt)colAl[c]='left';
+    else colAl[c]='center';
+  }
+  var align=vals.map(function(row,r){return row.map(function(v,c){
+    if(headers[r]||tile)return 'center';
+    if(b.align&&b.align[c])return b.align[c];
+    if(labels[r]&&[0,1,3,7,8].indexOf(c)>=0)return 'left';
+    if(special[r]&&c===0)return 'left';
+    if(typeof v==='string'&&/^TOTAL\b/i.test(v.trim()))return 'left';
+    return colAl[c];});});
   sh.getRange(b.r,b.c,vals.length,pw).setHorizontalAlignments(align).setVerticalAlignment('middle');
   Object.keys(labels).forEach(function(r){[0,1,3,7,8].forEach(function(c){if(c<pw)sh.getRange(b.r+(+r),b.c+c,1,1).setWrap(true);});});
-  Object.keys(Object.assign({},noteCols,leftCols)).forEach(function(c){sh.getRange(b.r,b.c+(+c),vals.length,1).setWrap(true);});
+  Object.keys(colAl).forEach(function(c){if(colAl[c]==='left'&&!tile&&/CATATAN|KETERANGAN|TINDAK LANJUT|URAIAN|MASALAH|SARAN/.test(hdrTxt[c]||''))sh.getRange(b.r,b.c+(+c),vals.length,1).setWrap(true);});
 }
 function arFormatSourceSheets_(ss) {
   var schemas=[ENGINE.REG,ENGINE.LOG,ENGINE.MPEL,ENGINE.MPRO,ENGINE.ADD,ENGINE.TAG,ENGINE.NOTE,ENGINE.APPR,ENGINE.MEMO,ENGINE.PEREF];
   schemas.forEach(function(sc){var sh=ss.getSheetByName(sc.sheet);if(!sh||sh.getLastRow()<sc.firstRow)return;var n=sh.getLastRow()-sc.firstRow+1,map=colMap_(sh,sc,sc===ENGINE.REG?ENGINE.REG_ALIAS:sc===ENGINE.MPRO?ENGINE.MPRO_ALIAS:null);
     sh.getRange(sc.firstRow,1,n,sh.getLastColumn()).setVerticalAlignment('middle');
     sc.cols.forEach(function(c){var j=map[c[0]];if(!j)return;var rg=sh.getRange(sc.firstRow,j,n,1),f=colFmt_(c),numeric=/^(money|money0|pct|int|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','ret_pct','tarif','top','adm','top_ret'].indexOf(c[0])>=0;
-      rg.setHorizontalAlignment(arLeftLabel_(c[1])?'left':numeric||/catatan|ket$|alasan/.test(c[0])?'right':'center');
-      if(arLeftLabel_(c[1])||/catatan|ket$|alasan/.test(c[0]))rg.setWrap(true);
+      // NO & tanggal di tengah · nilai uang rata kanan · jumlah/persen/hari di tengah · tulisan rata kiri
+      var al=c[0]==='no'||f==='date'||['lunas','tutup','ke'].indexOf(c[0])>=0?'center':/^(money|money0|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','adm'].indexOf(c[0])>=0?'right':numeric?'center':'left';
+      rg.setHorizontalAlignment(al);
+      if(al==='left'&&(arLeftLabel_(c[1])||/catatan|ket$|alasan|uraian/.test(c[0])))rg.setWrap(true);
     });
   });
   ['Parameter','Data LK (Tempel)','Tempel SAP','Riwayat Revisi'].forEach(function(n){var sh=ss.getSheetByName(n);if(sh&&sh.getLastRow())arFormatGeneric_(sh);});
@@ -228,7 +252,7 @@ function arDashboardCharts_(res) {
 }
 function arEnrichReports_(res) {
   var ctx=res.ctx;
-  function add(name,rows,title,type){var rep=res.reports[name];if(!rep)return;var bottom=rep.from;rep.blocks.forEach(function(b){bottom=Math.max(bottom,b.r+b.rows.length+2);});rep.blocks.push(arBlock_(bottom,rows,{1:'num2',2:'num2'}));rep.charts=(rep.charts||[]).concat([{title:title+' (Rp juta)',type:type,range:[bottom,1,rows.length,rows[0].length],row:bottom+rows.length+1,col:1,w:760,h:300,colors:['#137C8B','#1F3864','#D89532'],legend:rows[0].length>2?'bottom':'none'}]);}
+  function add(name,rows,title,type){var rep=res.reports[name];if(!rep)return;var bottom=rep.from;rep.blocks.forEach(function(b){bottom=Math.max(bottom,b.r+b.rows.length+2);});var bk=arBlock_(bottom,rows,{1:'num2',2:'num2'});bk.c=2;rep.blocks.push(bk);rep.charts=(rep.charts||[]).concat([{title:title+' (Rp juta)',type:type,range:[bottom,2,rows.length,rows[0].length],row:bottom+rows.length+1,col:2,w:760,h:300,colors:['#137C8B','#1F3864','#D89532'],legend:rows[0].length>2?'bottom':'none'}]);}
   var data=arDashboardCharts_(res);
   function juta(rows){return rows.map(function(r){return r.map(function(v,i){return i?v/1e6:v;});});}
   if(data.aging)add('Aging Piutang',[['Kelompok umur','Saldo kas']].concat(juta(data.aging.rows)),'AR CSU · Aging piutang','BAR');
