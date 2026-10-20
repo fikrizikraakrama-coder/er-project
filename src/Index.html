@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <base target="_top">
 <meta charset="utf-8">
-<title>AR CSU — Pengelolaan Piutang</title>
+<title>AR CSU — Receivables Management</title>
 <meta name="author" content="Fikri Zikra Akrama">
 <!-- Sistem AR CSU — dirancang dan dikembangkan oleh Fikri Zikra Akrama (AR Officer CSU), 2026. Penggandaan tanpa izin pengembang tidak diperkenankan. -->
 <style>
@@ -500,18 +500,18 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5M12 6v2M12 16v2"/></symbol>
 <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1 0 8z"/><path d="M12 12v6M9.5 14.5 12 12l2.5 2.5"/></symbol>
 </defs></svg>
-<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div>AR CSU<small id="tbVer">Pengelolaan Piutang</small></div></div>
+<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div>AR CSU<small id="tbVer">Receivables Management</small></div></div>
   <nav id="tbNav"></nav>
-  <div class="tb-user"><span class="tb-bell" id="tbBell" title="Persetujuan"><svg class="ic"><use href="#i-bell"/></svg><i id="tbBellDot" hidden></i></span><div id="tbWho"></div><div class="tb-av" id="tbAv">·</div></div>
+  <div class="tb-user"><span class="tb-bell" id="tbBell" title="Approvals"><svg class="ic"><use href="#i-bell"/></svg><i id="tbBellDot" hidden></i></span><div id="tbWho"></div><div class="tb-av" id="tbAv">·</div></div>
 </header>
 <div id="kpiBar" hidden></div>
 <div id="app">
   <aside>
     <div class="brand">
-      <h1>AR CSU — Pengelolaan Piutang</h1>
-      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.4 · 20-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
+      <h1>AR CSU — Receivables Management</h1>
+      <p>WIKA Beton · Concrete Services Unit — connected to Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">version 2.8.5 · 20-10-2026</span><br><span style="font-size:11px">Designed &amp; developed by Fikri Zikra Akrama</span></p>
     </div>
-    <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div>
+    <div id="accessBadge" class="ar-access">Checking Google account…</div>
 
     <!-- ===================== MODE BUAT -->
     <div class="scroll fx" id="mode-buat">
@@ -575,9 +575,9 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 
     <!-- ===================== MODE BUKA -->
     <div class="scroll" id="mode-buka" hidden>
-      <label for="qInv">Cari nomor, pelanggan, atau proyek</label><input id="qInv" placeholder="mis. 0153/2026 atau INDAH KIAT">
-      <table class="list" style="margin-top:10px"><thead><tr><th>Nomor</th><th>Pelanggan / proyek</th><th>Status</th></tr></thead><tbody id="invList"></tbody></table>
-      <fieldset style="margin-top:14px"><legend>Penutupan manual (CLOSE MANUAL) menunggu diajukan / diputuskan</legend><div id="tutupList"></div></fieldset>
+      <label for="qInv">Search number, customer, or project</label><input id="qInv" placeholder="e.g. 0153/2026 or INDAH KIAT">
+      <table class="list" style="margin-top:10px"><thead><tr><th>Number</th><th>Customer / project</th><th>Status</th></tr></thead><tbody id="invList"></tbody></table>
+      <fieldset style="margin-top:14px"><legend>Manual close (CLOSE MANUAL) awaiting submission / decision</legend><div id="tutupList"></div></fieldset>
     </div>
 
     <!-- ===================== MODE BAYAR -->
@@ -620,19 +620,19 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 
     <!-- ===================== MODE SURAT PENAGIHAN -->
     <div class="scroll" id="mode-surat" hidden>
-      <fieldset><legend>Pelanggan dengan invoice lewat jatuh tempo</legend><div id="srList"></div></fieldset>
+      <fieldset><legend>Customers with overdue invoices</legend><div id="srList"></div></fieldset>
       <div id="srForm" hidden>
         <div class="note warn" id="srModeBox" hidden></div>
-        <fieldset><legend>Surat</legend>
-          <div class="row"><div><label for="srNo">Nomor surat (angka setelah WB-4C.)</label><input id="srNo" inputmode="numeric" placeholder="mis. 032"><div class="sub" id="srNoFull" style="font-size:11px;color:var(--steel);margin-top:2px"></div></div><div><label for="srTgl">Tanggal surat</label><input id="srTgl" type="date"></div></div>
-          <label for="srKepada">Kepada Yth. (satu baris per baris surat; dua baris pertama dicetak tebal)</label><textarea id="srKepada" rows="5"></textarea>
-          <div class="row"><div><label for="srTg">Tenggat pembayaran</label><select id="srTg"><option value="">Tanpa tenggat</option><option value="3">3 hari kalender</option><option value="7">7 hari kalender</option><option value="tgl">Pilih tanggal…</option></select></div><div><label for="srTgD">Tanggal tenggat</label><input id="srTgD" type="date" disabled></div></div>
+        <fieldset><legend>Letter</legend>
+          <div class="row"><div><label for="srNo">Letter no. (digits after WB-4C.)</label><input id="srNo" inputmode="numeric" placeholder="e.g. 032"><div class="sub" id="srNoFull" style="font-size:11px;color:var(--steel);margin-top:2px"></div></div><div><label for="srTgl">Letter date</label><input id="srTgl" type="date"></div></div>
+          <label for="srKepada">Addressee (one line per letter line; first two lines printed in bold)</label><textarea id="srKepada" rows="5"></textarea>
+          <div class="row"><div><label for="srTg">Payment deadline</label><select id="srTg"><option value="">No deadline</option><option value="3">3 calendar days</option><option value="7">7 calendar days</option><option value="tgl">Pick a date…</option></select></div><div><label for="srTgD">Deadline date</label><input id="srTgD" type="date" disabled></div></div>
           <div class="note" id="srTgHint"></div>
         </fieldset>
-        <fieldset><legend>Invoice yang dicantumkan</legend><div class="sr-inv" id="srInv"></div></fieldset>
-        <fieldset><legend>Rekening tujuan (boleh lebih dari satu)</legend><div class="sr-rek" id="srRek"></div></fieldset>
-        <fieldset><legend>Kontak penerima bukti transfer</legend><input id="srKontak" placeholder="mis. Fikri Zikra Akrama (AR Officer), email … / telp …"></fieldset>
-        <fieldset><legend>Surat sebelumnya ke pelanggan ini (status &amp; tanggapan)</legend><div id="srHist"></div></fieldset>
+        <fieldset><legend>Invoices included</legend><div class="sr-inv" id="srInv"></div></fieldset>
+        <fieldset><legend>Destination bank accounts (one or more)</legend><div class="sr-rek" id="srRek"></div></fieldset>
+        <fieldset><legend>Contact for proof of transfer</legend><input id="srKontak" placeholder="e.g. Fikri Zikra Akrama (AR Officer), email … / phone …"></fieldset>
+        <fieldset><legend>Previous letters to this customer (status &amp; response)</legend><div id="srHist"></div></fieldset>
       </div>
     </div>
 
@@ -640,27 +640,27 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
     <div class="scroll" id="mode-setuju" hidden>
       <div id="whoBox"></div>
       <div class="ap-tabs" id="apTabs"></div>
-      <div class="ap-tool"><label class="ap-srch" for="apQ"><svg class="ic"><use href="#i-srch"/></svg><input id="apQ" placeholder="Cari pelanggan / nomor…"></label><select id="apSort"><option value="old">Terlama</option><option value="new">Terbaru</option><option value="big">Nilai terbesar</option></select></div>
+      <div class="ap-tool"><label class="ap-srch" for="apQ"><svg class="ic"><use href="#i-srch"/></svg><input id="apQ" placeholder="Search customer / number…"></label><select id="apSort"><option value="old">Oldest</option><option value="new">Newest</option><option value="big">Largest amount</option></select></div>
       <div id="pendList"></div>
       <div id="histList" hidden></div>
     </div>
 
     <!-- ===================== MODE TUTUP BUKU BULANAN -->
     <div class="scroll" id="mode-dok" hidden>
-      <label for="mSel">Bulan</label><select id="mSel"></select>
-      <fieldset><legend>Dokumen bulan ini</legend><div id="dokList"></div></fieldset>
-      <fieldset><legend>Kartu piutang proyek (tanda tangan AR Officer &amp; Section Head)</legend>
-        <label for="kNpp">Proyek</label><input id="kNpp" list="dlNpp" placeholder="ketik NPP atau nama proyek"><datalist id="dlNpp"></datalist>
-        <div class="row" style="margin-top:2px"><div><label for="kTgl">Posisi per</label><input id="kTgl" type="date"></div><div style="display:flex;align-items:flex-end"><button class="btn" type="button" id="btnKp" style="width:100%">Buka kartu piutang</button></div></div>
+      <label for="mSel">Month</label><select id="mSel"></select>
+      <fieldset><legend>Documents this month</legend><div id="dokList"></div></fieldset>
+      <fieldset><legend>Project ledger (signed by AR Officer &amp; Section Head)</legend>
+        <label for="kNpp">Project</label><input id="kNpp" list="dlNpp" placeholder="type NPP or project name"><datalist id="dlNpp"></datalist>
+        <div class="row" style="margin-top:2px"><div><label for="kTgl">As of</label><input id="kTgl" type="date"></div><div style="display:flex;align-items:flex-end"><button class="btn" type="button" id="btnKp" style="width:100%">Open project ledger</button></div></div>
       </fieldset>
-      <fieldset><legend>Status tutup buku</legend><div id="perBox"></div></fieldset>
+      <fieldset><legend>Month-end close status</legend><div id="perBox"></div></fieldset>
     </div>
 
     <div class="actions" id="act-pkg" hidden>
       <div class="status" id="pkgTitle"></div>
       <div class="status" id="pkgStatus"></div>
-      <div class="pkgbar"><button class="btn primary" id="btnPkgPrint">Cetak / simpan PDF</button><button class="btn" id="btnPkgArch">Arsip ke Drive</button><button class="btn" id="btnPkgClose">Tutup</button></div>
-      <div class="pkgbar"><button class="btn" id="btnPkgSubmit" hidden>Ajukan ke Section Head</button><button class="btn green" id="btnPkgOk" hidden>Setujui</button><button class="btn red" id="btnPkgNo" hidden>Tolak</button></div>
+      <div class="pkgbar"><button class="btn primary" id="btnPkgPrint">Print / save PDF</button><button class="btn" id="btnPkgArch">Archive to Drive</button><button class="btn" id="btnPkgClose">Close</button></div>
+      <div class="pkgbar"><button class="btn" id="btnPkgSubmit" hidden>Submit to Section Head</button><button class="btn green" id="btnPkgOk" hidden>Approve</button><button class="btn red" id="btnPkgNo" hidden>Reject</button></div>
     </div>
     <div class="actions fxa" id="act-buat">
       <div class="status" id="saveStatus"></div>
@@ -671,8 +671,8 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
     </div>
     <div class="actions" id="act-surat" hidden>
       <div class="status" id="srStatus"></div>
-      <button class="btn primary" id="btnSrSave" disabled>Simpan PDF ke Drive &amp; catat surat</button>
-      <div class="btns"><span>Cetak</span><button class="btn" id="btnSrPrint" disabled>Surat + lampiran</button></div>
+      <button class="btn primary" id="btnSrSave" disabled>Save PDF to Drive &amp; log letter</button>
+      <div class="btns"><span>Print</span><button class="btn" id="btnSrPrint" disabled>Letter + attachments</button></div>
     </div>
     <div class="actions fxa" id="act-bayar" hidden>
       <div class="status" id="payStatus"></div>
@@ -1064,7 +1064,7 @@ function call(fn, args, ok, fail) {
   var r = RUN.withSuccessHandler(ok).withFailureHandler(function (e) { (fail || function (x) { alert(x.message || x); })(e); });
   r[fn].apply(r, args || []);
 }
-function confirmDlg(title, html, yes, onYes) { $('dlgT').textContent = title; $('dlgB').innerHTML = html; $('dlgYes').textContent = yes || 'Lanjutkan'; var d = $('dlg'); $('dlgYes').onclick = function () { d.close(); onYes(); }; $('dlgNo').onclick = function () { d.close(); }; d.showModal(); }
+function confirmDlg(title, html, yes, onYes) { $('dlgT').textContent = title; $('dlgB').innerHTML = html; $('dlgYes').textContent = yes || 'Continue'; var d = $('dlg'); $('dlgYes').onclick = function () { d.close(); onYes(); }; $('dlgNo').onclick = function () { d.close(); }; d.showModal(); }
 function pel() { return B.pelanggan.filter(function (p) { return p.nama === S.pelanggan; })[0] || null; }
 function pro() { return B.proyek.filter(function (p) { return p.npp === S.npp; })[0] || null; }
 function today() { return B ? B.today : new Date().toISOString().slice(0, 10); }
@@ -1078,29 +1078,29 @@ function boot() {
     B = b; checkEngineVersion(); srBadge(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
     applyAccess(); setMode(B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
     $('pTgl').value = today(); $('kTgl').value = today();
-  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Akses belum tersedia: ' + esc(e.message || e) + '</div>'; });
+  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Access not available yet: ' + esc(e.message || e) + '</div>'; });
 }
 /** Engine.gs (server) dan EngineClient.html (aplikasi) harus berasal dari salinan yang sama — beda versi = hitungan pratinjau bisa beda dengan yang disimpan */
 function checkEngineVersion() {
   var el = $('arVersion'), sv = String(B.version || ''), cv = String(E.VERSION || '');
   el.hidden = sv === cv;
-  if ($('verLabel')) $('verLabel').textContent = 'versi ' + cv;
-  if (sv !== cv) el.textContent = 'Versi perhitungan server (' + sv + ') berbeda dengan aplikasi (' + cv + '). Salin Engine.gs dan EngineClient.html dari rilis yang sama, lalu terbitkan ulang aplikasi web sebelum menyimpan data.';
+  if ($('verLabel')) $('verLabel').textContent = 'version ' + cv;
+  if (sv !== cv) el.textContent = 'Server calculation version (' + sv + ') differs from the app (' + cv + '). Copy Engine.gs and EngineClient.html from the same release, then redeploy the web app before saving data.';
 }
 function fillPelanggan() {
   var opts = B.pelanggan.filter(function (p) { return p.aktif !== 'TIDAK' && B.proyek.some(function (r) { return r.pelanggan === p.nama && r.aktif === 'YA'; }); })
     .sort(function (a, b) { return a.nama < b.nama ? -1 : 1; });
-  $('fPel').innerHTML = '<option value="">— pilih pelanggan —</option>' + opts.map(function (p) { return '<option>' + esc(p.nama) + '</option>'; }).join('');
+  $('fPel').innerHTML = '<option value="">— select customer —</option>' + opts.map(function (p) { return '<option>' + esc(p.nama) + '</option>'; }).join('');
 }
 function fillProyek() {
   var L = B.proyek.filter(function (p) { return p.pelanggan === S.pelanggan && (p.aktif === 'YA' || p.npp === S.npp); });
-  $('fPro').innerHTML = (L.length ? '' : '<option value="">— belum ada proyek —</option>') + L.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(p.singkat) + ' · ' + esc(p.npp) + '</option>'; }).join('');
+  $('fPro').innerHTML = (L.length ? '' : '<option value="">— no projects yet —</option>') + L.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(p.singkat) + ' · ' + esc(p.npp) + '</option>'; }).join('');
   S.npp = L.length ? L[0].npp : '';
   $('fPro').value = S.npp;
 }
 function fillSigner() {
   var p = pro(), auto = p && p.signer ? p.signer.nama : '';
-  $('fTtd').innerHTML = '<option value="">Otomatis' + (auto ? ' — ' + esc(auto) : ' (nilai kontrak kosong)') + '</option>' +
+  $('fTtd').innerHTML = '<option value="">Automatic' + (auto ? ' — ' + esc(auto) : ' (contract value empty)') + '</option>' +
     B.signers.map(function (s) { return '<option>' + esc(s.nama) + '</option>'; }).join('');
   $('fTtd').value = S.ttd || '';
 }
@@ -1155,11 +1155,11 @@ function compute() {
 /** isian SPK khusus BAP: placeholder dari Master Proyek; tandai bila berbeda */
 function bapSpkNote() {
   var p = pro(); if (!p || !$('fBapSpk')) return;
-  $('fBapSpk').placeholder = p.kontrak || '(Master Proyek kosong)'; $('fBapSpkTgl').title = 'Master: ' + (p.tgl_kontrak || '-');
+  $('fBapSpk').placeholder = p.kontrak || '(Project Master empty)'; $('fBapSpkTgl').title = 'Master: ' + (p.tgl_kontrak || '-');
   var beda = (S.bapSpk && S.bapSpk !== p.kontrak) || (S.bapSpkTgl && S.bapSpkTgl !== p.tgl_kontrak);
   $('bapSpkNote').className = 'note' + (beda ? ' warn' : ''); $('bapSpkNote').style.fontSize = '11px';
-  $('bapSpkNote').innerHTML = beda ? 'BAP invoice ini memakai SPK <b>' + esc(S.bapSpk || p.kontrak) + '</b>' + (S.bapSpkTgl ? ' tgl ' + esc(tg(S.bapSpkTgl)) : '') + ', berbeda dengan Master Proyek (<b>' + esc(p.kontrak || '-') + '</b>). Bila Master juga typo, perbaiki di Master Proyek agar invoice berikutnya benar.'
-    : 'Kosong = mengikuti Master Proyek. Isi hanya bila BAP invoice ini perlu nomor/tanggal SPK yang berbeda (mis. koreksi typo).';
+  $('bapSpkNote').innerHTML = beda ? 'This invoice BAP uses SPK <b>' + esc(S.bapSpk || p.kontrak) + '</b>' + (S.bapSpkTgl ? ' dated ' + esc(tg(S.bapSpkTgl)) : '') + ', which differs from Project Master (<b>' + esc(p.kontrak || '-') + '</b>). If the Master also has a typo, correct it in Project Master so future invoices are right.'
+    : 'Leave blank to use Project Master. Fill only if this BAP needs a different SPK number/date (e.g. typo correction).';
 }
 function update() {
   bapSpkNote();
@@ -1171,7 +1171,7 @@ function update() {
   $('grpDpp').hidden = !(tpl === 'FAJARPUTERA' || (!isProg && tpl !== 'WIKA-WITON'));
   $('ppnOnWrap').hidden = tpl === 'FAJARPUTERA';
   $('fPpnRetAls').hidden = !(retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false);
-  $('lblDpp').textContent = tpl === 'FAJARPUTERA' ? 'Tagihan saat ini (Rp, belum PPN)' : (S.jenis === 'RETENSI' ? 'Nilai retensi yang ditagih (Rp)' : 'Nilai tagihan / DPP (Rp)');
+  $('lblDpp').textContent = tpl === 'FAJARPUTERA' ? 'Current billing (IDR, excl. VAT)' : (S.jenis === 'RETENSI' ? 'Retention amount billed (IDR)' : 'Amount billed / tax base (IDR)');
   $('grpBap').hidden = tpl !== 'FAJARPUTERA'; $('tabBap').hidden = tpl !== 'FAJARPUTERA'; $('btnPBap').hidden = tpl !== 'FAJARPUTERA';
   if (DOC === 'bap' && tpl !== 'FAJARPUTERA') setDoc('inv');
   // fakta proyek
@@ -1189,8 +1189,8 @@ function update() {
   } else $('facts').hidden = true;
   // nomor
   var ex = B ? existing() : null, note = $('noNote');
-  if (ex && !SAVED) { note.hidden = false; note.className = 'note warn'; note.innerHTML = 'Nomor <b>' + esc(ex.nomor) + '</b> sudah dipakai (' + esc(ex.pelanggan) + ', ' + esc(ex.tgl) + '). Bila disimpan, tercatat sebagai <b>revisi ke-' + ((+ex.rev || 0) + 1) + '</b> dengan nomor yang sama.'; $('revBox').hidden = false; }
-  else if (SAVED) { note.hidden = false; note.className = 'note ok'; note.innerHTML = 'Tersimpan di Monitoring Invoice sebagai <b>' + esc(nomorStr()) + '</b>. Silakan cetak.'; $('revBox').hidden = true; }
+  if (ex && !SAVED) { note.hidden = false; note.className = 'note warn'; note.innerHTML = 'Number <b>' + esc(ex.nomor) + '</b> is already used (' + esc(ex.pelanggan) + ', ' + esc(ex.tgl) + '). If saved, it is recorded as <b>revision ' + ((+ex.rev || 0) + 1) + '</b> under the same number.'; $('revBox').hidden = false; }
+  else if (SAVED) { note.hidden = false; note.className = 'note ok'; note.innerHTML = 'Saved to Monitoring Invoice as <b>' + esc(nomorStr()) + '</b>. Ready to print.'; $('revBox').hidden = true; }
   else { note.hidden = true; $('revBox').hidden = true; }
   // judul & invke otomatis
   if (S.judulAuto) { S.judul = autoJudul(p); $('fJudul').value = S.judul; }
@@ -1199,7 +1199,7 @@ function update() {
   if (S.bapProgAuto) { S.bapProg = S.termin ? 'Termin ' + E.toRoman(+S.termin) : ''; $('fBapProg').value = S.bapProg; }
   CUR = compute();
   // info persen
-  if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' dari nilai kontrak' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' setelah adendum' : '');
+  if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' of contract value' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' after amendments' : '');
   else $('pctInfo').textContent = '';
   renderSummary(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
 }
@@ -1219,13 +1219,13 @@ function renderSummary() {
   if (c.total) html += '<tr><td style="color:var(--steel)">Expected cash (net + VAT − WHT)</td><td style="color:var(--steel)">Rp ' + nfDot((c.netto || 0) + (c.ppn || 0) - (c.pph || 0)) + '</td></tr>';
   $('sumTbl').innerHTML = html;
   var p = pro(), n = [];
-  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && String(p.dasar_pph || '').toUpperCase() === 'SEBELUM RETENSI') n.push('<div class="note ok">PPh retensi sudah dipotong pelanggan di invoice progres (dasar PPh <b>SEBELUM RETENSI</b>, dari nilai penuh di faktur pajak) — pelepasan retensi ini <b>tanpa PPh</b>.</div>');
-  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false) n.push('<div class="note err"><b>Risiko PPN dua kali.</b> Proyek ini memakai retensi posisi AKHIR (template ' + esc(p.template) + '): PPN atas retensi sudah ditagih di invoice progres. Matikan "Kenakan PPN" kecuali ada dasar tertulis dari Pajak / Akuntansi.</div>');
-  if (c.umCapped) n.push('<div class="note warn"><b>Potongan uang muka dibatasi.</b> Hitungan normal Rp ' + nfDot(c.umAsli) + ', tetapi sisa UM proyek tinggal Rp ' + nfDot(c.umSisa) + ' — yang dipotong hanya sisa tersebut (lihat sheet Monitoring UM &amp; Retensi).</div>');
-  else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap !== false && c.umSisa !== '' && c.umSisa <= 0) n.push('<div class="note ok">Uang muka proyek ini sudah habis dikembalikan — tidak ada potongan UM.</div>');
-  else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap === false) n.push('<div class="note warn">Sisa UM proyek belum bisa dicek: invoice lama (migrasi) tidak menyimpan potongan UM. Isi kolom <b>UM SUDAH DIKEMBALIKAN SEBELUM SISTEM</b> di Master Proyek agar potongan UM dibatasi otomatis.</div>');
-  else if (p && S.jenis === 'PROGRES' && c.umk && c.umSisa !== '') n.push('<div class="note">Sisa UM sebelum invoice ini Rp ' + nfDot(c.umSisa) + ' · sesudah Rp ' + nfDot(c.umSisa - c.umk) + '</div>');
-  if (p && S.jenis === 'RETENSI' && c.dpp > (+p.retSisa || 0) + 1000) n.push('<div class="note err"><b>Tagihan retensi Rp ' + nfDot(c.dpp) + ' melebihi retensi yang belum ditagih (Rp ' + nfDot(p.retSisa) + ').</b> Periksa sheet Monitoring UM &amp; Retensi sebelum menyimpan.</div>');
+  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && String(p.dasar_pph || '').toUpperCase() === 'SEBELUM RETENSI') n.push('<div class="note ok">WHT on retention was already withheld by the customer on the progress invoices (WHT basis <b>SEBELUM RETENSI</b>, on the full amount in the tax invoice) — this retention release carries <b>no WHT</b>.</div>');
+  if (retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false) n.push('<div class="note err"><b>Risk of double VAT.</b> This project uses end-of-contract retention (AKHIR, template ' + esc(p.template) + '): VAT on retention was already billed on the progress invoices. Untick "Charge VAT" unless there is a written basis from Tax / Accounting.</div>');
+  if (c.umCapped) n.push('<div class="note warn"><b>Down payment deduction capped.</b> Normal calculation Rp ' + nfDot(c.umAsli) + ', but the project DP balance is only Rp ' + nfDot(c.umSisa) + ' — only that balance is deducted (see the Monitoring UM &amp; Retensi sheet).</div>');
+  else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap !== false && c.umSisa !== '' && c.umSisa <= 0) n.push('<div class="note ok">This project down payment has been fully recovered — no DP deduction.</div>');
+  else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap === false) n.push('<div class="note warn">Project DP balance cannot be checked yet: legacy (migrated) invoices did not store the DP deduction. Fill the <b>UM SUDAH DIKEMBALIKAN SEBELUM SISTEM</b> column in Master Proyek so the DP deduction is capped automatically.</div>');
+  else if (p && S.jenis === 'PROGRES' && c.umk && c.umSisa !== '') n.push('<div class="note">DP balance before this invoice Rp ' + nfDot(c.umSisa) + ' · after Rp ' + nfDot(c.umSisa - c.umk) + '</div>');
+  if (p && S.jenis === 'RETENSI' && c.dpp > (+p.retSisa || 0) + 1000) n.push('<div class="note err"><b>Retention billed Rp ' + nfDot(c.dpp) + ' exceeds unbilled retention (Rp ' + nfDot(p.retSisa) + ').</b> Check the Monitoring UM &amp; Retensi sheet before saving.</div>');
   $('umNote').innerHTML = n.join('');
 }
 /** penanda tahap form: selesai = hijau, tahap aktif = biru */
@@ -1478,7 +1478,7 @@ function renderBap(d) {
 function renderDocs() {
   if (MODE === 'bayar') return renderPayView();
   var w = $('sheetwrap');
-  if (!CUR) { w.innerHTML = '<div class="empty">Pilih pelanggan dan proyek untuk melihat pratinjau dokumen.</div>'; return; }
+  if (!CUR) { w.innerHTML = '<div class="empty">Select a customer and project to preview the document.</div>'; return; }
   var d = docData();
   if (DOC === 'fp') { var f = fakturObj(); w.innerHTML = f ? pgFaktur(f, { nomor: d.nomor, no_fp: '' }, null) : ''; fitZoom(); return; }
   w.innerHTML = DOC === 'inv' ? renderInvoice(d) : DOC === 'kw' ? renderKwitansi(d) : renderBap(d);
@@ -1499,7 +1499,7 @@ function setDoc(doc) { DOC = doc; document.querySelectorAll('.tabs [data-doc]').
 
 /* ====================================================== cetak */
 function doPrint(which) {
-  if (!SAVED) { confirmDlg('Invoice belum disimpan', 'Dokumen ini belum tercatat di Monitoring Invoice. Cetak tetap, atau simpan dulu?', 'Cetak tanpa menyimpan', function () { reallyPrint(which); }); return; }
+  if (!SAVED) { confirmDlg('Invoice not saved', 'This document is not yet recorded in Monitoring Invoice. Print anyway, or save first?', 'Print without saving', function () { reallyPrint(which); }); return; }
   reallyPrint(which);
 }
 function reallyPrint(which) {
@@ -1530,44 +1530,44 @@ function submitAfterSave(kind, ref, statusId, after) {
 function save(revisi) {
   if (save._busy) return;
   var msg = [];
-  if (!S.judul.trim()) msg.push('Uraian tagihan masih kosong.');
-  if (!kontrak(pro()).net && pro().template !== 'WIKA-WITON' && pro().template !== 'FAJARPUTERA' && S.jenis === 'PROGRES') msg.push('Nilai OK proyek kosong — isi di Master Proyek.');
-  if (!signer().nama) msg.push('Penandatangan belum ditentukan.');
+  if (!S.judul.trim()) msg.push('Billing description is empty.');
+  if (!kontrak(pro()).net && pro().template !== 'WIKA-WITON' && pro().template !== 'FAJARPUTERA' && S.jenis === 'PROGRES') msg.push('Project contract (OK) value is empty — fill it in the Master Proyek sheet.');
+  if (!signer().nama) msg.push('Signatory not set.');
   if (msg.length) { $('saveStatus').innerHTML = '<span style="color:var(--red)">' + msg.join(' ') + '</span>'; return; }
   var ex = existing();
   if (S.jenis === 'RETENSI' && CUR && CUR.dpp > (+pro().retSisa || 0) + 1000 && !save._okRet) {
-    confirmDlg('Retensi melebihi saldo', 'Tagihan retensi Rp ' + nfDot(CUR.dpp) + ' melebihi retensi yang belum ditagih (Rp ' + nfDot(pro().retSisa) + '). Bisa karena retensi invoice lama belum tercatat. Tetap simpan?', 'Tetap simpan', function () { save._okRet = true; save(revisi); save._okRet = false; });
+    confirmDlg('Retention exceeds balance', 'Retention billing of Rp ' + nfDot(CUR.dpp) + ' exceeds unbilled retention (Rp ' + nfDot(pro().retSisa) + '). Older invoice retention may not be recorded yet. Save anyway?', 'Save anyway', function () { save._okRet = true; save(revisi); save._okRet = false; });
     return;
   }
   if (ex && !revisi) { revisi = true; }
-  if (revisi && !String(S.alasan || '').trim()) { $('revBox').hidden = false; $('fAlasan').focus(); $('saveStatus').innerHTML = '<span style="color:var(--red)">Isi alasan revisi terlebih dahulu.</span>'; return; }
+  if (revisi && !String(S.alasan || '').trim()) { $('revBox').hidden = false; $('fAlasan').focus(); $('saveStatus').innerHTML = '<span style="color:var(--red)">Enter the revision reason first.</span>'; return; }
   save._busy = true; $('btnSave').disabled = true; $('btnSaveSub').disabled = true; $('saveStatus').textContent = 'Saving…';
   call('apiSaveInvoice', [payload(), { revisi: !!revisi, alasan: S.alasan, expectedRev: S._loadedRev, periodeAlasan: save._periode || '' }], function (r) {
     save._busy = false; save._periode = ''; showSavedNotice(r); if (r.rev !== undefined) S._loadedRev = r.rev;
     if (r && r.needConfirm) {
-      confirmDlg('Nomor sudah ada', 'Nomor <b>' + esc(r.existing.nomor) + '</b> sudah tercatat. Simpan sebagai revisi ke-' + ((+r.existing.rev || 0) + 1) + '?', 'Simpan sebagai revisi', function () { save(true); });
+      confirmDlg('Number already exists', 'Number <b>' + esc(r.existing.nomor) + '</b> is already recorded. Save as revision ' + ((+r.existing.rev || 0) + 1) + '?', 'Save as revision', function () { save(true); });
       $('btnSave').disabled = false; $('saveStatus').textContent = ''; return;
     }
     SAVED = true;
-    $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode !== 'revisi' ? 'Tersimpan di Monitoring Invoice.'
-      : r.jenis === 'BAP' ? 'Revisi BAP tercatat (Riwayat Revisi). Nilai invoice, nomor revisi, dan persetujuan tetap. Bila paket sudah diarsipkan, buka lembar pengesahan invoice ▸ Arsip ke Drive agar PDF lama pindah ke "Revisi lama".'
-      : 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : ' (nilai tetap).') + ' Ajukan ulang invoice ke Section Head.') +
-      (r.perubahan && r.perubahan.length ? '<br><span style="color:var(--steel);font-size:11px">Perubahan: ' + esc(r.perubahan.join(' · ')) + '</span>' : '') + '</span>';
+    $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode !== 'revisi' ? 'Saved to Monitoring Invoice.'
+      : r.jenis === 'BAP' ? 'BAP revision recorded (revision history). Invoice amount, revision number and approval are unchanged. If the package is already archived, open the invoice approval sheet ▸ Archive to Drive so the old PDF moves to "Revisi lama".'
+      : 'Revision ' + r.rev + ' saved' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/VAT changed, prepare a replacement tax invoice (e-Faktur).' : ' (amounts unchanged).') + ' Resubmit the invoice to the Section Head.') +
+      (r.perubahan && r.perubahan.length ? '<br><span style="color:var(--steel);font-size:11px">Changes: ' + esc(r.perubahan.join(' · ')) + '</span>' : '') + '</span>';
     toast('Invoice ' + r.nomor + ' saved.' + (r.background ? ' Reports are refreshing in the background.' : r.reportPending ? ' Reports need refreshing.' : ' Reports are up to date.'));
     if (SUBMIT_AFTER && r.jenis !== 'BAP') { SUBMIT_AFTER = false; submitAfterSave('INV', E.normInv(r.nomor), 'saveStatus', function () { renderList(); fillOpenList(); update(); }); return; }
     SUBMIT_AFTER = false;
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); update(); });
   }, function (e) { save._busy = false; SUBMIT_AFTER = false; $('btnSave').disabled = false;
     if (askPeriodReason(e, function (al) { save._periode = al; save(revisi); })) { $('saveStatus').textContent = ''; return; }
-    save._periode = ''; $('saveStatus').innerHTML = '<span style="color:var(--red)">Gagal menyimpan: ' + esc(periodMsg(e)) + '</span>'; });
+    save._periode = ''; $('saveStatus').innerHTML = '<span style="color:var(--red)">Failed to save: ' + esc(periodMsg(e)) + '</span>'; });
 }
 /** periode tertutup: server menolak dengan kode PERIODE_TERTUTUP (belum ada izin Section Head) atau PERIODE_TERTUTUP_ALASAN (izin ada, alasan kosong) */
 function periodMsg(e) { return String(e && e.message || e).replace(/^(Error:\s*)?PERIODE_TERTUTUP(_ALASAN)?:\s*/, ''); }
 function askPeriodReason(e, retry) {
   if (String(e && e.message || e).indexOf('PERIODE_TERTUTUP_ALASAN') < 0) return false;
-  confirmDlg('Koreksi periode tertutup', esc(periodMsg(e)) + '<br><br>Koreksi akan ditandai pada data dan dikirim ke email Section Head.<textarea id="dlgPer" style="margin-top:8px" placeholder="alasan koreksi (min. 10 karakter)"></textarea>', 'Simpan dengan alasan', function () {
+  confirmDlg('Closed-period correction', esc(periodMsg(e)) + '<br><br>The correction will be flagged on the record and emailed to the Section Head.<textarea id="dlgPer" style="margin-top:8px" placeholder="correction reason (min. 10 characters)"></textarea>', 'Save with reason', function () {
     var al = (($('dlgPer') || {}).value || '').trim();
-    if (al.length < 10) { toast('Alasan minimal 10 karakter.'); return; }
+    if (al.length < 10) { toast('Reason must be at least 10 characters.'); return; }
     retry(al);
   });
   return true;
@@ -1578,18 +1578,18 @@ function statusPill(s) { var c = /CLOSE MANUAL –|PPN BELUM/.test(s) ? 'c' : /^
 function renderList() {
   var q = ($('qInv').value || '').toUpperCase().trim();
   var L = B.invoices.slice().sort(function (a, b) { return (b.tgl || '') < (a.tgl || '') ? -1 : 1; }).filter(function (i) { return !q || (i.nomor + ' ' + i.pelanggan + ' ' + i.npp + ' ' + i.proyek).toUpperCase().indexOf(q) >= 0; }).slice(0, 200);
-  $('invList').innerHTML = L.length ? L.map(function (i) { return '<tr data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span>' + (i.status_inv === 'BATAL' ? '' : i.batalPend ? '<br><span class="pbat">⏳ pembatalan menunggu</span>' : '<br><button class="linkbtn bat" type="button" data-batal="' + esc(i.nomor) + '">Batalkan…</button>') + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="empty">Tidak ada invoice yang cocok.</td></tr>';
+  $('invList').innerHTML = L.length ? L.map(function (i) { return '<tr data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span>' + (i.status_inv === 'BATAL' ? '' : i.batalPend ? '<br><span class="pbat">⏳ cancellation pending</span>' : '<br><button class="linkbtn bat" type="button" data-batal="' + esc(i.nomor) + '">Cancel…</button>') + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="empty">No matching invoices.</td></tr>';
 }
 function openInvoice(no) {
   call('apiGetInvoice', [no], function (o) {
-    if (!o) { toast('Invoice tidak ditemukan.'); return; }
+    if (!o) { toast('Invoice not found.'); return; }
     var m = String(o.nomor).match(/\.(\d{4})[A-Z]?\/(\d{4})/);
     if (o.form) { S = o.form; S.alasan = ''; }
     else {
       S = { pelanggan: o.pelanggan, npp: o.npp, tgl: o.tgl, year: m ? +m[2] : +today().slice(0, 4), digit: m ? +m[1] : '', jenis: o.jenis || 'LAINNYA', progKe: '', termin: '', progres: o.bruto || '', pct: '',
         dpp: o.dpp || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
       var pm = String(o.invke || '').match(/(\d+)/); if (pm) S.progKe = pm[1];
-      toast('Invoice hasil migrasi: angka perlu diisi ulang sebelum dicetak / direvisi.');
+      toast('Migrated invoice: amounts must be re-entered before printing / revising.');
     }
     if (m) { S.digit = +m[1]; S.year = +m[2]; }
     S._loadedRev = Number(o.rev) || 0; SAVED = true; setMode('buat'); toForm(); update();
@@ -1602,10 +1602,10 @@ function invBy(no) { var k = E.normInv(no); return B ? B.invoices.filter(functio
 function short(no) { return String(no || '').replace(/^KU\.02\.02\/WB[\.\-]4C\./, ''); }
 function fillOpenList() {
   $('dlOpen').innerHTML = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL' && !i.closed; })
-    .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.invke) + ' · sisa Rp ' + nfDot(i.sisa) + '</option>'; }).join('');
+    .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.invke) + ' · outstanding Rp ' + nfDot(i.sisa) + '</option>'; }).join('');
   $('dlAll').innerHTML = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL'; })
     .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.status) + '</option>'; }).join('');
-  $('pRek').innerHTML = '<option value="">— pilih rekening —</option>' + (B.rek || []).map(function (r) { return '<option value="' + esc(r.label) + '">' + esc(r.bank) + ' — ' + esc(r.no) + '</option>'; }).join('');
+  $('pRek').innerHTML = '<option value="">— select bank account —</option>' + (B.rek || []).map(function (r) { return '<option value="' + esc(r.label) + '">' + esc(r.bank) + ' — ' + esc(r.no) + '</option>'; }).join('');
   $('dlNpp').innerHTML = B.proyek.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(p.pelanggan) + ' · ' + esc(p.singkat) + '</option>'; }).join('');
 }
 function setPj(m) {
@@ -1616,9 +1616,9 @@ function setPj(m) {
   payChanged();
 }
 function addPayInv(no) {
-  var i = invBy(no); if (!i) { toast('Nomor invoice tidak dikenal.'); return; }
-  if (PAY.rows.some(function (r) { return E.normInv(r.nomor) === E.normInv(i.nomor); })) { toast('Invoice sudah ada di daftar.'); return; }
-  if (PAY.rows.length && invBy(PAY.rows[0].nomor).pelanggan !== i.pelanggan) toast('Perhatian: pelanggan berbeda dengan baris pertama.');
+  var i = invBy(no); if (!i) { toast('Unknown invoice number.'); return; }
+  if (PAY.rows.some(function (r) { return E.normInv(r.nomor) === E.normInv(i.nomor); })) { toast('Invoice is already in the list.'); return; }
+  if (PAY.rows.length && invBy(PAY.rows[0].nomor).pelanggan !== i.pelanggan) toast('Note: customer differs from the first row.');
   PAY.rows.push({ nomor: i.nomor, nominal: Math.max(0, i.sisa), alokasi: 'OTOMATIS', lunas: false, manual: false });
   $('pInv').value = '';
   if (num($('pTrf').value)) splitAuto(); else renderPayRows();
@@ -1630,14 +1630,14 @@ function splitAuto() {
   if (!T) { R.forEach(function (r) { r.nominal = Math.max(0, invBy(r.nomor).sisa); r.manual = false; }); renderPayRows(); return; }
   var rem = T, note = '';
   R.forEach(function (r) { var s = Math.max(0, invBy(r.nomor).sisa); r.nominal = Math.min(rem, s); rem -= r.nominal; r.manual = false; });
-  if (rem > 0) { R[R.length - 1].nominal += rem; note = 'Transfer melebihi total sisa tagihan Rp ' + nfDot(rem) + ' (dicatat di invoice terakhir sebagai lebih bayar).'; }
+  if (rem > 0) { R[R.length - 1].nominal += rem; note = 'Transfer exceeds total outstanding by Rp ' + nfDot(rem) + ' (recorded on the last invoice as overpayment).'; }
   // invoice terakhir yang terisi sebagian: cek pola cicilan (sisa PPN, PPN − PPh, Netto − PPh) — selisih kecil dipindah sebagai adm ke invoice sebelumnya
   var li = -1; R.forEach(function (r, k) { if (r.nominal > 0) li = k; });
   if (li > 0) {
     var r = R[li], i = invBy(r.nomor), prev = R[li - 1], ip = invBy(prev.nomor), adm = ip.admMax || 25000;
     if (r.nominal < Math.max(0, i.sisa) - adm) {
       var remP = Math.max(0, i.ppn - i.keP), remNK = (i.netto - i.pph) - i.keN, cands = [remP, remP - i.pph, remNK, i.netto - i.keN].filter(function (c) { return c > 0; });
-      cands.some(function (c) { var d = c - r.nominal; if (d > 0 && d <= adm && prev.nominal - d > 0) { r.nominal = c; prev.nominal -= d; note = 'Selisih Rp ' + nfDot(d) + ' dicatat sebagai biaya adm bank di ' + short(prev.nomor) + '; ' + short(r.nomor) + ' dicatat Rp ' + nfDot(c) + ' (pola cicilan).'; return true; } return false; });
+      cands.some(function (c) { var d = c - r.nominal; if (d > 0 && d <= adm && prev.nominal - d > 0) { r.nominal = c; prev.nominal -= d; note = 'Difference of Rp ' + nfDot(d) + ' recorded as bank charge on ' + short(prev.nomor) + '; ' + short(r.nomor) + ' recorded at Rp ' + nfDot(c) + ' (partial payment pattern).'; return true; } return false; });
     }
   }
   PAY.splitNote = note; renderPayRows();
@@ -1646,23 +1646,23 @@ function renderPayRows() {
   var R = PAY.rows, pv = PAY.prev && PAY.prev.rows || [];
   $('pRows').innerHTML = R.length ? R.map(function (r, k) {
     var i = invBy(r.nomor) || {}, x = pv[k];
-    return '<tr><td style="width:44%"><div class="no">' + esc(short(r.nomor)) + '</div><div class="sub">' + esc(i.pelanggan || '') + ' · ' + esc(i.invke || '') + '<br>sisa Rp ' + nfDot(i.sisa) + ' · ' + esc(i.status || '') + '</div></td>' +
-      '<td><input data-k="' + k + '" data-f="nominal" class="num" inputmode="decimal" value="' + nfDot(r.nominal) + '" aria-label="Nominal untuk ' + esc(short(r.nomor)) + '">' +
-      '<div class="inline" style="margin-top:4px;gap:4px"><select data-k="' + k + '" data-f="alokasi" aria-label="Alokasi"><option value="OTOMATIS">Otomatis</option><option value="NETTO"' + (r.alokasi === 'NETTO' ? ' selected' : '') + '>Netto</option><option value="PPN"' + (r.alokasi === 'PPN' ? ' selected' : '') + '>PPN</option></select>' +
-      '<label class="inline" style="margin:0;font-size:11px;white-space:nowrap" title="Pelanggan menyatakan sudah selesai membayar invoice ini"><input type="checkbox" data-k="' + k + '" data-f="lunas"' + (r.lunas ? ' checked' : '') + ' style="width:auto"> lunas</label></div>' +
-      (x ? '<div class="pv' + (x.cek && x.cek.indexOf('⚠') >= 0 ? ' bad' : '') + '">Netto ' + nfDot(x.keN) + ' · PPN ' + nfDot(x.keP) + (x.pph ? ' · PPh ' + nfDot(x.pph) : '') + (x.adm ? ' · adm ' + nfDot(x.adm) : '') + '<br>→ ' + esc(x.status) + (x.cek && x.cek.indexOf('⚠') >= 0 ? '<br>' + esc(x.cek) : '') + '</div>' : '') + '</td>' +
-      '<td style="width:20px"><button class="x" type="button" data-del="' + k + '" aria-label="Hapus baris">✕</button></td></tr>';
-  }).join('') : '<tr><td class="sub">Belum ada invoice. Ketik nomor invoice lalu klik Tambah — boleh lebih dari satu untuk satu transfer.</td></tr>';
+    return '<tr><td style="width:44%"><div class="no">' + esc(short(r.nomor)) + '</div><div class="sub">' + esc(i.pelanggan || '') + ' · ' + esc(i.invke || '') + '<br>outstanding Rp ' + nfDot(i.sisa) + ' · ' + esc(i.status || '') + '</div></td>' +
+      '<td><input data-k="' + k + '" data-f="nominal" class="num" inputmode="decimal" value="' + nfDot(r.nominal) + '" aria-label="Amount for ' + esc(short(r.nomor)) + '">' +
+      '<div class="inline" style="margin-top:4px;gap:4px"><select data-k="' + k + '" data-f="alokasi" aria-label="Allocation"><option value="OTOMATIS">Auto</option><option value="NETTO"' + (r.alokasi === 'NETTO' ? ' selected' : '') + '>Net</option><option value="PPN"' + (r.alokasi === 'PPN' ? ' selected' : '') + '>VAT</option></select>' +
+      '<label class="inline" style="margin:0;font-size:11px;white-space:nowrap" title="Customer confirms this invoice is fully paid"><input type="checkbox" data-k="' + k + '" data-f="lunas"' + (r.lunas ? ' checked' : '') + ' style="width:auto"> paid in full</label></div>' +
+      (x ? '<div class="pv' + (x.cek && x.cek.indexOf('⚠') >= 0 ? ' bad' : '') + '">Net ' + nfDot(x.keN) + ' · VAT ' + nfDot(x.keP) + (x.pph ? ' · WHT ' + nfDot(x.pph) : '') + (x.adm ? ' · bank charge ' + nfDot(x.adm) : '') + '<br>→ ' + esc(x.status) + (x.cek && x.cek.indexOf('⚠') >= 0 ? '<br>' + esc(x.cek) : '') + '</div>' : '') + '</td>' +
+      '<td style="width:20px"><button class="x" type="button" data-del="' + k + '" aria-label="Remove row">✕</button></td></tr>';
+  }).join('') : '<tr><td class="sub">No invoices yet. Type an invoice number and click Add — one transfer can cover several invoices.</td></tr>';
   payBalance();
 }
 function payBalance() {
   var T = Math.round(num($('pTrf').value)), S0 = PAY.rows.reduce(function (t, r) { return t + Math.round(num(r.nominal)); }, 0), el = $('pBal'), ok = true;
   if (PAY.mode !== 'trf') return;
-  if (!PAY.rows.length) { el.className = 'note'; el.textContent = 'Isi nominal transfer, lalu tambahkan invoice. Nominal per invoice dibagi otomatis dan masih bisa diubah.'; ok = false; }
-  else if (PAY.rows.length > 1 && !$('pRef').value.trim()) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>Ref. transfer / mutasi</b> (no. jurnal di mutasi rekening). Ref dipakai untuk mencegah transfer yang sama tercatat dua kali, jadi tidak dibuat otomatis.'; ok = false; }
-  else if (PAY.rows.length > 1 && !T) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>Nominal transfer</b> sesuai mutasi rekening.'; ok = false; }
-  else if (T && Math.abs(T - S0) > 0) { el.className = 'note err'; el.innerHTML = 'Jumlah per invoice Rp ' + nfDot(S0) + ' ≠ nominal transfer Rp ' + nfDot(T) + ' (selisih ' + nfDot(T - S0) + ').'; ok = false; }
-  else { el.className = 'note ok'; el.innerHTML = PAY.rows.length + ' invoice · total Rp ' + nfDot(S0) + (T ? ' = transfer ✓' : '') + (PAY.splitNote ? '<br>' + esc(PAY.splitNote) : ''); }
+  if (!PAY.rows.length) { el.className = 'note'; el.textContent = 'Enter the transfer amount, then add invoices. The amount is split across invoices automatically and can still be edited.'; ok = false; }
+  else if (PAY.rows.length > 1 && !$('pRef').value.trim()) { el.className = 'note err'; el.innerHTML = 'One transfer for ' + PAY.rows.length + ' invoices: enter the <b>bank reference</b> (journal no. on the bank statement). The reference prevents the same transfer being recorded twice, so it is not generated automatically.'; ok = false; }
+  else if (PAY.rows.length > 1 && !T) { el.className = 'note err'; el.innerHTML = 'One transfer for ' + PAY.rows.length + ' invoices: enter the <b>transfer amount</b> as shown on the bank statement.'; ok = false; }
+  else if (T && Math.abs(T - S0) > 0) { el.className = 'note err'; el.innerHTML = 'Sum of invoice amounts Rp ' + nfDot(S0) + ' ≠ transfer amount Rp ' + nfDot(T) + ' (difference ' + nfDot(T - S0) + ').'; ok = false; }
+  else { el.className = 'note ok'; el.innerHTML = PAY.rows.length + ' invoice(s) · total Rp ' + nfDot(S0) + (T ? ' = transfer ✓' : '') + (PAY.splitNote ? '<br>' + esc(PAY.splitNote) : ''); }
   if (!$('pRek').value) ok = false;
   $('btnPay').disabled = !!savePay._busy || !ok || !$('pTgl').value; $('btnPaySub').disabled = $('btnPay').disabled;
   var rec = T || S0, un = rec - S0;
@@ -1688,10 +1688,10 @@ function pbInfo() {
   if (a) {
     var lebih = /^LEBIH BAYAR/.test(a.status) ? -a.sisa : 0, pphX = a.closed && (a.pot_pph || 0) <= 5 && a.pph > 0 && a.diterima >= a.netto + a.ppn - 5 ? a.pph : 0;
     $('bFromInfo').className = 'note' + (lebih || pphX ? ' ok' : ' warn');
-    $('bFromInfo').innerHTML = esc(a.pelanggan) + ' · ' + esc(a.status) + '<br>' + (lebih ? 'Lebih bayar Rp ' + nfDot(lebih) : pphX ? 'PPh tidak dipotong pelanggan: Rp ' + nfDot(pphX) + ' (kelebihan yang bisa dikompensasi)' : 'Tidak terdeteksi kelebihan pada invoice ini — pastikan nominal benar.');
+    $('bFromInfo').innerHTML = esc(a.pelanggan) + ' · ' + esc(a.status) + '<br>' + (lebih ? 'Overpayment Rp ' + nfDot(lebih) : pphX ? 'WHT not withheld by customer: Rp ' + nfDot(pphX) + ' (excess available to offset)' : 'No excess detected on this invoice — make sure the amount is correct.');
     if (!num($('bNom').value) && (lebih || pphX)) $('bNom').value = nfDot(lebih || pphX);
-  } else $('bFromInfo').className = 'note', $('bFromInfo').textContent = 'Pilih invoice asal.';
-  if (b) { $('bToInfo').className = 'note'; $('bToInfo').innerHTML = esc(b.pelanggan) + ' · ' + esc(b.status) + ' · sisa Rp ' + nfDot(b.sisa); } else { $('bToInfo').className = 'note'; $('bToInfo').textContent = 'Pilih invoice tujuan.'; }
+  } else $('bFromInfo').className = 'note', $('bFromInfo').textContent = 'Select the source invoice.';
+  if (b) { $('bToInfo').className = 'note'; $('bToInfo').innerHTML = esc(b.pelanggan) + ' · ' + esc(b.status) + ' · outstanding Rp ' + nfDot(b.sisa); } else { $('bToInfo').className = 'note'; $('bToInfo').textContent = 'Select the target invoice.'; }
   if (PAY.mode === 'pb') { ok = ok && !!$('bTgl').value; $('btnPay').disabled = !!savePay._busy || !ok; $('btnPaySub').disabled = $('btnPay').disabled; steps('stPay', [!!(a && b), ok, false]); }
 }
 function payChanged() {
@@ -1701,34 +1701,34 @@ function payChanged() {
 function payPreview() {
   var rows = payRowsPayload(), my = ++PAY.seq;
   if (!rows.length) { PAY.prev = null; if (PAY.mode === 'trf') renderPayRows(); renderPayView(); return; }
-  $('payStatus').textContent = 'Menghitung pratinjau kartu piutang…';
+  $('payStatus').textContent = 'Calculating customer ledger preview…';
   call('apiPayPreview', [rows], function (r) {
     if (my !== PAY.seq) return;
     PAY.prev = r; $('payStatus').textContent = '';
     if (PAY.mode === 'trf') renderPayRows();
     renderPayView();
-  }, function (e) { if (my === PAY.seq) $('payStatus').innerHTML = '<span style="color:var(--red)">Pratinjau gagal: ' + esc(e.message || e) + '</span>'; });
+  }, function (e) { if (my === PAY.seq) $('payStatus').innerHTML = '<span style="color:var(--red)">Preview failed: ' + esc(e.message || e) + '</span>'; });
 }
 /** panel kanan saat mode Pembayaran: kartu piutang proyek yang terlibat, baris baru diberi warna */
 function renderPayView() {
   if (MODE !== 'bayar' || STACK) return;
   var w = $('sheetwrap'), K = PAY.prev && PAY.prev.kartu || [];
-  if (!K.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Kartu piutang proyek tampil di sini setelah invoice dipilih.<br>Baris berwarna kuning = pembayaran yang akan dicatat (belum tersimpan).</div>'; return; }
+  if (!K.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">The project ledger appears here once an invoice is selected.<br>Yellow rows = payments to be recorded (not yet saved).</div>'; return; }
   w.innerHTML = '<div class="stackwrap">' + K.map(function (k) { return pgKartu(k, null, true); }).join('') + '</div>'; fitZoom();
 }
 function savePay() {
   if (savePay._busy) return;
   var rows = payRowsPayload();
-  if (!rows.length) { $('payStatus').innerHTML = '<span style="color:var(--red)">Lengkapi data terlebih dahulu.</span>'; return; }
-  if (PAY.mode === 'trf' && !payBalance()) { $('payStatus').innerHTML = '<span style="color:var(--red)">Lengkapi rekening penerimaan; untuk transfer ke beberapa invoice isi Ref dan nominal transfer, dan pastikan jumlah per invoice sama dengan nominal transfer.</span>'; return; }
+  if (!rows.length) { $('payStatus').innerHTML = '<span style="color:var(--red)">Complete the data first.</span>'; return; }
+  if (PAY.mode === 'trf' && !payBalance()) { $('payStatus').innerHTML = '<span style="color:var(--red)">Select the receiving bank account; for a transfer covering several invoices enter the bank reference and transfer amount, and make sure the invoice amounts add up to the transfer amount.</span>'; return; }
   var request; try { request = paymentRequest(rows); } catch(e) { $('payStatus').textContent = e.message; showRecovery(); return; }
   savePay._busy = true; $('btnPay').disabled = true; $('btnPaySub').disabled = true; $('payStatus').textContent = 'Saving…';
   call('apiSavePayments', [rows, request.id, { periodeAlasan: savePay._periode || '' }], function (r) {
     savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r);
-    $('payStatus').innerHTML = '<span style="color:var(--green)">Tersimpan: ' + rows.length + ' baris. ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
+    $('payStatus').innerHTML = '<span style="color:var(--green)">Saved: ' + rows.length + ' row(s). ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
     LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY; steps('stPay', [true, true, true]);
     var subNow = SUBMIT_AFTER && LASTPAY; SUBMIT_AFTER = false; if (subNow) submitAfterSave('PAY', LASTPAY, 'payStatus');
-    toast(PAY.mode === 'pb' ? 'Pindah buku tersimpan.' : 'Pembayaran Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' tercatat.');
+    toast(PAY.mode === 'pb' ? 'Offset saved.' : 'Payment of Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' recorded.');
     var keep = rows.map(function (x) { return x.inv; });
     PAY.rows = []; PAY.splitNote = ''; $('pTrf').value = ''; $('pRef').value = ''; $('pKet').value = ''; $('bFrom').value = ''; $('bTo').value = ''; $('bNom').value = ''; $('bKet').value = '';
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB; renderPayRows();
@@ -1741,13 +1741,13 @@ function savePay() {
   }, function (e) { savePay._busy = false; SUBMIT_AFTER = false; $('btnPay').disabled = false;
     // penolakan periode terjadi sebelum apa pun ditulis: kirim ulang dengan ID permintaan yang sama aman
     if (askPeriodReason(e, function (al) { savePay._periode = al; savePay(); })) { $('payStatus').textContent = ''; return; }
-    savePay._periode = ''; showRecovery(); $('payStatus').innerHTML = '<span style="color:var(--red)">Penyimpanan belum terkonfirmasi; periksa status sebelum menginput ulang. ' + esc(periodMsg(e)) + '</span>'; });
+    savePay._periode = ''; showRecovery(); $('payStatus').innerHTML = '<span style="color:var(--red)">Save not confirmed; check the status before re-entering. ' + esc(periodMsg(e)) + '</span>'; });
 }
 
 /* ====================================================== item WIKA-WITON */
 function renderItems() {
   $('itemsTbl').innerHTML = S.items.map(function (it, k) {
-    return '<tr><td style="width:46%"><input data-k="' + k + '" data-f="uraian" value="' + esc(it.uraian) + '" placeholder="Uraian"></td><td><input data-k="' + k + '" data-f="nilai" value="' + (it.nilai ? nfDot(num(it.nilai)) : '') + '" placeholder="Nilai" class="num"></td><td style="width:16%"><input data-k="' + k + '" data-f="bulan" value="' + esc(it.bulan) + '" placeholder="Bln"></td><td style="width:22px"><button type="button" class="linkbtn" data-del="' + k + '" aria-label="Hapus baris">✕</button></td></tr>';
+    return '<tr><td style="width:46%"><input data-k="' + k + '" data-f="uraian" value="' + esc(it.uraian) + '" placeholder="Description"></td><td><input data-k="' + k + '" data-f="nilai" value="' + (it.nilai ? nfDot(num(it.nilai)) : '') + '" placeholder="Amount" class="num"></td><td style="width:16%"><input data-k="' + k + '" data-f="bulan" value="' + esc(it.bulan) + '" placeholder="Month"></td><td style="width:22px"><button type="button" class="linkbtn" data-del="' + k + '" aria-label="Remove row">✕</button></td></tr>';
   }).join('');
 }
 
@@ -1758,15 +1758,15 @@ function srBadge() { navBadges(); }
 function renderSuratList() {
   var L = (B && B.suratAlerts) || [];
   $('srList').innerHTML = L.length ? L.map(function (a) {
-    var tag = a.perlu ? '<span class="pill o">perlu surat ke-' + a.ke + (a.janjiLewat ? ' · janji bayar lewat' : '') + '</span>' : a.eskalasi ? '<span class="pill o">eskalasi ke manajemen</span>' : '<span class="pill c">menunggu s.d. ' + esc(tg(a.tunggu)) + '</span>';
+    var tag = a.perlu ? '<span class="pill o">send letter ' + a.ke + (a.janjiLewat ? ' · promise to pay missed' : '') + '</span>' : a.eskalasi ? '<span class="pill o">escalate to management</span>' : '<span class="pill c">waiting until ' + esc(tg(a.tunggu)) + '</span>';
     return '<div class="sr-card' + (SR && SR.d.pelanggan === a.pelanggan ? ' on' : '') + '" data-srpel="' + esc(a.pelanggan) + '"><h4>' + esc(titleCase(a.pelanggan)) + ' ' + tag + '</h4>' +
-      '<div class="meta">' + a.n + ' invoice · ' + a.proyek + ' proyek · sisa Rp ' + nfDot(a.sisa) + ' · lewat JT terlama ' + a.maxLewat + ' hari' +
-      (a.terakhir ? '<br>Surat terakhir ke-' + a.terakhir.ke + ' ' + esc(a.terakhir.nomor) + ' · ' + esc(tg(a.terakhir.tgl)) + (a.terakhir.tenggat ? ' · tenggat ' + esc(tg(a.terakhir.tenggat)) : '') + ' · ' + esc(a.terakhir.status) : '') +
-      (a.eskalasi ? '<br>' + a.eskalasi + ' invoice sudah melewati surat ke-3 tanpa penyelesaian' : '') + '</div></div>';
-  }).join('') : '<div class="note ok">Tidak ada invoice yang lewat jatuh tempo. Invoice tanpa jatuh tempo (belum submit / belum tanda terima) tidak ikut.</div>';
+      '<div class="meta">' + a.n + ' invoice · ' + a.proyek + ' project(s) · outstanding Rp ' + nfDot(a.sisa) + ' · oldest overdue ' + a.maxLewat + ' days' +
+      (a.terakhir ? '<br>Last letter ' + a.terakhir.ke + ' ' + esc(a.terakhir.nomor) + ' · ' + esc(tg(a.terakhir.tgl)) + (a.terakhir.tenggat ? ' · deadline ' + esc(tg(a.terakhir.tenggat)) : '') + ' · ' + esc(a.terakhir.status) : '') +
+      (a.eskalasi ? '<br>' + a.eskalasi + ' invoice(s) past letter 3 without resolution' : '') + '</div></div>';
+  }).join('') : '<div class="note ok">No overdue invoices. Invoices without a due date (not yet submitted / no receipt acknowledgement) are excluded.</div>';
 }
 function openSurat(pel) {
-  $('srStatus').textContent = 'Memuat invoice lewat jatuh tempo…';
+  $('srStatus').textContent = 'Loading overdue invoices…';
   call('apiSuratData', [pel], function (d) {
     var kontak = ''; try { kontak = localStorage.getItem('ar_sr_kontak') || ''; } catch (e) { }
     var mk = (B.roles || {}).PEMBUAT;
@@ -1779,36 +1779,36 @@ function openSurat(pel) {
     $('srKontak').value = kontak || (mk ? mk.nama + ' (' + (mk.jabatan || 'AR Officer') + '), email … / telp …' : '');
     $('srInv').innerHTML = d.projects.map(function (p) {
       return '<div style="margin:4px 0 2px;font-weight:600;font-size:12px">' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</div>' + p.invoices.map(function (i) {
-        var st = i.stage, info = !st.last ? 'belum pernah disurati → surat ke-1' : st.ke > 3 ? 'sudah surat ke-3 (' + st.last.nomor + ') → eskalasi' : (st.due ? '' : 'menunggu s.d. ' + tg(st.tunggu) + ' · ') + 'terakhir ke-' + st.last.ke + ' ' + st.last.nomor + ' → surat ke-' + st.ke;
-        return '<label><input type="checkbox" data-srinv="' + esc(i.nomor) + '"' + (SR.pick[i.nomor] ? ' checked' : '') + '><span>' + esc(short(i.nomor)) + ' · ' + esc(i.invke) + '<br><span style="color:var(--steel)">JT ' + esc(tg(i.jt)) + ' · lewat ' + i.lewat + ' hari · sisa Rp ' + nfDot(i.sisa) + '<br>' + esc(info) + '</span></span></label>';
+        var st = i.stage, info = !st.last ? 'no letter yet → letter 1' : st.ke > 3 ? 'letter 3 already sent (' + st.last.nomor + ') → escalate' : (st.due ? '' : 'waiting until ' + tg(st.tunggu) + ' · ') + 'last: letter ' + st.last.ke + ' ' + st.last.nomor + ' → letter ' + st.ke;
+        return '<label><input type="checkbox" data-srinv="' + esc(i.nomor) + '"' + (SR.pick[i.nomor] ? ' checked' : '') + '><span>' + esc(short(i.nomor)) + ' · ' + esc(i.invke) + '<br><span style="color:var(--steel)">Due ' + esc(tg(i.jt)) + ' · ' + i.lewat + ' days overdue · outstanding Rp ' + nfDot(i.sisa) + '<br>' + esc(info) + '</span></span></label>';
       }).join('');
     }).join('');
-    $('srRek').innerHTML = (B.rek || []).length ? B.rek.map(function (r) { return '<label><input type="checkbox" data-srrek="' + esc(r.label) + '"><span>' + esc(r.bank) + ' — ' + esc(r.no) + '</span></label>'; }).join('') : '<div class="note warn">Rekening penerimaan belum diisi di Parameter.</div>';
-    $('srHist').innerHTML = d.letters.length ? d.letters.slice().reverse().map(srLetterCard).join('') : '<div class="note">Belum ada.</div>';
+    $('srRek').innerHTML = (B.rek || []).length ? B.rek.map(function (r) { return '<label><input type="checkbox" data-srrek="' + esc(r.label) + '"><span>' + esc(r.bank) + ' — ' + esc(r.no) + '</span></label>'; }).join('') : '<div class="note warn">No receiving bank account set in the Parameter sheet.</div>';
+    $('srHist').innerHTML = d.letters.length ? d.letters.slice().reverse().map(srLetterCard).join('') : '<div class="note">None yet.</div>';
     $('srForm').hidden = false; $('srStatus').textContent = ''; renderSuratList(); srPreview();
   }, function (e) { $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
 }
 var SR_PILL = { 'SELESAI – LUNAS': 'l', 'DITUTUP': '', 'DIGANTI': '', 'SEBAGIAN DIBAYAR': 'c', 'DITANGGAPI': 'c', 'MENUNGGU TANGGAPAN': 'o' };
 function srLetterCard(l) {
-  return '<div class="sr-card" style="cursor:default"><h4>Surat ke-' + l.ke + ' · ' + esc(l.nomor) + (l.rev ? ' Rev.' + l.rev : '') + ' <span class="pill ' + (SR_PILL[l.status] || '') + '">' + esc(l.status) + '</span></h4><div class="meta">' +
-    esc(tg(l.tgl)) + (l.tenggat ? ' · tenggat ' + esc(tg(l.tenggat)) : ' · tanpa tenggat') + ' · Rp ' + nfDot(l.sisa) + (l.sisaKini !== l.sisa && l.status !== 'DITUTUP' ? ' → sisa kini Rp ' + nfDot(l.sisaKini) : '') + (l.link ? ' · <a target="_blank" href="' + esc(l.link) + '">PDF</a>' : '') +
-    (l.tanggap_tgl ? '<br>Tanggapan ' + esc(tg(l.tanggap_tgl)) + ' (' + esc(l.tanggap_jenis) + '): ' + esc(l.tanggap_isi) + (l.janji ? ' · <b>janji bayar ' + esc(tg(l.janji)) + '</b>' : '') : '') +
-    (l.tutup ? '<br>Ditutup: ' + esc(l.tutup) + ' · ' + esc(l.tutup_oleh) : '') +
-    (l.ganti ? '<br>Diganti surat <b>' + esc(l.ganti) + '</b>' : '') + (l.menggantikan ? '<br>Menggantikan ' + esc(l.menggantikan) : '') + (l.rev_ket ? '<br>Revisi: ' + esc(l.rev_ket) : '') + '</div>' +
-    (l.aktif ? '<div class="inline" style="gap:12px;margin-top:4px;flex-wrap:wrap"><button class="linkbtn" type="button" data-srtgp="' + esc(l.nomor) + '">Catat tanggapan…</button><button class="linkbtn" type="button" data-srrev="' + esc(l.nomor) + '">Revisi (belum dikirim)</button><button class="linkbtn" type="button" data-srgnt="' + esc(l.nomor) + '">Ganti (sudah diterima pelanggan)</button><button class="linkbtn" type="button" data-srttp="' + esc(l.nomor) + '">Tutup surat…</button></div>' : '') + '</div>';
+  return '<div class="sr-card" style="cursor:default"><h4>Letter ' + l.ke + ' · ' + esc(l.nomor) + (l.rev ? ' Rev.' + l.rev : '') + ' <span class="pill ' + (SR_PILL[l.status] || '') + '">' + esc(l.status) + '</span></h4><div class="meta">' +
+    esc(tg(l.tgl)) + (l.tenggat ? ' · deadline ' + esc(tg(l.tenggat)) : ' · no deadline') + ' · Rp ' + nfDot(l.sisa) + (l.sisaKini !== l.sisa && l.status !== 'DITUTUP' ? ' → now outstanding Rp ' + nfDot(l.sisaKini) : '') + (l.link ? ' · <a target="_blank" href="' + esc(l.link) + '">PDF</a>' : '') +
+    (l.tanggap_tgl ? '<br>Response ' + esc(tg(l.tanggap_tgl)) + ' (' + esc(l.tanggap_jenis) + '): ' + esc(l.tanggap_isi) + (l.janji ? ' · <b>promise to pay ' + esc(tg(l.janji)) + '</b>' : '') : '') +
+    (l.tutup ? '<br>Closed: ' + esc(l.tutup) + ' · ' + esc(l.tutup_oleh) : '') +
+    (l.ganti ? '<br>Replaced by letter <b>' + esc(l.ganti) + '</b>' : '') + (l.menggantikan ? '<br>Replaces ' + esc(l.menggantikan) : '') + (l.rev_ket ? '<br>Revision: ' + esc(l.rev_ket) : '') + '</div>' +
+    (l.aktif ? '<div class="inline" style="gap:12px;margin-top:4px;flex-wrap:wrap"><button class="linkbtn" type="button" data-srtgp="' + esc(l.nomor) + '">Record response…</button><button class="linkbtn" type="button" data-srrev="' + esc(l.nomor) + '">Revise (not yet sent)</button><button class="linkbtn" type="button" data-srgnt="' + esc(l.nomor) + '">Replace (already received by customer)</button><button class="linkbtn" type="button" data-srttp="' + esc(l.nomor) + '">Close letter…</button></div>' : '') + '</div>';
 }
 function srTanggapan(nomor) {
-  confirmDlg('Catat tanggapan — ' + nomor, 'Surat berikutnya ditahan sampai tanggal janji bayar (atau ' + esc(B.params.SURAT_JEDA_HARI || 7) + ' hari setelah tanggapan bila tanpa janji). Pembayaran tidak perlu dicatat di sini — penerimaan di menu Pembayaran otomatis mengubah status surat.' +
-    '<div class="row" style="margin-top:8px"><div><label for="dlgTgT">Tanggal tanggapan</label><input type="date" id="dlgTgT" value="' + esc(B.today) + '"></div><div><label for="dlgTgJ">Bentuk</label><select id="dlgTgJ"><option>SURAT BALASAN</option><option>EMAIL</option><option>TELEPON</option><option>RAPAT</option><option>LAINNYA</option></select></div></div>' +
-    '<label for="dlgTgI">Ringkasan tanggapan</label><textarea id="dlgTgI" placeholder="mis. Bagian keuangan konfirmasi pembayaran Termin 2 menunggu approval direksi"></textarea>' +
-    '<label for="dlgTgP">Janji bayar (opsional)</label><input type="date" id="dlgTgP">', 'Simpan tanggapan', function () {
-    call('apiSuratTanggapan', [nomor, { tgl: $('dlgTgT').value, jenis: $('dlgTgJ').value, isi: $('dlgTgI').value, janji: $('dlgTgP').value }], function () { toast('Tanggapan tercatat.'); srReload(); }, function (e) { toast(e.message || e); });
+  confirmDlg('Record response — ' + nomor, 'The next letter is held until the promise-to-pay date (or ' + esc(B.params.SURAT_JEDA_HARI || 7) + ' days after the response if no promise). Payments need not be recorded here — receipts entered under Cash Receipts update the letter status automatically.' +
+    '<div class="row" style="margin-top:8px"><div><label for="dlgTgT">Response date</label><input type="date" id="dlgTgT" value="' + esc(B.today) + '"></div><div><label for="dlgTgJ">Channel</label><select id="dlgTgJ"><option>SURAT BALASAN</option><option>EMAIL</option><option>TELEPON</option><option>RAPAT</option><option>LAINNYA</option></select></div></div>' +
+    '<label for="dlgTgI">Response summary</label><textarea id="dlgTgI" placeholder="e.g. Finance confirmed Termin 2 payment awaits board approval"></textarea>' +
+    '<label for="dlgTgP">Promise to pay (optional)</label><input type="date" id="dlgTgP">', 'Save response', function () {
+    call('apiSuratTanggapan', [nomor, { tgl: $('dlgTgT').value, jenis: $('dlgTgJ').value, isi: $('dlgTgI').value, janji: $('dlgTgP').value }], function () { toast('Response recorded.'); srReload(); }, function (e) { toast(e.message || e); });
   });
 }
 function srTutup(nomor) {
-  confirmDlg('Tutup surat — ' + nomor, 'Untuk penyelesaian <b>selain pembayaran</b> (sengketa / rekonsiliasi, invoice dibatalkan atau diganti). Invoice di surat ini tidak lagi masuk alert surat penagihan. Bila pelanggan sudah membayar, cukup catat penerimaannya — status menjadi SELESAI – LUNAS otomatis.' +
-    '<textarea id="dlgTtA" style="margin-top:8px" placeholder="alasan (min. 10 karakter)"></textarea>', 'Tutup surat', function () {
-    call('apiSuratTutup', [nomor, $('dlgTtA').value], function () { toast('Surat ditutup.'); srReload(); }, function (e) { toast(e.message || e); });
+  confirmDlg('Close letter — ' + nomor, 'For resolutions <b>other than payment</b> (dispute / reconciliation, invoice cancelled or replaced). Invoices in this letter will no longer appear in collection letter alerts. If the customer has paid, just record the receipt — the status becomes SELESAI – LUNAS automatically.' +
+    '<textarea id="dlgTtA" style="margin-top:8px" placeholder="reason (min. 10 characters)"></textarea>', 'Close letter', function () {
+    call('apiSuratTutup', [nomor, $('dlgTtA').value], function () { toast('Letter closed.'); srReload(); }, function (e) { toast(e.message || e); });
   });
 }
 /** revisi (belum dikirim: nomor sama) / ganti (sudah sampai pelanggan: nomor + huruf): formulir diisi dari surat asal */
@@ -1827,9 +1827,9 @@ function srStartMode(type, nomor) {
   Object.keys(SR.pick).forEach(function (k) { SR.pick[k] = keys.indexOf(E.normInv(k)) >= 0; });
   document.querySelectorAll('#srInv [data-srinv]').forEach(function (c) { c.checked = !!SR.pick[c.dataset.srinv]; });
   $('srModeBox').hidden = false;
-  $('srModeBox').innerHTML = (type === 'revisi' ? '<b>Revisi surat ' + esc(l.nomor) + '</b> (belum dikirim) — nomor tetap, tercatat Rev.' + ((l.rev || 0) + 1) + '; PDF lama dipindah ke "Revisi lama".'
-    : '<b>Surat pengganti untuk ' + esc(l.nomor) + '</b> (sudah diterima pelanggan) — nomor baru ' + esc(srNomor(urut, $('srTgl').value)) + '; surat lama berstatus DIGANTI, invoice tetap ditagih.') +
-    ' Surat ke-' + l.ke + ' (tidak naik tingkat). <button class="linkbtn" type="button" id="srModeOff">Batalkan</button>';
+  $('srModeBox').innerHTML = (type === 'revisi' ? '<b>Revising letter ' + esc(l.nomor) + '</b> (not yet sent) — number unchanged, recorded as Rev.' + ((l.rev || 0) + 1) + '; the old PDF moves to "Revisi lama".'
+    : '<b>Replacement letter for ' + esc(l.nomor) + '</b> (already received by customer) — new number ' + esc(srNomor(urut, $('srTgl').value)) + '; the old letter is marked DIGANTI, invoices remain billed.') +
+    ' Letter ' + l.ke + ' (no escalation). <button class="linkbtn" type="button" id="srModeOff">Cancel</button>';
   $('srModeOff').onclick = function () { openSurat(SR.d.pelanggan); };
   $('srForm').scrollIntoView ? $('srForm').scrollIntoView({ behavior: 'smooth' }) : 0;
   srPreview();
@@ -1968,38 +1968,38 @@ function srPreview() {
   if (MODE !== 'surat' || STACK) return;
   var w = $('sheetwrap'), o = srState();
   $('btnSrSave').disabled = $('btnSrPrint').disabled = !(o && o.all.length);
-  if ($('srNoFull')) $('srNoFull').textContent = o && o.nomor ? 'Nomor lengkap: ' + o.nomor : 'Ketik nomor urut saja, mis. 032';
-  if (!o) { w.style.transform = ''; w.innerHTML = '<div class="empty">Pilih pelanggan di kiri untuk menyusun surat permohonan percepatan pembayaran.</div>'; return; }
-  if (!o.all.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Centang minimal satu invoice.</div>'; return; }
+  if ($('srNoFull')) $('srNoFull').textContent = o && o.nomor ? 'Full number: ' + o.nomor : 'Type the sequence number only, e.g. 032';
+  if (!o) { w.style.transform = ''; w.innerHTML = '<div class="empty">Select a customer on the left to prepare a payment acceleration request letter.</div>'; return; }
+  if (!o.all.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Tick at least one invoice.</div>'; return; }
   // saran tenggat (tidak otomatis dipakai): ≥ 7 hari lewat JT → 3 hari, baru jatuh tempo → 7 hari
   var mx = Math.max.apply(null, o.all.map(function (i) { return i.lewat; }));
-  $('srTgHint').textContent = 'Surat ke-' + o.ke + (o.eskalasi ? ' (ada invoice yang sudah melewati surat ke-3 — sebaiknya eskalasi ke manajemen)' : '') + ' · Saran tenggat: ' + (mx >= 7 ? '3 hari (ada invoice lewat jatuh tempo ' + mx + ' hari)' : '7 hari (invoice baru jatuh tempo)') + (o.tenggat ? ' · dipakai: ' + tglIndo(o.tenggat) : ' · saat ini tanpa tenggat');
+  $('srTgHint').textContent = 'Letter no. ' + o.ke + (o.eskalasi ? ' (some invoices are past the 3rd letter — consider escalating to management)' : '') + ' · Suggested deadline: ' + (mx >= 7 ? '3 days (an invoice is ' + mx + ' days overdue)' : '7 days (invoices recently due)') + (o.tenggat ? ' · in use: ' + tglIndo(o.tenggat) : ' · currently no deadline');
   var r = srLayout(o);
   w.innerHTML = '<div class="stackwrap">' + r.html + '</div>'; fitZoom();
-  $('srStatus').textContent = r.n + ' halaman (surat + lampiran).';
+  $('srStatus').textContent = r.n + ' page(s) (letter + attachments).';
 }
 function srPrint() { var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
 function srSave(alasan) {
   var o = srState(); if (!o || !o.all.length) return;
   if (o.mode !== 'baru' && !alasan) {
-    confirmDlg(o.mode === 'revisi' ? 'Revisi surat ' + o.nomor : 'Surat pengganti ' + o.nomor, (o.mode === 'revisi' ? 'Surat belum dikirim ke pelanggan: nomor tetap, PDF lama dipindah ke "Revisi lama".' : 'Surat ' + esc(SR.mode.asal.nomor) + ' sudah diterima pelanggan dan akan berstatus DIGANTI. Section Head menerima email pemberitahuan.') +
-      '<textarea id="dlgRvA" style="margin-top:8px" placeholder="alasan (min. 10 karakter)"></textarea>', 'Simpan', function () { var a = (($('dlgRvA') || {}).value || '').trim(); if (a.length < 10) { toast('Alasan minimal 10 karakter.'); return; } srSave(a); });
+    confirmDlg(o.mode === 'revisi' ? 'Revise letter ' + o.nomor : 'Replacement letter ' + o.nomor, (o.mode === 'revisi' ? 'Letter not yet sent to the customer: number stays the same, old PDF is moved to "Revisi lama".' : 'Letter ' + esc(SR.mode.asal.nomor) + ' was already received by the customer and will be marked DIGANTI (replaced). Section Head will receive an email notification.') +
+      '<textarea id="dlgRvA" style="margin-top:8px" placeholder="reason (min. 10 characters)"></textarea>', 'Save', function () { var a = (($('dlgRvA') || {}).value || '').trim(); if (a.length < 10) { toast('Reason must be at least 10 characters.'); return; } srSave(a); });
     return;
   }
-  if (o.mode === 'baru' && !/^[0-9]{1,5}[A-Za-z]?$/.test(o.no)) { $('srStatus').innerHTML = '<span style="color:var(--red)">Isi nomor urut surat (angka saja, mis. 032).</span>'; $('srNo').focus(); return; }
-  if ($('srTg').value === 'tgl' && !o.tenggat) { $('srStatus').innerHTML = '<span style="color:var(--red)">Pilih tanggal tenggat.</span>'; return; }
+  if (o.mode === 'baru' && !/^[0-9]{1,5}[A-Za-z]?$/.test(o.no)) { $('srStatus').innerHTML = '<span style="color:var(--red)">Enter the letter sequence number (digits only, e.g. 032).</span>'; $('srNo').focus(); return; }
+  if ($('srTg').value === 'tgl' && !o.tenggat) { $('srStatus').innerHTML = '<span style="color:var(--red)">Select a deadline date.</span>'; return; }
   try { localStorage.setItem('ar_sr_kontak', o.kontak); } catch (e) { }
   var name = 'Surat Penagihan_' + o.nama + '_' + o.nomor;
-  $('btnSrSave').disabled = true; $('srStatus').textContent = 'Membuat PDF…';
+  $('btnSrSave').disabled = true; $('srStatus').textContent = 'Creating PDF…';
   makePdf(srHtml(), name, { plain: true }).then(function (b64) {
-    $('srStatus').textContent = 'Menyimpan ke Google Drive dan mencatat surat…';
+    $('srStatus').textContent = 'Saving to Google Drive and recording the letter…';
     call('apiSuratSimpan', [{ pelanggan: SR.d.pelanggan, mode: o.mode, asal: SR.mode ? SR.mode.asal.nomor : '', alasan: alasan || '', ke: o.ke, nomor: o.nomor, tgl: o.tgl, tenggat: o.tenggat, kepada: o.kepada.join(' / '), rekening: o.rek.map(function (r) { return r.label; }), kontak: o.kontak,
       invoices: o.all.map(function (i) { return i.nomor; }), b64: b64 }], function (r) {
-      $('srStatus').innerHTML = 'Surat tersimpan di folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>';
-      toast(r.mode === 'revisi' ? 'Revisi Rev.' + r.rev + ' surat ' + o.nomor + ' tersimpan.' : r.mode === 'ganti' ? 'Surat pengganti ' + o.nomor + ' tercatat.' : 'Surat ke-' + r.ke + ' ' + o.nomor + ' tercatat.'); var pel = SR.d.pelanggan;
+      $('srStatus').innerHTML = 'Letter saved in folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>';
+      toast(r.mode === 'revisi' ? 'Revision Rev.' + r.rev + ' of letter ' + o.nomor + ' saved.' : r.mode === 'ganti' ? 'Replacement letter ' + o.nomor + ' recorded.' : 'Letter no. ' + r.ke + ' ' + o.nomor + ' recorded.'); var pel = SR.d.pelanggan;
       refreshAll(function () { renderSuratList(); openSurat(pel); });
     }, function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
-  }).catch(function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">PDF gagal dibuat: ' + esc(e.message || e) + '</span>'; });
+  }).catch(function (e) { $('btnSrSave').disabled = false; $('srStatus').innerHTML = '<span style="color:var(--red)">Failed to create PDF: ' + esc(e.message || e) + '</span>'; });
 }
 function bindSurat() {
   $('srList').onclick = function (e) { var c = e.target.closest('[data-srpel]'); if (c) openSurat(c.dataset.srpel); };
@@ -2029,8 +2029,8 @@ function setMode(m) {
   if (m === 'dashboard') renderDashboard();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
-  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih ' + (B && B.access && B.access.maker ? 'item di daftar kiri untuk melihat lembar pengesahan dan mengajukannya.' : 'pengajuan di daftar kiri untuk memeriksa dan memutuskan.') + '</div>'; }
-  if (m === 'dok') { renderDok(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih dokumen bulanan atau kartu piutang untuk melihat pratinjau.</div>'; }
+  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
+  if (m === 'dok') { renderDok(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select a monthly document or customer ledger to preview.</div>'; }
 }
 
 /* ====================================================== event */
@@ -2097,8 +2097,8 @@ function bind() {
   $('bNom').oninput = payChanged; $('bNom').onblur = function () { var v = num(this.value); if (v) this.value = nfDot(v); };
   $('btnPay').onclick = function () { SUBMIT_AFTER = false; savePay(); };
   $('btnPaySub').onclick = function () { SUBMIT_AFTER = true; savePay(); };
-  $('btnKp').onclick = function () { var n = $('kNpp').value.trim(); if (!B.proyek.some(function (p) { return p.npp === n; })) { toast('Pilih NPP dari daftar.'); return; } openPackage('KP', n + '|' + ($('kTgl').value || today())); };
-  $('btnPkgInv').onclick = function () { if (!SAVED) { toast('Simpan invoice ke Monitoring terlebih dahulu.'); return; } openPackage('INV', E.normInv(nomorStr())); };
+  $('btnKp').onclick = function () { var n = $('kNpp').value.trim(); if (!B.proyek.some(function (p) { return p.npp === n; })) { toast('Select an NPP from the list.'); return; } openPackage('KP', n + '|' + ($('kTgl').value || today())); };
+  $('btnPkgInv').onclick = function () { if (!SAVED) { toast('Save the invoice to Monitoring first.'); return; } openPackage('INV', E.normInv(nomorStr())); };
   $('btnPayPkg').onclick = function () { if (LASTPAY) { setMode('setuju'); openPackage('PAY', LASTPAY); } };
   $('btnPkgPrint').onclick = function () { if (PKG) printHtml(PKG._pages.all); };
   $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(MODE); };
@@ -2119,15 +2119,15 @@ function fakturObj() {
 function fpVal(v) { return typeof v === 'number' ? nfDot(v) : esc(v); }
 function renderFakturPanel() {
   var f = fakturObj(), box = $('fpBox'); if (!box) return;
-  if (!f) { box.innerHTML = '<div class="note">Pilih pelanggan & proyek.</div>'; return; }
+  if (!f) { box.innerHTML = '<div class="note">Select customer & project.</div>'; return; }
   box.innerHTML = '<table class="fp">' + f.fields.map(function (x, i) {
-    return '<tr><td>' + esc(x[0]) + '</td><td class="v">' + fpVal(x[1]) + '</td><td style="width:52px;text-align:right">' + (x[2] !== '' ? '<button type="button" data-cp="' + i + '">Salin</button>' : '') + '</td></tr>';
+    return '<tr><td>' + esc(x[0]) + '</td><td class="v">' + fpVal(x[1]) + '</td><td style="width:52px;text-align:right">' + (x[2] !== '' ? '<button type="button" data-cp="' + i + '">Copy</button>' : '') + '</td></tr>';
   }).join('') + '</table>' + f.warn.map(function (w) { return '<div class="note warn">' + esc(w) + '</div>'; }).join('') +
-    '<div class="note ok">Angka disalin tanpa titik, siap ditempel ke Coretax. Setelah faktur terbit, catat NOMOR & TANGGAL FAKTUR di Monitoring Invoice.</div>';
+    '<div class="note ok">Numbers are copied without dots, ready to paste into Coretax. Once the tax invoice is issued, record the TAX INVOICE NUMBER & DATE in Monitoring Invoice.</div>';
   box.onclick = function (e) { var b = e.target.closest('button[data-cp]'); if (!b) return; copyText(f.fields[+b.dataset.cp][2], b); };
 }
 function copyText(t, btn) {
-  var done = function () { if (btn) { btn.textContent = '✓'; btn.classList.add('ok'); setTimeout(function () { btn.textContent = 'Salin'; btn.classList.remove('ok'); }, 1400); } };
+  var done = function () { if (btn) { btn.textContent = '✓'; btn.classList.add('ok'); setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 1400); } };
   if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(String(t)).then(done, function () { fallbackCopy(t); done(); });
   else { fallbackCopy(t); done(); }
 }
@@ -2292,7 +2292,7 @@ function pgBatal(pkg) {
   if (a && (pend || ok || a.status === 'DITOLAK')) h += '<h3>Alasan pembatalan</h3><div class="bbox">' + esc(pkg.alasan || '-') + (pkg.pengganti ? '<br><span style="color:#4A5A72">Invoice pengganti: ' + esc(pkg.pengganti) + '</span>' : '') + '</div>';
   if (a && a.status === 'DITOLAK') h += '<div class="warn">Pembatalan DITOLAK Section Head' + (a.catatan ? ': ' + esc(a.catatan) : '') + '. Invoice tetap AKTIF.</div>';
   h += '<h3>' + (ok ? 'Tindak lanjut' : 'Pemeriksaan sebelum pembatalan') + '</h3><ul class="bchk">' + (pkg.checks || []).map(function (c) { return '<li class="' + c.s + '">' + (c.s === 'ok' ? '✓ ' : c.s === 'bad' ? '✗ ' : '● ') + esc(c.t) + '</li>'; }).join('') + '</ul>';
-  if (!a || a.status === 'DITOLAK') h += pkg.canSubmit ? '<div class="warn">Klik <b>Ajukan pembatalan ke Section Head</b> di panel kiri, lalu isi alasannya.</div>' : '<div class="warn">' + esc(pkg.blok || '') + '</div>';
+  if (!a || a.status === 'DITOLAK') h += pkg.canSubmit ? '<div class="warn">Click <b>Submit cancellation to Section Head</b> in the left panel, then enter the reason.</div>' : '<div class="warn">' + esc(pkg.blok || '') + '</div>';
   return h + signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
 }
 /* ---------- v2.5: Lembar Validasi Rencana Cair — keputusan Section Head per invoice ---------- */
@@ -2349,7 +2349,7 @@ function pgValidasiDecide(pkg) {
   if (pkg.dasar) h += '<div class="note">Dasar revisi: <b>' + (pkg.dasar === 'PUSAT' ? 'hasil rapat pusat' + (pkg.tglRapat ? ' tanggal ' + tg(pkg.tglRapat) : '') : 'koreksi internal') + '</b>. Tanda ➕ / ➖ menunjukkan invoice yang ditambah / digeser.</div>';
   h += '<div class="vleg"><div class="vC"><b>✓ CAIR</b>Target cair bulan ini. Masuk RA.</div><div class="vS"><b>◇ CADANGAN</b>Dikejar bila bisa, pengganti kalau yang ✓ meleset. Bukan target.</div><div class="vN"><b>→ BULAN DEPAN</b>Digeser. Otomatis jadi usulan bulan berikutnya.</div><div class="vH"><b>⏸ HOLD</b>Ditahan (sengketa, dokumen kurang, dll). Alasan wajib diisi.</div></div>';
   h += '<div class="vtot">' + DECO.map(function (d) { return '<div class="v' + d + '"><span>' + DECL[d] + ' · ' + T[d].n + ' invoice</span><b>' + (d === 'C' || d === 'S' ? 'Rp ' + nd(T[d].nilai) : T[d].n + ' inv') + '</b>' + (d === 'C' || d === 'S' ? '<i>kas masuk Rp ' + nd(T[d].sisa) + '</i>' : '') + '</div>'; }).join('') + '</div>';
-  h += '<div class="vq"><button class="btn" type="button" data-vq="reset">↺ Kembalikan ke pilihan awal</button><button class="btn" type="button" data-vq="print">Lihat pratinjau cetak</button><span>Pilihan awal = usulan AR (atau keputusan yang berlaku). Tanpa usulan → BULAN DEPAN.</span></div>';
+  h += '<div class="vq"><button class="btn" type="button" data-vq="reset">↺ Reset to initial choices</button><button class="btn" type="button" data-vq="print">Print preview</button><span>Initial choice = AR proposal (or the decision in force). No proposal → BULAN DEPAN.</span></div>';
   h += '<div class="vscroll"><table class="vt"><tr><th>No</th><th>Pelanggan / proyek</th><th>Invoice</th><th>Tagihan · JT</th><th class="n">Rencana cair<br>(DPP − PPh)</th><th class="n">Perkiraan kas<br>masuk</th><th>Usulan AR</th><th>Validasi Section Head F&amp;HR</th></tr>';
   var no = 0;
   ['A', 'B', 'C', 'D'].forEach(function (g) {
@@ -2360,10 +2360,10 @@ function pgValidasiDecide(pkg) {
       h += '<tr class="' + (chg ? 'chg' : '') + '"><td>' + no + '</td><td>' + esc(x.pelanggan) + '<div class="vs">' + esc(x.npp) + ' · ' + esc(x.proyek) + '</div></td><td>' + esc(short(x.nomor)) + (+x.paid > 0 ? '<br><span class="vpaid">sudah cair ' + tg(x.paidTgl) + ' · Rp ' + nd(x.paid) + '</span>' : '') +
         (x.carry ? '<div class="vs">digeser dari ' + esc(x.carry) + '</div>' : '') + (x.prev && !x.carry ? '<div class="vs">' + esc(x.prev) + '</div>' : '') + '</td><td>' + esc(x.invke) + '<div class="vs">JT ' + (x.jt ? tg(x.jt) : 'belum ada') + ' · ' + esc(x.status) + '</div>' + (x.rtgl ? '<div class="vs"><b>Rencana cair ' + tg(x.rtgl) + '</b></div>' : '') + (x.catatan ? '<div class="vs">Catatan AR: ' + esc(x.catatan) + '</div>' : '') + pTag(x.p) + '</td><td class="n">' + nd(x.nilai) + '</td><td class="n">' + nd(x.sisa) + '</td><td class="vu">' + (x.usul ? DECL[x.usul] : '<span class="vs">tanpa usulan</span>') + '</td><td><div class="vseg">' +
         DECO.map(function (k) { return '<button type="button" data-vn="' + esc(x.nomor) + '" data-vd="' + k + '" class="' + k + (d === k ? ' on' : '') + '">' + DECL[k] + '</button>'; }).join('') + '</div>' +
-        (chg ? '<div class="vchg">diubah dari pilihan awal ' + DECL[x.def] + '</div>' : '') + (d === 'H' ? '<input class="vreason" data-vr="' + esc(x.nomor) + '" placeholder="Alasan HOLD (wajib)" value="' + esc(vAls(x)) + '">' : '') + '</td></tr>';
+        (chg ? '<div class="vchg">diubah dari pilihan awal ' + DECL[x.def] + '</div>' : '') + (d === 'H' ? '<input class="vreason" data-vr="' + esc(x.nomor) + '" placeholder="HOLD reason (required)" value="' + esc(vAls(x)) + '">' : '') + '</td></tr>';
     });
   });
-  h += '</table></div><div class="vact"><button class="btn red" type="button" data-vq="no">Tolak seluruh lembar</button><button class="btn green" type="button" data-vq="ok">Setujui keputusan ini</button></div></div>';
+  h += '</table></div><div class="vact"><button class="btn red" type="button" data-vq="no">Reject entire sheet</button><button class="btn green" type="button" data-vq="ok">Approve these decisions</button></div></div>';
   return h;
 }
 /* ---------- v2.7: usulan AR di aplikasi (satu sumber data; Pareto hanya menampilkan) ---------- */
@@ -2392,7 +2392,7 @@ function pgValidasiUsulan(pkg) {
   if (rev) h += '<div class="vdasar"><b>Dasar revisi:</b> <label><input type="radio" name="vdasar" value="PUSAT"' + (pus ? ' checked' : '') + '> Hasil rapat pusat</label> <label><input type="radio" name="vdasar" value="INTERNAL"' + (VUS.dasar === 'INTERNAL' ? ' checked' : '') + '> Koreksi internal</label>' +
     (pus ? ' <span>· Tanggal rapat pusat <input type="date" id="vRapat" value="' + esc(VUS.tglRapat) + '"' + (VUS.tried && !VUS.tglRapat ? ' class="bad"' : '') + '></span>' : '') + '<div class="vs">Kolom "Berlaku" = keputusan yang sedang berlaku. Centang ➕ untuk invoice yang ditambahkan rapat pusat; invoice ✓ yang digeser ke bulan depan otomatis bertanda ➖.</div></div>';
   h += '<div class="vtot vtot5">' + DECO.map(function (d) { return '<div class="v' + d + '"><span>' + DECL[d] + ' · ' + T[d].n + ' invoice</span><b>' + (d === 'C' || d === 'S' ? 'Rp ' + nd(T[d].nilai) : T[d].n + ' inv') + '</b>' + (d === 'C' || d === 'S' ? '<i>kas masuk Rp ' + nd(T[d].sisa) + '</i>' : '') + '</div>'; }).join('') + '<div class="vX"><span>Tanggal belum lengkap</span><b>' + nb + ' baris</b><i>wajib untuk ✓ / ◇</i></div></div>';
-  h += '<div class="vq"><span>Isi cepat:</span><button class="btn" type="button" data-uq="A:C">Semua tunggakan → ✓ CAIR</button><button class="btn" type="button" data-uq="B:C">Semua jatuh tempo bulan ini → ✓ CAIR</button><button class="btn" type="button" data-uq="D:N">Semua bulan depan → → BULAN DEPAN</button><button class="btn" type="button" data-uq="tgl">Isi tanggal kosong = akhir bulan</button><button class="btn" type="button" data-uq="clear">Kosongkan semua usulan</button></div>';
+  h += '<div class="vq"><span>Quick fill:</span><button class="btn" type="button" data-uq="A:C">All arrears → ✓ CAIR</button><button class="btn" type="button" data-uq="B:C">All due this month → ✓ CAIR</button><button class="btn" type="button" data-uq="D:N">All due next month → → BULAN DEPAN</button><button class="btn" type="button" data-uq="tgl">Blank dates = month end</button><button class="btn" type="button" data-uq="clear">Clear all proposals</button></div>';
   h += '<div class="vscroll"><table class="vt"><tr><th>No</th><th>Pelanggan / proyek</th><th>Invoice</th><th>Tagihan · JT</th><th class="n">Rencana cair<br>(DPP − PPh)</th><th class="n">Perkiraan kas<br>masuk</th>' + (rev ? '<th>Berlaku</th>' : '') + '<th>Usulan AR</th><th>Rencana tgl cair</th><th>Catatan AR</th>' + (rev && pus ? '<th>Rapat pusat</th>' : '') + '</tr>';
   var no = 0, cs = rev ? (pus ? 11 : 10) : 9;
   ['A', 'B', 'C', 'D'].forEach(function (g) {
@@ -2406,11 +2406,11 @@ function pgValidasiUsulan(pkg) {
         (rev ? '<td class="vu">' + (x.cur ? DECL[x.cur] : '<span class="vs">—</span>') + '</td>' : '') +
         '<td><div class="vseg">' + DECO.map(function (k) { return '<button type="button" data-un="' + nm + '" data-uk="' + k + '" class="' + k + (v.u === k ? ' on' : '') + '">' + DECL[k] + '</button>'; }).join('') + '</div>' + (v.u ? '' : '<div class="vs">belum diisi → terkirim sebagai → BULAN DEPAN</div>') + (minus ? '<div class="vchg">➖ digeser rapat pusat (otomatis)</div>' : '') + '</td>' +
         '<td><input type="date" class="vdate' + (bad ? ' bad' : '') + '" data-ud="' + nm + '" value="' + esc(v.d) + '" min="' + pkg.start + '" max="' + pkg.end + '">' + (need ? (bad ? '<div class="vneed">wajib, tanggal di ' + esc(pkg.label) + '</div>' : '<div class="vs">wajib</div>') : '<div class="vs">tidak perlu</div>') + '</td>' +
-        '<td><input class="vcat" data-uc="' + nm + '" value="' + esc(v.c) + '" placeholder="opsional — terbaca Section Head"></td>' +
+        '<td><input class="vcat" data-uc="' + nm + '" value="' + esc(v.c) + '" placeholder="optional — visible to Section Head"></td>' +
         (rev && pus ? '<td>' + (need ? '<label class="vplus"><input type="checkbox" data-up="' + nm + '"' + (v.p === '+' ? ' checked' : '') + '> ➕ tambahan</label>' : '') + '</td>' : '') + '</tr>';
     });
   });
-  h += '</table></div><div class="vact"><span class="vmsg" id="vusMsg"></span>' + (pkg.recs ? '<button class="btn" type="button" data-uq="valx">Batalkan lembar bulan ini…</button>' : '') + '<button class="btn" type="button" data-vq="print">Pratinjau cetak</button><button class="btn" type="button" data-uq="save">Simpan draf</button><button class="btn blue" type="button" data-uq="submit">Ajukan ke Section Head</button></div></div>';
+  h += '</table></div><div class="vact"><span class="vmsg" id="vusMsg"></span>' + (pkg.recs ? '<button class="btn" type="button" data-uq="valx">Cancel this month’s sheets…</button>' : '') + '<button class="btn" type="button" data-vq="print">Print preview</button><button class="btn" type="button" data-uq="save">Save draft</button><button class="btn blue" type="button" data-uq="submit">Submit to Section Head</button></div></div>';
   return h;
 }
 function vusPayload() {
@@ -2419,18 +2419,18 @@ function vusPayload() {
 }
 function vusMsg(t, err) { var m = $('vusMsg'); if (m) { m.className = 'vmsg' + (err ? ' e' : ' s'); m.textContent = t; } $('pkgStatus').innerHTML = err ? '<span style="color:var(--red)">' + esc(t) + '</span>' : esc(t); }
 function vusSave() {
-  vusMsg('Menyimpan draf…');
-  call('apiSaveUsulan', [PKG.ref, vusPayload()], function (r) { VUS.savedAt = r.at; vusMsg('Draf tersimpan ' + r.at + ' (' + r.n + ' invoice). Pareto ikut diperbarui.'); }, function (e) { vusMsg(e.message || String(e), true); });
+  vusMsg('Saving draft…');
+  call('apiSaveUsulan', [PKG.ref, vusPayload()], function (r) { VUS.savedAt = r.at; vusMsg('Draft saved ' + r.at + ' (' + r.n + ' invoices). Pareto updated too.'); }, function (e) { vusMsg(e.message || String(e), true); });
 }
 function vusSubmit() {
   VUS.tried = true; var items = (PKG.items || []).filter(function (x) { return !x.gone; }), nb = items.filter(vusBad).length;
-  if (VUS.revisi && !VUS.dasar) { vRender(true); vusMsg('Pilih dasar revisi: hasil rapat pusat atau koreksi internal.', true); return; }
-  if (VUS.revisi && VUS.dasar === 'PUSAT' && !VUS.tglRapat) { vRender(true); vusMsg('Isi tanggal rapat pusat.', true); return; }
-  if (nb) { vRender(true); vusMsg(nb + ' invoice ✓ / ◇ belum ada rencana tanggal cair di ' + PKG.label + '. Lengkapi dulu (atau Simpan draf).', true); var el = document.querySelector('.vdate.bad'); if (el) el.focus(); return; }
+  if (VUS.revisi && !VUS.dasar) { vRender(true); vusMsg('Select the revision basis: head-office meeting or internal correction.', true); return; }
+  if (VUS.revisi && VUS.dasar === 'PUSAT' && !VUS.tglRapat) { vRender(true); vusMsg('Enter the head-office meeting date.', true); return; }
+  if (nb) { vRender(true); vusMsg(nb + ' invoice(s) ✓ / ◇ have no planned collection date in ' + PKG.label + '. Complete them first (or Save draft).', true); var el = document.querySelector('.vdate.bad'); if (el) el.focus(); return; }
   var T = {}; DECO.forEach(function (d) { T[d] = 0; }); items.forEach(function (x) { T[VUS.items[x.nomor].u || 'N']++; });
-  confirmDlg('Ajukan usulan rencana cair ' + esc(PKG.label) + '?', 'Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ' · ' + DECO.map(function (d) { return DECL[d] + ' ' + T[d]; }).join(' · ') + ' invoice.' + (VUS.revisi ? '<br>Dasar revisi: <b>' + (VUS.dasar === 'PUSAT' ? 'hasil rapat pusat ' + tg(VUS.tglRapat) : 'koreksi internal') + '</b>. Keputusan yang berlaku tetap dipakai sampai revisi ini disetujui.' : '') + '<br><span style="font-size:12px;color:var(--steel)">Usulan terkunci sampai Section Head memutuskan.</span>', 'Ajukan', function () {
-    vusMsg('Mengajukan…');
-    call('apiSubmit', ['VAL', PKG.ref, vusPayload()], function (r) { toast('Diajukan: ' + r.id); refreshAll(function () { openPackage('VAL', PKG.ref, true); $('pkgStatus').textContent = 'Diajukan dengan ID ' + r.id + '. Menunggu keputusan Section Head.'; }); }, function (e) { vusMsg(e.message || String(e), true); });
+  confirmDlg('Submit collection plan proposal ' + esc(lblEn(PKG.label)) + '?', 'Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ' · ' + DECO.map(function (d) { return DECL[d] + ' ' + T[d]; }).join(' · ') + ' invoice.' + (VUS.revisi ? '<br>Revision basis: <b>' + (VUS.dasar === 'PUSAT' ? 'head-office meeting ' + tg(VUS.tglRapat) : 'internal correction') + '</b>. The decision in force stays in use until this revision is approved.' : '') + '<br><span style="font-size:12px;color:var(--steel)">Proposal is locked until the Section Head decides.</span>', 'Submit', function () {
+    vusMsg('Submitting…');
+    call('apiSubmit', ['VAL', PKG.ref, vusPayload()], function (r) { toast('Submitted: ' + r.id); refreshAll(function () { openPackage('VAL', PKG.ref, true); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '. Awaiting Section Head decision.'; }); }, function (e) { vusMsg(e.message || String(e), true); });
   });
 }
 document.addEventListener('click', function (e) {
@@ -2447,7 +2447,7 @@ document.addEventListener('click', function (e) {
   if (c === 'submit') return vusSubmit();
   if (c === 'valx') return openPackage('VALX', PKG.ref);
   if (c === 'tgl') its.forEach(function (x) { var v = VUS.items[x.nomor]; if ((v.u === 'C' || v.u === 'S') && !(v.d >= PKG.start && v.d <= PKG.end)) v.d = PKG.end; });
-  else if (c === 'clear') { if (!confirm('Kosongkan semua usulan, tanggal, dan catatan di layar ini? (Persetujuan yang sudah ada tidak terpengaruh. Belum tersimpan sampai Simpan draf.)')) return; its.forEach(function (x) { VUS.items[x.nomor] = { u: +x.paid > 0 ? 'C' : '', d: +x.paid > 0 ? x.paidTgl : '', c: '', p: '' }; }); }
+  else if (c === 'clear') { if (!confirm('Clear all proposals, dates and notes on this screen? (Existing approvals are not affected. Nothing is saved until Save draft.)')) return; its.forEach(function (x) { VUS.items[x.nomor] = { u: +x.paid > 0 ? 'C' : '', d: +x.paid > 0 ? x.paidTgl : '', c: '', p: '' }; }); }
   else { var g = c.split(':'); its.forEach(function (x) { var v = VUS.items[x.nomor]; if (x.grp === g[0] && v.u !== 'H' && !(+x.paid > 0 && g[1] !== 'C')) { v.u = g[1]; if (v.u !== 'C' && v.u !== 'S') v.p = ''; } }); }
   vRender(true);
 });
@@ -2465,7 +2465,7 @@ function pgValX(pkg) {
   var h = '<div class="page pg-flow">' + docHead('PEMBATALAN LEMBAR VALIDASI RENCANA CAIR', 'Lembar validasi ' + esc(pkg.label.replace(/^Pembatalan lembar validasi /, '')) + ' yang dibatalkan (tidak dihapus). Sesudah disetujui, lembar ini tidak lagi dipakai RA/RI, PDF-nya dipindah ke folder "Dibatalkan", dan nomor revisi dimulai lagi dari Rev.00.', 'Ref. ' + esc(pkg.ref) + (a ? '<br>' + esc(a.id) : ''));
   h += '<table class="t"><tr><th>ID</th><th>Uraian</th><th>Status</th><th>Diajukan</th><th>Diputuskan</th><th>Kode</th></tr>' + (pkg.list || []).map(function (r) { return '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.label) + '</td><td>' + (ok ? 'DIBATALKAN (sebelumnya ' + esc(r.status) + ')' : esc(r.status)) + '</td><td>' + esc(r.waktu || '') + '</td><td>' + esc(r.putus || '') + '</td><td>' + esc(r.kode || '') + '</td></tr>'; }).join('') + '</table>';
   if (a) h += '<h3>Alasan pembatalan</h3><div class="bbox">' + esc(pkg.alasan || '-') + '</div>';
-  if (!a || a.status === 'DITOLAK') h += '<div class="warn">' + (pkg.canSubmit ? 'Klik <b>Ajukan pembatalan ke Section Head</b> di panel kiri, lalu isi alasannya.' : esc(pkg.blok || '')) + '</div>';
+  if (!a || a.status === 'DITOLAK') h += '<div class="warn">' + (pkg.canSubmit ? 'Click <b>Submit cancellation to Section Head</b> in the left panel, then enter the reason.' : esc(pkg.blok || '')) + '</div>';
   return h + signBlock(pkg, false, false) + docFoot(pkg) + '</div>';
 }
 function vDecideMode() { return !!(PKG && PKG.kind === 'VAL' && PKG.v === 2 && PKG._canDecide && PKG.appr && PKG.appr.status === 'MENUNGGU'); }
@@ -2473,7 +2473,7 @@ function vRender(keepScroll) {
   var st = $('stage'), y = st ? st.scrollTop : 0;
   PKG._pages = buildPages(PKG, '');
   var w = $('sheetwrap');
-  if (PKG._view === 'print') { w.innerHTML = '<div class="stackwrap">' + PKG._pages.all + '</div><div class="vback"><button class="btn" type="button" data-vq="back">← Kembali ke layar ' + (PKG._mode === 'usul' ? 'usulan' : 'keputusan') + '</button></div>'; fitZoom(); }
+  if (PKG._view === 'print') { w.innerHTML = '<div class="stackwrap">' + PKG._pages.all + '</div><div class="vback"><button class="btn" type="button" data-vq="back">← Back to ' + (PKG._mode === 'usul' ? 'proposal' : 'decision') + ' screen</button></div>'; fitZoom(); }
   else { w.style.transform = ''; w.style.width = '100%'; w.style.minWidth = '0'; w.style.height = ''; w.innerHTML = PKG._mode === 'usul' ? pgValidasiUsulan(PKG) : pgValidasiDecide(PKG); }
   if (keepScroll && st) st.scrollTop = y;
 }
@@ -2539,7 +2539,7 @@ function openPackage(kind, ref, quiet, after) {
     if (kind !== 'INV') return show('');
     if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
     call('apiGetInvoice', [pkg.inv.nomor], function (o) { show(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { show(''); });
-  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Gagal memuat dokumen: ' + esc(e.message || e) + '</div>'; });
+  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Failed to load document: ' + esc(e.message || e) + '</div>'; });
 }
 function showPackage() {
   if (!PKG) return;
@@ -2557,8 +2557,8 @@ function showPackage() {
 }
 function closePackage() { STACK = false; PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); renderDocs(); }
 function skelHtml(kind, ref) {
-  var nm = { INV: 'lembar pengesahan invoice', PAY: 'lembar pengesahan penerimaan', VAL: 'lembar validasi rencana cair', REK: 'rekap bulanan', KP: 'kartu piutang', TUTUP: 'lembar penutupan manual', BATAL: 'lembar pembatalan', VALX: 'pembatalan lembar validasi' }[kind] || 'dokumen';
-  return '<div class="skel"><div class="pg"><div class="spin"></div>Menyiapkan ' + nm + ' ' + esc(String(ref).replace(/^REF\s+/, '').replace(/^KU\.02\.02\/WB-4C\./, '')) + '…</div>' +
+  var nm = { INV: 'invoice approval sheet', PAY: 'cash receipt approval sheet', VAL: 'collection plan validation sheet', REK: 'monthly summary', KP: 'customer ledger', TUTUP: 'manual close sheet', BATAL: 'cancellation sheet', VALX: 'validation sheet cancellation' }[kind] || 'document';
+  return '<div class="skel"><div class="pg"><div class="spin"></div>Preparing ' + nm + ' ' + esc(String(ref).replace(/^REF\s+/, '').replace(/^KU\.02\.02\/WB-4C\./, '')) + '…</div>' +
     '<div class="sk" style="width:40%;height:16px"></div><div class="sk" style="width:72%"></div><div class="sk" style="height:90px;margin:16px 0"></div><div class="sk" style="width:55%"></div><div class="sk" style="width:35%"></div>' +
     '<div style="display:flex;gap:12px;margin-top:22px"><div class="sk" style="flex:1;height:90px"></div><div class="sk" style="flex:1;height:90px"></div><div class="sk" style="flex:1;height:90px"></div></div></div>';
 }
@@ -2566,11 +2566,11 @@ function skelHtml(kind, ref) {
 function pkgTabsInit() {
   var pages = Array.prototype.slice.call(document.querySelectorAll('#sheetwrap .stackwrap > .page')), groups = [];
   var nameOf = function (pg) { var h = pg.querySelector('h2'), t = h ? h.textContent.trim().toUpperCase() : '';
-    return /^LEMBAR PENGESAHAN|^LEMBAR PENUTUPAN|^LEMBAR PEMBATALAN|^PEMBATALAN LEMBAR/.test(t) ? 'Lembar pengesahan' : /^KARTU PIUTANG/.test(t) ? 'Kartu piutang' : /^USULAN JURNAL/.test(t) ? 'Usulan jurnal SAP' : /^DRAFT FAKTUR/.test(t) ? 'Draft faktur pajak' :
-      /^LEMBAR VALIDASI/.test(t) ? 'Lembar validasi' : /^REKAP/.test(t) ? 'Rekap bulanan' : pg.classList.contains('pg-kw') ? 'Kwitansi' : pg.classList.contains('pg-bap') ? 'BAP' : pg.classList.contains('pg-inv') ? 'Invoice' : 'Lampiran'; };
+    return /^LEMBAR PENGESAHAN|^LEMBAR PENUTUPAN|^LEMBAR PEMBATALAN|^PEMBATALAN LEMBAR/.test(t) ? 'Approval sheet' : /^KARTU PIUTANG/.test(t) ? 'Customer ledger' : /^USULAN JURNAL/.test(t) ? 'Proposed SAP journal' : /^DRAFT FAKTUR/.test(t) ? 'Tax invoice draft' :
+      /^LEMBAR VALIDASI/.test(t) ? 'Validation sheet' : /^REKAP/.test(t) ? 'Monthly summary' : pg.classList.contains('pg-kw') ? 'Receipt (kwitansi)' : pg.classList.contains('pg-bap') ? 'BAP' : pg.classList.contains('pg-inv') ? 'Invoice' : 'Attachment'; };
   pages.forEach(function (pg) { var n = nameOf(pg), g = groups.filter(function (x) { return x.n === n; })[0]; if (!g) groups.push(g = { n: n, p: [] }); g.p.push(pg); });
   var show = function (ix) { groups.forEach(function (g, k) { g.p.forEach(function (pg) { pg.hidden = k !== ix; }); }); document.querySelectorAll('#pkgTabs .ptab').forEach(function (b, k) { b.classList.toggle('on', k === ix); }); fitZoom(); };
-  $('pkgTabs').innerHTML = groups.map(function (g, k) { return '<button type="button" class="ptab" data-k="' + k + '">' + esc(g.n) + (g.p.length > 1 && g.n !== 'Lembar pengesahan' ? ' (' + g.p.length + ')' : '') + '</button>'; }).join('');
+  $('pkgTabs').innerHTML = groups.map(function (g, k) { return '<button type="button" class="ptab" data-k="' + k + '">' + esc(g.n) + (g.p.length > 1 && g.n !== 'Approval sheet' ? ' (' + g.p.length + ')' : '') + '</button>'; }).join('');
   $('pkgTabs').hidden = groups.length < 2;
   document.querySelectorAll('#pkgTabs .ptab').forEach(function (b) { b.onclick = function () { show(+b.dataset.k); }; });
   if (groups.length > 1) show(0);
@@ -2584,8 +2584,8 @@ function pkgActions() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah, ok = a && a.status === 'DISETUJUI' && !a.berubah;
   var canSubmit = /^PEMBUAT/.test(role) && !pend && (!ok || PKG.kind === 'VAL'), canDecide = canDecideNow();
   if (PKG.kind === 'BATAL' || PKG.kind === 'VALX') canSubmit = /^PEMBUAT/.test(role) && !!PKG.canSubmit;
-  $('btnPkgSubmit').textContent = PKG.kind === 'BATAL' || PKG.kind === 'VALX' ? 'Ajukan pembatalan ke Section Head' : PKG.kind === 'VAL' && PKG._mode === 'usul' ? 'Ajukan ke Section Head' : PKG.kind === 'VAL' && (ok || PKG.legacy || (a && a.status === 'DISETUJUI')) ? 'Ajukan revisi (Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ')' : 'Ajukan ke Section Head';
-  $('pkgTitle').innerHTML = '<b>' + esc(PKG.label) + '</b><br><span style="color:var(--steel)">' + (a ? esc(a.teks || a.status) + (a.valid === false ? ' · <b style="color:var(--red)">kode tidak valid</b>' : '') : 'Belum diajukan') + '</span>';
+  $('btnPkgSubmit').textContent = PKG.kind === 'BATAL' || PKG.kind === 'VALX' ? 'Submit cancellation to Section Head' : PKG.kind === 'VAL' && PKG._mode === 'usul' ? 'Submit to Section Head' : PKG.kind === 'VAL' && (ok || PKG.legacy || (a && a.status === 'DISETUJUI')) ? 'Submit revision (Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ')' : 'Submit to Section Head';
+  $('pkgTitle').innerHTML = '<b>' + esc(lblEn(PKG.label)) + '</b><br><span style="color:var(--steel)">' + (a ? esc(a.teks || a.status) + (a.valid === false ? ' · <b style="color:var(--red)">invalid code</b>' : '') : 'Not submitted') + '</span>';
   $('btnPkgSubmit').hidden = !canSubmit; $('btnPkgOk').hidden = !canDecide; $('btnPkgNo').hidden = !canDecide;
   $('act-pkg').hidden = false;
   pkgChrome(canSubmit, canDecide);
@@ -2595,35 +2595,35 @@ function pkgChrome(canSubmit, canDecide) {
   var vmode = PKG.kind === 'VAL' && (PKG._mode === 'dec' || PKG._mode === 'usul');
   $('act-pkg').classList.toggle('slim', !vmode);
   var a = PKG.appr, maker = !!(B.access && B.access.maker), st = !a ? 'BELUM' : a.berubah ? 'BERUBAH' : a.status;
-  var pill = { BELUM: ['o', 'belum diajukan'], MENUNGGU: ['t', 'menunggu Section Head'], DISETUJUI: ['g', 'disetujui'], DITOLAK: ['r', 'ditolak'], BERUBAH: ['r', 'data berubah'] }[st] || ['t', String(st).toLowerCase()];
-  var lbl = E.labelTampil(PKG.label || ''), parts = lbl.split(' — '), pel = parts[1] || (PKG.inv && PKG.inv.pelanggan) || '';
+  var pill = { BELUM: ['o', 'not submitted'], MENUNGGU: ['t', 'pending Section Head'], DISETUJUI: ['g', 'approved'], DITOLAK: ['r', 'rejected'], BERUBAH: ['r', 'data changed'] }[st] || ['t', String(st).toLowerCase()];
+  var lbl = lblEn(E.labelTampil(PKG.label || '')), parts = lbl.split(' — '), pel = parts[1] || (PKG.inv && PKG.inv.pelanggan) || '';
   var age = a && a.status === 'MENUNGGU' ? ' ' + apAge(a.waktu) : '';
-  var sub = a ? 'diajukan ' + esc(a.oleh_nama || a.oleh) + ', ' + esc(tgJam(a.waktu)) + (a.status !== 'MENUNGGU' && a.putus_waktu ? ' · diputuskan ' + esc(a.putus_nama || '') + ', ' + esc(tgJam(a.putus_waktu)) : '') : 'belum diajukan ke Section Head';
+  var sub = a ? 'submitted by ' + esc(a.oleh_nama || a.oleh) + ', ' + esc(tgJam(a.waktu)) + (a.status !== 'MENUNGGU' && a.putus_waktu ? ' · decided by ' + esc(a.putus_nama || '') + ', ' + esc(tgJam(a.putus_waktu)) : '') : 'not yet submitted to Section Head';
   var canEdit = maker && (PKG.kind === 'INV' || PKG.kind === 'PAY') && st !== 'DISETUJUI';
   $('pkgHead').innerHTML = (pel ? paHtml(pel) : '<div class="pa" style="background:#E8EEF8;color:#2F5597">' + ico('doc') + '</div>') + '<div style="min-width:0"><div class="ht">' + esc(parts[0]) + (PKG.nilai || (a && a.nilai) ? ' · Rp ' + nfDot(PKG.nilai || a.nilai) : '') + '</div><div class="hs">' + (pel ? esc(titleCaseS(pel)) + ' · ' : '') + sub + '</div></div>' +
     '<span class="php ' + pill[0] + '">' + pill[1] + '</span>' + age +
-    '<div style="margin-left:auto;display:flex;gap:8px">' + (canEdit ? '<button type="button" class="ibtn" id="phEdit">' + ico('edit') + 'Ubah data</button>' : '') +
-    '<button type="button" class="ibtn" id="phPrint">' + ico('print') + 'Cetak</button><button type="button" class="ibtn" id="phArch">' + ico('cloud') + 'Arsip</button><button type="button" class="ibtn" id="phClose" title="Tutup">' + ico('x') + '</button></div>';
+    '<div style="margin-left:auto;display:flex;gap:8px">' + (canEdit ? '<button type="button" class="ibtn" id="phEdit">' + ico('edit') + 'Edit data</button>' : '') +
+    '<button type="button" class="ibtn" id="phPrint">' + ico('print') + 'Print</button><button type="button" class="ibtn" id="phArch">' + ico('cloud') + 'Archive</button><button type="button" class="ibtn" id="phClose" title="Close">' + ico('x') + '</button></div>';
   $('pkgHead').hidden = vmode; // lembar validasi (usulan / keputusan) punya kepala & tombol sendiri
   $('phPrint').onclick = function () { $('btnPkgPrint').click(); }; $('phArch').onclick = function () { $('btnPkgArch').click(); }; $('phClose').onclick = function () { $('btnPkgClose').click(); };
   if ($('phEdit')) $('phEdit').onclick = function () { var k = PKG.kind, pk = PKG; closePackage(); if (k === 'INV') { openInvoice(pk.inv.nomor); setMode('buat'); } else setMode('bayar'); };
   // alur status
   var step = function (c, t) { return '<span class="st ' + c + '"><i>' + (c === 'd' ? '✓' : c === 'x' ? '✕' : '') + '</i>' + t + '</span>'; }, ln = '<span class="ln"></span>';
-  var tl = maker ? step('d', 'Dicatat') + ln + step(st === 'BELUM' ? 'c' : st === 'DITOLAK' || st === 'BERUBAH' ? 'x' : 'd', st === 'DITOLAK' ? 'Ditolak' : st === 'BERUBAH' ? 'Data berubah' : 'Diajukan') + ln + step(st === 'DISETUJUI' ? 'd' : st === 'MENUNGGU' ? 'c' : 'n', 'Disetujui')
-    : step('d', 'Diajukan') + ln + step(st === 'MENUNGGU' ? 'c' : st === 'DITOLAK' ? 'x' : 'd', st === 'DITOLAK' ? 'Ditolak' : 'Diperiksa') + ln + step(st === 'DISETUJUI' ? 'd' : 'n', 'Disetujui');
+  var tl = maker ? step('d', 'Recorded') + ln + step(st === 'BELUM' ? 'c' : st === 'DITOLAK' || st === 'BERUBAH' ? 'x' : 'd', st === 'DITOLAK' ? 'Rejected' : st === 'BERUBAH' ? 'Data changed' : 'Submitted') + ln + step(st === 'DISETUJUI' ? 'd' : st === 'MENUNGGU' ? 'c' : 'n', 'Approved')
+    : step('d', 'Submitted') + ln + step(st === 'MENUNGGU' ? 'c' : st === 'DITOLAK' ? 'x' : 'd', st === 'DITOLAK' ? 'Rejected' : 'Reviewed') + ln + step(st === 'DISETUJUI' ? 'd' : 'n', 'Approved');
   // cek kelengkapan / keabsahan
   var ck = '', mk = function (ok, t, warn) { return '<span class="' + (ok ? 'ok' : warn ? 'no' : 'bad') + '">' + ico(ok ? 'chk' : 'warn') + esc(t) + '</span>'; };
-  if (canDecide || (!maker && a && a.status === 'MENUNGGU')) ck = a.berubah ? mk(false, 'Data berubah sejak diajukan — tidak bisa disetujui') : mk(true, 'Data tidak berubah sejak diajukan');
+  if (canDecide || (!maker && a && a.status === 'MENUNGGU')) ck = a.berubah ? mk(false, 'Data changed since submission — cannot be approved') : mk(true, 'Data unchanged since submission');
   else if (maker && PKG.kind === 'PAY' && canSubmit) { var R = B.payments.filter(function (p) { return p.key === PKG.ref; });
-    ck = mk(R.every(function (p) { return p.pb || p.rekening; }), 'Rekening') + mk(R.every(function (p) { return p.ref || p.migr || p.pb; }), 'Ref. transfer', true) + mk(R.every(function (p) { return !p.cek; }), R.some(function (p) { return p.cek; }) ? 'Cek: ' + R.filter(function (p) { return p.cek; })[0].cek.replace(/⚠\s*/g, '') : 'Alokasi'); }
+    ck = mk(R.every(function (p) { return p.pb || p.rekening; }), 'Bank account') + mk(R.every(function (p) { return p.ref || p.migr || p.pb; }), 'Bank reference', true) + mk(R.every(function (p) { return !p.cek; }), R.some(function (p) { return p.cek; }) ? 'Check: ' + R.filter(function (p) { return p.cek; })[0].cek.replace(/⚠\s*/g, '') : 'Allocation'); }
   else if (maker && PKG.kind === 'INV' && canSubmit) { var I = B.invoices.filter(function (i) { return E.normInv(i.nomor) === E.normInv(PKG.ref); })[0] || {};
-    ck = mk(!!I.no_fp || !I.ppn, I.no_fp ? 'Faktur pajak' : 'Faktur pajak belum dicatat', true) + mk(!!I.json, I.json ? 'Data form' : 'Invoice lama (tanpa form aplikasi)', true); }
+    ck = mk(!!I.no_fp || !I.ppn, I.no_fp ? 'Tax invoice' : 'Tax invoice not recorded', true) + mk(!!I.json, I.json ? 'Form data' : 'Legacy invoice (no app form)', true); }
   var nx = apNextItem(PKG.kind + '|' + PKG.ref), more = !!nx;
   var act = '';
-  if (canDecide) act = '<button type="button" class="b-no" id="pbNo">' + ico('x') + 'Tolak</button><button type="button" class="b-ok" id="pbOk"' + (a && a.berubah ? ' disabled' : '') + '>' + ico('chk') + (more ? 'Setujui &amp; lanjut' : 'Setujui') + '</button>';
-  else if (canSubmit) act = '<button type="button" class="b-ok t" id="pbSub">' + ico('send') + esc($('btnPkgSubmit').textContent.replace(/ ke Section Head$/, '')) + (more && (PKG.kind === 'INV' || PKG.kind === 'PAY') ? ' &amp; lanjut' : '') + '</button>';
-  else if (a && a.status === 'DISETUJUI' && !a.berubah) act = '<span class="bar-st">✓ Disetujui ' + esc(a.putus_nama || '') + ' · ' + esc(tgJam(a.putus_waktu)) + (a.kode ? ' · kode ' + esc(a.kode) : '') + '</span>';
-  else if (a && a.status === 'MENUNGGU') act = '<span class="bar-st">⏳ Menunggu keputusan Section Head</span>';
+  if (canDecide) act = '<button type="button" class="b-no" id="pbNo">' + ico('x') + 'Reject</button><button type="button" class="b-ok" id="pbOk"' + (a && a.berubah ? ' disabled' : '') + '>' + ico('chk') + (more ? 'Approve &amp; next' : 'Approve') + '</button>';
+  else if (canSubmit) act = '<button type="button" class="b-ok t" id="pbSub">' + ico('send') + esc($('btnPkgSubmit').textContent.replace(/ to Section Head$/, '')) + (more && (PKG.kind === 'INV' || PKG.kind === 'PAY') ? ' &amp; next' : '') + '</button>';
+  else if (a && a.status === 'DISETUJUI' && !a.berubah) act = '<span class="bar-st">✓ Approved by ' + esc(a.putus_nama || '') + ' · ' + esc(tgJam(a.putus_waktu)) + (a.kode ? ' · code ' + esc(a.kode) : '') + '</span>';
+  else if (a && a.status === 'MENUNGGU') act = '<span class="bar-st">⏳ Awaiting Section Head decision</span>';
   $('pkgBar').innerHTML = '<div class="tl">' + tl + '</div><div class="chks">' + ck + '</div><div class="bar-act">' + act + '</div>';
   $('pkgBar').hidden = vmode;
   if ($('pbNo')) $('pbNo').onclick = function () { AP_NEXT = true; decidePkg(false); };
@@ -2650,7 +2650,7 @@ function archiveMeta(P) {
   var b5 = j([k === 'VAL' ? 'Validasi rencana cair' : 'Rekap bulanan', String(P.ref)]); return { name: b5 + '_' + kode, month: String(P.ref).slice(0, 7), prefix: b5 + '_' };
 }
 /** PDF dibuat di peramban (persis seperti tampilan), lalu dikirim ke Drive */
-function loadScript(src) { return new Promise(function (ok, no) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { no(new Error('Gagal memuat ' + src)); }; document.head.appendChild(s); }); }
+function loadScript(src) { return new Promise(function (ok, no) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { no(new Error('Failed to load ' + src)); }; document.head.appendChild(s); }); }
 function pdfLibs() {
   if (window.jspdf && window.html2canvas) return Promise.resolve();
   var cdn = function () { return loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(function () { return loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); }); };
@@ -2714,17 +2714,17 @@ function makePdf(html, label, opt) {
 function archivePkg(auto) {
   if (!PKG) return;
   var meta = archiveMeta(PKG), pk = PKG, st = $('pkgStatus'), done = function () { if (auto === true && AP_NEXT) setTimeout(apGoNext, 700); };
-  st.textContent = (auto === true ? 'Disetujui — ' : '') + 'Membuat PDF arsip (' + meta.name + ')…';
+  st.textContent = (auto === true ? 'Approved — ' : '') + 'Creating archive PDF (' + meta.name + ')…';
   makePdf(pk._pages.all, meta.name).then(function (b64) {
-    st.textContent = 'Menyimpan arsip ke Google Drive…';
+    st.textContent = 'Saving archive to Google Drive…';
     call('apiArchive', [pk.kind, pk.ref, { b64: b64, name: meta.name, month: meta.month, prefix: meta.prefix }], function (r) {
-      st.innerHTML = 'Arsip tersimpan di folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>' + (r.moved ? ' · ' + r.moved + ' versi lama dipindah ke "Revisi lama"' : ''); done();
-    }, function (e) { st.innerHTML = '<span style="color:var(--red)">Gagal menyimpan arsip: ' + esc(e.message || e) + '</span>'; done(); });
+      st.innerHTML = 'Archive saved in folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>' + (r.moved ? ' · ' + r.moved + ' old version(s) moved to "Revisi lama"' : ''); done();
+    }, function (e) { st.innerHTML = '<span style="color:var(--red)">Failed to save archive: ' + esc(e.message || e) + '</span>'; done(); });
   }).catch(function (e) {
     // cadangan: konversi di server (tanpa gambar halaman)
     var css = document.querySelector('style').textContent, html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' + css + ' body{background:#fff} .page{box-shadow:none;margin:0 0 6mm} #print-root{display:block}</style></head><body>' + theadify(pk._pages.internal) + '</body></html>';
-    call('apiArchive', [pk.kind, pk.ref, { html: html, name: meta.name, month: meta.month, prefix: meta.prefix }], function (r) { st.innerHTML = 'Arsip (mode cadangan) tersimpan: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>'; done(); },
-      function (e2) { st.innerHTML = '<span style="color:var(--red)">Gagal menyimpan arsip: ' + esc(e2.message || e2) + '</span>'; done(); });
+    call('apiArchive', [pk.kind, pk.ref, { html: html, name: meta.name, month: meta.month, prefix: meta.prefix }], function (r) { st.innerHTML = 'Archive (fallback mode) saved: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>'; done(); },
+      function (e2) { st.innerHTML = '<span style="color:var(--red)">Failed to save archive: ' + esc(e2.message || e2) + '</span>'; done(); });
   });
 }
 function submitPkg() {
@@ -2733,30 +2733,30 @@ function submitPkg() {
     vusInit(); PKG._mode = 'usul'; PKG._view = 'usul'; vRender(false); pkgActions(); return;
   }
   if (PKG.kind === 'VALX') {
-    confirmDlg('Batalkan lembar validasi', 'Batalkan ' + (PKG.list || []).length + ' lembar validasi ' + esc(PKG.ref) + ' (' + (PKG.list || []).map(function (r) { return esc(r.id); }).join(', ') + ')? Lembar tidak dihapus; sesudah disetujui Section Head tidak lagi dipakai RA/RI dan revisi dimulai lagi dari Rev.00.' +
-      '<label style="margin-top:8px">Alasan (wajib)</label><textarea id="dlgNote" placeholder="mis. uji coba / urutan input keliru — diganti sesuai laporan ke pusat"></textarea>', 'Ajukan pembatalan', function () {
-      var al = (($('dlgNote') || {}).value || '').trim(); if (al.length < 10) { toast('Alasan wajib diisi (minimal 10 huruf).'); return; }
-      call('apiSubmit', ['VALX', PKG.ref, { alasan: al }], function (r) { toast('Diajukan: ' + r.id); refreshAll(function () { openPackage('VALX', PKG.ref, true); }); }, function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
+    confirmDlg('Cancel validation sheets', 'Cancel ' + (PKG.list || []).length + ' validation sheet(s) ' + esc(PKG.ref) + ' (' + (PKG.list || []).map(function (r) { return esc(r.id); }).join(', ') + ')? The sheets are not deleted; once approved by the Section Head they are no longer used in RA/RI and revisions restart from Rev.00.' +
+      '<label style="margin-top:8px">Reason (required)</label><textarea id="dlgNote" placeholder="e.g. test run / wrong input order — replaced per report to head office"></textarea>', 'Submit cancellation', function () {
+      var al = (($('dlgNote') || {}).value || '').trim(); if (al.length < 10) { toast('Reason is required (at least 10 characters).'); return; }
+      call('apiSubmit', ['VALX', PKG.ref, { alasan: al }], function (r) { toast('Submitted: ' + r.id); refreshAll(function () { openPackage('VALX', PKG.ref, true); }); }, function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
     });
     return;
   }
   if (PKG.kind === 'BATAL') {
     var i = PKG.inv;
-    confirmDlg('Ajukan pembatalan invoice', 'Batalkan <b>' + esc(i.nomor) + '</b> · ' + esc(i.pelanggan) + ' · Rp ' + nfDot(i.total) + '?<br><span style="font-size:12px;color:var(--steel)">Invoice tetap AKTIF sampai Section Head menyetujui.</span>' +
-      '<label style="margin-top:8px">Alasan pembatalan (wajib)</label><textarea id="dlgNote" placeholder="mis. salah nilai progres; diganti invoice baru sesuai BAP revisi"></textarea>' +
-      '<label>Nomor invoice pengganti (opsional)</label><input id="dlgRepl" placeholder="mis. KU.02.02/WB-4C.0199/2026">', 'Ajukan pembatalan', function () {
+    confirmDlg('Submit invoice cancellation', 'Cancel <b>' + esc(i.nomor) + '</b> · ' + esc(i.pelanggan) + ' · Rp ' + nfDot(i.total) + '?<br><span style="font-size:12px;color:var(--steel)">The invoice remains active until the Section Head approves.</span>' +
+      '<label style="margin-top:8px">Cancellation reason (required)</label><textarea id="dlgNote" placeholder="e.g. wrong progress amount; replaced by a new invoice per revised BAP"></textarea>' +
+      '<label>Replacement invoice number (optional)</label><input id="dlgRepl" placeholder="e.g. KU.02.02/WB-4C.0199/2026">', 'Submit cancellation', function () {
       var al = (($('dlgNote') || {}).value || '').trim(), rp = (($('dlgRepl') || {}).value || '').trim();
-      if (al.length < 10) { toast('Alasan pembatalan wajib diisi (minimal 10 huruf).'); return; }
-      $('pkgStatus').textContent = 'Mengajukan…';
-      call('apiSubmit', ['BATAL', PKG.ref, { alasan: al, pengganti: rp }], function (r) { toast('Diajukan: ' + r.id); $('pkgStatus').textContent = 'Pembatalan diajukan dengan ID ' + r.id + '. Menunggu Section Head.'; refreshAll(function () { openPackage('BATAL', PKG.ref, true); }); },
+      if (al.length < 10) { toast('Cancellation reason is required (at least 10 characters).'); return; }
+      $('pkgStatus').textContent = 'Submitting…';
+      call('apiSubmit', ['BATAL', PKG.ref, { alasan: al, pengganti: rp }], function (r) { toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Cancellation submitted with ID ' + r.id + '. Awaiting Section Head.'; refreshAll(function () { openPackage('BATAL', PKG.ref, true); }); },
         function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
     });
     return;
   }
-  var vtxt = PKG.kind === 'VAL' ? 'Ajukan <b>Lembar Validasi Rencana Cair ' + esc(PKG.label) + ' Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + '</b> (' + (PKG.items || []).length + ' invoice)? Section Head memutuskan per invoice: ✓ CAIR / ◇ CADANGAN / → BULAN DEPAN / ⏸ HOLD. Pilihan awal = usulan AR' + (PKG.revNext ? ' atau keputusan yang berlaku' : '') + '.' + (PKG.revNext ? ' Keputusan yang berlaku tetap dipakai sampai revisi ini disetujui.' : '') : '';
-  confirmDlg('Ajukan ke Section Head', vtxt || ('Ajukan <b>' + esc(PKG.label) + '</b> untuk diperiksa dan disetujui? Data yang diajukan dikunci dengan sidik <code>' + esc(PKG.fp || '') + '</code>; bila datanya berubah, pengajuan harus diulang.'), 'Ajukan', function () {
-    $('pkgStatus').textContent = 'Mengajukan…';
-    call('apiSubmit', [PKG.kind, PKG.ref], function (r) { toast('Diajukan: ' + r.id); $('pkgStatus').textContent = 'Diajukan dengan ID ' + r.id + '.'; refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(PKG.kind, PKG.ref, true); }); },
+  var vtxt = PKG.kind === 'VAL' ? 'Submit <b>Collection Plan Validation sheet ' + esc(lblEn(PKG.label)) + ' Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + '</b> (' + (PKG.items || []).length + ' invoices)? The Section Head decides per invoice: ✓ CAIR / ◇ CADANGAN / → BULAN DEPAN / ⏸ HOLD. Initial choice = AR proposal' + (PKG.revNext ? ' or the decision in force' : '') + '.' + (PKG.revNext ? ' The decision in force stays in use until this revision is approved.' : '') : '';
+  confirmDlg('Submit to Section Head', vtxt || ('Submit <b>' + esc(lblEn(PKG.label)) + '</b> for review and approval? The submitted data is locked with fingerprint <code>' + esc(PKG.fp || '') + '</code>; if the data changes, it must be resubmitted.'), 'Submit', function () {
+    $('pkgStatus').textContent = 'Submitting…';
+    call('apiSubmit', [PKG.kind, PKG.ref], function (r) { toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '.'; refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(PKG.kind, PKG.ref, true); }); },
       function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
   });
 }
@@ -2764,25 +2764,25 @@ function decidePkg(setuju) {
   var a = PKG.appr;
   if (setuju && vDecideMode() && VDEC) {
     var items = PKG.items || [], miss = items.filter(function (x) { return vDec(x) === 'H' && !String(vAls(x)).trim(); });
-    if (miss.length) { toast('Isi alasan HOLD untuk ' + miss.length + ' invoice'); var inp = document.querySelector('.vreason'); var em = miss[0] && document.querySelector('.vreason[data-vr="' + miss[0].nomor.replace(/"/g, '\\"') + '"]'); if (em) em.focus(); else if (inp) inp.focus(); return; }
+    if (miss.length) { toast('Enter a HOLD reason for ' + miss.length + ' invoice(s)'); var inp = document.querySelector('.vreason'); var em = miss[0] && document.querySelector('.vreason[data-vr="' + miss[0].nomor.replace(/"/g, '\\"') + '"]'); if (em) em.focus(); else if (inp) inp.focus(); return; }
     var T = vTot(items), dec = items.map(function (x) { return { nomor: x.nomor, d: vDec(x), a: vDec(x) === 'H' ? vAls(x) : '' }; });
     var dl = B.delegasi && !/^PENYETUJU/.test((B.user || {}).peran || '');
-    confirmDlg('Setujui keputusan rencana cair ' + esc(PKG.label) + '?', '<ul style="margin:4px 0 8px;padding-left:18px">' + DECO.map(function (d) { return '<li><b>' + DECL[d] + '</b>: ' + T[d].n + ' invoice' + (d === 'C' || d === 'S' ? ' · Rp ' + nfDot(T[d].nilai) + ' (DPP − PPh)' : '') + '</li>'; }).join('') + '</ul>' +
-      '<div style="font-size:12px;color:var(--steel)">' + (dl ? 'Disetujui a.n. Section Head (delegasi). ' : '') + 'Setelah disetujui, kolom VALIDASI SECTION HEAD F&HR di Pareto terisi otomatis, RA-RI Termin memakai keputusan ini, dan PDF tersimpan ke Drive.</div>' +
-      '<textarea id="dlgNote" style="margin-top:8px" placeholder="catatan (opsional)"></textarea>', 'Setujui', function () {
+    confirmDlg('Approve collection plan decisions for ' + esc(lblEn(PKG.label)) + '?', '<ul style="margin:4px 0 8px;padding-left:18px">' + DECO.map(function (d) { return '<li><b>' + DECL[d] + '</b>: ' + T[d].n + ' invoice(s)' + (d === 'C' || d === 'S' ? ' · Rp ' + nfDot(T[d].nilai) + ' (DPP − PPh)' : '') + '</li>'; }).join('') + '</ul>' +
+      '<div style="font-size:12px;color:var(--steel)">' + (dl ? 'Approved on behalf of the Section Head (delegation). ' : '') + 'Once approved, the VALIDASI SECTION HEAD F&HR column in Pareto is filled automatically, RA-RI Termin uses these decisions, and the PDF is saved to Drive.</div>' +
+      '<textarea id="dlgNote" style="margin-top:8px" placeholder="note (optional)"></textarea>', 'Approve', function () {
       var note = ($('dlgNote') || {}).value || '';
-      $('pkgStatus').textContent = 'Menyimpan keputusan…';
-      call('apiDecide', [a.id, 'SETUJU', note, dec], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · kode ' + r.kode : '')); $('pkgStatus').textContent = 'Keputusan tersimpan: ' + r.status + (r.kode ? ' · kode verifikasi ' + r.kode : '') + '.';
+      $('pkgStatus').textContent = 'Saving decision…';
+      call('apiDecide', [a.id, 'SETUJU', note, dec], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
         refreshAll(function () { openPackage(PKG.kind, PKG.ref, true, function () { archivePkg(true); }); }); },
         function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
     });
     return;
   }
-  confirmDlg(setuju ? 'Setujui pengajuan' : 'Tolak pengajuan', (setuju ? 'Setujui <b>' + esc(PKG.label) + '</b>? Persetujuan tercatat atas nama Anda dengan kode verifikasi.' : 'Tuliskan alasan penolakan:') +
-    '<textarea id="dlgNote" style="margin-top:8px" placeholder="' + (setuju ? 'catatan (opsional)' : 'alasan (wajib)') + '"></textarea>', setuju ? 'Setujui' : 'Tolak', function () {
+  confirmDlg(setuju ? 'Approve request' : 'Reject request', (setuju ? 'Approve <b>' + esc(lblEn(PKG.label)) + '</b>? The approval is recorded in your name with a verification code.' : 'Enter the reason for rejection:') +
+    '<textarea id="dlgNote" style="margin-top:8px" placeholder="' + (setuju ? 'note (optional)' : 'reason (required)') + '"></textarea>', setuju ? 'Approve' : 'Reject', function () {
     var note = ($('dlgNote') || {}).value || '';
-    $('pkgStatus').textContent = 'Menyimpan keputusan…';
-    call('apiDecide', [a.id, setuju ? 'SETUJU' : 'TOLAK', note], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · kode ' + r.kode : '')); $('pkgStatus').textContent = 'Keputusan tersimpan: ' + r.status + (r.kode ? ' · kode verifikasi ' + r.kode : '') + '.';
+    $('pkgStatus').textContent = 'Saving decision…';
+    call('apiDecide', [a.id, setuju ? 'SETUJU' : 'TOLAK', note], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
       refreshAll(function () { if (!setuju && AP_NEXT && apGoNext()) return; if (!setuju) AP_NEXT = false; openPackage(PKG.kind, PKG.ref, true, setuju ? function () { archivePkg(true); } : null); }); },
       function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; refreshAll(); });
   });
@@ -2795,46 +2795,46 @@ var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI REN
 function renderPeriode() {
   var P = B.params || {}, tutup = E.periodeTutup(P, B.today), kor = P.PERIODE_KOREKSI_SAMPAI && P.PERIODE_KOREKSI_SAMPAI >= B.today ? P.PERIODE_KOREKSI_SAMPAI : '';
   var appr = !!(B.access && B.access.approver), maker = !!(B.access && B.access.maker), h = '';
-  h += '<div class="note' + (kor ? ' warn' : '') + '" style="margin-top:8px"><b>Tutup buku s.d.:</b> ' + (tutup ? esc(tg(tutup)) : 'belum ada') + ' <span style="color:var(--steel)">(otomatis tiap tanggal ' + esc(P.TUTUP_BUKU_TANGGAL || 3) + ' pukul 00.00 untuk bulan sebelumnya)</span>' +
-    (kor ? '<br>Koreksi diizinkan sampai ' + esc(tg(kor)) + ' oleh ' + esc(P.PERIODE_KOREKSI_OLEH || '-') + ' — ' + esc(P.PERIODE_KOREKSI_ALASAN || '') : '') + '<div class="inline" style="margin-top:6px;gap:10px">' +
-    (maker ? '<button class="linkbtn" type="button" onclick="periodeTutup()">Tutup periode…</button>' : '') +
-    (appr && tutup && !kor ? '<button class="linkbtn" type="button" onclick="periodeBuka()">Izinkan koreksi periode tertutup…</button>' : '') +
-    (appr && kor ? '<button class="linkbtn" type="button" onclick="periodeAksi(\'cabut\')">Cabut izin koreksi</button>' : '') + '</div></div>';
+  h += '<div class="note' + (kor ? ' warn' : '') + '" style="margin-top:8px"><b>Books closed through:</b> ' + (tutup ? esc(tg(tutup)) : 'none yet') + ' <span style="color:var(--steel)">(automatically on day ' + esc(P.TUTUP_BUKU_TANGGAL || 3) + ' of each month at 00:00 for the previous month)</span>' +
+    (kor ? '<br>Corrections allowed until ' + esc(tg(kor)) + ' by ' + esc(P.PERIODE_KOREKSI_OLEH || '-') + ' — ' + esc(P.PERIODE_KOREKSI_ALASAN || '') : '') + '<div class="inline" style="margin-top:6px;gap:10px">' +
+    (maker ? '<button class="linkbtn" type="button" onclick="periodeTutup()">Close period…</button>' : '') +
+    (appr && tutup && !kor ? '<button class="linkbtn" type="button" onclick="periodeBuka()">Allow corrections to closed period…</button>' : '') +
+    (appr && kor ? '<button class="linkbtn" type="button" onclick="periodeAksi(\'cabut\')">Revoke correction permission</button>' : '') + '</div></div>';
   $('perBox').innerHTML = h;
 }
 function periodeAksi(act, tgl, alasan) {
-  call('apiPeriode', [act, tgl || '', alasan || ''], function (r) { toast('Periode diperbarui.' + (r.warnings && r.warnings.length ? ' ' + r.warnings.join(' ') : '')); refreshAll(); }, function (e) { toast(e.message || e); });
+  call('apiPeriode', [act, tgl || '', alasan || ''], function (r) { toast('Period updated.' + (r.warnings && r.warnings.length ? ' ' + r.warnings.join(' ') : '')); refreshAll(); }, function (e) { toast(e.message || e); });
 }
 function periodeTutup() {
   var def = E.prevMonthEnd(B.today);
-  confirmDlg('Tutup periode lebih awal', 'Bulan lalu otomatis tutup buku tanggal ' + esc(B.params.TUTUP_BUKU_TANGGAL || 3) + ' pukul 00.00. Gunakan ini hanya untuk menutup lebih awal: invoice, penerimaan & pembatalan bertanggal sampai tanggal ini ditolak, kecuali Section Head mengizinkan koreksi.<input type="date" id="dlgPerT" style="margin-top:8px" value="' + esc(def) + '">', 'Tutup periode', function () { periodeAksi('tutup', ($('dlgPerT') || {}).value); });
+  confirmDlg('Close period early', 'The previous month closes automatically on day ' + esc(B.params.TUTUP_BUKU_TANGGAL || 3) + ' at 00:00. Use this only to close early: invoices, receipts & cancellations dated up to this date will be rejected unless the Section Head allows corrections.<input type="date" id="dlgPerT" style="margin-top:8px" value="' + esc(def) + '">', 'Close period', function () { periodeAksi('tutup', ($('dlgPerT') || {}).value); });
 }
 function periodeBuka() {
-  confirmDlg('Izinkan koreksi periode tertutup', 'Pembuat boleh mencatat / merevisi transaksi di periode tertutup sampai tanggal berikut (maks. 7 hari), dengan alasan per transaksi. Setiap koreksi dikirim ke email Anda.<input type="date" id="dlgPerK" style="margin-top:8px" value="' + esc(B.today) + '"><textarea id="dlgPerA" style="margin-top:8px" placeholder="alasan / dasar izin (min. 10 karakter)"></textarea>', 'Izinkan', function () { periodeAksi('buka', ($('dlgPerK') || {}).value, ($('dlgPerA') || {}).value); });
+  confirmDlg('Allow corrections to closed period', 'The Preparer may record / revise transactions in the closed period until the date below (max. 7 days), with a reason per transaction. Every correction is emailed to you.<input type="date" id="dlgPerK" style="margin-top:8px" value="' + esc(B.today) + '"><textarea id="dlgPerA" style="margin-top:8px" placeholder="reason / basis for permission (min. 10 characters)"></textarea>', 'Allow', function () { periodeAksi('buka', ($('dlgPerK') || {}).value, ($('dlgPerA') || {}).value); });
 }
 function renderSetuju() {
   if (!B || !$('mode-setuju')) return;
   var me = B.user || {}, role = me.peran || '';
-  $('whoBox').innerHTML = (!role ? '<div class="note warn">Email ' + esc(me.email || '') + ' belum terdaftar di Parameter ▸ Pengguna & Peran, jadi tidak bisa mengajukan/menyetujui.</div>' : '') +
-    (B.delegasi ? '<div class="note warn">Delegasi aktif: Anda boleh menyetujui a.n. ' + esc(B.delegasi.atas) + ' sampai ' + esc(tg(B.delegasi.sampai)) + '.</div>' : '');
+  $('whoBox').innerHTML = (!role ? '<div class="note warn">Email ' + esc(me.email || '') + ' is not registered in Parameter ▸ Pengguna & Peran, so it cannot submit or approve.</div>' : '') +
+    (B.delegasi ? '<div class="note warn">Delegation active: you may approve on behalf of ' + esc(B.delegasi.atas) + ' until ' + esc(tg(B.delegasi.sampai)) + '.</div>' : '');
   renderPeriode(); navBadges(); renderDok(true);
   apRender();
-  var ms = $('mSel'); if (ms && !ms.options.length) { ms.innerHTML = B.months.map(function (m) { return '<option value="' + m.ref + '">' + esc(m.label) + '</option>'; }).join(''); ms.value = B.today.substring(0, 7); }
-  $('tutupList').innerHTML = (B.pendTutup || []).length ? B.pendTutup.map(function (t) { return '<div class="card"><h4>' + esc(short(t.nomor)) + ' · sisa Rp ' + nfDot(t.sisa) + '</h4><div class="meta">' + esc(t.pelanggan) + '<br>' + esc(t.status) + (t.alasan ? '<br>Alasan: ' + esc(t.alasan) : '') + '</div><div class="row-btn"><button class="btn" data-open="TUTUP|' + esc(E.normInv(t.nomor)) + '">Lihat &amp; ajukan</button></div></div>'; }).join('')
-    : '<div class="note">Tidak ada. Untuk menutup sisa piutang: isi TUTUP MANUAL = CLOSE MANUAL dan ALASAN TUTUP MANUAL di Monitoring Invoice, lalu ajukan dari sini.</div>';
+  var ms = $('mSel'); if (ms && !ms.options.length) { ms.innerHTML = B.months.map(function (m) { return '<option value="' + m.ref + '">' + esc(monEn(m.ref)) + '</option>'; }).join(''); ms.value = B.today.substring(0, 7); }
+  $('tutupList').innerHTML = (B.pendTutup || []).length ? B.pendTutup.map(function (t) { return '<div class="card"><h4>' + esc(short(t.nomor)) + ' · outstanding Rp ' + nfDot(t.sisa) + '</h4><div class="meta">' + esc(t.pelanggan) + '<br>' + esc(t.status) + (t.alasan ? '<br>Reason: ' + esc(t.alasan) : '') + '</div><div class="row-btn"><button class="btn" data-open="TUTUP|' + esc(E.normInv(t.nomor)) + '">View &amp; submit</button></div></div>'; }).join('')
+    : '<div class="note">None. To close an outstanding balance: set TUTUP MANUAL = CLOSE MANUAL and fill in ALASAN TUTUP MANUAL in the Monitoring Invoice sheet, then submit from here.</div>';
   var pays = B.payments.slice(-12).reverse(), seen = {};
   $('payList').innerHTML = pays.filter(function (p) { if (seen[p.key]) return false; seen[p.key] = 1; return true; }).map(function (p) {
-    return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'belum diajukan') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">Lihat lembar pengesahan</button></div></div>';
+    return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'not submitted') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">View approval sheet</button></div></div>';
   }).join('');
 }
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
 var NAV_MAKER = [
-  { id: 'dashboard', ic: 'home', t: 'Ringkasan' },
-  { g: 'pen', ic: 'doc', t: 'Penagihan', badge: 'penBadge', items: [['buat', 'doc', 'Penerbitan Invoice', 'invoice, kwitansi, BAP, draft faktur pajak'], ['buka', 'book', 'Register Invoice', 'cari, revisi, batalkan, penutupan manual'], ['surat', 'mail', 'Surat Penagihan', 'percepatan pembayaran & eskalasi', 'srBadge']] },
-  { id: 'bayar', ic: 'bank', t: 'Penerimaan Kas' },
-  { id: 'dok', ic: 'fold', t: 'Tutup Buku', badge: 'dokBadge', y: 1 },
-  { id: 'setuju', ic: 'shield', t: 'Persetujuan', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Otorisasi', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Dashboard Piutang' }, { id: 'dok', ic: 'fold', t: 'Tutup Buku Bulanan' }];
+  { id: 'dashboard', ic: 'home', t: 'Overview' },
+  { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
+  { id: 'bayar', ic: 'bank', t: 'Cash Receipts' },
+  { id: 'dok', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1 },
+  { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
 var NAV = NAV_MAKER;
 function ico(n) { return '<svg class="ic"><use href="#i-' + n + '"/></svg>'; }
 function buildNav(maker) {
@@ -2867,16 +2867,16 @@ function navBadges() {
   var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() : 0;
   [['apBadge', ap], ['dokBadge', dk], ['penBadge', sr], ['srBadge', sr]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
   $('tbBellDot').hidden = !ap;
-  $('tbBell').title = ap ? (maker ? ap + ' perlu diajukan' : ap + ' menunggu keputusan Anda') : 'Tidak ada yang perlu ditindaklanjuti';
+  $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
 }
 /* ====================================================== Tutup Buku Bulanan */
 var DOK_AN = {};
 function dokStatus(jenis, ref) {
   var L = B.approvals.filter(function (a) { return a.jenis === jenis && a.ref === ref && a.status !== 'DIBATALKAN'; }), a = L[L.length - 1];
-  if (!a) return ['no', 'Belum diajukan'];
-  if (a.status === 'DISETUJUI') return a.berubah ? ['bad', 'Data berubah — ajukan ulang'] : ['ok', '✓ Disetujui ' + tg(a.putus_waktu)];
-  if (a.status === 'MENUNGGU') return ['wt', '⏳ Menunggu persetujuan'];
-  if (a.status === 'DITOLAK') return ['bad', '✗ Ditolak'];
+  if (!a) return ['no', 'Not submitted'];
+  if (a.status === 'DISETUJUI') return a.berubah ? ['bad', 'Data changed — resubmit'] : ['ok', '✓ Approved ' + tg(a.putus_waktu)];
+  if (a.status === 'MENUNGGU') return ['wt', '⏳ Pending approval'];
+  if (a.status === 'DITOLAK') return ['bad', '✗ Rejected'];
   return ['no', a.status];
 }
 /** dokumen yang belum disetujui: validasi rencana cair bulan berjalan + rekap akuntansi bulan lalu */
@@ -2890,17 +2890,17 @@ function renderDok(quiet) {
   if (!B || !$('dokList')) return;
   var ms = $('mSel'), m = ms.value || B.today.substring(0, 7), maker = !!(B.access && B.access.maker), an = DOK_AN[m];
   var card = function (t, sub, st, btn) { return '<div class="dcard"><div class="dt"><b>' + t + '</b><small>' + sub + '</small></div><span class="dst ' + st[0] + '">' + esc(st[1]) + '</span>' + btn + '</div>'; };
-  var anSt = !an ? ['no', 'memeriksa…'] : an.err ? ['bad', an.err] : an.ada ? ['ok', '✓ Tersedia' + (an.rev ? ' · Rev.' + an.rev : '')] : ['no', an.tutup ? 'Belum dibuat' : 'Bulan belum tutup buku'];
-  var anBtn = an && an.ada ? '<button class="btn sm" type="button" onclick="openAnalisis(false)">Lihat</button>' : an && !an.ada && an.tutup && maker ? '<button class="btn sm" type="button" onclick="openAnalisis(true)">Buat</button>' : '';
+  var anSt = !an ? ['no', 'checking…'] : an.err ? ['bad', an.err] : an.ada ? ['ok', '✓ Available' + (an.rev ? ' · Rev.' + an.rev : '')] : ['no', an.tutup ? 'Not yet created' : 'Month not yet closed'];
+  var anBtn = an && an.ada ? '<button class="btn sm" type="button" onclick="openAnalisis(false)">View</button>' : an && !an.ada && an.tutup && maker ? '<button class="btn sm" type="button" onclick="openAnalisis(true)">Create</button>' : '';
   $('dokList').innerHTML =
-    card('Lembar Validasi Rencana Cair', 'rencana penerimaan termin bulan ini', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="openPackage(\'VAL\',$(\'mSel\').value)">Buka</button>') +
-    card('Rekap Bulanan untuk Akuntansi', 'invoice keluar, penerimaan, CKPN', dokStatus(B.DOC.REK, m), '<button class="btn sm" type="button" onclick="openPackage(\'REK\',$(\'mSel\').value)">Buka</button>') +
-    card('Analisis Bulanan AR', 'untuk rapat bulanan · dibuat setelah tutup buku', anSt, anBtn);
-  if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'gagal dibaca' }; renderDok(true); });
+    card('Collection Plan Validation Sheet', 'planned cash receipts for the month', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="openPackage(\'VAL\',$(\'mSel\').value)">Open</button>') +
+    card('Monthly Accounting Summary', 'invoices issued, cash receipts, CKPN', dokStatus(B.DOC.REK, m), '<button class="btn sm" type="button" onclick="openPackage(\'REK\',$(\'mSel\').value)">Open</button>') +
+    card('Monthly AR Analysis', 'for the monthly meeting · created after month-end close', anSt, anBtn);
+  if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'failed to load' }; renderDok(true); });
 }
 function openAnalisis(buat) {
   var m = $('mSel').value;
-  $('sheetwrap').innerHTML = '<div class="empty">' + (buat ? 'Membuat analisis bulanan…' : 'Memuat analisis…') + '</div>';
+  $('sheetwrap').innerHTML = '<div class="empty">' + (buat ? 'Creating monthly analysis…' : 'Loading analysis…') + '</div>';
   call('apiAnalisis', [m, !!buat], function (d) { DOK_AN[m] = d; renderDok(true); renderAnalisis(d); }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">' + esc(e.message || e) + '</div>'; });
 }
 function renderAnalisis(d) {
@@ -2914,10 +2914,10 @@ function renderAnalisis(d) {
   $('sheetwrap').innerHTML = h; if (typeof fitZoom === 'function') fitZoom();
 }
 /* ====================================================== v2.8.4: Status Persetujuan (Pembuat) / Otorisasi (Section Head) */
-var AP_TABS = [['PAY', 'Penerimaan Termin'], ['INV', 'Invoice'], ['VAL', 'Validasi'], ['LAIN', 'Lainnya']], AP_TAB = '', AP_SEL = '', AP_HIST = false, AP_NEXT = false;
+var AP_TABS = [['PAY', 'Cash Receipts'], ['INV', 'Invoices'], ['VAL', 'Validation'], ['LAIN', 'Other']], AP_TAB = '', AP_SEL = '', AP_HIST = false, AP_NEXT = false;
 function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
 function dayDiff(a, b) { return Math.round((Date.parse(String(b).substring(0, 10)) - Date.parse(String(a).substring(0, 10))) / 864e5); }
-function rpShort(v) { v = Number(v) || 0; return v >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' M' : v >= 1e6 ? 'Rp ' + (v / 1e6).toFixed(1).replace('.', ',') + ' jt' : 'Rp ' + nfDot(v); }
+function rpShort(v) { v = Number(v) || 0; return v >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' bn' : v >= 1e6 ? 'Rp ' + (v / 1e6).toFixed(1).replace('.', ',') + ' mn' : 'Rp ' + nfDot(v); }
 var PA_COL = [['#E8EEF8', '#2F5597'], ['#FDEFE4', '#A0521B'], ['#E5F5EB', '#1E6B3E'], ['#F3E8FA', '#6B3FA0'], ['#E3F4F5', '#0F6E78']];
 function paHtml(pel) {
   var n = String(pel || '').toUpperCase().replace(/\bPT\.?\s+|\bCV\.?\s+|,?\s*TBK\.?|\(PERSERO\)/g, ' ').replace(/[^A-Z0-9 \-]/g, ' ').split(/[\s\-]+/).filter(String);
@@ -2930,24 +2930,24 @@ function apModel() {
   var me = String((B.user || {}).email || '').toLowerCase(), maker = !!(B.access && B.access.maker), mulai = (B.params && B.params.MULAI_PERSETUJUAN) || '2026-10-01';
   var T = {}; AP_TABS.forEach(function (t) { T[t[0]] = { belum: [], ulang: [], tunggu: [], hist: [] }; });
   var cls = function (txt) { txt = String(txt || ''); return !txt ? 'belum' : /DITOLAK|BERUBAH|AJUKAN ULANG|TIDAK BERLAKU|TIDAK VALID/.test(txt) ? 'ulang' : ''; };
-  var why = function (txt) { var m = String(txt || '').match(/DITOLAK:?\s*(.*)$/); return m ? 'Ditolak' + (m[1] ? ': "' + m[1] + '"' : '') : 'Data berubah setelah diajukan — ajukan ulang'; };
+  var why = function (txt) { var m = String(txt || '').match(/DITOLAK:?\s*(.*)$/); return m ? 'Rejected' + (m[1] ? ': "' + m[1] + '"' : '') : 'Data changed after submission — resubmit'; };
   if (maker) {
     B.invoices.forEach(function (i) {
       if (i.status_inv === 'BATAL' || i.migr || !i.tgl || i.tgl < mulai) return; var c = cls(i.appr); if (!c) return;
-      T.INV[c].push({ kind: 'INV', ref: E.normInv(i.nomor), title: short(i.nomor), sub: titleCaseS(i.pelanggan) + ' · ' + (i.invke || i.jenis || '') + ' · ' + tg(i.tgl), pel: i.pelanggan, nilai: i.total, t: i.tgl, why: c === 'ulang' ? why(i.appr) : '', tagih: !i.no_fp && i.ppn ? 'faktur pajak belum' : '' });
+      T.INV[c].push({ kind: 'INV', ref: E.normInv(i.nomor), title: short(i.nomor), sub: titleCaseS(i.pelanggan) + ' · ' + (i.invke || i.jenis || '') + ' · ' + tg(i.tgl), pel: i.pelanggan, nilai: i.total, t: i.tgl, why: c === 'ulang' ? why(i.appr) : '', tagih: !i.no_fp && i.ppn ? 'tax invoice pending' : '' });
     });
     var G = {}; B.payments.forEach(function (p) { if (p.migr || !p.tgl || p.tgl < mulai) return; var g = G[p.key] || (G[p.key] = { rows: [], appr: p.appr }); g.rows.push(p); });
     Object.keys(G).forEach(function (k) {
       var g = G[k], c = cls(g.appr); if (!c) return; var p0 = g.rows[0], tot = 0, inv = [];
       g.rows.forEach(function (p) { tot += Math.max(0, p.nominal); if (inv.indexOf(short(p.nomor)) < 0) inv.push(short(p.nomor)); });
       var ids = g.rows.map(function (p) { return p.idp; }).filter(String);
-      T.PAY[c].push({ kind: 'PAY', ref: k, title: (ids[0] || k.replace(/^REF\s+/, '')) + (ids.length > 1 ? ' +' + (ids.length - 1) : ''), sub: titleCaseS(p0.pelanggan) + ' · ' + inv.join(', ') + ' · bayar ' + tg(p0.tgl) + (p0.ref ? ' · ref ' + p0.ref : ''), pel: p0.pelanggan, nilai: tot, t: p0.tgl, why: c === 'ulang' ? why(g.appr) : '', rows: g.rows });
+      T.PAY[c].push({ kind: 'PAY', ref: k, title: (ids[0] || k.replace(/^REF\s+/, '')) + (ids.length > 1 ? ' +' + (ids.length - 1) : ''), sub: titleCaseS(p0.pelanggan) + ' · ' + inv.join(', ') + ' · paid ' + tg(p0.tgl) + (p0.ref ? ' · ref ' + p0.ref : ''), pel: p0.pelanggan, nilai: tot, t: p0.tgl, why: c === 'ulang' ? why(g.appr) : '', rows: g.rows });
     });
   }
   B.approvals.forEach(function (a) {
-    var k = KIND_OF[a.jenis] || '', grp = apGroup(a), lbl = E.labelTampil(a.label || a.ref), pel = (lbl.split(' — ')[1] || '').trim();
+    var k = KIND_OF[a.jenis] || '', grp = apGroup(a), lbl = lblEn(E.labelTampil(a.label || a.ref)), pel = (lbl.split(' — ')[1] || '').trim();
     var nilai = a.nilai; if (k === 'PAY' && !nilai) nilai = B.payments.filter(function (p) { return p.key === a.ref; }).reduce(function (t, p) { return t + Math.max(0, p.nominal); }, 0); // pindah buku lama: nilai yang dipindahkan
-    var it = { kind: k, ref: a.ref, id: a.id, title: k === 'INV' ? short(a.ref) : k === 'PAY' ? String(a.ref).replace(/^REF\s+/, '') : lbl.split(' — ')[0], sub: (pel ? titleCaseS(pel) + ' · ' : '') + a.id + ' · diajukan ' + tgJam(a.waktu), pel: pel || lbl, nilai: nilai, t: a.waktu, a: a, berubah: a.berubah };
+    var it = { kind: k, ref: a.ref, id: a.id, title: k === 'INV' ? short(a.ref) : k === 'PAY' ? String(a.ref).replace(/^REF\s+/, '') : lbl.split(' — ')[0], sub: (pel ? titleCaseS(pel) + ' · ' : '') + a.id + ' · submitted ' + tgJam(a.waktu), pel: pel || lbl, nilai: nilai, t: a.waktu, a: a, berubah: a.berubah };
     if (a.status === 'MENUNGGU') { if (!maker && String(a.oleh).toLowerCase() === me) return; T[grp].tunggu.push(it); }
     else if (a.status !== 'DIBATALKAN') T[grp].hist.push(it);
   });
@@ -2957,11 +2957,18 @@ function apModel() {
   B.approvals.forEach(function (a) { if (a.status === 'DISETUJUI' && String(a.putus_waktu).substring(0, 7) === ym) { K.ok++; K.okHari += Math.max(0, dayDiff(a.waktu, a.putus_waktu)); } });
   return { T: T, k: K, maker: maker };
 }
-function apAge(t) { var d = dayDiff(t, B.today); return '<span class="age ' + (d > 2 ? 'o' : 'n') + '">' + (d <= 0 ? 'hari ini' : d + ' hari') + '</span>'; }
+var BLN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+/** label pengajuan dari server (Bahasa Indonesia) → tampilan aplikasi berbahasa Inggris; dokumen cetak tetap memakai label asli */
+function lblEn(s) {
+  return String(s || '').replace(/^Penerimaan termin\b/, 'Cash receipt').replace(/^Pembatalan invoice\b/, 'Invoice cancellation').replace(/^Pembatalan lembar validasi\b/, 'Validation sheet cancellation')
+    .replace(/^Penutupan manual\b/, 'Manual close').replace(/^Kartu piutang\b/, 'Customer ledger').replace(/ per (\d)/, ' as of $1')
+    .replace(new RegExp('\\b(' + BLN_ID.join('|') + ')(?= \\d{4})', 'g'), function (m) { return MON_EN[BLN_ID.indexOf(m)]; });
+}
+function apAge(t) { var d = dayDiff(t, B.today); return '<span class="age ' + (d > 2 ? 'o' : 'n') + '">' + (d <= 0 ? 'today' : d === 1 ? '1 day' : d + ' days') + '</span>'; }
 function apRow(it, mode) {
-  var btn = mode === 'belum' ? '<button type="button" class="mini">Ajukan</button>' : mode === 'ulang' ? '<button type="button" class="mini r">Ajukan ulang</button>' :
-    mode === 'tunggu' ? (B.access && B.access.maker ? '<button type="button" class="mini g">Lihat</button>' : '<button type="button" class="mini">Periksa</button>') : '<button type="button" class="mini g">Lihat</button>';
-  var tag = mode === 'tunggu' ? apAge(it.t) + (it.berubah ? '<span class="age r">data berubah</span>' : '') : mode === 'hist' ? '<span class="age ' + (it.a.status === 'DISETUJUI' ? 'n' : 'r') + '">' + esc(it.a.status.toLowerCase()) + '</span>' : '';
+  var btn = mode === 'belum' ? '<button type="button" class="mini">Submit</button>' : mode === 'ulang' ? '<button type="button" class="mini r">Resubmit</button>' :
+    mode === 'tunggu' ? (B.access && B.access.maker ? '<button type="button" class="mini g">View</button>' : '<button type="button" class="mini">Review</button>') : '<button type="button" class="mini g">View</button>';
+  var tag = mode === 'tunggu' ? apAge(it.t) + (it.berubah ? '<span class="age r">data changed</span>' : '') : mode === 'hist' ? '<span class="age ' + (it.a.status === 'DISETUJUI' ? 'n' : 'r') + '">' + esc(it.a.status.toLowerCase()) + '</span>' : '';
   var key = it.kind + '|' + it.ref;
   return '<div class="ap-row' + (AP_SEL === key ? ' sel' : '') + '" data-open="' + esc(key) + '">' + paHtml(it.pel) + '<div class="l"><div class="id">' + esc(it.title) + ' ' + tag + '</div>' +
     (it.why ? '<div class="why">' + esc(it.why) + '</div>' : '<div class="m">' + esc(it.sub) + (it.tagih ? ' · ' + esc(it.tagih) : '') + '</div>') + '</div>' +
@@ -2979,42 +2986,42 @@ function apRender() {
   document.querySelectorAll('#apTabs [data-tab]').forEach(function (b) { b.onclick = function () { AP_TAB = b.dataset.tab; AP_HIST = false; apRender(); }; });
   var X = T[AP_TAB], h = '', sec = function (dot, title, L, mode, empty) {
     var S2 = apSorted(L); if (!L.length && !empty) return '';
-    return '<div class="ap-sec"><span class="ap-dot ' + dot + '"></span>' + title + ' · ' + L.length + (mode === 'tunggu' && !maker ? '<span style="margin-left:auto;text-transform:none;letter-spacing:0">' + ({ old: 'terlama di atas', new: 'terbaru di atas', big: 'nilai terbesar di atas' })[($('apSort') || {}).value || 'old'] + '</span>' : '') + '</div>' +
+    return '<div class="ap-sec"><span class="ap-dot ' + dot + '"></span>' + title + ' · ' + L.length + (mode === 'tunggu' && !maker ? '<span style="margin-left:auto;text-transform:none;letter-spacing:0">' + ({ old: 'oldest first', new: 'newest first', big: 'largest amount first' })[($('apSort') || {}).value || 'old'] + '</span>' : '') + '</div>' +
       (S2.length ? S2.map(function (it) { return apRow(it, mode); }).join('') : '<div class="ap-empty">' + empty + '</div>');
   };
   if (maker) {
-    h += sec('o', 'Belum diajukan', X.belum, 'belum', AP_TAB === 'PAY' || AP_TAB === 'INV' ? 'Semua sudah diajukan.' : '');
-    h += sec('r', 'Perlu diajukan ulang', X.ulang, 'ulang', '');
-    h += sec('t', 'Menunggu Section Head', X.tunggu, 'tunggu', 'Tidak ada yang menunggu.');
-  } else h += sec('t', 'Menunggu keputusan', X.tunggu, 'tunggu', 'Tidak ada pengajuan yang menunggu keputusan Anda.');
-  h += '<button type="button" class="ap-more" id="apHistBtn">' + (AP_HIST ? 'Sembunyikan riwayat ‹' : 'Riwayat keputusan ' + AP_TABS.filter(function (t) { return t[0] === AP_TAB; })[0][1] + ' (' + X.hist.length + ') ›') + '</button>';
+    h += sec('o', 'Not submitted', X.belum, 'belum', AP_TAB === 'PAY' || AP_TAB === 'INV' ? 'All submitted.' : '');
+    h += sec('r', 'Resubmit required', X.ulang, 'ulang', '');
+    h += sec('t', 'Pending approval', X.tunggu, 'tunggu', 'Nothing pending.');
+  } else h += sec('t', 'Pending approval', X.tunggu, 'tunggu', 'No requests awaiting your decision.');
+  h += '<button type="button" class="ap-more" id="apHistBtn">' + (AP_HIST ? 'Hide history ‹' : 'History · ' + AP_TABS.filter(function (t) { return t[0] === AP_TAB; })[0][1] + ' (' + X.hist.length + ') ›') + '</button>';
   $('pendList').innerHTML = h;
   $('histList').hidden = !AP_HIST;
-  $('histList').innerHTML = AP_HIST ? (X.hist.length ? X.hist.slice(-20).reverse().map(function (it) { return apRow(it, 'hist'); }).join('') : '<div class="ap-empty">Belum ada riwayat.</div>') : '';
+  $('histList').innerHTML = AP_HIST ? (X.hist.length ? X.hist.slice(-20).reverse().map(function (it) { return apRow(it, 'hist'); }).join('') : '<div class="ap-empty">No history yet.</div>') : '';
   $('apHistBtn').onclick = function () { AP_HIST = !AP_HIST; apRender(); };
   apKpi(M);
 }
 function apKpi(M) {
   var K = M.k, rata = K.ok ? (K.okHari / K.ok).toFixed(1).replace('.', ',') : '–', card = function (ic, cl, v, t, hl) { return '<div class="kp' + (hl ? ' hl' : '') + '"><div class="ki ' + cl + '">' + ico(ic) + '</div><div><b>' + v + '</b><small>' + t + '</small></div></div>'; };
   $('kpiBar').innerHTML = M.maker ?
-    card('send', 'o', K.belum, 'belum diajukan · ' + rpShort(K.nBelum), K.belum > 0) + card('warn', 'r', K.ulang, 'perlu diajukan ulang') + card('clk', 't', K.tunggu, 'menunggu Section Head · ' + rpShort(K.nTunggu)) + card('chk', 'g', K.ok, 'disetujui bulan ini · rata-rata ' + rata + ' hari') :
-    card('clk', 't', K.tunggu, 'menunggu keputusan Anda', K.tunggu > 0) + card('cal', 'o', K.lama, 'menunggu &gt; 2 hari') + card('coin', 'b', rpShort(K.nTunggu), 'nilai yang menunggu') + card('chk', 'g', K.ok, 'disetujui bulan ini · rata-rata ' + rata + ' hari');
+    card('send', 'o', K.belum, 'not submitted · ' + rpShort(K.nBelum), K.belum > 0) + card('warn', 'r', K.ulang, 'resubmit required') + card('clk', 't', K.tunggu, 'pending Section Head · ' + rpShort(K.nTunggu)) + card('chk', 'g', K.ok, 'approved this month · avg ' + rata + ' days') :
+    card('clk', 't', K.tunggu, 'awaiting your decision', K.tunggu > 0) + card('cal', 'o', K.lama, 'pending &gt; 2 days') + card('coin', 'b', rpShort(K.nTunggu), 'amount pending') + card('chk', 'g', K.ok, 'approved this month · avg ' + rata + ' days');
 }
 /** item berikutnya setelah aksi "& lanjut": Pembuat = belum diajukan, Section Head = menunggu keputusan (tab yang sama dulu) */
 function apNextItem(skip) {
   var M = apModel(), maker = M.maker, pick = function (t) { var x = M.T[t]; return apSorted(maker ? x.belum : x.tunggu).filter(function (it) { return it.kind + '|' + it.ref !== skip; })[0]; };
   return pick(AP_TAB) || AP_TABS.map(function (t) { return pick(t[0]); }).filter(Boolean)[0] || null;
 }
-function apGoNext() { var n = apNextItem(); AP_NEXT = false; if (!n) { toast('Semua sudah ' + (B.access && B.access.maker ? 'diajukan' : 'diputuskan') + '.'); return false; } openPackage(n.kind, n.ref); return true; }
+function apGoNext() { var n = apNextItem(); AP_NEXT = false; if (!n) { toast('All ' + (B.access && B.access.maker ? 'submitted' : 'decided') + '.'); return false; } openPackage(n.kind, n.ref); return true; }
 
 function applyAccess() {
   var maker = !!(B.access && B.access.maker); document.body.classList.toggle('ar-approver',!maker);
   buildNav(maker); navBadges();
   var me = B.user || {}, nm = me.nama || me.email || '';
-  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(maker ? (me.jabatan || 'AR Officer') + ' · Pembuat' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegasi' : '')) + '</small>';
+  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(maker ? (me.jabatan || 'AR Officer') + ' · Preparer' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegation' : '')) + '</small>';
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
-  $('tbVer').textContent = 'Pengelolaan Piutang · v' + String(E.VERSION).split(' ')[0];
-  $('accessBadge').textContent = (maker ? 'Pembuat · Seluruh menu' : 'Section Head · Otorisasi dokumen') + ' · ' + ((B.user || {}).nama || '');
+  $('tbVer').textContent = 'Receivables Management · v' + String(E.VERSION).split(' ')[0];
+  $('accessBadge').textContent = (maker ? 'Preparer · All menus' : 'Section Head · Document approvals') + ' · ' + ((B.user || {}).nama || '');
 }
 /* ====================================================== v2.8.5: Overview (layar penuh, AR Officer & Section Head) */
 var OV = {}, OV_M = '', MON_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -3050,7 +3057,7 @@ function ovRender(d) {
   var cnt = { ok: 0, wt: 0, no: 0, bad: 0 }; L.forEach(function (i) { cnt[ovSt(i)[0]] = (cnt[ovSt(i)[0]] || 0) + 1; });
   h += '<div class="ov-row ov-r1"><div class="ov-p"><h3>' + ico('doc') + 'Invoices issued · ' + monEn(d.ref) + '<span class="r">prior month: ' + rpShort(iss.prevTotal) + ' · ' + plural(iss.prevN, 'invoice') + '</span></h3><div class="s">Billing issued in the month and its approval status</div>' +
     '<div class="ov-m"><div><small>Tax base (DPP)</small><b>' + rpShort(iss.dpp) + '</b></div><div><small>VAT</small><b>' + rpShort(iss.ppn) + '</b></div><div><small>Approvals</small><b>' + cnt.ok + ' ✓ · ' + cnt.wt + ' ⏳ · ' + (cnt.no + cnt.bad) + ' open</b></div></div>' +
-    (L.length ? '<table class="ov-t"><tr><th>Date</th><th>Invoice</th><th>Customer</th><th class="n">Total</th><th>Status</th></tr>' + L.slice(0, 6).map(function (i) { var st = ovSt(i); return '<tr class="ck" data-ovinv="' + esc(i.nomor) + '"><td>' + tg(i.tgl).substring(0, 5) + '</td><td>' + esc(short(i.nomor)) + '</td><td class="w">' + esc(titleCaseS(i.pelanggan)) + '</td><td class="n">' + nfDot(i.total) + '</td><td><span class="chp ' + st[0] + '">' + st[1] + '</span></td></tr>'; }).join('') + '</table>' +
+    (L.length ? '<table class="ov-t"><tr><th>Date</th><th>Invoice</th><th>Customer</th><th class="n">Total</th><th>Status</th></tr>' + L.slice(0, 6).map(function (i) { var st = ovSt(i); return '<tr class="ck" data-ovinv="' + esc(i.nomor) + '"><td>' + tg(i.tgl).substring(0, 5) + '</td><td>4C.' + esc(short(i.nomor)) + '</td><td class="w">' + esc(titleCaseS(i.pelanggan)) + '</td><td class="n">' + nfDot(i.total) + '</td><td><span class="chp ' + st[0] + '">' + st[1] + '</span></td></tr>'; }).join('') + '</table>' +
       (L.length > 6 ? '<button class="more" type="button" data-ovgo="' + (maker ? 'buka' : 'setuju') + '">+ ' + (L.length - 6) + ' more invoices' + (maker ? ' · open Invoice Register' : '') + '</button>' : '') : '<div class="ov-empty">No invoices issued in ' + monEn(d.ref) + ' yet.</div>') + '</div>';
   // RA-RI
   var w = function (v) { return R.raFinal ? Math.min(100, v / R.raFinal * 100) : 0; }, belumV = R.belum.reduce(function (t, x) { return t + x.nilai; }, 0), lain = R.riCad + R.riLuar;
@@ -3116,25 +3123,25 @@ function ovTrend(T) {
 }
 /** v2.8.4: simpan cepat — laporan & file turunan diperbarui di latar belakang; pengguna bisa langsung lanjut bekerja */
 function bgReports() {
-  var c = $('bgChip'); c.hidden = false; c.innerHTML = '<span class="bgspin"></span>Memperbarui laporan di latar belakang…';
+  var c = $('bgChip'); c.hidden = false; c.innerHTML = '<span class="bgspin"></span>Updating reports in the background…';
   var hide = function (ms) { setTimeout(function () { c.hidden = true; }, ms); };
   call('apiAfterSave', [], function (r) {
-    if (r && r.reportPending) { c.innerHTML = '⚠ Laporan belum selesai diperbarui · <a href="#" style="color:#9FE3E8" id="bgRetry">coba lagi</a>'; $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(15000); }
-    else { c.innerHTML = '✓ Laporan sudah diperbarui'; hide(3500); }
+    if (r && r.reportPending) { c.innerHTML = '⚠ Reports not fully updated · <a href="#" style="color:#9FE3E8" id="bgRetry">retry</a>'; $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(15000); }
+    else { c.innerHTML = '✓ Reports updated'; hide(3500); }
   }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); });
 }
 function showSavedNotice(r) {
   if (r && r.background) bgReports();
   var el=$('arNotice');if(!r||!r.reportPending){el.hidden=true;return;}
-  el.hidden=false;el.innerHTML='<b>Transaksi sudah tersimpan.</b> Laporan belum sepenuhnya diperbarui. Tidak perlu input ulang.<br>'+esc((r.warnings||[]).join(' · '))+'<br><button class="btn" id="retryReports" type="button">Perbarui laporan</button>';$('retryReports').onclick=refreshReports;
+  el.hidden=false;el.innerHTML='<b>Transaction saved.</b> Reports are not fully updated yet. No need to re-enter.<br>'+esc((r.warnings||[]).join(' · '))+'<br><button class="btn" id="retryReports" type="button">Update reports</button>';$('retryReports').onclick=refreshReports;
 }
-function refreshReports(){var el=$('arNotice');el.hidden=false;el.textContent='Memperbarui laporan…';call('apiRefreshReports',[],function(r){showSavedNotice(r);if(!r.reportPending){toast('Laporan sudah diperbarui.');refreshAll(function(){if(MODE==='dashboard')renderDashboard();});}},function(e){el.textContent='Laporan belum berhasil diperbarui: '+(e.message||e);});}
+function refreshReports(){var el=$('arNotice');el.hidden=false;el.textContent='Updating reports…';call('apiRefreshReports',[],function(r){showSavedNotice(r);if(!r.reportPending){toast('Reports updated.');refreshAll(function(){if(MODE==='dashboard')renderDashboard();});}},function(e){el.textContent='Reports could not be updated: '+(e.message||e);});}
 var PAYMENT_REQUEST_MEMORY=null;
 function requestStorageKey(){return 'AR28_PENDING_'+((B.user||{}).email||'');}
 function pendingPayment(){try{return JSON.parse(sessionStorage.getItem(requestStorageKey())||'null')||PAYMENT_REQUEST_MEMORY;}catch(e){return PAYMENT_REQUEST_MEMORY;}}
-function paymentRequest(rows){var old=pendingPayment(),payload=JSON.stringify(rows);if(old){if(old.payload!==payload)throw new Error('Ada penyimpanan sebelumnya yang belum terkonfirmasi. Klik Periksa status transaksi terlebih dahulu.');return old;}var id='pay-'+Date.now().toString(36)+'-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));var r={id:id,payload:payload};PAYMENT_REQUEST_MEMORY=r;try{sessionStorage.setItem(requestStorageKey(),JSON.stringify(r));}catch(e){}return r;}
+function paymentRequest(rows){var old=pendingPayment(),payload=JSON.stringify(rows);if(old){if(old.payload!==payload)throw new Error('A previous save has not been confirmed. Click Check transaction status first.');return old;}var id='pay-'+Date.now().toString(36)+'-'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2));var r={id:id,payload:payload};PAYMENT_REQUEST_MEMORY=r;try{sessionStorage.setItem(requestStorageKey(),JSON.stringify(r));}catch(e){}return r;}
 function clearPaymentRequest(){PAYMENT_REQUEST_MEMORY=null;try{sessionStorage.removeItem(requestStorageKey());}catch(e){}$('arRecovery').hidden=true;}
-function showRecovery(){var r=pendingPayment(),el=$('arRecovery');el.hidden=!r;if(!r)return;el.innerHTML='Ada permintaan pembayaran yang belum terkonfirmasi. Jangan mencatat transaksi baru yang sama.<br><button class="btn" id="checkPending" type="button">Periksa status transaksi</button>';$('checkPending').onclick=function(){this.disabled=true;call('apiResolvePayment',[r.id],function(x){clearPaymentRequest();toast(x.saved?'Pembayaran sudah tercatat ('+x.count+' baris). Jangan input ulang.':'Permintaan belum tercatat dan sudah dibatalkan. Anda dapat memperbaiki lalu menyimpan kembali.');refreshAll();},function(e){el.textContent='Pemeriksaan belum berhasil: '+(e.message||e);setTimeout(showRecovery,2000);});};}
+function showRecovery(){var r=pendingPayment(),el=$('arRecovery');el.hidden=!r;if(!r)return;el.innerHTML='A payment request has not been confirmed. Do not record the same transaction again.<br><button class="btn" id="checkPending" type="button">Check transaction status</button>';$('checkPending').onclick=function(){this.disabled=true;call('apiResolvePayment',[r.id],function(x){clearPaymentRequest();toast(x.saved?'Payment already recorded ('+x.count+' rows). Do not re-enter.':'The request was not recorded and has been cancelled. You can correct it and save again.');refreshAll();},function(e){el.textContent='Check failed: '+(e.message||e);setTimeout(showRecovery,2000);});};}
 
 bind(); boot();
 </script>
