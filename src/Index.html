@@ -1935,7 +1935,9 @@ function bind() {
   $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(MODE); };
   $('btnPkgSubmit').onclick = submitPkg; $('btnPkgOk').onclick = function () { decidePkg(true); }; $('btnPkgNo').onclick = function () { decidePkg(false); };
   $('mSel').onchange = function () { renderDok(); };
-  $('mode-setuju').onclick = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'); openPackage(x[0], x.slice(1).join('|')); };
+  // tombol [data-open] ada di Otorisasi, Penerimaan Pembayaran (penerimaan termin terakhir) & Register Invoice (penutupan manual)
+  var openFrom = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'); openPackage(x[0], x.slice(1).join('|')); };
+  ['mode-setuju', 'mode-bayar', 'mode-buka'].forEach(function (id) { $(id).addEventListener('click', openFrom); });
 }
 
 /* ====================================================== v2: faktur pajak (Coretax kode 04) */
@@ -2599,7 +2601,7 @@ function renderSetuju() {
     : '<div class="note">Tidak ada. Untuk menutup sisa piutang: isi TUTUP MANUAL = CLOSE MANUAL dan ALASAN TUTUP MANUAL di Monitoring Invoice, lalu ajukan dari sini.</div>';
   var pays = B.payments.slice(-12).reverse(), seen = {};
   $('payList').innerHTML = pays.filter(function (p) { if (seen[p.key]) return false; seen[p.key] = 1; return true; }).map(function (p) {
-    return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'belum diajukan') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">Lihat paket</button></div></div>';
+    return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'belum diajukan') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">Lihat lembar pengesahan</button></div></div>';
   }).join('');
 }
 /* ====================================================== menu vertikal berkelompok (alur kerja piutang) */
