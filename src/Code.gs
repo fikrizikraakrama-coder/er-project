@@ -120,7 +120,7 @@ function colFmt_(c) { return typeof c[2] === 'string' ? c[4] : c[3]; }
 function colMap_(sh, schema, aliases) {
   var lc = Math.max(sh.getLastColumn(), 1), hdr = sh.getRange(schema.headerRow, 1, 1, lc).getValues()[0].map(norm_), used = {}, map = {};
   schema.cols.concat((aliases && aliases.addendum_lama) ? [['addendum_lama', '']] : []).forEach(function (c) {
-    var names = (c[1] ? [norm_(c[1])] : []).concat(((aliases || {})[c[0]] || []).map(norm_));
+    var names = (c[1] ? [norm_(c[1])] : []).concat(((aliases || {})[c[0]] || []).map(norm_)).concat(((ENGINE.HDR_LAMA || {})[schema.sheet + '|' + c[0]] || []).map(norm_));
     map[c[0]] = 0;
     for (var j = 0; j < hdr.length; j++) if (!used[j] && hdr[j] && names.indexOf(hdr[j]) >= 0) { used[j] = 1; map[c[0]] = j + 1; break; }
   });
@@ -1829,7 +1829,7 @@ function applyV24() { arRequireMaker_();
 function aturDelegasi() { arRequireMaker_();
   var ui = SpreadsheetApp.getUi(), cur = paramKV_('DELEGASI_EMAIL'), sd = paramKV_('DELEGASI_SAMPAI'), P = arParameters_(), me = email_();
   var aktif = cur && cur.val ? '\n\nSaat ini: ' + cur.val + ' s.d. ' + (sd ? sd.val : '-') + ' (' + ((paramKV_('DELEGASI_JENIS') || {}).val || 'PAY,VAL') + ')' : '';
-  var q = ui.prompt('Delegasi persetujuan Oktober 2026', 'Email akun pengganti yang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk:\n• Paket penerimaan termin (PAY)\n• Validasi rencana cair (VAL)\n\nSyarat pemisahan tugas: akun ini harus terdaftar di Parameter ▸ Pengguna & Peran dan BUKAN berperan PEMBUAT (AR Officer tidak boleh menyetujui pekerjaannya sendiri). Akun pengganti juga perlu akses edit ke spreadsheet ini.' + aktif + '\n\nKosongkan lalu OK untuk mencabut delegasi.', ui.ButtonSet.OK_CANCEL);
+  var q = ui.prompt('Delegasi persetujuan Oktober 2026', 'Email akun pengganti yang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk:\n• Penerimaan termin (PAY)\n• Validasi rencana cair (VAL)\n\nSyarat pemisahan tugas: akun ini harus terdaftar di Parameter ▸ Pengguna & Peran dan BUKAN berperan PEMBUAT (AR Officer tidak boleh menyetujui pekerjaannya sendiri). Akun pengganti juga perlu akses edit ke spreadsheet ini.' + aktif + '\n\nKosongkan lalu OK untuk mencabut delegasi.', ui.ButtonSet.OK_CANCEL);
   if (q.getSelectedButton() !== ui.Button.OK) return;
   var mail = String(q.getResponseText() || '').trim().toLowerCase();
   if (!mail) { setParamKV_('DELEGASI_EMAIL', '', 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut)'); rebuildAll(); ui.alert('Delegasi dicabut.'); return; }

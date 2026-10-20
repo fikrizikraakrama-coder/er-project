@@ -223,6 +223,8 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow .sign .jb{font-size:7.8pt}
 .pg-flow .stamp{border:.8pt solid #2F7D4F;color:#14532D;border-radius:1.4mm;padding:1.2mm 1.8mm;font-size:6.8pt;line-height:1.3;text-align:center;background:#EEF8F1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pg-flow .stamp b{display:block;font-size:7.4pt;letter-spacing:.2px}
+.apTabs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.apTab{border:1px solid #C9D3DF;background:#fff;border-radius:16px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#33475B}.apTab b{margin-left:3px;color:#0F6E78}.apTab.on{background:#E3F1F2;border-color:#0F6E78;color:#0B4F56;font-weight:600}
+.pg-flow .ajx{font-size:6.4pt;color:#5B6B80;font-style:italic;margin:0 0 .6mm}
 .pg-flow .stamp.bad{border-color:#B42318;color:#B42318;background:#FDECEA}
 .pg-flow .stamp.wait{border-color:#9C6500;color:#5C3D00;background:#FFF4D6}
 .pg-flow .foot{margin-top:5mm;font-size:6.8pt;color:#7A889C;border-top:.3pt solid #BFC8D4;padding-top:1.4mm}
@@ -349,7 +351,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
   <aside>
     <div class="brand">
       <h1>AR CSU — Pengelolaan Piutang</h1>
-      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.1 · 13-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
+      <p>WIKA Beton · Concrete Services Unit — tersambung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.2 · 20-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
     </div>
     <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div><div id="arRecovery" class="note warn" hidden></div><div id="arNotice" class="note warn" hidden></div><div id="arVersion" class="note err" hidden></div>
     <div class="modes" role="tablist">
@@ -485,7 +487,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
     <!-- ===================== MODE PERSETUJUAN & PAKET -->
     <div class="scroll" id="mode-setuju" hidden>
       <div class="who" id="whoBox"></div><div id="perBox"></div>
-      <fieldset><legend>Menunggu persetujuan Section Head</legend><div id="pendList"></div></fieldset>
+      <fieldset><legend>Menunggu persetujuan Section Head</legend><div class="apTabs" id="apTabs"></div><div id="pendList"></div></fieldset>
       <fieldset><legend>Dokumen bulanan</legend>
         <label for="mSel">Bulan</label><select id="mSel"></select>
         <div class="row" style="margin-top:8px"><button class="btn" type="button" id="btnVal">Lembar Validasi Rencana Cair</button><button class="btn" type="button" id="btnRek">Rekap Bulanan Akuntansi</button></div>
@@ -495,7 +497,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
         <div class="row" style="margin-top:2px"><div><label for="kTgl">Posisi per</label><input id="kTgl" type="date"></div><div style="display:flex;align-items:flex-end"><button class="btn" type="button" id="btnKp" style="width:100%">Buka kartu piutang</button></div></div>
       </fieldset>
       <fieldset><legend>Penutupan manual (CLOSE MANUAL) menunggu diajukan / diputuskan</legend><div id="tutupList"></div></fieldset>
-      <fieldset><legend>Paket penerimaan terakhir</legend><div id="payList"></div></fieldset>
+      <fieldset><legend>Penerimaan termin terakhir</legend><div id="payList"></div></fieldset>
       <fieldset><legend>Riwayat keputusan</legend><div id="histList"></div></fieldset>
     </div>
 
@@ -509,7 +511,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
       <div class="status" id="saveStatus"></div>
       <button class="btn primary" id="btnSave">Simpan ke Monitoring</button>
       <div class="btns"><span>Cetak</span><button class="btn" id="btnPInv">Invoice</button><button class="btn" id="btnPKw">Kwitansi</button><button class="btn" id="btnPBap">BAP</button><button class="btn" id="btnPAll">Semua</button></div>
-      <div class="btns"><span>Paket</span><button class="btn" id="btnPkgInv">Paket lampiran &amp; persetujuan</button></div>
+      <div class="btns"><span>Pengesahan</span><button class="btn" id="btnPkgInv">Lembar pengesahan &amp; persetujuan</button></div>
     </div>
     <div class="actions" id="act-surat" hidden>
       <div class="status" id="srStatus"></div>
@@ -519,7 +521,7 @@ body.ar-approver .modes{grid-template-columns:1fr}body.ar-approver .brand{backgr
     <div class="actions" id="act-bayar" hidden>
       <div class="status" id="payStatus"></div>
       <button class="btn primary" id="btnPay" disabled>Simpan pembayaran</button>
-      <button class="btn" id="btnPayPkg" disabled>Paket penerimaan &amp; persetujuan</button>
+      <button class="btn" id="btnPayPkg" disabled>Lembar pengesahan &amp; persetujuan</button>
     </div>
   </aside>
 
@@ -1370,8 +1372,8 @@ function save(revisi) {
     }
     SAVED = true;
     $('saveStatus').innerHTML = '<span style="color:var(--green)">' + (r.mode !== 'revisi' ? 'Tersimpan di Monitoring Invoice.'
-      : r.jenis === 'BAP' ? 'Revisi BAP tercatat (Riwayat Revisi). Nilai invoice, nomor revisi, dan persetujuan tetap. Bila paket sudah diarsipkan, buka paket invoice ▸ Arsip ke Drive agar PDF lama pindah ke "Revisi lama".'
-      : 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : ' (nilai tetap).') + ' Ajukan ulang paket invoice ke Section Head.') +
+      : r.jenis === 'BAP' ? 'Revisi BAP tercatat (Riwayat Revisi). Nilai invoice, nomor revisi, dan persetujuan tetap. Bila paket sudah diarsipkan, buka lembar pengesahan invoice ▸ Arsip ke Drive agar PDF lama pindah ke "Revisi lama".'
+      : 'Revisi ke-' + r.rev + ' tersimpan' + (r.perluFP && r.perluFP.indexOf('YA') === 0 ? ' — DPP/PPN berubah, siapkan faktur pajak pengganti.' : ' (nilai tetap).') + ' Ajukan ulang invoice ke Section Head.') +
       (r.perubahan && r.perubahan.length ? '<br><span style="color:var(--steel);font-size:11px">Perubahan: ' + esc(r.perubahan.join(' · ')) + '</span>' : '') + '</span>';
     toast('Invoice ' + r.nomor + ' tersimpan.' + (r.reportPending ? ' Laporan perlu diperbarui.' : ' Laporan sudah diperbarui.'));
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); update(); });
@@ -1841,7 +1843,7 @@ function setMode(m) {
   if (m === 'dashboard') renderDashboard();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
-  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih pengajuan, paket penerimaan, atau dokumen bulanan untuk melihat pratinjau.</div>'; }
+  if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih pengajuan, penerimaan termin, atau dokumen bulanan untuk melihat pratinjau.</div>'; }
 }
 
 /* ====================================================== event */
@@ -1939,12 +1941,13 @@ function fallbackCopy(t) { var a = document.createElement('textarea'); a.value =
 
 /* ====================================================== v2: dokumen internal (lembar pengesahan, kartu, jurnal, faktur, validasi, rekap) */
 function nd(x) { return x === '' || x === null || x === undefined ? '' : nfDot(x); }
+function tgJam(s) { s = String(s || ''); return tg(s.substring(0, 10)) + (s.length > 10 ? ' ' + s.substring(11, 16) : ''); }
 function tg(s) { if (!s) return ''; var p = String(s).substring(0, 10).split('-'); return p.length === 3 ? p[2] + '-' + p[1] + '-' + p[0] : esc(s); }
 function docHead(title, sub, right, land) {
   return '<div class="dh"><div class="co">PT WIJAYA KARYA BETON Tbk<span>Concrete Services Unit · Finance &amp; Human Resources Section</span></div><div class="no">' + (right || '') + '</div></div>' +
     '<h2>' + esc(title) + '</h2>' + (sub ? '<p class="sub">' + sub + '</p>' : '');
 }
-function docFoot(pkg) { return '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' (dirancang &amp; dikembangkan oleh Fikri Zikra Akrama) · ' + esc(tg(B ? B.today : '')) + (pkg && pkg.fp ? ' · sidik data ' + esc(pkg.fp) : '') + '</div>'; }
+function docFoot(pkg) { return '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B ? B.today : '')) + (pkg && pkg.fp ? ' · sidik data ' + esc(pkg.fp) : '') + '</div>'; }
 function stampHtml(a) {
   if (!a) return '';
   var dlg = /^\[DELEGASI/.test(a.catatan || '');
@@ -1956,12 +1959,13 @@ function stampHtml(a) {
 }
 function signBlock(pkg, withManager, withReceiver) {
   var R = pkg.roles || {}, a = pkg.appr, mode = (pkg.params && pkg.params.TTD_MODE) || 'KEDUANYA', box = [];
-  var cell = function (role, who, inner) {
-    who = who || { nama: '', jabatan: '', nip: '' };
-    return '<div><div class="rl">' + role + '</div><div class="sp">' + (inner || '') + '</div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">NIP : ' + esc(who.nip || '....................') + '</div><div class="jb">Tanggal : ' + (inner && /stamp/.test(inner) ? '' : '..................') + '</div></div>';
+  var cell = function (role, who, inner, note) {
+    who = who || { nama: '', jabatan: '' };
+    return '<div><div class="rl">' + role + '</div><div class="sp">' + (inner || '') + '</div>' + (note || '') + '<div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + (inner && /stamp/.test(inner) ? '' : '..................') + '</div></div>';
   };
   var dig = mode !== 'BASAH';
-  box.push(cell('Dibuat oleh,', R.PEMBUAT, dig && a ? '<div class="stamp"><b>DIAJUKAN SECARA ELEKTRONIK</b>' + esc(a.oleh_nama || a.oleh) + '<br>' + esc(a.waktu) + ' WIB</div>' : ''));
+  // pembuat: cukup satu baris kecil (ruang tanda tangan basah tetap lega); cap Section Head tetap sebagai bukti persetujuan
+  box.push(cell('Dibuat oleh,', R.PEMBUAT, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : ''));
   box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig ? stampHtml(a) : ''));
   if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>'));
   if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '<span style="color:#9AA5B5;font-size:7pt">input ke SAP</span>'));
@@ -1971,13 +1975,13 @@ function signBlock(pkg, withManager, withReceiver) {
 }
 function pgPengesahan(pkg, hasBap, migr) {
   var i = pkg.inv, a = pkg.appr;
-  var h = '<div class="page pg-flow">' + docHead('LEMBAR PENGESAHAN — PAKET INVOICE KELUAR', 'Bukti validasi internal atas invoice yang diterbitkan, untuk diserahkan ke Akuntansi sebagai dasar pencatatan di SAP.', 'No. ' + esc(i.nomor) + '<br>Revisi ke-' + (i.rev || 0));
+  var h = '<div class="page pg-flow">' + docHead('LEMBAR PENGESAHAN INVOICE KELUAR', 'Bukti validasi internal atas invoice yang diterbitkan, untuk diserahkan ke Akuntansi sebagai dasar pencatatan di SAP.', 'No. ' + esc(i.nomor) + '<br>Revisi ke-' + (i.rev || 0));
   h += '<div class="grid2"><table class="kv">' +
     [['Pelanggan', i.pelanggan], ['NPP · Proyek', i.npp + ' · ' + i.proyek], ['Tagihan', i.invke], ['Tanggal invoice', tg(i.tgl)], ['Kelompok · Kode BP', (i.kelompok || '-') + ' · ' + (i.kode_bp || '-')]].map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v">' + esc(r[1]) + '</td></tr>'; }).join('') +
     '</table><table class="kv">' + [['DPP', nd(i.dpp)], ['PPN', nd(i.ppn)], ['Total invoice', nd(i.total)], ['Netto tercatat (piutang usaha)', nd(i.netto)], ['PPh (dipotong pelanggan)', nd(i.pph)], ['No. faktur pajak', i.no_fp || 'belum dicatat'], ['No. dok SAP', i.sap || 'diisi setelah posting']]
       .map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v" style="text-align:right">' + esc(r[1]) + '</td></tr>'; }).join('') + '</table></div>';
   h += '<h3>Uraian tagihan</h3><p style="margin:0">' + esc(i.uraian) + '</p>';
-  h += '<h3>Lampiran dalam paket</h3><ul class="chk"><li' + (migr ? ' class="no"' : '') + '>Invoice' + (migr ? ' — hasil migrasi, lampirkan salinan arsip' : '') + '</li><li' + (migr ? ' class="no"' : '') + '>Kwitansi</li>' +
+  h += '<h3>Lampiran</h3><ul class="chk"><li' + (migr ? ' class="no"' : '') + '>Invoice' + (migr ? ' — hasil migrasi, lampirkan salinan arsip' : '') + '</li><li' + (migr ? ' class="no"' : '') + '>Kwitansi</li>' +
     (i.template === 'FAJARPUTERA' ? '<li' + (hasBap ? '' : ' class="no"') + '>Berita Acara Penagihan (Fajarputera)</li>' : '') +
     '<li>Kartu piutang proyek per ' + tg(pkg.kartu ? pkg.kartu.asOf : '') + '</li><li>Usulan jurnal SAP (FBVB · DR)</li><li>Draft faktur pajak Coretax (kode 04)</li></ul>';
   if (a && a.status === 'DITOLAK') h += '<div class="warn"><b>Ditolak:</b> ' + esc(a.catatan) + '</div>';
@@ -2021,10 +2025,10 @@ function kartuSign(pkg) {
   var ok = a && a.status === 'DISETUJUI' && !a.berubah && a.valid !== false;
   var tgl = ok ? tglIndo(String(a.putus_waktu).substring(0, 10)) : '..................................';
   var mk = R.PEMBUAT || { nama: 'Fikri Zikra Akrama', jabatan: 'AR Officer' }, sh = R.PENYETUJU || { nama: 'Anas Afifudin', jabatan: 'Section Head of Finance & HR' };
-  var sub = a && (a.status === 'DISETUJUI' || a.status === 'MENUNGGU') ? '<div class="stamp"><b>DIAJUKAN SECARA ELEKTRONIK</b>' + esc(a.oleh_nama || a.oleh) + '<br>' + esc(a.waktu) + ' WIB</div>' : '';
+  var sub = a && (a.status === 'DISETUJUI' || a.status === 'MENUNGGU') ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '';
   return '<div class="ksign"><div class="kt">' + esc(kota) + ', ' + esc(tgl) + '</div>' +
     '<div class="col"><div>Disetujui oleh,</div><div class="sp">' + (a ? stampHtml(a) : '') + '</div><div class="nm">' + esc(sh.nama) + '</div><div>' + esc(sh.jabatan) + '</div></div>' +
-    '<div class="col"><div>Dibuat oleh,</div><div class="sp">' + sub + '</div><div class="nm">' + esc(mk.nama) + '</div><div>' + esc(mk.jabatan) + '</div></div></div>';
+    '<div class="col"><div>Dibuat oleh,</div><div class="sp"></div>' + sub + '<div class="nm">' + esc(mk.nama) + '</div><div>' + esc(mk.jabatan) + '</div></div></div>';
 }
 function pgKartu(k, pkg, preview) {
   if (!k) return '';
@@ -2072,12 +2076,12 @@ function pgFaktur(f, i, pkg) {
 }
 function pgBukti(pkg) {
   var rows = pkg.rows, t = { n: 0, N: 0, P: 0, h: 0, a: 0 };
-  var h = '<div class="page pg-flow land">' + docHead('LEMBAR PENGESAHAN — PAKET PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, untuk diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key)));
+  var h = '<div class="page pg-flow land">' + docHead('LEMBAR PENGESAHAN PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, untuk diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key)));
   h += '<table class="t"><tr><th>ID</th><th>Tgl bayar</th><th>Ref. transfer · rekening</th><th>No. invoice</th><th>Pelanggan · NPP</th><th>Nominal</th><th>→ Netto</th><th>→ PPN</th><th>PPh diakui</th><th>Adm bank</th><th>Dasar alokasi</th><th>Status setelah bayar</th><th>Sisa</th></tr>';
   rows.forEach(function (r) { h += '<tr><td>' + esc(r.idp) + '</td><td>' + tg(r.tgl) + '</td><td>' + esc(r.ref) + '<br>' + esc(r.pb ? 'PINDAH BUKU' : r.rekening || '') + '</td><td>' + esc(r.nomor) + '<br>' + esc(r.invke) + '</td><td>' + esc(r.pelanggan) + '<br>' + esc(r.npp) + '</td><td class="n">' + nd(r.nominal) + '</td><td class="n">' + nd(r.keN) + '</td><td class="n">' + nd(r.keP) + '</td><td class="n">' + nd(r.pph) + '</td><td class="n">' + nd(r.adm) + '</td><td>' + esc(r.aturan) + '</td><td>' + esc(r.status) + '</td><td class="n">' + nd(r.sisa) + '</td></tr>';
     t.n += r.nominal; t.N += r.keN; t.P += r.keP; t.h += r.pph; t.a += r.adm; });
   h += '<tr class="tot"><td></td><td></td><td></td><td></td><td>TOTAL</td><td class="n">' + nd(t.n) + '</td><td class="n">' + nd(t.N) + '</td><td class="n">' + nd(t.P) + '</td><td class="n">' + nd(t.h) + '</td><td class="n">' + nd(t.a) + '</td><td></td><td></td><td></td></tr></table>';
-  h += '<h3>Lampiran dalam paket</h3><ul class="chk"><li>Bukti penerimaan / mutasi rekening ' + esc(rows.filter(function (r) { return r.rekening && !r.pb; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + ' (lampirkan)</li><li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (F-28 · DZ)</li></ul>';
+  h += '<h3>Lampiran</h3><ul class="chk"><li>Bukti penerimaan / mutasi rekening ' + esc(rows.filter(function (r) { return r.rekening && !r.pb; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + ' (lampirkan)</li><li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (F-28 · DZ)</li></ul>';
   return h + signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
 }
 /* ---------- v2.6: Lembar Pembatalan Invoice ---------- */
@@ -2329,13 +2333,13 @@ function buildPages(pkg, invDocs) {
   return { internal: internal, all: all };
 }
 function openPackage(kind, ref, quiet, after) {
-  if (!quiet) { $('sheetwrap').innerHTML = '<div class="empty">Menyiapkan paket…</div>'; }
+  if (!quiet) { $('sheetwrap').innerHTML = '<div class="empty">Menyiapkan dokumen…</div>'; }
   call('apiPackage', [kind, ref], function (pkg) {
     var show = function (invDocs) { PKG = pkg; VDEC = null; PKG._pages = buildPages(pkg, invDocs); showPackage(); if (after) setTimeout(after, 300); };
     if (kind !== 'INV') return show('');
     if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
     call('apiGetInvoice', [pkg.inv.nomor], function (o) { show(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { show(''); });
-  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Gagal memuat paket: ' + esc(e.message || e) + '</div>'; });
+  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Gagal memuat dokumen: ' + esc(e.message || e) + '</div>'; });
 }
 function showPackage() {
   if (!PKG) return;
@@ -2552,11 +2556,16 @@ function renderSetuju() {
   var me = B.user || {}, role = me.peran || '';
   $('whoBox').innerHTML = 'Masuk sebagai <b>' + esc(me.nama || me.email || 'pengguna tidak dikenal') + '</b>' + (role ? ' · ' + esc(role) : '') + (me.email ? '<br><span style="color:var(--steel)">' + esc(me.email) + '</span>' : '') +
     (!role ? '<div class="note warn">Email ini belum terdaftar di Parameter ▸ Pengguna & Peran, jadi tidak bisa mengajukan/menyetujui.</div>' : '') +
-    (B.delegasi ? '<div class="note warn">Delegasi aktif: Anda boleh menyetujui a.n. ' + esc(B.delegasi.atas) + ' sampai ' + esc(tg(B.delegasi.sampai)) + ' untuk ' + esc(B.delegasi.jenis.map(function (j) { return { PAY: 'paket penerimaan', VAL: 'validasi rencana cair', INV: 'paket invoice', KP: 'kartu piutang', REK: 'rekap bulanan', TUTUP: 'penutupan manual', SEMUA: 'semua jenis' }[j] || j; }).join(', ')) + '. Cap tertulis "a.n. Section Head (delegasi)".</div>' : '');
+    (B.delegasi ? '<div class="note warn">Delegasi aktif: Anda boleh menyetujui a.n. ' + esc(B.delegasi.atas) + ' sampai ' + esc(tg(B.delegasi.sampai)) + ' untuk ' + esc(B.delegasi.jenis.map(function (j) { return { PAY: 'penerimaan termin', VAL: 'validasi rencana cair', INV: 'invoice keluar', KP: 'kartu piutang', REK: 'rekap bulanan', TUTUP: 'penutupan manual', SEMUA: 'semua jenis' }[j] || j; }).join(', ')) + '. Cap tertulis "a.n. Section Head (delegasi)".</div>' : '');
   renderPeriode();
-  var pend = B.approvals.filter(function (a) { return a.status === 'MENUNGGU'; }).reverse();
-  $('pendList').innerHTML = pend.length ? pend.map(apprCard).join('') : '<div class="note">Tidak ada pengajuan yang menunggu.</div>';
-  var hist = B.approvals.filter(function (a) { return a.status !== 'MENUNGGU'; }).slice(-15).reverse();
+  // dipisah per jenis agar daftar tidak terlalu panjang; tab pertama = yang paling banyak menunggu
+  var all = B.approvals.filter(function (a) { return a.status === 'MENUNGGU'; }).reverse(), cnt = {};
+  AP_TABS.forEach(function (t) { cnt[t[0]] = all.filter(function (a) { return apGroup(a) === t[0]; }).length; });
+  if (!AP_TAB || (!cnt[AP_TAB] && all.length)) AP_TAB = AP_TABS.slice().sort(function (x, y) { return cnt[y[0]] - cnt[x[0]]; })[0][0];
+  $('apTabs').innerHTML = AP_TABS.map(function (t) { return '<button type="button" class="apTab' + (t[0] === AP_TAB ? ' on' : '') + '" onclick="AP_TAB=\'' + t[0] + '\';renderSetuju()">' + t[1] + ' <b>' + cnt[t[0]] + '</b></button>'; }).join('');
+  var pend = all.filter(function (a) { return apGroup(a) === AP_TAB; }), tabNm = AP_TABS.filter(function (t) { return t[0] === AP_TAB; })[0][1];
+  $('pendList').innerHTML = pend.length ? pend.map(apprCard).join('') : '<div class="note">Tidak ada ' + esc(tabNm.toLowerCase()) + ' yang menunggu.</div>';
+  var hist = B.approvals.filter(function (a) { return a.status !== 'MENUNGGU' && apGroup(a) === AP_TAB; }).slice(-15).reverse();
   $('histList').innerHTML = hist.length ? hist.map(apprCard).join('') : '<div class="note">Belum ada riwayat.</div>';
   var ms = $('mSel'); if (ms && !ms.options.length) { ms.innerHTML = B.months.map(function (m) { return '<option value="' + m.ref + '">' + esc(m.label) + '</option>'; }).join(''); ms.value = B.today.substring(0, 7); }
   $('tutupList').innerHTML = (B.pendTutup || []).length ? B.pendTutup.map(function (t) { return '<div class="card"><h4>' + esc(short(t.nomor)) + ' · sisa Rp ' + nfDot(t.sisa) + '</h4><div class="meta">' + esc(t.pelanggan) + '<br>' + esc(t.status) + (t.alasan ? '<br>Alasan: ' + esc(t.alasan) : '') + '</div><div class="row-btn"><button class="btn" data-open="TUTUP|' + esc(E.normInv(t.nomor)) + '">Lihat &amp; ajukan</button></div></div>'; }).join('')
@@ -2566,9 +2575,11 @@ function renderSetuju() {
     return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'belum diajukan') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">Lihat paket</button></div></div>';
   }).join('');
 }
+var AP_TABS = [['PAY', 'Penerimaan Termin'], ['INV', 'Invoice'], ['VAL', 'Validasi Rencana Cair'], ['LAIN', 'Lainnya']], AP_TAB = '';
+function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
 function apprCard(a) {
   var k = KIND_OF[a.jenis] || '';
-  return '<div class="card"><h4>' + esc(a.jenis) + ' · ' + esc(a.id) + '</h4><div class="meta">' + esc(a.label || a.ref) + (a.nilai ? ' · Rp ' + nfDot(a.nilai) : '') + '<br>Diajukan ' + esc(a.waktu) + ' oleh ' + esc(a.oleh_nama || a.oleh) +
+  return '<div class="card"><h4>' + esc(E.jenisTampil(a.jenis)) + ' · ' + esc(a.id) + '</h4><div class="meta">' + esc(E.labelTampil(a.label || a.ref)) + (a.nilai ? ' · Rp ' + nfDot(a.nilai) : '') + '<br>Diajukan ' + esc(a.waktu) + ' oleh ' + esc(a.oleh_nama || a.oleh) +
     (a.status !== 'MENUNGGU' ? '<br><b>' + esc(a.status) + '</b> ' + esc(a.putus_nama || '') + ' ' + esc(a.putus_waktu || '') + (a.catatan ? ' — ' + esc(a.catatan) : '') : '') + (a.berubah ? '<br><b style="color:var(--red)">Data berubah — perlu diajukan ulang</b>' : '') + '</div>' +
     (k ? '<div class="row-btn"><button class="btn" data-open="' + k + '|' + esc(a.ref) + '">Lihat &amp; putuskan</button></div>' : '') + '</div>';
 }

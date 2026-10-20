@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.8.1 · 13-10-2026';
+  var VERSION = '2.8.2 · 20-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -43,7 +43,7 @@ var ENGINE = (function () {
       ['diterima', 'TOTAL DITERIMA', 'auto', 16, 'money'], ['pot_pph', 'POT. PPh', 'auto', 14, 'money'], ['adm', 'ADM BANK', 'auto', 10, 'money'],
       ['sel_pph', 'SELISIH PPh', 'auto', 13, 'money'], ['sisa', 'SISA PIUTANG (KAS)', 'auto', 16, 'money'],
       ['tgl_bayar', 'TGL BAYAR TERAKHIR', 'auto', 12, 'date'], ['umur', 'UMUR (HARI)', 'auto', 7, 'int'],
-      ['persetujuan', 'PERSETUJUAN PAKET INVOICE', 'auto', 24], ['link_paket', 'ARSIP PAKET (LINK)', 'app', 18],
+      ['persetujuan', 'PERSETUJUAN INVOICE', 'auto', 24], ['link_paket', 'ARSIP LEMBAR PENGESAHAN (LINK)', 'app', 18],
       ['sumber', 'SUMBER DATA', 'app', 18], ['dibuat', 'DIBUAT / DIUBAH', 'app', 17], ['json', 'DATA FORM (JANGAN DIUBAH)', 'app', 10],
       ['memorial', 'MEMORIAL AKUNTANSI', 'auto', 22]
     ]
@@ -60,7 +60,7 @@ var ENGINE = (function () {
       ['pelanggan', 'NAMA PELANGGAN', 'auto', 28], ['npp', 'NPP', 'auto', 13],
       ['ke_ppn', '→ PPN', 'auto', 15, 'money'], ['ke_net', '→ NETTO', 'auto', 16, 'money'], ['aturan', 'DASAR ALOKASI', 'auto', 30],
       ['pph_cat', 'POT. PPh DIAKUI', 'auto', 14, 'money'], ['adm_cat', 'ADM BANK DIAKUI', 'auto', 11, 'money'],
-      ['cicil', 'PEMBAYARAN KE-', 'auto', 9, 'int'], ['persetujuan', 'PERSETUJUAN PAKET', 'auto', 22], ['cek', 'CEK', 'auto', 34],
+      ['cicil', 'PEMBAYARAN KE-', 'auto', 9, 'int'], ['persetujuan', 'PERSETUJUAN PENERIMAAN', 'auto', 22], ['cek', 'CEK', 'auto', 34],
       ['memorial', 'MEMORIAL AKUNTANSI', 'auto', 22],
       ['request_id', 'ID PERMINTAAN (SISTEM)', 'app', 20], ['request_hash', 'SIDIK PERMINTAAN (SISTEM)', 'app', 20],
       ['request_user', 'PENCATAT (SISTEM)', 'app', 26]
@@ -136,6 +136,12 @@ var ENGINE = (function () {
     peran: ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI (TTD BASAH)', 'PENERIMA', 'P&E (LIHAT)']
   };
   // jenis dokumen persetujuan
+  // judul kolom lama (sebelum v2.8.2) tetap dikenali; kunci: <sheet>|<kolom>
+  var HDR_LAMA = { 'Monitoring Invoice|persetujuan': ['PERSETUJUAN PAKET INVOICE'], 'Monitoring Invoice|link_paket': ['ARSIP PAKET (LINK)'], 'Log Penerimaan|persetujuan': ['PERSETUJUAN PAKET'] };
+  // JENIS di Log Persetujuan tetap kunci lama ("PAKET INVOICE"/"PAKET PENERIMAAN"); yang tampil & tercetak memakai nama baru
+  var JENIS_TAMPIL = { 'PAKET INVOICE': 'INVOICE KELUAR', 'PAKET PENERIMAAN': 'PENERIMAAN TERMIN' };
+  function jenisTampil(j) { return JENIS_TAMPIL[U(j)] || S(j); }
+  function labelTampil(s) { return S(s).replace(/^Paket penerimaan\b/i, 'Penerimaan termin').replace(/^Paket invoice\b/i, 'Invoice'); }
   var DOC = { INV: 'PAKET INVOICE', PAY: 'PAKET PENERIMAAN', VAL: 'VALIDASI RENCANA CAIR', REK: 'REKAP BULANAN AKUNTANSI', KP: 'KARTU PIUTANG', TUTUP: 'PENUTUPAN MANUAL', BATAL: 'PEMBATALAN INVOICE', VALX: 'PEMBATALAN LEMBAR VALIDASI' };
   // rekening penerimaan termin (bawaan; dapat diubah di Parameter ▸ REKENING PENERIMAAN)
   // memorial akuntansi (format DOKUMEN MEMORIAL bagian Akuntansi) — disimpan di sheet "Memorial AR", dikirim ke file Akuntansi
@@ -1051,7 +1057,7 @@ var ENGINE = (function () {
     if (!inv) return null;
     var rec = ctx.latest(DOC.INV, k);
     return { inv: plainInv(inv), kartu: kartuPlain(ctx, inv.npp, ctx.today), jurnal: [jPlain(jInvoice(ctx, inv))], faktur: fakturDraft(ctx, inv),
-      fp: inv._fp, appr: rec ? apprPlain(rec, inv._fp) : null, ref: k, jenis: DOC.INV, label: 'Paket invoice ' + inv.nomor + ' — ' + inv.pelanggan, nilai: inv._a.total };
+      fp: inv._fp, appr: rec ? apprPlain(rec, inv._fp) : null, ref: k, jenis: DOC.INV, label: 'Invoice ' + inv.nomor + ' — ' + inv.pelanggan, nilai: inv._a.total };
   }
   function payPackage(ctx, key) {
     var g = ctx.payGroups[key];
@@ -1062,7 +1068,7 @@ var ENGINE = (function () {
         invke: invLabel(i), nominal: p.nominal, keN: p._keN, keP: p._keP, pph: (p._pph || 0) + (p._sel || 0), adm: p._adm || 0, aturan: p._rule, cicil: p._ke, ket: S(p.ket), sap: p.sap_doc,
         status: i._res.status, sisa: i._res.sisa, kas: i._a.kas, rekening: p._rek ? p._rek.label : S(p.rekening), pb: !!p._pb }; }),
       kartu: Object.keys(npps).map(function (n) { return kartuPlain(ctx, n, ctx.today); }), jurnal: jPays(ctx, g).map(jPlain),
-      fp: fp, appr: rec ? apprPlain(rec, fp) : null, ref: key, jenis: DOC.PAY, label: 'Paket penerimaan ' + key + ' — ' + g[0]._inv.pelanggan, nilai: sumBy(g, function (p) { return p.nominal; }) };
+      fp: fp, appr: rec ? apprPlain(rec, fp) : null, ref: key, jenis: DOC.PAY, label: 'Penerimaan termin ' + key + ' — ' + g[0]._inv.pelanggan, nilai: sumBy(g, function (p) { return p.nominal; }) };
   }
   /** kartu piutang yang disetujui: sidik = ringkasan saldo per invoice pada tanggal posisi */
   function kpFp(ctx, npp, asOf) {
@@ -1436,7 +1442,7 @@ var ENGINE = (function () {
     L.sort(function (a, b) { return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : (a.nomor < b.nomor ? -1 : 1); });
     var r2 = 8 + rows.length + 2;
     var lr = [['DAFTAR INVOICE KELUAR — ' + sel.label.toUpperCase()], ['NO', 'TGL INVOICE', 'NOMOR INVOICE', 'NAMA PELANGGAN', 'NPP', 'NAMA PROYEK', 'INVOICE KE-', 'DPP', 'PPN', 'TOTAL INVOICE', 'RETENSI',
-      'NOMOR FAKTUR PAJAK', 'TGL FAKTUR', 'NO. DOK SAP', 'PENANDATANGAN', 'PERSETUJUAN PAKET', 'STATUS PEMBAYARAN']];
+      'NOMOR FAKTUR PAJAK', 'TGL FAKTUR', 'NO. DOK SAP', 'PENANDATANGAN', 'PERSETUJUAN', 'STATUS PEMBAYARAN']];
     L.forEach(function (i, ix) { lr.push([ix + 1, i.tgl, i.nomor, i.pelanggan, i.npp, i._pro ? i._pro.singkat : '', S(i.invke), i._a.dpp, i._a.ppn, i._a.total, i._a.ret,
       i.no_fp, i.tgl_fp, i.sap_doc, S(i.ttd), apprStatusText(ctx.latest(DOC.INV, normInv(i.nomor)), i._fp), i._res.status]); });
     lr.push(['', 'TOTAL', '', '', '', '', '', sumBy(L, function (i) { return i._a.dpp; }), sumBy(L, function (i) { return i._a.ppn; }), sumBy(L, function (i) { return i._a.total; }), sumBy(L, function (i) { return i._a.ret; })]);
@@ -2438,7 +2444,7 @@ var ENGINE = (function () {
     var mb = done ? [] : mAll.filter(function (b) { return !/DIKOREKSI|^BATAL/.test(U(b.status)); });
     if (mb.length) { var vb = mb.filter(function (b) { return b.verif; }); checks.push({ s: 'warn', t: vb.length ? 'Memorial ' + vb[vb.length - 1].kode + ' sudah diverifikasi Akuntansi → dibuat blok KOREKSI (PEMBATALAN) berisi jurnal pembalik' : 'Memorial ' + mb[mb.length - 1].kode + ' belum diverifikasi → ditandai BATAL di file Akuntansi' }); }
     var pk = ctx.latest(DOC.INV, k);
-    if (pk && pk.status === 'DISETUJUI') checks.push({ s: 'warn', t: 'Paket invoice ' + pk.id + ' yang sudah disetujui menjadi tidak berlaku' });
+    if (pk && pk.status === 'DISETUJUI') checks.push({ s: 'warn', t: 'Persetujuan invoice ' + pk.id + ' yang sudah disetujui menjadi tidak berlaku' });
     var canSubmit = !done && !pend && !pays.length;
     var d = rec && rec._data ? rec._data : {};
     return { ref: k, inv: plainInv(inv), label: 'Pembatalan invoice ' + inv.nomor + ' — ' + inv.pelanggan, nilai: inv._a.total, jenis: DOC.BATAL, fp: fp,
@@ -2796,6 +2802,7 @@ var ENGINE = (function () {
     computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
+    jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,
     fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,
     readParams: readParams, buildMaster: buildMaster, signerFor: signerFor, tarifDefault: tarifDefault, pphLabel: pphLabel,

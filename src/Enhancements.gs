@@ -197,6 +197,9 @@ function arFormatSourceSheets_(ss) {
     });
   });
   ['Parameter','Data LK (Tempel)','Tempel SAP','Riwayat Revisi'].forEach(function(n){var sh=ss.getSheetByName(n);if(sh&&sh.getLastRow())arFormatGeneric_(sh);});
+  // judul kolom lama → judul baru (kolom tetap dikenali lewat ENGINE.HDR_LAMA)
+  [ENGINE.REG,ENGINE.LOG].forEach(function(sc){try{var sh=ss.getSheetByName(sc.sheet);if(!sh)return;var lc=sh.getLastColumn(),h=sh.getRange(sc.headerRow,1,1,lc).getValues()[0];
+    sc.cols.forEach(function(c){var old=(ENGINE.HDR_LAMA[sc.sheet+'|'+c[0]]||[]);h.forEach(function(v,j){if(old.indexOf(String(v).replace(/\s+/g,' ').trim().toUpperCase())>=0)sh.getRange(sc.headerRow,j+1).setValue(c[1]);});});}catch(e){}});
   // pilihan AKTIF Master Proyek selalu mengikuti daftar terbaru (termasuk ARSIP)
   try{var mp=ss.getSheetByName(ENGINE.MPRO.sheet),pm=mp?colMap_(mp,ENGINE.MPRO,ENGINE.MPRO_ALIAS):{};
     if(pm.aktif)mp.getRange(ENGINE.MPRO.firstRow,pm.aktif,Math.max(mp.getMaxRows()-ENGINE.MPRO.firstRow+1,1),1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro,true).setAllowInvalid(true)
@@ -503,9 +506,9 @@ function arNotify_(subject, lines) {
 function arNotifyDecision_(n) {
   if (!n || !n.r) return '';
   var r = n.r;
-  return arNotify_(r.status + ' — ' + (r.label || r.jenis + ' ' + r.ref), [
+  return arNotify_(r.status + ' — ' + (ENGINE.labelTampil(r.label) || ENGINE.jenisTampil(r.jenis) + ' ' + r.ref), [
     'Keputusan  : ' + r.status + (n.dl ? ' (DELEGASI a.n. ' + n.dl.atas + ')' : ''),
-    'ID         : ' + r.id, 'Jenis      : ' + r.jenis, 'Referensi  : ' + r.ref, 'Label      : ' + (r.label || '-'),
+    'ID         : ' + r.id, 'Jenis      : ' + ENGINE.jenisTampil(r.jenis), 'Referensi  : ' + r.ref, 'Label      : ' + (ENGINE.labelTampil(r.label) || '-'),
     'Nilai      : Rp ' + ENGINE.fmtRp(Number(r.nilai) || 0),
     'Diajukan   : ' + r.oleh + ' · ' + r.waktu,
     'Diputuskan : ' + (n.nama || n.me) + ' <' + n.me + '> · ' + r.putus_waktu + ' WIB',

@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.1
+## Pemasangan v2.8.2
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
