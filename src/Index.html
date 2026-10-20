@@ -475,6 +475,53 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 .prm{position:relative}.prm-dd{position:absolute;bottom:42px;left:0;background:#fff;border:1px solid #DCE3EB;border-radius:9px;box-shadow:0 10px 26px rgba(20,40,70,.18);padding:5px;width:190px;z-index:5}
 .prm-dd button{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-weight:600;padding:8px 10px;border-radius:7px;cursor:pointer;color:#26384D}.prm-dd button:hover{background:#F1F6FA}.prm-dd button:disabled{opacity:.4}
 .tabs button{border:0;background:none;border-radius:8px;padding:7px 13px;margin-bottom:6px}.tabs button[aria-selected=true]{background:#fff;color:#14213D;box-shadow:0 1px 3px rgba(20,40,70,.12)}
+
+/* ====================== v2.8.5: tampilan HP (iPhone) — hanya aktif di layar ≤ 700 px; laptop & iPad tidak berubah */
+#mNav,#mTitle,#mSum,#mBack,.m-only{display:none}
+@media (max-width:700px){
+  #topbar{height:52px;padding:0 12px}.tb-name,#tbNav,#tbWho{display:none!important}.tb-brand{margin-right:0}.tb-user{margin-left:0;gap:12px}
+  #mTitle{display:block;flex:1;min-width:0;margin-left:10px;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #mNav{display:flex;flex:none;background:#fff;border-top:1px solid #DCE3EB;padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:30}
+  #mNav button{flex:1;border:0;background:none;font:inherit;font-size:10.5px;font-weight:600;color:#7A889C;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;padding:4px 0;cursor:pointer}
+  #mNav .ic{width:22px;height:22px}#mNav button.on{color:#0F6E78}#mNav .tb-b{position:absolute;top:-2px;left:56%;font-size:10px}
+  #app{grid-template-columns:minmax(0,1fr)!important;height:auto}aside{border-right:0;min-width:0}main{min-height:0;min-width:0}
+  body.stack #kpiBar,body.m-view #kpiBar{display:none}
+  .actions{padding:8px 12px calc(8px + env(safe-area-inset-bottom));gap:6px}
+  body[data-m=setuju]:not(.stack):not(.m-view) main,body[data-m=dok]:not(.stack):not(.m-view) main,body[data-m=buka]:not(.stack):not(.m-view) main,
+  body[data-m=buat]:not(.stack) main,body[data-m=bayar]:not(.stack) main,body[data-m=surat]:not(.stack) main{display:none}
+  body.stack aside,body.m-view aside{display:none}
+  #mSum{display:block;flex:1;overflow:auto;padding:12px 14px;background:#EEF2F6}
+  body:not(.stack) #mSum,body.m-doc #mSum{display:none}
+  body.stack:not(.m-doc) #stage,body.stack:not(.m-doc) #pkgTabs{display:none!important}
+  body.m-view #mBack,body.stack.m-doc.has-sum #mBack{display:block;flex:none;margin:8px 12px 0;align-self:flex-start;border:1px solid #B8E0E3;background:#fff;color:#0F6E78;font:inherit;font-weight:700;border-radius:18px;padding:6px 14px;cursor:pointer}
+  .stage{padding:10px}
+  .m-only{display:block}.m-acts{display:flex;gap:8px;margin-bottom:10px}.m-acts .btn{flex:1}
+  /* kepala & bilah keputusan dokumen */
+  #pkgHead{flex-wrap:wrap;padding:10px 12px;gap:6px 8px}#pkgHead .pa{display:none}#pkgHead .ht{font-size:14.5px}#pkgHead .hs{font-size:11px}
+  #pkgHead #phEdit,#pkgHead #phArch{display:none}#pkgHead>div:last-child{margin-left:auto}
+  #pkgTabs{overflow-x:auto;padding:8px 10px 0}.ptab{white-space:nowrap}
+  #pkgBar{padding:10px 12px calc(10px + env(safe-area-inset-bottom));gap:8px}#pkgBar .tl{display:none}#pkgBar .chks{font-size:11px}
+  .bar-act{margin-left:0;width:100%}.bar-act .b-ok,.bar-act .b-no{flex:1;justify-content:center;padding:13px 10px;font-size:14.5px}
+  /* daftar persetujuan */
+  #kpiBar{grid-template-columns:1fr 1fr;padding:10px 12px;gap:8px}#kpiBar .kp:nth-child(n+3){display:none}.kp{padding:8px 10px;gap:8px}.kp b{font-size:16px}.kp .ki{width:30px;height:30px}
+  .ap-tabs{margin:0 -18px 8px}.ap-row{padding:12px;border-radius:12px;gap:10px}.ap-row .id{font-size:13.5px}.ap-row .m{white-space:normal}.ap-row .rp{font-size:13.5px}.mini{padding:9px 12px;font-size:12.5px}
+  .ap-tool select{max-width:110px}
+  /* ringkasan pengajuan (HP) */
+  .ms-card{background:#fff;border:1px solid #DFE6EE;border-radius:14px;padding:13px 14px;margin-bottom:10px}
+  .ms-card h4{margin:0;font-size:16px}.ms-card .s{color:#6B7A90;font-size:12px;margin-top:2px}.ms-big{font-size:24px;font-weight:800;margin:8px 0 6px;letter-spacing:-.4px}
+  .ms-t{width:100%;border-collapse:collapse;font-size:12.8px}.ms-t td{padding:6px 0;border-bottom:1px dotted #DCE3EB;vertical-align:top}.ms-t td:last-child{text-align:right;font-weight:600;padding-left:10px}
+  .ms-t tr.h td{font-weight:700;color:#0F6E78;border-bottom:0;padding-top:10px;text-align:left;padding-left:0}
+  .ms-doc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid #DFE6EE;border-radius:14px;padding:12px 14px;font:inherit;font-weight:700;color:#0F6E78;cursor:pointer}
+  .ms-doc small{display:block;font-weight:400;color:#6B7A90;font-size:12px;margin-top:2px}.ms-doc i{width:40px;height:52px;border:1px solid #DCE3EB;border-radius:4px;background:repeating-linear-gradient(#fff 0 6px,#EEF2F6 6px 7px);flex:none}
+  /* Overview */
+  .ov{padding:12px 12px 20px}.ov-hd{gap:8px;margin-bottom:10px}.ov-hd h2{font-size:18px}.ov-hd>div:first-child{width:100%}.ov-hd p{display:none}.ov-hd .sp{display:none}.ov-sel{flex:1;min-width:0}.ov-sel select{width:100%}
+  .ov-k{grid-template-columns:1fr 1fr!important;gap:8px;margin-bottom:10px}.ov-kp{padding:10px 11px}.ov-kp b{font-size:16.5px!important;white-space:normal}.ov-kp span{font-size:11px}
+  .ov-row{gap:10px;margin-bottom:10px}.ov-p{padding:12px 13px;overflow-x:auto}.ov-p h3{flex-wrap:wrap;font-size:14px}.ov-p h3 .r{margin-left:0;width:100%}
+  .ov-m{grid-template-columns:1fr 1fr}.ov-m div:last-child{grid-column:1/-1}.ov-big b{font-size:24px}.ov-t{font-size:12px}.ov-t td.w{white-space:nowrap}
+  .ov-srch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #DCE3EB;border-radius:12px;padding:0 12px;margin-bottom:10px;color:#8794A6}.ov-srch input{border:0;padding:11px 0;outline:0;background:none}
+  /* form di HP: satu kolom */
+  .fx .row,.fx .row3{grid-template-columns:1fr}.fxbar{flex-wrap:wrap}.fxbar .sub{margin-left:0;width:100%;justify-content:center}
+}
 </style>
 </head>
 <body>
@@ -500,7 +547,8 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5M12 6v2M12 16v2"/></symbol>
 <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1 0 8z"/><path d="M12 12v6M9.5 14.5 12 12l2.5 2.5"/></symbol>
 </defs></svg>
-<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div>AR CSU<small id="tbVer">Receivables Management</small></div></div>
+<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div class="tb-name">AR CSU<small id="tbVer">Receivables Management</small></div></div>
+  <div id="mTitle"></div>
   <nav id="tbNav"></nav>
   <div class="tb-user"><span class="tb-bell" id="tbBell" title="Approvals"><svg class="ic"><use href="#i-bell"/></svg><i id="tbBellDot" hidden></i></span><div id="tbWho"></div><div class="tb-av" id="tbAv">·</div></div>
 </header>
@@ -575,6 +623,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 
     <!-- ===================== MODE BUKA -->
     <div class="scroll" id="mode-buka" hidden>
+      <div class="m-only m-acts"><button type="button" class="btn" data-mgo="buat">+ Issue invoice</button></div>
       <label for="qInv">Search number, customer, or project</label><input id="qInv" placeholder="e.g. 0153/2026 or INDAH KIAT">
       <table class="list" style="margin-top:10px"><thead><tr><th>Number</th><th>Customer / project</th><th>Status</th></tr></thead><tbody id="invList"></tbody></table>
       <fieldset style="margin-top:14px"><legend>Manual close (CLOSE MANUAL) awaiting submission / decision</legend><div id="tutupList"></div></fieldset>
@@ -693,11 +742,14 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
       <span class="zoom"><label for="zoom" style="margin:0">Zoom</label><select id="zoom"><option value="fit">Fit width</option><option value="1">100%</option><option value=".75">75%</option></select></span>
     </div>
     <div id="pkgHead" hidden></div><div id="pkgTabs" hidden></div>
+    <button type="button" id="mBack">‹ Back</button>
+    <div id="mSum"></div>
     <div class="stage" id="stage"><div class="sheetwrap" id="sheetwrap"></div></div>
     <div id="ovWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
+<nav id="mNav" aria-label="Main menu"></nav>
 <div id="print-root"></div>
 <div id="bgChip" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -2016,7 +2068,7 @@ function bindSurat() {
 /* ====================================================== mode */
 function setMode(m) {
   if (B && B.access && !B.access.maker && ['setuju', 'dashboard', 'dok'].indexOf(m) < 0) m = 'setuju';
-  MODE = m;
+  MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
   document.body.classList.toggle('full', m === 'dashboard'); $('ovWrap').hidden = m !== 'dashboard';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
@@ -2036,6 +2088,8 @@ function setMode(m) {
 /* ====================================================== event */
 function bind() {
   buildNav(true); bindTop();
+  $('mBack').onclick = function () { var bc = document.body.classList; if (bc.contains('m-view') && !STACK) { bc.remove('m-view'); AP_SEL = ''; return; } if (STACK && bc.contains('m-doc') && bc.contains('has-sum')) { bc.remove('m-doc'); $('mSum').scrollTop = 0; return; } if (STACK) closePackage(); };
+  document.querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
   $('apQ').oninput = apRender; $('apSort').onchange = apRender;
   bindSurat();
   document.querySelectorAll('.tabs [data-doc]').forEach(function (b) { b.onclick = function () { setDoc(b.dataset.doc); }; });
@@ -2077,7 +2131,7 @@ function bind() {
   $('btnPInv').onclick = function () { doPrint('inv'); }; $('btnPKw').onclick = function () { doPrint('kw'); };
   $('btnPBap').onclick = function () { doPrint('bap'); }; $('btnPAll').onclick = function () { doPrint('all'); };
   $('qInv').oninput = renderList;
-  $('invList').onclick = function (e) { var bt = e.target.closest('[data-batal]'); if (bt) { e.stopPropagation(); openPackage('BATAL', E.normInv(bt.dataset.batal)); return; } var tr = e.target.closest('tr[data-no]'); if (tr) openInvoice(tr.dataset.no); };
+  $('invList').onclick = function (e) { var bt = e.target.closest('[data-batal]'); if (bt) { e.stopPropagation(); openPackage('BATAL', E.normInv(bt.dataset.batal)); return; } var tr = e.target.closest('tr[data-no]'); if (tr && isPhone()) { openPackage('INV', E.normInv(tr.dataset.no)); return; } if (tr) openInvoice(tr.dataset.no); };
   document.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () { setPj(b.dataset.pj); }; });
   $('pAdd').onclick = function () { if ($('pInv').value.trim()) addPayInv($('pInv').value); };
   $('pInv').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); addPayInv(this.value); } };
@@ -2532,6 +2586,7 @@ function buildPages(pkg, invDocs) {
   return { internal: internal, all: all };
 }
 function openPackage(kind, ref, quiet, after) {
+  if (isPhone() && !STACK) document.body.classList.add('m-view');
   AP_SEL = kind + '|' + ref; document.querySelectorAll('.ap-row').forEach(function (x) { x.classList.toggle('sel', x.dataset.open === AP_SEL); });
   if (!quiet) { var w0 = $('sheetwrap'); w0.style.transform = ''; w0.style.width = ''; w0.style.height = ''; w0.innerHTML = skelHtml(kind, ref); }
   call('apiPackage', [kind, ref], function (pkg) {
@@ -2543,7 +2598,7 @@ function openPackage(kind, ref, quiet, after) {
 }
 function showPackage() {
   if (!PKG) return;
-  STACK = true; $('tabsBar').hidden = true; $('act-buat').hidden = true; $('act-bayar').hidden = true;
+  STACK = true; document.body.classList.add('stack'); document.body.classList.remove('m-view'); $('tabsBar').hidden = true; $('act-buat').hidden = true; $('act-bayar').hidden = true;
   if (PKG.kind === 'VAL') {
     PKG._canDecide = canDecideNow(); PKG._mode = '';
     if (vDecideMode()) { vInit(); PKG._mode = 'dec'; PKG._view = 'dec'; vRender(false); pkgActions(); return; }
@@ -2553,9 +2608,9 @@ function showPackage() {
   }
   var w = $('sheetwrap'); w.style.transform = ''; w.innerHTML = '<div class="stackwrap">' + PKG._pages.all + '</div>';
   pkgTabsInit(); fitZoom();
-  pkgActions();
+  pkgActions(); mSumRender();
 }
-function closePackage() { STACK = false; PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); renderDocs(); }
+function closePackage() { STACK = false; document.body.classList.remove('stack', 'm-doc', 'has-sum', 'm-view'); PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); renderDocs(); }
 function skelHtml(kind, ref) {
   var nm = { INV: 'invoice approval sheet', PAY: 'cash receipt approval sheet', VAL: 'collection plan validation sheet', REK: 'monthly summary', KP: 'customer ledger', TUTUP: 'manual close sheet', BATAL: 'cancellation sheet', VALX: 'validation sheet cancellation' }[kind] || 'document';
   return '<div class="skel"><div class="pg"><div class="spin"></div>Preparing ' + nm + ' ' + esc(String(ref).replace(/^REF\s+/, '').replace(/^KU\.02\.02\/WB-4C\./, '')) + '…</div>' +
@@ -2844,7 +2899,10 @@ function buildNav(maker) {
       '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { return '<button type="button" data-mode="' + it[0] + '"><i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + '</button>'; }).join('') + '</div></div>';
     return '<button type="button" class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</button>';
   }).join('');
-  document.querySelectorAll('#tbNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); setMode(b.dataset.mode); }; });
+  var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
+    : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
+  $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
+  document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (STACK) closePackage(); setMode(b.dataset.mode); }; });
   document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
   navShow(MODE);
 }
@@ -2859,13 +2917,43 @@ function navShow(m) {
     b.classList.toggle('on', !!on);
   });
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
+  var grp = { buat: 'buka', surat: 'buka' }[m] || m;
+  document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
+  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', dok: 'Month-End Close', setuju: 'Approvals' };
+  if ($('mTitle')) $('mTitle').textContent = T[m] || '';
+}
+function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
+/** HP: ringkasan angka pengajuan invoice / penerimaan; dokumen lengkap lewat tombol "View full document" */
+function mSumRender() {
+  var el = $('mSum'), P = PKG, bc = document.body.classList; if (!el) return;
+  bc.remove('m-doc', 'has-sum');
+  if (!P || (P.kind !== 'INV' && P.kind !== 'PAY') || (P.kind === 'PAY' && !(P.rows || []).length)) { el.innerHTML = ''; bc.add('m-doc'); return; }
+  var tr = function (k, v) { return '<tr><td>' + k + '</td><td>' + v + '</td></tr>'; }, h = '';
+  if (P.kind === 'PAY') {
+    var R = P.rows, r0 = R[0], tot = R.reduce(function (t, r) { return t + (r.pb ? Math.max(0, r.nominal) : r.nominal); }, 0), S0 = { N: 0, P: 0, h: 0, a: 0 };
+    R.forEach(function (r) { S0.N += r.keN || 0; S0.P += r.keP || 0; S0.h += r.pph || 0; S0.a += r.adm || 0; });
+    h += '<div class="ms-card"><h4>' + esc(titleCaseS(r0.pelanggan)) + '</h4><div class="s">' + esc(r0.npp) + ' · ' + (r0.pb ? 'offset / reclass' : esc(r0.rekening || '')) + (r0.ref ? ' · ref ' + esc(r0.ref) : '') + '</div>' +
+      '<div class="ms-big">Rp ' + nfDot(tot) + '</div><table class="ms-t">' + tr('Value date', tg(r0.tgl));
+    R.forEach(function (r) { h += '<tr class="h"><td colspan="2">' + esc((r.idp ? r.idp + ' · ' : '') + '4C.' + short(r.nomor) + ' · ' + (r.invke || '')) + '</td></tr>' + tr('Amount', nfDot(r.nominal)) + tr('Status after receipt', esc(r.status) + ' · balance ' + nfDot(r.sisa)); });
+    h += '<tr class="h"><td colspan="2">Applied to</td></tr>' + tr('→ Net', nfDot(S0.N)) + tr('→ VAT', nfDot(S0.P)) + (S0.h ? tr('WHT recognised', nfDot(S0.h)) : '') + (S0.a ? tr('Bank charge', nfDot(S0.a)) : '') + '</table></div>';
+  } else {
+    var i = P.inv;
+    h += '<div class="ms-card"><h4>' + esc(titleCaseS(i.pelanggan)) + '</h4><div class="s">' + esc(i.npp) + (i.proyek ? ' · ' + esc(i.proyek) : '') + ' · ' + esc(i.invke || '') + '</div>' +
+      '<div class="ms-big">Rp ' + nfDot(i.total) + '</div><table class="ms-t">' + tr('Invoice no.', '4C.' + esc(short(i.nomor)) + (i.rev ? ' · rev ' + i.rev : '')) + tr('Invoice date', tg(i.tgl)) +
+      tr('Tax base (DPP)', nfDot(i.dpp)) + tr('VAT', nfDot(i.ppn)) + (i.ret ? tr('Retention (' + (i.retpos === 'AKHIR' ? 'at end' : 'at start') + ')', nfDot(i.ret)) : '') + tr('WHT', nfDot(i.pph)) +
+      tr('Expected cash', nfDot(i.kas)) + tr('Due date', i.jt ? tg(i.jt) : 'not yet (not submitted)') + tr('e-Faktur no.', i.no_fp ? esc(i.no_fp) : '<span style="color:#A86C00">not recorded</span>') + tr('Status', esc(i.status) + ' · balance ' + nfDot(i.sisa)) + '</table></div>';
+  }
+  var tabs = Array.prototype.map.call(document.querySelectorAll('#pkgTabs .ptab'), function (b) { return b.textContent; }).join(' · ');
+  h += '<button type="button" class="ms-doc" id="mDocBtn"><i></i><span>View full document<small>' + esc(tabs || 'approval sheet') + ' · pinch to zoom</small></span></button>';
+  el.innerHTML = h; el.scrollTop = 0; bc.add('has-sum');
+  $('mDocBtn').onclick = function () { bc.add('m-doc'); fitZoom(); };
 }
 function navOpen() { }
 function navBadges() {
   if (!B || !$('tbNav')) return;
   var maker = !!(B.access && B.access.maker), A = apModel(), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
   var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() : 0;
-  [['apBadge', ap], ['dokBadge', dk], ['penBadge', sr], ['srBadge', sr]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
+  [['apBadge', ap], ['dokBadge', dk], ['penBadge', sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
   $('tbBellDot').hidden = !ap;
   $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
 }
@@ -2899,6 +2987,7 @@ function renderDok(quiet) {
   if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'failed to load' }; renderDok(true); });
 }
 function openAnalisis(buat) {
+  document.body.classList.add('m-view');
   var m = $('mSel').value;
   $('sheetwrap').innerHTML = '<div class="empty">' + (buat ? 'Creating monthly analysis…' : 'Loading analysis…') + '</div>';
   call('apiAnalisis', [m, !!buat], function (d) { DOK_AN[m] = d; renderDok(true); renderAnalisis(d); }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">' + esc(e.message || e) + '</div>'; });
@@ -3052,6 +3141,7 @@ function ovRender(d) {
     kp('Cash received · ' + mon3, rpShort(d.receipts), d.target ? 'collection target ' + rpShort(d.target) + ' · ' + pctId(pT) : 'no collection target set') +
     kp('Collection plan (RA) · ' + mon3, pRA === null ? '–' : pctId(pRA), R.raFinal ? '<span class="' + (pRA < .5 && d.cur ? 'up' : 'gd') + '">RI ' + rpShort(R.riRA) + ' of RA ' + rpShort(R.raFinal) + '</span>' : 'no collection plan this month') +
     kp('DSO · 12 months', d.dso12 === null ? '–' : d.dso12 + ' days', d.dso3 === null ? 'rolling, position today' : '3-month DSO ' + d.dso3 + ' days' + (d.dso12 !== null && d.dso3 > d.dso12 ? ' · <span class="up">▲ worsening</span>' : '')) + '</div>';
+  if (maker) h += '<label class="m-only ov-srch">' + ico('srch') + '<input id="ovQ" placeholder="Search customer / invoice no.…" enterkeyhint="search"></label>';
   // invoice keluar bulan ini
   var L = B.invoices.filter(function (i) { return d.issued.list.indexOf(i.nomor) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
   var cnt = { ok: 0, wt: 0, no: 0, bad: 0 }; L.forEach(function (i) { cnt[ovSt(i)[0]] = (cnt[ovSt(i)[0]] || 0) + 1; });
@@ -3090,6 +3180,7 @@ function ovRender(d) {
   }
   h += '</div></div>';
   $('ovWrap').innerHTML = h;
+  if ($('ovQ')) $('ovQ').onkeydown = function (e) { if (e.key !== 'Enter' || !this.value.trim()) return; var q = this.value.trim(); setMode('buka'); $('qInv').value = q; renderList(); };
   $('ovMonth').onchange = function () { OV_M = this.value === cur ? '' : this.value; renderDashboard(); };
   if ($('ovRefresh')) $('ovRefresh').onclick = refreshReports;
   if ($('ovPrint')) $('ovPrint').onclick = function () { var x = $('ovWrap').innerHTML.replace('class="ov"', 'class="ov ovp"'); printHtml(x); };

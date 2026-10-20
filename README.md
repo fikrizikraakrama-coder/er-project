@@ -41,6 +41,8 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
   Data dari `apiOverview(bulan)` (hitungan ringan + cache 5 menit, gugur setiap ada penyimpanan). Saldo bulan lalu = posisi akhir bulan.
 - **Issue Invoice** & **Cash Receipts**: kartu bertahap 1·2·3, info proyek (kontrak, sisa UM, retensi, PPh), hitungan langsung (DPP, PPN, retensi, PPh, kas yang diharapkan),
   ringkasan **Received / Applied / Unapplied** (harus 0), tombol tetap **Save** dan **Save & submit for approval** (sekali klik: simpan lalu langsung diajukan ke Section Head).
+- **Tampilan HP (iPhone, layar ≤ 700 px)**: menu di bawah layar, daftar approval berupa kartu, ringkasan angka pengajuan sebelum dokumen lengkap (*View full document*),
+  tombol Reject / Approve menempel di bawah, Overview 2 kolom + cari pelanggan/invoice. Laptop & iPad tidak berubah. Di iPhone: buka link lewat Safari ▸ Share ▸ Add to Home Screen.
 - Lembar pengesahan penerimaan: kolom *Dasar alokasi* dihapus. Pindah buku menampilkan nilai yang dipindahkan (bukan 0).
 
 ## Aplikasi v2.8.4: menu atas, Status Persetujuan & kecepatan
