@@ -229,6 +229,7 @@ function rebuildAll_(opt) {
     try { arAuditCounts_(input); } catch (err) { }
     var res = ENGINE.compute(input);
     arEnrichReports_(res);
+    try { var cj = JSON.stringify(arDashboardCharts_(res)); if (cj.length < 8500) arProps_().setProperty('DASH_CHARTS', cj); } catch (err) { }
     if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
     writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
     writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
@@ -257,6 +258,8 @@ var REPORT_SUB_ = {
   'RA-RI Termin': 'RA = invoice yang divalidasi ✓ CAIR oleh Section Head F&HR di Lembar Validasi (RA awal = lembar pertama yang disetujui, RA final = revisi terakhir); RI = penerimaan di bulan itu. Satu tabel: ✓ RA · ➖ DIKELUARKAN · ◇ CADANGAN · ✚ DI LUAR RA, dengan Pencapaian RA dan Total RI ÷ RA.'
 };
 function compute_() { return ENGINE.compute(readAll_()); }
+/** hitungan tanpa laporan (cepat) — untuk aplikasi; mode 'memo' ikut menghitung memorial */
+function computeLight_(mode) { var i = readAll_(); i.light = mode || true; return ENGINE.compute(i); }
 
 /** dropdown pemilih (bulan / NPP) di sel C5 */
 function ensureSelectors_(ss, res) {
@@ -870,13 +873,17 @@ function showAppLink() {
 function plain_(o) { return JSON.parse(JSON.stringify(nd_(o), function (k, v) { return v === Infinity ? null : v; })); }
 function email_() { var e = ''; try { e = Session.getActiveUser().getEmail(); } catch (x) { } return String(e || '').toLowerCase(); }
 
+/** data aplikasi: hitungan ringan (tanpa laporan) + cache 5 menit per pengguna; cache otomatis gugur setiap ada penyimpanan (arBootBust_) */
 function apiBootstrap() {
-  var access = arRequireAccess_();
-  var res = compute_(), b = ENGINE.bootstrap(res, email_());
+  var access = arRequireAccess_(), em = email_(), key = arBootKey_(em), hit = arCacheGet_(key);
+  if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; return b0; }
+  var input = readAll_(); input.light = true;
+  var res = ENGINE.compute(input), b = ENGINE.bootstrap(res, em);
   b.appUrl = ScriptApp.getService().getUrl() || '';
-  b.charts = access.maker ? arDashboardCharts_(res) : null;
+  b.charts = access.maker ? arChartsCached_() : null;
   b.access = access; b.summary = arDashboard_(res.ctx); b.sheetUrl = arSpreadsheet_().getUrl();
-  return plain_(b);
+  var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300);
+  return out;
 }
 function apiGetInvoice(nomor) { arRequireAccess_();
   var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, nomor, map);
@@ -938,8 +945,8 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
     }
   } finally { lock.releaseLock(); }
   result.saved = true;
-  var post = arAfterSave_([p.npp], [String(p.tgl || '').substring(0, 7)]);
-  result.reportPending = post.reportPending; result.warnings = post.warnings;
+  var post = arQueueAfterSave_([p.npp], [String(p.tgl || '').substring(0, 7)]);
+  result.reportPending = post.reportPending; result.background = post.background; result.warnings = post.warnings;
   if (koreksi) { var rf = arRefreshClosedMonths_([p.tgl, isDate_(tglLama) ? dstr_(tglLama) : String(tglLama || '')], koreksi); result.warnings = result.warnings.concat(rf.warnings); result.snapshots = rf.ids;
     var nw = arNotify_('Koreksi periode tertutup — invoice ' + nomor, ['Pembuat: ' + user, 'Mode: ' + result.mode + (result.mode === 'revisi' ? ' (rev ' + result.rev + ', alasan: ' + opt.alasan + ')' : ''), 'Tanggal invoice: ' + p.tgl, 'DPP Rp ' + ENGINE.fmtRp(p.dpp) + ' · PPN Rp ' + ENGINE.fmtRp(p.ppn), 'Tanda: ' + koreksi]); if (nw) result.warnings.push(nw); }
   return result;
@@ -1009,7 +1016,7 @@ function apiPayPreview(rows) { arRequireMaker_();
   });
   return plain_({ rows: out, kartu: Object.keys(npps).map(function (n) { return ENGINE.kartuPlain(ctx, n, ctx.today); }) });
 }
-function apiKartu(npp, asOf) { arRequireAccess_(); var res = compute_(); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
+function apiKartu(npp, asOf) { arRequireAccess_(); var res = computeLight_(); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
 
 // =====================================================================  PERSETUJUAN DIGITAL
 function secret_() {
@@ -1037,7 +1044,7 @@ function verifyAppr_(a) {
   return a;
 }
 function apiPackage(kind, ref) { arRequireAccess_();
-  var res = compute_(), d = ENGINE.packageFor(res.ctx, kind, ref);
+  var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
   if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
   if (kind === 'VAL') d.draft = valDraft_(d.ref);
   if (d.appr) verifyAppr_(d.appr);
@@ -1048,7 +1055,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
   var lock = arLock_(); lock.waitLock(28000);
   var out;
   try {
-    var res = compute_(), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
+    var res = computeLight_('memo'), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
     if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     var d = ENGINE.packageFor(res.ctx, kind, ref);
     if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
@@ -1057,7 +1064,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
     if (kind === 'VAL' && extra && extra.items) {
       // v2.7: usulan AR dari aplikasi disimpan dulu, lalu diperiksa (tanggal rencana cair wajib untuk ✓ / ◇)
       writeUsulan_(extra);
-      res = compute_(); d = ENGINE.packageFor(res.ctx, kind, ref, { fresh: true });
+      res = computeLight_('memo'); d = ENGINE.packageFor(res.ctx, kind, ref, { fresh: true });
       var ue = ENGINE.valCheckUsulan(d, extra); if (ue) throw new Error(ue);
     }
     // tutup buku: pembatalan invoice & lembar validasi periode tertutup hanya dengan izin koreksi; alasan wajib & ditandai
@@ -1097,7 +1104,7 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   var lock = arLock_(); lock.waitLock(28000);
   var out;
   try {
-    var res = compute_(), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
+    var res = computeLight_('memo'), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
     var A = apprRows_(), r = A.rows.filter(function (x) { return String(x.id) === String(id); })[0];
     if (!r) throw new Error('Pengajuan ' + id + ' tidak ditemukan.');
     var kind = Object.keys(ENGINE.DOC).filter(function (k) { return ENGINE.DOC[k] === String(r.jenis).toUpperCase(); })[0];
@@ -1204,7 +1211,7 @@ function archiveFolder_(P, kind, month) {
  */
 function apiArchive(kind, ref, meta, fileName) { arRequireAccess_();
   if (typeof meta === 'string') meta = { html: meta, name: fileName };
-  var res = compute_(), P = res.params, folder = archiveFolder_(P, kind, meta.month);
+  var res = computeLight_(), P = res.params, folder = archiveFolder_(P, kind, meta.month);
   var name = String(meta.name || (kind + ' ' + ref)).replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
   if (!/\.pdf$/i.test(name)) name += '.pdf';
   var blob = meta.b64 ? Utilities.newBlob(Utilities.base64Decode(meta.b64), 'application/pdf', name) : HtmlService.createHtmlOutput(meta.html || '').getAs('application/pdf').setName(name);
@@ -1221,7 +1228,7 @@ function apiArchive(kind, ref, meta, fileName) { arRequireAccess_();
 
 // =====================================================================  SURAT PERMOHONAN PERCEPATAN PEMBAYARAN
 /** invoice lewat jatuh tempo milik satu pelanggan, dikelompokkan per proyek (untuk menyusun surat di aplikasi) */
-function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.suratData(compute_().ctx, pelanggan)); }
+function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.suratData(computeLight_().ctx, pelanggan)); }
 /** arsipkan PDF surat ke Drive lalu catat di Log Surat Penagihan (nomor surat unik; invoice diperiksa ulang di server) */
 function apiSuratSimpan(m) {
   var a = arRequireMaker_(); m = m || {};
@@ -1236,7 +1243,7 @@ function apiSuratSimpan(m) {
   if (mode !== 'baru' && alasan.length < 10) throw new Error('Isi alasan ' + (mode === 'revisi' ? 'revisi' : 'penggantian') + ' minimal 10 karakter.');
   var allNo = function () { return readSchema_(sheet_(ENGINE.SURAT.sheet), ENGINE.SURAT).map(function (r) { return String(r[0]).trim(); }).filter(String); };
   var used = function (n) { return allNo().some(function (x) { return x.toUpperCase() === n.toUpperCase(); }); };
-  var d = ENGINE.suratData(compute_().ctx, m.pelanggan), ok = {}, total = 0, ke = 1, ruj = {}, asal = null;
+  var d = ENGINE.suratData(computeLight_().ctx, m.pelanggan), ok = {}, total = 0, ke = 1, ruj = {}, asal = null;
   if (mode !== 'baru') {
     asal = d.letters.filter(function (l) { return l.nomor.toUpperCase() === String(m.asal || '').trim().toUpperCase(); })[0];
     if (!asal) throw new Error('Surat asal ' + m.asal + ' tidak ditemukan untuk ' + d.nama + '.');
@@ -1951,7 +1958,7 @@ function writeUsulan_(pl) {
 function apiSaveUsulan(ref, pl) { arRequireMaker_();
   var lock = arLock_(); lock.waitLock(28000); var out;
   try {
-    var P = compute_().params, me = email_(), u = ENGINE.userBy(P, me);
+    var P = computeLight_().params, me = email_(), u = ENGINE.userBy(P, me);
     if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     pl = pl || {}; pl.ref = ref;
     var n = writeUsulan_(pl);

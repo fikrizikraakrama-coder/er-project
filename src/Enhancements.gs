@@ -20,7 +20,7 @@ function arLock_() {
   return {
     waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); AR28_NATIVE_LOCK_.waitLock(ms); } AR28_LOCK_DEPTH_++; held = true; },
     tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
-    releaseLock: function() { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; } } }
+    releaseLock: function() { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; arBootBust_(); } } }
   };
 }
 // Keep legacy document properties readable; new prefixed properties also work in web apps.
@@ -149,10 +149,10 @@ function arSavePayments_(rows, requestId, opt) {
     var ctx=ENGINE.compute(Object.assign({},input,{light:true})).ctx;
     npps=ctx.invs.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}).map(function(i){return i.npp;});
   } finally { lock.releaseLock(); }
-  var post=arAfterSave_(npps,months); saved.reportPending=post.reportPending;saved.warnings=post.warnings;
+  var post=arQueueAfterSave_(npps,months); saved.reportPending=post.reportPending;saved.background=post.background;saved.warnings=post.warnings;
   if (koreksi && !saved.duplicate) { var rf=arRefreshClosedMonths_(rows.map(function(r){return r.tgl;}),koreksi); saved.warnings=saved.warnings.concat(rf.warnings); saved.snapshots=rf.ids;
     var nw=arNotify_('Koreksi periode tertutup — penerimaan '+rows[0].tgl,['Pembuat: '+access.email,'Tanda: '+koreksi,'ID permintaan: '+token,'Snapshot direvisi: '+(rf.ids.join(', ')||'-'),''].concat(rows.map(function(r){return '• '+r.tgl+' · '+r.inv+' · Rp '+ENGINE.fmtRp(r.nominal)+(r.ref?' · ref '+r.ref:'');}))); if(nw) saved.warnings.push(nw); }
-  try { var b=ENGINE.bootstrap(compute_(),access.email); saved.invoices=b.invoices.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}); saved.payments=b.payments.filter(function(p){return (rows[0].ref && p.ref===rows[0].ref) || (!rows[0].ref && p.key===saved.key);}); } catch(e) { saved.reportPending=true;saved.warnings.push('Ringkasan belum termuat: '+e.message); }
+  try { var b=ENGINE.bootstrap(computeLight_(),access.email); saved.invoices=b.invoices.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}); saved.payments=b.payments.filter(function(p){return (rows[0].ref && p.ref===rows[0].ref) || (!rows[0].ref && p.key===saved.key);}); } catch(e) { saved.reportPending=true;saved.warnings.push('Ringkasan belum termuat: '+e.message); }
   return plain_(saved);
 }
 function arAfterSave_(npps,months) {
@@ -165,6 +165,28 @@ function arAfterSave_(npps,months) {
   return out;
 }
 function apiRefreshReports() { arRequireMaker_(); return arAfterSave_(null,null); }
+// ---------------- v2.8.4: simpan cepat — laporan & file turunan diperbarui di latar belakang (apiAfterSave dipanggil aplikasi tanpa menunggu)
+function arQueueAfterSave_(npps,months) {
+  var pr=PropertiesService.getScriptProperties(),q={npps:[],months:[]};
+  try{q=JSON.parse(pr.getProperty('AFTER_SAVE')||'{"npps":[],"months":[]}');}catch(e){}
+  (npps||[]).forEach(function(n){if(n&&q.npps.indexOf(n)<0)q.npps.push(n);});(months||[]).forEach(function(m){if(m&&q.months.indexOf(m)<0)q.months.push(m);});
+  try{pr.setProperty('AFTER_SAVE',JSON.stringify(q).slice(0,8000));}catch(e){}
+  arMarkDirty_(); // jadwal 5 menit tetap memperbarui bila aplikasi ditutup sebelum selesai
+  return {reportPending:false,background:true,warnings:[]};
+}
+function apiAfterSave() {
+  arRequireMaker_();
+  var pr=PropertiesService.getScriptProperties(),q=null;
+  try{q=JSON.parse(pr.getProperty('AFTER_SAVE')||'null');}catch(e){}
+  pr.deleteProperty('AFTER_SAVE');
+  return arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null);
+}
+// ---------------- v2.8.4: cache data aplikasi (CacheService, dipecah per 30.000 karakter)
+function arBootBust_(){try{PropertiesService.getScriptProperties().setProperty('BOOT_VER',String(Date.now()));}catch(e){}}
+function arBootKey_(email){var v='0';try{v=PropertiesService.getScriptProperties().getProperty('BOOT_VER')||'0';}catch(e){}return 'BOOT_'+Utilities.base64EncodeWebSafe(String(email||'-')).slice(0,60)+'_'+v;}
+function arCacheGet_(key){try{var c=CacheService.getScriptCache(),n=c.get(key+'#n');if(!n)return null;var ks=[];for(var i=0;i<+n;i++)ks.push(key+'#'+i);var m=c.getAll(ks),s='';for(var j=0;j<ks.length;j++){if(m[ks[j]]==null)return null;s+=m[ks[j]];}return s;}catch(e){return null;}}
+function arCachePut_(key,s,ttl){try{var c=CacheService.getScriptCache(),o={},n=Math.ceil(s.length/30000);if(!n||n>90)return;for(var i=0;i<n;i++)o[key+'#'+i]=s.substr(i*30000,30000);o[key+'#n']=String(n);c.putAll(o,ttl||300);}catch(e){}}
+function arChartsCached_(){try{var j=arProps_().getProperty('DASH_CHARTS');return j?JSON.parse(j):null;}catch(e){return null;}}
 function arDashboard_(ctx) {
   var open=0,overdue=0,received=0,month=ctx.today.slice(0,7),pending=0;
   ctx.invs.forEach(function(i){if(!i._batal&&!i._res.closed){open+=i._res.sisa;if(i._res.jt&&i._res.jt<ctx.today)overdue+=i._res.sisa;}});
@@ -513,7 +535,7 @@ function arInstallTriggers_(ss) {
   ScriptApp.newTrigger('rebuildIfDirty').timeBased().everyMinutes(5).create();
   ScriptApp.newTrigger('onChangeInstalled').forSpreadsheet(ss).onChange().create();
 }
-function arMarkDirty_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); }
+function arMarkDirty_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); arBootBust_(); }
 /** kerjakan bila ditandai; bila lock dipegang proses lain, tanda dibiarkan untuk jadwal 5 menit (tidak ada "Lock timeout" bagi pengedit) */
 function arRebuildIfDirty_(waitMs) {
   var sp = PropertiesService.getScriptProperties();
@@ -608,7 +630,7 @@ function arTutupPeriodeMenu() {
 // ---------------- Angka invoice dihitung ulang di server dari isian form + Master Proyek; aplikasi tidak dipercaya begitu saja.
 function arCheckInvoiceNumbers_(p, nomor) {
   if (!p || !p.form) throw new Error('Data form invoice tidak ada. Simpan dari aplikasi.');
-  var b = ENGINE.bootstrap(compute_(), email_()), pr = b.proyek.filter(function(x){return x.npp===p.npp;})[0];
+  var b = ENGINE.bootstrap(computeLight_(), email_()), pr = b.proyek.filter(function(x){return x.npp===p.npp;})[0];
   if (!pr) throw new Error('NPP ' + p.npp + ' tidak ada di Master Proyek.');
   if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Isian form tidak sesuai dengan data invoice. Muat ulang aplikasi.');
   var ex = b.invoices.filter(function(i){return ENGINE.normInv(i.nomor)===nomor;})[0];

@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.3
+## Pemasangan v2.8.4
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -31,6 +31,14 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
+
+## Aplikasi v2.8.4: menu atas, Status Persetujuan & kecepatan
+- Menu di bar atas per kelompok alur piutang (Ringkasan · Penagihan ▾ · Penerimaan Kas · Tutup Buku · Persetujuan); Section Head: Otorisasi · Dashboard · Tutup Buku.
+- Status Persetujuan (Pembuat): Belum diajukan → Perlu diajukan ulang → Menunggu Section Head per jenis, dihitung sejak Parameter
+  `MULAI_PERSETUJUAN` (bawaan 2026-10-01), tanpa data migrasi. Otorisasi (Section Head): urut terlama, umur pengajuan, Setujui & lanjut.
+- Lembar pengesahan: kepala dokumen, tab lampiran (lembar pengesahan · kartu piutang · usulan jurnal), bilah keputusan dengan cek kelengkapan.
+- Kecepatan: aplikasi & lembar pengesahan memakai hitungan ringan (tanpa laporan) + cache 5 menit yang gugur setiap ada penyimpanan;
+  setelah simpan, laporan & file turunan diperbarui di latar belakang (`apiAfterSave`), jadwal 5 menit tetap sebagai cadangan.
 
 ## Proyek ARSIP (selesai sebelum sistem dipakai)
 1. Master Proyek kolom **AKTIF = ARSIP** untuk proyek yang sudah selesai & lunas sebelum sistem dibangun → invoice, penerimaan dan
