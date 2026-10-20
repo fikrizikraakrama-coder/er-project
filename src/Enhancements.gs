@@ -229,10 +229,23 @@ function arFormatSourceSheets_(ss) {
     if(pm.aktif)mp.getRange(ENGINE.MPRO.firstRow,pm.aktif,Math.max(mp.getMaxRows()-ENGINE.MPRO.firstRow+1,1),1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro,true).setAllowInvalid(true)
       .setHelpText('YA = aktif · TIDAK = bukan proyek AR · SELESAI = selesai & lunas (tidak muncul di aplikasi) · ARSIP = selesai & lunas sebelum sistem dipakai: invoice, penerimaan & tagbrut-nya diabaikan dan barisnya disembunyikan (tidak dihapus).').build());}catch(e){}
 }
+/** sheet isian bebas (Parameter, Data LK, Tempel SAP, Riwayat Revisi): judul kiri · judul kolom tengah · tulisan kiri ·
+ *  kode / tahun / bulan / persen / jumlah di tengah · nilai uang (format ribuan) rata kanan · tanggal tengah */
 function arFormatGeneric_(sh) {
-  var rg=sh.getDataRange(),v=rg.getValues(),headers={},leftCols={};
-  v.slice(0,8).forEach(function(row){row.forEach(function(x,j){if(arLeftLabel_(x))leftCols[j]=true;if(/^(CATATAN|KETERANGAN|ALASAN)/i.test(String(x)))headers[j]=true;});});
-  rg.setVerticalAlignment('middle').setHorizontalAlignments(v.map(function(r,i){return r.map(function(x,j){return leftCols[j]?'left':typeof x==='number'||headers[j]?'right':i<2&&j===0?'left':'center';});}));
+  var rg=sh.getDataRange(),v=rg.getValues(),nf=rg.getNumberFormats(),R=v.length,W=R?v[0].length:0;if(!R)return;
+  var hr=-1,best=1;
+  for(var i=0;i<Math.min(8,R);i++){var n=v[i].filter(function(x){return typeof x==='string'&&x.trim()&&x===x.toUpperCase()&&x.length<60;}).length;if(n>best){best=n;hr=i;}}
+  var money=function(i,j){return /#,##0|#.##0/.test(nf[i][j])&&!/%/.test(nf[i][j]);},col={};
+  for(var c=0;c<W;c++){var num=0,txt=0,mon=0,dt=0;
+    for(var r=hr+1;r<R;r++){var x=v[r][c];if(x===''||x===null)continue;if(x instanceof Date)dt++;else if(typeof x==='number'){num++;if(money(r,c)&&Math.abs(x)>=1000)mon++;}else if(!/^[-–—]$/.test(String(x).trim()))txt++;}
+    col[c]=txt>num+dt?'left':dt>=num&&dt?'center':mon&&mon*2>=num?'right':'center';}
+  var al=v.map(function(row,r){return row.map(function(x,c){
+    if(r<hr)return 'left';if(r===hr)return 'center';
+    if(col[c]==='left')return 'left';
+    if(typeof x==='string'&&x.trim()&&!/^[-–—]$/.test(x.trim()))return 'left';
+    return col[c];});});
+  rg.setVerticalAlignment('middle').setHorizontalAlignments(al);
+  Object.keys(col).forEach(function(c){if(col[c]==='left'&&hr>=0&&R>hr+1)sh.getRange(hr+2,+c+1,R-hr-1,1).setWrap(true);});
 }
 function arOrderNamed_(ss,names) {
   var active=ss.getActiveSheet(),at=1;
