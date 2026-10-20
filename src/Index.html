@@ -225,6 +225,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow .stamp b{display:block;font-size:7.4pt;letter-spacing:.2px}
 .apTabs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.apTab{border:1px solid #C9D3DF;background:#fff;border-radius:16px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#33475B}.apTab b{margin-left:3px;color:#0F6E78}.apTab.on{background:#E3F1F2;border-color:#0F6E78;color:#0B4F56;font-weight:600}
 .pg-flow .ajx{font-size:6.4pt;color:#5B6B80;font-style:italic;margin:0 0 .6mm}
+.pg-flow .ajx.wt{color:#9C6500}
 .pg-flow .stamp.bad{border-color:#B42318;color:#B42318;background:#FDECEA}
 .pg-flow .stamp.wait{border-color:#9C6500;color:#5C3D00;background:#FFF4D6}
 .pg-flow .foot{margin-top:5mm;font-size:6.8pt;color:#7A889C;border-top:.3pt solid #BFC8D4;padding-top:1.4mm}
@@ -1970,6 +1971,7 @@ function docHead(title, sub, right, land) {
     '<h2>' + esc(title) + '</h2>' + (sub ? '<p class="sub">' + sub + '</p>' : '');
 }
 function docFoot(pkg) { return '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B ? B.today : '')) + (pkg && pkg.fp ? ' · sidik data ' + esc(pkg.fp) : '') + '</div>'; }
+function waitLine(a) { return '<div class="ajx wt">menunggu persetujuan · diajukan ' + esc(tgJam(a.waktu)) + '</div>'; }
 function stampHtml(a) {
   if (!a) return '';
   var dlg = /^\[DELEGASI/.test(a.catatan || '');
@@ -1988,9 +1990,11 @@ function signBlock(pkg, withManager, withReceiver) {
   var dig = mode !== 'BASAH';
   // pembuat: cukup satu baris kecil (ruang tanda tangan basah tetap lega); cap Section Head tetap sebagai bukti persetujuan
   box.push(cell('Dibuat oleh,', R.PEMBUAT, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : ''));
-  box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig ? stampHtml(a) : ''));
+  // menunggu: cukup satu baris kecil agar ruang tanda tangan basah tetap lega; cap DISETUJUI tetap sebagai bukti
+  var wait = dig && a && a.status === 'MENUNGGU';
+  box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : ''));
   if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>'));
-  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '<span style="color:#9AA5B5;font-size:7pt">input ke SAP</span>'));
+  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '', '<div class="ajx">tanda tangan basah · input ke SAP</div>'));
   // v2.5: dokumen internal — yang menyetujui di kiri, pembuat di kanan
   box.reverse();
   return '<div class="sign" style="grid-template-columns:repeat(' + box.length + ',1fr)">' + box.join('') + '</div>';
@@ -2049,7 +2053,7 @@ function kartuSign(pkg) {
   var mk = R.PEMBUAT || { nama: 'Fikri Zikra Akrama', jabatan: 'AR Officer' }, sh = R.PENYETUJU || { nama: 'Anas Afifudin', jabatan: 'Section Head of Finance & HR' };
   var sub = a && (a.status === 'DISETUJUI' || a.status === 'MENUNGGU') ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '';
   return '<div class="ksign"><div class="kt">' + esc(kota) + ', ' + esc(tgl) + '</div>' +
-    '<div class="col"><div>Disetujui oleh,</div><div class="sp">' + (a ? stampHtml(a) : '') + '</div><div class="nm">' + esc(sh.nama) + '</div><div>' + esc(sh.jabatan) + '</div></div>' +
+    '<div class="col"><div>Disetujui oleh,</div><div class="sp">' + (a && a.status !== 'MENUNGGU' ? stampHtml(a) : '') + '</div>' + (a && a.status === 'MENUNGGU' ? waitLine(a) : '') + '<div class="nm">' + esc(sh.nama) + '</div><div>' + esc(sh.jabatan) + '</div></div>' +
     '<div class="col"><div>Dibuat oleh,</div><div class="sp"></div>' + sub + '<div class="nm">' + esc(mk.nama) + '</div><div>' + esc(mk.jabatan) + '</div></div></div>';
 }
 function pgKartu(k, pkg, preview) {
