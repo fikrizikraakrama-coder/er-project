@@ -203,3 +203,20 @@ test('proyek ARSIP: invoice, penerimaan & tagbrut diabaikan, tanpa temuan Cek Da
   assert.strictEqual(r.logOut[0].cek, 'ARSIP');
   assert.ok(invOf(r), 'invoice aktif tetap dihitung');
 });
+
+test('Overview: bulan berjalan & bulan lalu, ganti tahun, tidak melewati bulan berjalan', () => {
+  const input = fixture({ submit: '2026-09-21' });
+  input.register.push(row(ENGINE.REG, { tgl: '2026-10-02', nomor: 'KU.02.02/WB-4C.0102/2026', jenis: 'PROGRES', pelanggan: 'PT CONTOH', npp: NPP, dpp: 50e6, ppn: 5.5e6, tarif: 0.0265, top: 30, status_inv: 'AKTIF' }));
+  input.log = [row(ENGINE.LOG, { idp: 'PNR-00001', tgl: '2026-10-05', inv: NOMOR, nominal: 108350000, rekening: 'BNI' })];
+  input.light = true;
+  const r = ENGINE.compute(input), o = ENGINE.overview(r.ctx, '');
+  assert.strictEqual(o.ref, '2026-10'); assert.ok(o.cur); assert.strictEqual(o.asOf, '2026-10-13');
+  assert.strictEqual(o.issued.n, 1); assert.strictEqual(o.issued.prevN, 1); assert.strictEqual(o.issued.total, 55.5e6);
+  assert.strictEqual(o.receipts, 108350000);
+  assert.strictEqual(o.trend.length, 12); assert.strictEqual(o.trend[0].ref, '2025-11'); assert.strictEqual(o.trend[11].ref, '2026-10');
+  assert.strictEqual(o.aging.reduce((a, b) => a + b, 0), o.open);
+  const sep = ENGINE.overview(r.ctx, '2026-09');
+  assert.ok(!sep.cur); assert.strictEqual(sep.asOf, '2026-09-30'); assert.strictEqual(sep.issued.n, 1); assert.ok(sep.open > 0, 'saldo akhir September sebelum pembayaran Oktober');
+  assert.strictEqual(ENGINE.overview(r.ctx, '2026-12').ref, '2026-10', 'bulan depan dibatasi ke bulan berjalan');
+  const jan = ENGINE.overview(r.ctx, '2026-01'); assert.strictEqual(jan.trend[0].ref, '2025-02'); assert.strictEqual(jan.trend[11].ref, '2026-01');
+});

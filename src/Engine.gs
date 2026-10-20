@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.8.4 · 20-10-2026';
+  var VERSION = '2.8.5 · 20-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -1069,7 +1069,7 @@ var ENGINE = (function () {
         invke: invLabel(i), nominal: p.nominal, keN: p._keN, keP: p._keP, pph: (p._pph || 0) + (p._sel || 0), adm: p._adm || 0, aturan: p._rule, cicil: p._ke, ket: S(p.ket), sap: p.sap_doc,
         status: i._res.status, sisa: i._res.sisa, kas: i._a.kas, rekening: p._rek ? p._rek.label : S(p.rekening), pb: !!p._pb }; }),
       kartu: Object.keys(npps).map(function (n) { return kartuPlain(ctx, n, ctx.today); }), jurnal: jPays(ctx, g).map(jPlain),
-      fp: fp, appr: rec ? apprPlain(rec, fp) : null, ref: key, jenis: DOC.PAY, label: 'Penerimaan termin ' + key + ' — ' + g[0]._inv.pelanggan, nilai: sumBy(g, function (p) { return p.nominal; }) };
+      fp: fp, appr: rec ? apprPlain(rec, fp) : null, ref: key, jenis: DOC.PAY, label: 'Penerimaan termin ' + key + ' — ' + g[0]._inv.pelanggan, nilai: sumBy(g, function (p) { return p._pb ? Math.max(0, p.nominal) : p.nominal; }) }; // pindah buku: nilai yang dipindahkan
   }
   /** kartu piutang yang disetujui: sidik = ringkasan saldo per invoice pada tanggal posisi */
   function kpFp(ctx, npp, asOf) {
@@ -2786,6 +2786,55 @@ var ENGINE = (function () {
     });
     return out.sort(function(a, b) { return b[7] - a[7]; });
   }
+  /** v2.8.5: data layar Overview aplikasi untuk satu bulan (ym 'yyyy-mm'; kosong = bulan berjalan). Posisi saldo = akhir bulan (bulan berjalan: hari ini). */
+  function overview(ctx, ym) {
+    var today = ctx.today, mm = S(ym).match(/^(\d{4})-(\d{2})$/), y = mm ? +mm[1] : +today.substring(0, 4), m = mm ? +mm[2] : +today.substring(5, 7);
+    if (y * 12 + m > +today.substring(0, 4) * 12 + +today.substring(5, 7)) { y = +today.substring(0, 4); m = +today.substring(5, 7); }
+    var ref = y + '-' + pad(m, 2), s0 = monthStart(y, m), e0 = monthEnd(y, m), cur = e0 >= today, C = cur ? today : e0, sel = { y: y, m: m, start: s0, end: e0 };
+    var act = ctx.invs.filter(function (i) { return !i._batal && i.tgl; });
+    var balAt = function (i, d) {
+      if (i.tgl > d) return 0; var r = i._res;
+      if ((r.closed && !i._closedManual && r.tgl_bayar && r.tgl_bayar <= d) || (i._closedManual && r.tgl_tutup && r.tgl_tutup <= d)) return 0;
+      var paid = 0; i._pays.forEach(function (p) { if (p.tgl && p.tgl <= d) paid += p.nominal; });
+      return Math.max(0, i._a.kas - paid);
+    };
+    var open = 0, nOpen = 0, od = 0, aging = [0, 0, 0, 0, 0, 0], od90 = {};
+    act.forEach(function (i) {
+      var b = balAt(i, C); if (b <= 0.5) return; open += b; nOpen++;
+      var jt = i._res.jt, d = jt ? diffDays(C, jt) : null; if (d > 0) od += b;
+      aging[d === null ? 0 : d <= 0 ? 1 : d <= 30 ? 2 : d <= 90 ? 3 : d <= 180 ? 4 : 5] += b;
+      if (d > 90) od90[i.pelanggan] = (od90[i.pelanggan] || 0) + b;
+    });
+    var issuedIn = function (s, e) { var L = act.filter(function (i) { return i.tgl >= s && i.tgl <= e; }); return { n: L.length, kas: sumBy(L, function (i) { return i._a.kas; }), total: sumBy(L, function (i) { return i._a.total; }), dpp: sumBy(L, function (i) { return i._a.dpp; }), ppn: sumBy(L, function (i) { return i._a.ppn; }), L: L }; };
+    var recIn = function (s, e) { return sumBy(ctx.pays, function (p) { return p._inv && !p._inv._batal && !p._pb && p.nominal > 0 && p.tgl >= s && p.tgl <= e ? p.nominal : 0; }); };
+    var py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1, iss = issuedIn(s0, e0), prv = issuedIn(monthStart(py, pm), monthEnd(py, pm));
+    var trend = [];
+    for (var k = 11; k >= 0; k--) { var ty = y + Math.floor((m - 1 - k) / 12), tm = ((m - 1 - k) % 12 + 12) % 12 + 1, ts = monthStart(ty, tm), te = monthEnd(ty, tm); trend.push({ ref: ty + '-' + pad(tm, 2), y: ty, m: tm, inv: rnd(issuedIn(ts, te).kas), rec: rnd(recIn(ts, te)) }); }
+    // RA-RI bulan terpilih (sama dengan laporan RA-RI Termin)
+    var ctx2 = Object.create(ctx); ctx2.sel = {}; Object.keys(ctx.sel || {}).forEach(function (k2) { ctx2.sel[k2] = ctx.sel[k2]; }); ctx2.sel['RA-RI Termin'] = ref;
+    var sm = repRARI(ctx2).blocks[1].rows, vd = (ctx.valDec || {})[ref], byK = {}, belum = [];
+    act.forEach(function (i) { byK[normInv(i.nomor)] = i; });
+    var raList = [];
+    if (vd) Object.keys(vd.map).forEach(function (k3) { if (vd.map[k3].d === 'C' && byK[k3]) raList.push({ i: byK[k3], it: vd.map[k3].it }); });
+    else valCandidates(ctx, sel).forEach(function (i) { var d = planDate(i); if (d && d <= e0) raList.push({ i: i, it: null }); });
+    raList.forEach(function (x) {
+      var i = x.i, aw = awalBulan(i, s0), pd = paidInMonth(i, sel), sisa = aw.kas - pd.n;
+      if (sisa > 0.5) belum.push({ nomor: i.nomor, pelanggan: i.pelanggan, proyek: i._pro ? i._pro.singkat : i.npp, rencana: x.it && S(x.it.rtgl) ? D(x.it.rtgl) || S(x.it.rtgl) : planDate(i), nilai: rnd(sisa), sebagian: pd.n > 0.5 });
+    });
+    belum.sort(function (a, b) { return a.rencana < b.rencana ? -1 : a.rencana > b.rencana ? 1 : b.nilai - a.nilai; });
+    var hk = 0; if (cur) for (var d2 = today; d2 <= e0; d2 = addDays(d2, 1)) { var wd = new Date(d2 + 'T00:00:00Z').getUTCDay(); if (wd > 0 && wd < 6) hk++; }
+    var K = ctx._kin || (ctx._kin = kinerjaData(ctx));
+    var ews = function (kat) { return K.ews.filter(function (e) { return e.kat === kat; }).length; };
+    var od90L = Object.keys(od90);
+    return { ref: ref, y: y, m: m, label: monthLabel(y, m), cur: cur, asOf: C, start: s0, end: e0,
+      open: rnd(open), nOpen: nOpen, overdue: rnd(od), aging: aging.map(rnd),
+      issued: { n: iss.n, kas: rnd(iss.kas), total: rnd(iss.total), dpp: rnd(iss.dpp), ppn: rnd(iss.ppn), prevN: prv.n, prevTotal: rnd(prv.total), list: iss.L.map(function (i) { return i.nomor; }) },
+      receipts: rnd(recIn(s0, e0)), target: N(ctx.params.targets && ctx.params.targets[ref]) || 0,
+      rari: { valId: vd ? vd.rec.id + (vd.v2 && N(vd.rec._data.rev) ? ' Rev.' + pad(N(vd.rec._data.rev), 2) : '') : '', raAwal: N(sm[1][1]), raFinal: N(sm[4][1]), riRA: N(sm[5][1]), riCad: N(sm[6][1]), riLuar: N(sm[7][1]), totalRI: N(sm[8][1]), belum: belum, hariKerja: hk },
+      trend: trend, dso12: K.d12 ? rnd(K.d12.dso) : null, dso3: K.d3 ? rnd(K.d3.dso) : null,
+      attn: { od90n: od90L.length, od90v: rnd(sumBy(od90L, function (n) { return od90[n]; })), janji: ews('JANJI BAYAR TERLEWAT') + ews('TENGGAT SURAT TERLEWAT'), eskalasi: ews('ESKALASI PENAGIHAN'), merah: K.merah, kuning: K.kuning },
+      issues: (ctx.issues || []).length };
+  }
   function monthlyMetrics(input, cutoff) {
     var res = computeAt(input, cutoff), ctx = res.ctx, start = cutoff.slice(0,7) + '-01', prev = computeAt(input, prevMonthEnd(cutoff)), customers = {}, saldo = 0, opening = 0, overdue = 0, cash = 0, receipt = 0, buckets = [0,0,0,0,0,0];
     function ledger(c, collect) { var total = 0; proyekAR(c).forEach(function(n) { var k = kartuData(c,n,c.today); if (!k) return; total += k.T.saldo; if (collect) k.groups.forEach(function(g) { var i = g.inv, s = g.saldo; if (s <= 1) return; customers[i.pelanggan] = (customers[i.pelanggan] || 0) + s; }); }); return rnd(total); }
@@ -2812,7 +2861,7 @@ var ENGINE = (function () {
     monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,
     MEMO: MEMO, PEREF: PEREF, MEMO_KODE: MEMO_KODE, memorial: memorial, memoParse: memoParse, memoSheetRows: memoSheetRows, peSummary: peSummary, peSummaryBlocks: peSummaryBlocks,
     delegasiFor: delegasiFor, isDelegasi: isDelegasi, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
-    DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData
+    DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData, overview: overview
   };
 })();
 if (typeof module !== 'undefined') module.exports = ENGINE;

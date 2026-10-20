@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.4
+## Pemasangan v2.8.5
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -31,6 +31,17 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
+
+## Aplikasi v2.8.5: Overview, form bertahap & bahasa Inggris
+- **Bahasa aplikasi Inggris** (istilah finance: Overview, Billing, Cash Receipts, Month-End Close, Approvals; Pending approval, Resubmit required, …).
+  **Dokumen cetak/PDF tetap Bahasa Indonesia**, sheet Google tidak berubah, angka tetap format Indonesia (5.224.132.582).
+- **Overview** layar penuh (AR Officer & Section Head): pilihan bulan (bawaan bulan berjalan, otomatis berganti tiap awal bulan termasuk ganti tahun; 12 bulan ke belakang),
+  6 angka utama (piutang terbuka, lewat jatuh tempo, invoice keluar, penerimaan vs target INKASO, pencapaian RA, DSO), invoice keluar bulan itu + status persetujuan,
+  RA–RI Termin bulan itu + daftar RA yang belum cair, tren 12 bulan, umur piutang, daftar **Action needed** (AR Officer) / **Awaiting your decision** + **Attention this month** (Section Head, dengan tombol **Print overview**).
+  Data dari `apiOverview(bulan)` (hitungan ringan + cache 5 menit, gugur setiap ada penyimpanan). Saldo bulan lalu = posisi akhir bulan.
+- **Issue Invoice** & **Cash Receipts**: kartu bertahap 1·2·3, info proyek (kontrak, sisa UM, retensi, PPh), hitungan langsung (DPP, PPN, retensi, PPh, kas yang diharapkan),
+  ringkasan **Received / Applied / Unapplied** (harus 0), tombol tetap **Save** dan **Save & submit for approval** (sekali klik: simpan lalu langsung diajukan ke Section Head).
+- Lembar pengesahan penerimaan: kolom *Dasar alokasi* dihapus. Pindah buku menampilkan nilai yang dipindahkan (bukan 0).
 
 ## Aplikasi v2.8.4: menu atas, Status Persetujuan & kecepatan
 - Menu di bar atas per kelompok alur piutang (Ringkasan · Penagihan ▾ · Penerimaan Kas · Tutup Buku · Persetujuan); Section Head: Otorisasi · Dashboard · Tutup Buku.

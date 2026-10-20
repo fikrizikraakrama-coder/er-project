@@ -903,3 +903,16 @@ function apiAnalisis(month, buat) {
   var r = L[L.length - 1], m = {}; try { m = JSON.parse(r[8]); } catch (e) {}
   return { ada: true, tutup: tutup, id: String(r[0]), rev: Number(r[2]) || 0, waktu: String(r[4]), alasan: String(r[7] || ''), m: m, narasi: String(r[9] || ''), ai: String(r[10] || ''), aiStatus: String(r[11] || '') };
 }
+
+/** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
+function apiOverview(month) {
+  arRequireAccess_();
+  month = String(month || '');
+  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
+  var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key);
+  if (hit) return JSON.parse(hit);
+  var res = computeLight_(true), o = ENGINE.overview(res.ctx, month);
+  o.reportTime = ''; try { o.reportTime = arProps_().getProperty('REPORT_TIME') || ''; } catch (e) {}
+  var out = plain_(o); arCachePut_(key, JSON.stringify(out), 300);
+  return out;
+}

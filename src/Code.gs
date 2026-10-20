@@ -230,6 +230,7 @@ function rebuildAll_(opt) {
     var res = ENGINE.compute(input);
     arEnrichReports_(res);
     try { var cj = JSON.stringify(arDashboardCharts_(res)); if (cj.length < 8500) arProps_().setProperty('DASH_CHARTS', cj); } catch (err) { }
+    try { arProps_().setProperty('REPORT_TIME', arNow_()); } catch (err) { }
     if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
     writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
     writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
