@@ -535,6 +535,13 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .df-t input{width:170px;padding:4px 6px;font-size:12.3px}.df-st{font-size:12px;margin-top:6px}.df-ok{color:#1E7A45;font-weight:600}.df-bad{color:#B42318;font-weight:600}.df-wt{color:#8A5A00;font-weight:600}
 .dfc{display:inline-flex;gap:4px;margin-top:3px;flex-wrap:wrap}.dfc span{font-size:10.5px;font-weight:700;border-radius:8px;padding:0 6px;background:#EEF2F6;color:#56677D}.dfc .y{background:#E5F5EB;color:#1E6B3E}.dfc .n{background:#FFF3DA;color:#8A5A00}
 .dfb{font-size:10px;font-weight:700;border-radius:8px;padding:0 6px;margin-left:4px}.dfb.y{background:#E5F5EB;color:#1E6B3E}.dfb.n{background:#FFF3DA;color:#8A5A00}
+
+/* v2.8.6: Invoice Register — baris aksi (dokumen & pembatalan) di bawah, selebar tabel */
+#invList tr.r1 td{border-bottom:0;padding-bottom:2px}#invList tr.r2 td{padding:0 6px 9px;border-bottom:1px solid #EEF1F5}
+#invList tr.r1:hover td,#invList tr.r2:hover td{background:#F7FAFD}
+#invList .ra{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#invList .ra .sp{flex:1}#invList .dfc{margin-top:0}
+#invList .lb{display:inline-flex;align-items:center;gap:4px;border:1px solid #CFE3E5;background:#fff;color:#0F6E78;border-radius:7px;padding:3px 9px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+#invList .lb.c{border-color:#EBC0BA;color:#B42318}#invList .lb .ic{width:13px;height:13px}
 </style>
 </head>
 <body>
@@ -1644,7 +1651,14 @@ function statusPill(s) { var c = /CLOSE MANUAL –|PPN BELUM/.test(s) ? 'c' : /^
 function renderList() {
   var q = ($('qInv').value || '').toUpperCase().trim();
   var L = B.invoices.slice().sort(function (a, b) { return (b.tgl || '') < (a.tgl || '') ? -1 : 1; }).filter(function (i) { return !q || (i.nomor + ' ' + i.pelanggan + ' ' + i.npp + ' ' + i.proyek).toUpperCase().indexOf(q) >= 0; }).slice(0, 200);
-  $('invList').innerHTML = L.length ? L.map(function (i) { return '<tr data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span>' + (i.status_inv === 'BATAL' ? '' : i.batalPend ? '<br><span class="pbat">⏳ cancellation pending</span>' : '<br><button class="linkbtn bat" type="button" data-batal="' + esc(i.nomor) + '">Cancel…</button>') + (i.status_inv === 'BATAL' ? '' : dfChips(i)) + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="empty">No matching invoices.</td></tr>';
+  $('invList').innerHTML = L.length ? L.map(function (i) {
+    var act = i.status_inv !== 'BATAL', s = dfState(i), need = act && (dfNeed(i) || i.link_inv || i.link_fp), maker = !!(B.access && B.access.maker);
+    var chips = need ? '<span class="dfc"><span class="' + (s.pack ? 'y' : 'n') + '">pack ' + (s.pack ? '✓' : '✗') + '</span>' + (s.needFp ? '<span class="' + (i.link_fp ? 'y' : 'n') + '">e-Faktur ' + (i.link_fp ? '✓' : '✗') + '</span>' : '') + '</span>' : '';
+    var acts = (need && maker ? '<button class="lb" type="button" data-df="' + esc(i.nomor) + '">' + ico('fold') + 'Document filing</button>' : '') +
+      (!act ? '' : i.batalPend ? '<span class="pbat">⏳ cancellation pending</span>' : '<button class="lb c bat" type="button" data-batal="' + esc(i.nomor) + '">' + ico('x') + 'Cancel…</button>');
+    return '<tr class="r1" data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span></td></tr>' +
+      (chips || acts ? '<tr class="r2" data-no="' + esc(i.nomor) + '"><td colspan="3"><div class="ra">' + chips + '<span class="sp"></span>' + acts + '</div></td></tr>' : '');
+  }).join('') : '<tr><td colspan="3" class="empty">No matching invoices.</td></tr>';
 }
 function openInvoice(no) {
   call('apiGetInvoice', [no], function (o) {
@@ -3234,11 +3248,6 @@ var DF = null, PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/'
 function dfNeed(i) { var mulai = (B.params && B.params.MULAI_PERSETUJUAN) || '2026-10-01'; return i && i.status_inv !== 'BATAL' && !i.migr && i.tgl >= mulai; }
 function dfState(i) { return { pack: !!(i && i.link_inv), fp: !(i && i.ppn > 0) || !!(i && i.link_fp), needFp: !!(i && i.ppn > 0) }; }
 function dfBadge(i) { if (!i) return ''; var s = dfState(i); return s.pack && s.fp ? '<span class="dfb y">filed ✓</span>' : '<span class="dfb n">' + (!s.pack && !s.fp ? '2 missing' : '1 missing') + '</span>'; }
-function dfChips(i) {
-  var s = dfState(i); if (!dfNeed(i) && !s.pack && !(i.link_fp)) return '';
-  return '<br><span class="dfc"><span class="' + (s.pack ? 'y' : 'n') + '">pack ' + (s.pack ? '✓' : '✗') + '</span>' + (s.needFp ? '<span class="' + (i.link_fp ? 'y' : 'n') + '">e-Faktur ' + (i.link_fp ? '✓' : '✗') + '</span>' : '') + '</span>' +
-    (B.access && B.access.maker ? ' <button class="linkbtn" type="button" data-df="' + esc(i.nomor) + '">Document filing…</button>' : '');
-}
 function dfMissingCount() { return B.invoices.filter(function (i) { if (!dfNeed(i)) return false; var s = dfState(i); return !s.pack || !s.fp; }).length; }
 function dfOpen(nomor) {
   var i = invBy(nomor); if (!i) { toast('Invoice not found.'); return; }
