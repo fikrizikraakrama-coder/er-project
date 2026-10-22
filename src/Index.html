@@ -542,6 +542,13 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 #invList .ra{display:flex;align-items:center;gap:6px;flex-wrap:wrap}#invList .ra .sp{flex:1}#invList .dfc{margin-top:0}
 #invList .lb{display:inline-flex;align-items:center;gap:4px;border:1px solid #CFE3E5;background:#fff;color:#0F6E78;border-radius:7px;padding:3px 9px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 #invList .lb.c{border-color:#EBC0BA;color:#B42318}#invList .lb .ic{width:13px;height:13px}
+
+/* v2.8.6: filter bulan — Invoice Register & Cash Receipts */
+.fchips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 6px}.fchips button{border:1px solid #DCE3EB;border-radius:14px;padding:3px 10px;font:inherit;font-size:11.5px;font-weight:600;color:#56677D;background:#fff;cursor:pointer}
+.fchips button.on{background:#0F6E78;color:#fff;border-color:#0F6E78}.fchips button em{font-style:normal;opacity:.8;margin-left:3px}
+.fsum{font-size:12px;color:#33475B;background:#F4F7FA;border-radius:8px;padding:6px 10px;margin-bottom:6px}.fsum:empty{display:none}
+#mode-buka table.list{table-layout:fixed}#mode-buka table.list th:nth-child(1){width:26%}#mode-buka table.list th:nth-child(3){width:34%}
+#mode-buka table.list td{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -645,6 +652,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div class="scroll" id="mode-buka" hidden>
       <div class="m-only m-acts"><button type="button" class="btn" data-mgo="buat">+ Issue invoice</button></div>
       <label for="qInv">Search number, customer, or project</label><input id="qInv" placeholder="e.g. 0153/2026 or INDAH KIAT">
+      <select id="qMon" aria-label="Invoice month" style="margin-top:8px;font-weight:700"></select>
+      <div class="fchips" id="qChips"></div><div class="fsum" id="qSum"></div>
       <table class="list" style="margin-top:10px"><thead><tr><th>Number</th><th>Customer / project</th><th>Status</th></tr></thead><tbody id="invList"></tbody></table>
       <fieldset style="margin-top:14px"><legend>Manual close (CLOSE MANUAL) awaiting submission / decision</legend><div id="tutupList"></div></fieldset>
     </div>
@@ -684,7 +693,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <datalist id="dlAll"></datalist>
         </fieldset>
       </div>
-      <fieldset class="stp" style="margin-top:14px"><legend>Recent cash receipts</legend><div id="payList"></div></fieldset>
+      <fieldset class="stp" style="margin-top:14px"><legend>Cash receipts · <select id="pMon" aria-label="Receipt month" style="width:auto;display:inline-block;padding:3px 6px;font-weight:700"></select></legend><div class="fsum" id="pSum"></div><div id="payList"></div></fieldset>
     </div>
 
     <!-- ===================== MODE SURAT PENAGIHAN -->
@@ -1648,9 +1657,35 @@ function askPeriodReason(e, retry) {
 
 /* ====================================================== buka / revisi */
 function statusPill(s) { var c = /CLOSE MANUAL –|PPN BELUM/.test(s) ? 'c' : /^LUNAS|^CLOSE/.test(s) ? 'l' : /OVERDUE|KURANG|LEBIH/.test(s) ? 'o' : /CICILAN|WAITING|TANDA/.test(s) ? 'c' : ''; return '<span class="pill ' + c + '">' + esc(s || '-') + '</span>'; }
+var REG_M = 'CUR', REG_F = 'all', PAY_M = 'CUR';
+/** teks status persetujuan dari server → bahasa aplikasi */
+function apprEn(t) { t = String(t || ''); if (!t) return 'Not submitted'; if (/BERUBAH|AJUKAN ULANG/.test(t)) return '⚠ Data changed — resubmit'; if (/^✓ DISETUJUI/.test(t)) return t.replace(/^✓ DISETUJUI/, '✓ Approved').replace(/a\.n\. Section Head oleh (.*) \(delegasi\)/, 'on behalf of Section Head by $1 (delegation)'); if (/MENUNGGU/.test(t)) return '⏳ Pending approval'; if (/^✗ DITOLAK/.test(t)) return t.replace(/^✗ DITOLAK/, '✗ Rejected'); return t; }
+/** pilihan bulan: bulan berjalan (otomatis berganti) + 12 bulan sebelumnya · semua invoice terbuka · semua */
+function monthOpts(cur, extra) {
+  var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = '<option value="CUR"' + (cur === 'CUR' ? ' selected' : '') + '>' + monEn(B.today.substring(0, 7)) + ' (current month)</option>';
+  for (var k = 1; k <= 12; k++) { var mm = m - k, yy = y; while (mm < 1) { mm += 12; yy--; } var r = yy + '-' + ('0' + mm).slice(-2); o += '<option value="' + r + '"' + (cur === r ? ' selected' : '') + '>' + monEn(r) + '</option>'; }
+  return o + (extra || []).map(function (x) { return '<option value="' + x[0] + '"' + (cur === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('');
+}
+function regMatch(i, f) {
+  var mulai = (B.params && B.params.MULAI_PERSETUJUAN) || '2026-10-01', open = !i.closed && i.status_inv !== 'BATAL';
+  if (f === 'open') return open;
+  if (f === 'od') return open && /OVERDUE/.test(i.status || '');
+  if (f === 'docs') { if (!dfNeed(i)) return false; var s = dfState(i); return !s.pack || !s.fp; }
+  if (f === 'notsub') return i.status_inv !== 'BATAL' && !i.migr && i.tgl >= mulai && !i.appr;
+  return true;
+}
 function renderList() {
-  var q = ($('qInv').value || '').toUpperCase().trim();
-  var L = B.invoices.slice().sort(function (a, b) { return (b.tgl || '') < (a.tgl || '') ? -1 : 1; }).filter(function (i) { return !q || (i.nomor + ' ' + i.pelanggan + ' ' + i.npp + ' ' + i.proyek).toUpperCase().indexOf(q) >= 0; }).slice(0, 200);
+  var q = ($('qInv').value || '').toUpperCase().trim(), mon = REG_M === 'CUR' ? B.today.substring(0, 7) : REG_M;
+  if ($('qMon') && !$('qMon').options.length) $('qMon').innerHTML = monthOpts(REG_M, [['OPEN', 'All open invoices (any month)'], ['ALL', 'All invoices']]);
+  var base = B.invoices.slice().sort(function (a, b) { return (b.tgl || '') < (a.tgl || '') ? -1 : 1; }).filter(function (i) {
+    if (q) return (i.nomor + ' ' + i.pelanggan + ' ' + i.npp + ' ' + i.proyek).toUpperCase().indexOf(q) >= 0;
+    return mon === 'ALL' ? true : mon === 'OPEN' ? !i.closed && i.status_inv !== 'BATAL' : String(i.tgl || '').substring(0, 7) === mon;
+  });
+  var F = [['all', 'All'], ['open', 'Open'], ['od', 'Overdue'], ['docs', 'Docs missing'], ['notsub', 'Not submitted']];
+  if ($('qChips')) { $('qChips').innerHTML = F.map(function (f) { return '<button type="button" data-rf="' + f[0] + '" class="' + (REG_F === f[0] ? 'on' : '') + '">' + f[1] + '<em>' + base.filter(function (i) { return regMatch(i, f[0]); }).length + '</em></button>'; }).join('');
+    $('qChips').querySelectorAll('[data-rf]').forEach(function (b) { b.onclick = function () { REG_F = b.dataset.rf; renderList(); }; }); }
+  var L0 = base.filter(function (i) { return regMatch(i, REG_F); }), L = L0.slice(0, 200), tot = L0.reduce(function (t, i) { return t + (i.status_inv === 'BATAL' ? 0 : i.total || 0); }, 0);
+  if ($('qSum')) $('qSum').innerHTML = '<b>' + (q ? 'Search “' + esc($('qInv').value.trim()) + '” · all months' : mon === 'ALL' ? 'All invoices' : mon === 'OPEN' ? 'All open invoices' : monEn(mon)) + '</b> · ' + plural(L0.length, 'invoice') + ' · ' + rpShort(tot) + (L0.length > 200 ? ' · showing the latest 200' : '') + (q ? '' : ' · typing a number or customer searches all months');
   $('invList').innerHTML = L.length ? L.map(function (i) {
     var act = i.status_inv !== 'BATAL', s = dfState(i), need = act && (dfNeed(i) || i.link_inv || i.link_fp), maker = !!(B.access && B.access.maker);
     var chips = need ? '<span class="dfc"><span class="' + (s.pack ? 'y' : 'n') + '">pack ' + (s.pack ? '✓' : '✗') + '</span>' + (s.needFp ? '<span class="' + (i.link_fp ? 'y' : 'n') + '">e-Faktur ' + (i.link_fp ? '✓' : '✗') + '</span>' : '') + '</span>' : '';
@@ -2117,6 +2152,8 @@ function setMode(m) {
 function bind() {
   buildNav(true); bindTop();
   $('dfClose').onclick = function () { $('dfDlg').close(); DF = null; };
+  if ($('qMon')) $('qMon').onchange = function () { REG_M = this.value; renderList(); };
+  if ($('pMon')) $('pMon').onchange = function () { PAY_M = this.value; renderSetuju(); };
   $('mBack').onclick = function () { var bc = document.body.classList; if (bc.contains('m-view') && !STACK) { bc.remove('m-view'); AP_SEL = ''; return; } if (STACK && bc.contains('m-doc') && bc.contains('has-sum')) { bc.remove('m-doc'); $('mSum').scrollTop = 0; return; } if (STACK) closePackage(); };
   document.querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
   $('apQ').oninput = apRender; $('apSort').onchange = apRender;
@@ -2907,10 +2944,17 @@ function renderSetuju() {
   var ms = $('mSel'); if (ms && !ms.options.length) { ms.innerHTML = B.months.map(function (m) { return '<option value="' + m.ref + '">' + esc(monEn(m.ref)) + '</option>'; }).join(''); ms.value = B.today.substring(0, 7); }
   $('tutupList').innerHTML = (B.pendTutup || []).length ? B.pendTutup.map(function (t) { return '<div class="card"><h4>' + esc(short(t.nomor)) + ' · outstanding Rp ' + nfDot(t.sisa) + '</h4><div class="meta">' + esc(t.pelanggan) + '<br>' + esc(t.status) + (t.alasan ? '<br>Reason: ' + esc(t.alasan) : '') + '</div><div class="row-btn"><button class="btn" data-open="TUTUP|' + esc(E.normInv(t.nomor)) + '">View &amp; submit</button></div></div>'; }).join('')
     : '<div class="note">None. To close an outstanding balance: set TUTUP MANUAL = CLOSE MANUAL and fill in ALASAN TUTUP MANUAL in the Monitoring Invoice sheet, then submit from here.</div>';
-  var pays = B.payments.slice(-12).reverse(), seen = {};
-  $('payList').innerHTML = pays.filter(function (p) { if (seen[p.key]) return false; seen[p.key] = 1; return true; }).map(function (p) {
-    return '<div class="card"><h4>' + esc(p.key) + ' · Rp ' + nfDot(p.nominal) + '</h4><div class="meta">' + esc(tg(p.tgl)) + ' · ' + esc(p.pelanggan) + ' · ' + esc(p.nomor) + '<br>' + esc(p.appr || 'not submitted') + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(p.key) + '">View approval sheet</button></div></div>';
-  }).join('');
+  // daftar penerimaan per bulan uang diterima (value date); satu kartu per transfer / ID penerimaan
+  if ($('pMon') && !$('pMon').options.length) $('pMon').innerHTML = monthOpts(PAY_M);
+  var pm = PAY_M === 'CUR' ? B.today.substring(0, 7) : PAY_M, G = {}, order = [];
+  B.payments.forEach(function (p) { if (String(p.tgl || '').substring(0, 7) !== pm) return; var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, appr: p.appr, ids: [] }; order.push(g); }
+    g.n += p.pb ? Math.max(0, p.nominal) : p.nominal; if (g.inv.indexOf(short(p.nomor)) < 0) g.inv.push(short(p.nomor)); if (p.idp && g.ids.indexOf(p.idp) < 0) g.ids.push(p.idp); if (p.tgl > g.tgl) g.tgl = p.tgl; });
+  order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
+  var cash = order.reduce(function (t, g) { return t + (g.pb ? 0 : g.n); }, 0);
+  if ($('pSum')) $('pSum').innerHTML = '<b>' + monEn(pm) + '</b> · ' + plural(order.length, 'receipt') + ' · ' + rpShort(cash) + ' received' + (order.some(function (g) { return g.pb; }) ? ' (offsets excluded)' : '');
+  $('payList').innerHTML = order.length ? order.map(function (g) {
+    return '<div class="card"><h4>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + ' · Rp ' + nfDot(g.n) + (g.pb ? ' <span class="pill">offset</span>' : '') + '</h4><div class="meta">' + esc(tg(g.tgl)) + ' · ' + esc(titleCaseS(g.pel)) + ' · 4C.' + esc(g.inv.join(', 4C.')) + '<br>' + esc(apprEn(g.appr)) + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(g.key) + '">View approval sheet</button></div></div>';
+  }).join('') : '<div class="ap-empty">No cash receipts recorded in ' + monEn(pm) + '.</div>';
 }
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
 var NAV_MAKER = [
