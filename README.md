@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.5
+## Pemasangan v2.8.6
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -31,6 +31,17 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
+
+## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
+- **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.
+- **Document filing** (Invoice Register ▸ *Document filing…* atau tombol di lembar invoice): unggah **Signed billing pack** (invoice, kwitansi, BAP, sertifikat pembayaran ber-TTD; PDF/JPG/PNG maks. 10 MB) dan **Tax invoice (e-Faktur)** (PDF Coretax).
+  Nomor & tanggal faktur dibaca otomatis dan dicek terhadap DPP/PPN invoice dan referensi nomor invoice. File disimpan di folder arsip ▸ *Berkas Tagihan & Faktur Pajak* ▸ tahun ▸ bulan,
+  dinamai otomatis (mis. `4C.0183.26 - INV Prog 4 - Metland … Sign.Rev.00.pdf`), versi lama pindah ke *Revisi lama*. Link masuk kolom **BERKAS TAGIHAN (TTD)** & **FAKTUR PAJAK (PDF)**
+  (sebelumnya DOKUMEN INVOICE / DOKUMEN FAKTUR PAJAK), Rekap Invoice Keluar & file Pajak. Pembaca PDF (pdf.js, cdnjs) dimuat hanya saat mengunggah faktur; bila gagal, nomor & tanggal bisa diketik.
+- **File Pajak** "REKAP INVOICE KELUAR & BUKU PENJUALAN — CSU (PAJAK)": tab KELENGKAPAN DOKUMEN, REKAP tahun, BUK PEN per bulan (tanggal faktur). Dibuat lewat menu
+  *Pengaturan ▸ Aktifkan file Pajak*, lalu diperbarui tiap jam bersama file Akuntansi & P&E. Email Pajak: Parameter ▸ Pengguna & Peran, peran **PAJAK (LIHAT)** (akses lihat otomatis).
+- **Monitoring Invoice**: kolom rincian hitungan, dokumen & faktur, alokasi penerimaan dan kolom sistem dikelompokkan (tombol +/− di atas kolom), tidak dihapus. Dibuat otomatis sekali pada pembaruan laporan berikutnya.
+- **Menu AR CSU**: menu harian di atas, sisanya di sub-menu (Analisis bulanan · Akuntansi, P&E & Pajak · Data proyek · Pengaturan). *Terapkan pembaruan v2.6* dan *Ekspor Buku Penjualan* dihapus.
 
 ## Aplikasi v2.8.5: Overview, form bertahap & bahasa Inggris
 - **Bahasa aplikasi Inggris** (istilah finance: Overview, Billing, Cash Receipts, Month-End Close, Approvals; Pending approval, Resubmit required, …).

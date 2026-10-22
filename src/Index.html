@@ -374,8 +374,8 @@ aside .brand,#accessBadge{display:none!important}
 .tb-av{width:32px;height:32px;border-radius:50%;background:#3CC6CE;color:#0B3B47;display:grid;place-items:center;font-weight:800;font-size:12px}
 .tb-bell{position:relative;color:#B9C8DB;cursor:pointer;margin-right:4px;display:flex}.tb-bell i{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E5484D}
 #kpiBar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 16px;background:#F4F6F9;border-bottom:1px solid var(--line);flex:none}
-.kp{background:#fff;border:1px solid #E1E7EE;border-radius:11px;padding:9px 13px;display:flex;align-items:center;gap:12px}.kp.hl{border-color:#F3D9A4;background:#FFFBF2}
-.kp .ki{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}.kp b{font-size:19px;display:block;line-height:1.15}.kp small{font-size:11.5px;color:#6B7A90}
+.kpt{background:#fff;border:1px solid #E1E7EE;border-radius:11px;padding:9px 13px;display:flex;align-items:center;gap:12px}.kpt.hl{border-color:#F3D9A4;background:#FFFBF2}
+.kpt .ki{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}.kpt b{font-size:19px;display:block;line-height:1.15}.kpt small{font-size:11.5px;color:#6B7A90}
 .ki.t{background:#E3F4F5;color:#0F7C86}.ki.o{background:#FFF3DA;color:#A86C00}.ki.g{background:#E5F5EB;color:#1E7A45}.ki.b{background:#E8EEF8;color:#2F5597}.ki.r{background:#FDECEA;color:#B42318}
 .ap-tabs{display:flex;border-bottom:1px solid #E6EBF1;margin:0 -18px 10px;padding:0 10px;overflow-x:auto}
 .ap-tab{white-space:nowrap;padding:10px 7px 9px;font:inherit;font-size:12.6px;font-weight:600;color:#6B7A90;background:none;border:0;cursor:pointer;display:flex;gap:6px;align-items:center}
@@ -401,8 +401,8 @@ aside .brand,#accessBadge{display:none!important}
 .ibtn:hover{background:#F4F7FA}
 #pkgTabs{display:flex;gap:6px;padding:8px 16px 0;background:#fff;flex:none}.ptab{font:inherit;font-size:12px;font-weight:600;color:#6B7A90;padding:6px 11px;border-radius:7px;background:none;border:0;cursor:pointer}.ptab.on{background:#EEF4FB;color:#1F3864}
 #pkgBar{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid #E6EBF1;background:#FBFCFD;flex:none;flex-wrap:wrap}
-.tl{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#56677D;flex-wrap:wrap}.st{display:flex;align-items:center;gap:5px;white-space:nowrap}.st i{width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:9px;color:#fff;flex:none}
-.st.d i{background:#1E8E4E}.st.c i{border:2px solid #0F6E78}.st.c{color:#0F6E78;font-weight:700}.st.n i{border:2px solid #C9D3DF}.st.x i{background:#B42318}.st.x{color:#B42318;font-weight:700}.ln{width:18px;height:2px;background:#C9D3DF}
+.tl{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#56677D;flex-wrap:wrap}.tst{display:flex;align-items:center;gap:5px;white-space:nowrap}.tst i{width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:9px;color:#fff;flex:none}
+.tst.d i{background:#1E8E4E}.tst.c i{border:2px solid #0F6E78}.tst.c{color:#0F6E78;font-weight:700}.tst.n i{border:2px solid #C9D3DF}.tst.x i{background:#B42318}.tst.x{color:#B42318;font-weight:700}.ln{width:18px;height:2px;background:#C9D3DF}
 .chks{display:flex;gap:10px;font-size:11.5px;font-weight:600;flex-wrap:wrap}.chks span{display:flex;gap:4px;align-items:center;white-space:nowrap}.chks .ok{color:#1E7A45}.chks .no{color:#A86C00}.chks .bad{color:#B42318}
 .bar-act{margin-left:auto;display:flex;gap:8px}
 .b-no{display:flex;align-items:center;gap:6px;background:#fff;color:#B42318;border:1.5px solid #EBC0BA;border-radius:9px;padding:8px 14px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
@@ -466,7 +466,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 .fx .hint{font-size:11px;color:#8794A6;margin-top:3px}
 .nopfx{display:flex;align-items:center;border:1px solid #CCD6E2;border-radius:8px;background:#fff;overflow:hidden}.nopfx span{padding:0 4px 0 9px;font-size:12px;color:#8794A6;white-space:nowrap}.nopfx input{border:0;padding-left:2px;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.chips span{font-size:11.5px;background:#EEF2F6;color:#4A5A72;border-radius:7px;padding:3px 8px}.chips b{color:#14213D}.chips .bad{background:#FDECEA;color:#B42318}
-.calc{border:1.5px dashed #CCD6E2;border-radius:9px;padding:6px 12px;margin:12px 0 4px;background:#FBFCFD}.calc .sum td{border-bottom:0;padding:2px 0}.calc .sum tr.big td{border-top:1px solid #DCE3EB;padding-top:6px;color:#0F6E78}
+.fx .calc{border:1.5px dashed #CCD6E2;border-radius:9px;padding:6px 12px;margin:12px 0 4px;background:#FBFCFD}.fx .calc .sum td{border-bottom:0;padding:2px 0}.fx .calc .sum tr.big td{border-top:1px solid #DCE3EB;padding-top:6px;color:#0F6E78}
 .rau{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.rau div{background:#F4F7FA;border-radius:8px;padding:7px 10px}.rau small{display:block;font-size:11px;color:#5F6F86}.rau b{font-size:14px;font-variant-numeric:tabular-nums}
 .rau .ok{background:#E8F6EE}.rau .ok b{color:#1E7A45}.rau .bad{background:#FDECEA}.rau .bad b{color:#B42318}
 .fxa{background:#fff;box-shadow:0 -4px 12px rgba(20,40,70,.06)}
@@ -503,7 +503,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
   #pkgBar{padding:10px 12px calc(10px + env(safe-area-inset-bottom));gap:8px}#pkgBar .tl{display:none}#pkgBar .chks{font-size:11px}
   .bar-act{margin-left:0;width:100%}.bar-act .b-ok,.bar-act .b-no{flex:1;justify-content:center;padding:13px 10px;font-size:14.5px}
   /* daftar persetujuan */
-  #kpiBar{grid-template-columns:1fr 1fr;padding:10px 12px;gap:8px}#kpiBar .kp:nth-child(n+3){display:none}.kp{padding:8px 10px;gap:8px}.kp b{font-size:16px}.kp .ki{width:30px;height:30px}
+  #kpiBar{grid-template-columns:1fr 1fr;padding:10px 12px;gap:8px}#kpiBar .kpt:nth-child(n+3){display:none}.kpt{padding:8px 10px;gap:8px}.kpt b{font-size:16px}.kpt .ki{width:30px;height:30px}
   .ap-tabs{margin:0 -18px 8px}.ap-row{padding:12px;border-radius:12px;gap:10px}.ap-row .id{font-size:13.5px}.ap-row .m{white-space:normal}.ap-row .rp{font-size:13.5px}.mini{padding:9px 12px;font-size:12.5px}
   .ap-tool select{max-width:110px}
   /* ringkasan pengajuan (HP) */
@@ -522,6 +522,19 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
   /* form di HP: satu kolom */
   .fx .row,.fx .row3{grid-template-columns:1fr}.fxbar{flex-wrap:wrap}.fxbar .sub{margin-left:0;width:100%;justify-content:center}
 }
+
+/* ====================== v2.8.5: Document filing */
+dialog.df{max-width:640px;width:calc(100% - 24px)}
+.df h3{display:flex;align-items:center;gap:8px}.df .dsub{font-size:12px;color:#5F6F86;margin:-2px 0 12px}
+.df-slot{border:1.5px dashed #B8C4D2;border-radius:11px;padding:12px 14px;margin-bottom:10px;background:#FAFBFC}
+.df-slot.ok{border:1.5px solid #9BD3B1;background:#F2FBF5}.df-slot h4{margin:0 0 2px;font-size:13.5px;display:flex;align-items:center;gap:8px}.df-slot .hint{font-size:11.5px;color:#6B7A90}
+.df-slot .row-a{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.df-slot .row-a a{font-weight:600;color:#0F6E78}
+.df-slot input[type=file]{display:none}.df-pick{border:1px solid #0F6E78;color:#0F6E78;background:#fff;border-radius:7px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer}
+.df-go{border:0;background:#0F6E78;color:#fff;border-radius:7px;padding:7px 14px;font:inherit;font-weight:700;cursor:pointer}.df-go:disabled{opacity:.5}
+.df-t{width:100%;border-collapse:collapse;font-size:12.3px;margin-top:8px}.df-t td{padding:4px 0;border-bottom:1px dotted #DCE3EB}.df-t td:nth-child(2){font-weight:600}.df-t td:last-child{text-align:right;white-space:nowrap}
+.df-t input{width:170px;padding:4px 6px;font-size:12.3px}.df-st{font-size:12px;margin-top:6px}.df-ok{color:#1E7A45;font-weight:600}.df-bad{color:#B42318;font-weight:600}.df-wt{color:#8A5A00;font-weight:600}
+.dfc{display:inline-flex;gap:4px;margin-top:3px;flex-wrap:wrap}.dfc span{font-size:10.5px;font-weight:700;border-radius:8px;padding:0 6px;background:#EEF2F6;color:#56677D}.dfc .y{background:#E5F5EB;color:#1E6B3E}.dfc .n{background:#FFF3DA;color:#8A5A00}
+.dfb{font-size:10px;font-weight:700;border-radius:8px;padding:0 6px;margin-left:4px}.dfb.y{background:#E5F5EB;color:#1E6B3E}.dfb.n{background:#FFF3DA;color:#8A5A00}
 </style>
 </head>
 <body>
@@ -557,7 +570,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
   <aside>
     <div class="brand">
       <h1>AR CSU — Receivables Management</h1>
-      <p>WIKA Beton · Concrete Services Unit — connected to Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">version 2.8.5 · 20-10-2026</span><br><span style="font-size:11px">Designed &amp; developed by Fikri Zikra Akrama</span></p>
+      <p>WIKA Beton · Concrete Services Unit — connected to Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">version 2.8.6 · 22-10-2026</span><br><span style="font-size:11px">Designed &amp; developed by Fikri Zikra Akrama</span></p>
     </div>
     <div id="accessBadge" class="ar-access">Checking Google account…</div>
 
@@ -753,6 +766,7 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 <div id="print-root"></div>
 <div id="bgChip" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
+<dialog id="dfDlg" class="df"><div class="dbody" id="dfBody"></div><div class="dact"><button class="btn" id="dfClose" type="button">Close</button></div></dialog>
 <dialog id="dlg"><div class="dbody"><h3 id="dlgT"></h3><div id="dlgB"></div></div><div class="dact"><button class="btn" id="dlgNo">Batal</button><button class="btn primary" id="dlgYes">Lanjutkan</button></div></dialog>
 
 <?!= include('EngineClient'); ?>
@@ -1630,7 +1644,7 @@ function statusPill(s) { var c = /CLOSE MANUAL –|PPN BELUM/.test(s) ? 'c' : /^
 function renderList() {
   var q = ($('qInv').value || '').toUpperCase().trim();
   var L = B.invoices.slice().sort(function (a, b) { return (b.tgl || '') < (a.tgl || '') ? -1 : 1; }).filter(function (i) { return !q || (i.nomor + ' ' + i.pelanggan + ' ' + i.npp + ' ' + i.proyek).toUpperCase().indexOf(q) >= 0; }).slice(0, 200);
-  $('invList').innerHTML = L.length ? L.map(function (i) { return '<tr data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span>' + (i.status_inv === 'BATAL' ? '' : i.batalPend ? '<br><span class="pbat">⏳ cancellation pending</span>' : '<br><button class="linkbtn bat" type="button" data-batal="' + esc(i.nomor) + '">Cancel…</button>') + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="empty">No matching invoices.</td></tr>';
+  $('invList').innerHTML = L.length ? L.map(function (i) { return '<tr data-no="' + esc(i.nomor) + '"><td><b>' + esc(i.nomor.replace(/^KU\.02\.02\/WB[\.\-]4C\./, '')) + '</b><br><span style="color:var(--steel)">' + esc(i.tgl) + (i.rev ? ' · rev ' + i.rev : '') + '</span></td><td>' + esc(i.pelanggan) + '<br><span style="color:var(--steel)">' + esc(i.proyek) + ' · ' + esc(i.invke) + '</span></td><td>' + statusPill(i.status) + '<br><span class="num">Rp ' + nfDot(i.total) + '</span>' + (i.status_inv === 'BATAL' ? '' : i.batalPend ? '<br><span class="pbat">⏳ cancellation pending</span>' : '<br><button class="linkbtn bat" type="button" data-batal="' + esc(i.nomor) + '">Cancel…</button>') + (i.status_inv === 'BATAL' ? '' : dfChips(i)) + '</td></tr>'; }).join('') : '<tr><td colspan="3" class="empty">No matching invoices.</td></tr>';
 }
 function openInvoice(no) {
   call('apiGetInvoice', [no], function (o) {
@@ -2088,6 +2102,7 @@ function setMode(m) {
 /* ====================================================== event */
 function bind() {
   buildNav(true); bindTop();
+  $('dfClose').onclick = function () { $('dfDlg').close(); DF = null; };
   $('mBack').onclick = function () { var bc = document.body.classList; if (bc.contains('m-view') && !STACK) { bc.remove('m-view'); AP_SEL = ''; return; } if (STACK && bc.contains('m-doc') && bc.contains('has-sum')) { bc.remove('m-doc'); $('mSum').scrollTop = 0; return; } if (STACK) closePackage(); };
   document.querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
   $('apQ').oninput = apRender; $('apSort').onchange = apRender;
@@ -2131,7 +2146,7 @@ function bind() {
   $('btnPInv').onclick = function () { doPrint('inv'); }; $('btnPKw').onclick = function () { doPrint('kw'); };
   $('btnPBap').onclick = function () { doPrint('bap'); }; $('btnPAll').onclick = function () { doPrint('all'); };
   $('qInv').oninput = renderList;
-  $('invList').onclick = function (e) { var bt = e.target.closest('[data-batal]'); if (bt) { e.stopPropagation(); openPackage('BATAL', E.normInv(bt.dataset.batal)); return; } var tr = e.target.closest('tr[data-no]'); if (tr && isPhone()) { openPackage('INV', E.normInv(tr.dataset.no)); return; } if (tr) openInvoice(tr.dataset.no); };
+  $('invList').onclick = function (e) { var dfb = e.target.closest('[data-df]'); if (dfb) { e.stopPropagation(); dfOpen(dfb.dataset.df); return; } var bt = e.target.closest('[data-batal]'); if (bt) { e.stopPropagation(); openPackage('BATAL', E.normInv(bt.dataset.batal)); return; } var tr = e.target.closest('tr[data-no]'); if (tr && isPhone()) { openPackage('INV', E.normInv(tr.dataset.no)); return; } if (tr) openInvoice(tr.dataset.no); };
   document.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () { setPj(b.dataset.pj); }; });
   $('pAdd').onclick = function () { if ($('pInv').value.trim()) addPayInv($('pInv').value); };
   $('pInv').onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); addPayInv(this.value); } };
@@ -2658,12 +2673,13 @@ function pkgChrome(canSubmit, canDecide) {
   $('pkgHead').innerHTML = (pel ? paHtml(pel) : '<div class="pa" style="background:#E8EEF8;color:#2F5597">' + ico('doc') + '</div>') + '<div style="min-width:0"><div class="ht">' + esc(parts[0]) + (PKG.nilai || (a && a.nilai) ? ' · Rp ' + nfDot(PKG.nilai || a.nilai) : '') + '</div><div class="hs">' + (pel ? esc(titleCaseS(pel)) + ' · ' : '') + sub + '</div></div>' +
     '<span class="php ' + pill[0] + '">' + pill[1] + '</span>' + age +
     '<div style="margin-left:auto;display:flex;gap:8px">' + (canEdit ? '<button type="button" class="ibtn" id="phEdit">' + ico('edit') + 'Edit data</button>' : '') +
-    '<button type="button" class="ibtn" id="phPrint">' + ico('print') + 'Print</button><button type="button" class="ibtn" id="phArch">' + ico('cloud') + 'Archive</button><button type="button" class="ibtn" id="phClose" title="Close">' + ico('x') + '</button></div>';
+    (maker && PKG.kind === 'INV' && PKG.inv && st !== 'BATAL' ? '<button type="button" class="ibtn" id="phDoc">' + ico('fold') + 'Document filing' + dfBadge(invBy(PKG.inv.nomor)) + '</button>' : '') + '<button type="button" class="ibtn" id="phPrint">' + ico('print') + 'Print</button><button type="button" class="ibtn" id="phArch">' + ico('cloud') + 'Archive</button><button type="button" class="ibtn" id="phClose" title="Close">' + ico('x') + '</button></div>';
   $('pkgHead').hidden = vmode; // lembar validasi (usulan / keputusan) punya kepala & tombol sendiri
+  if ($('phDoc')) $('phDoc').onclick = function () { dfOpen(PKG.inv.nomor); };
   $('phPrint').onclick = function () { $('btnPkgPrint').click(); }; $('phArch').onclick = function () { $('btnPkgArch').click(); }; $('phClose').onclick = function () { $('btnPkgClose').click(); };
   if ($('phEdit')) $('phEdit').onclick = function () { var k = PKG.kind, pk = PKG; closePackage(); if (k === 'INV') { openInvoice(pk.inv.nomor); setMode('buat'); } else setMode('bayar'); };
   // alur status
-  var step = function (c, t) { return '<span class="st ' + c + '"><i>' + (c === 'd' ? '✓' : c === 'x' ? '✕' : '') + '</i>' + t + '</span>'; }, ln = '<span class="ln"></span>';
+  var step = function (c, t) { return '<span class="tst ' + c + '"><i>' + (c === 'd' ? '✓' : c === 'x' ? '✕' : '') + '</i>' + t + '</span>'; }, ln = '<span class="ln"></span>';
   var tl = maker ? step('d', 'Recorded') + ln + step(st === 'BELUM' ? 'c' : st === 'DITOLAK' || st === 'BERUBAH' ? 'x' : 'd', st === 'DITOLAK' ? 'Rejected' : st === 'BERUBAH' ? 'Data changed' : 'Submitted') + ln + step(st === 'DISETUJUI' ? 'd' : st === 'MENUNGGU' ? 'c' : 'n', 'Approved')
     : step('d', 'Submitted') + ln + step(st === 'MENUNGGU' ? 'c' : st === 'DITOLAK' ? 'x' : 'd', st === 'DITOLAK' ? 'Rejected' : 'Reviewed') + ln + step(st === 'DISETUJUI' ? 'd' : 'n', 'Approved');
   // cek kelengkapan / keabsahan
@@ -3091,7 +3107,7 @@ function apRender() {
   apKpi(M);
 }
 function apKpi(M) {
-  var K = M.k, rata = K.ok ? (K.okHari / K.ok).toFixed(1).replace('.', ',') : '–', card = function (ic, cl, v, t, hl) { return '<div class="kp' + (hl ? ' hl' : '') + '"><div class="ki ' + cl + '">' + ico(ic) + '</div><div><b>' + v + '</b><small>' + t + '</small></div></div>'; };
+  var K = M.k, rata = K.ok ? (K.okHari / K.ok).toFixed(1).replace('.', ',') : '–', card = function (ic, cl, v, t, hl) { return '<div class="kpt' + (hl ? ' hl' : '') + '"><div class="ki ' + cl + '">' + ico(ic) + '</div><div><b>' + v + '</b><small>' + t + '</small></div></div>'; };
   $('kpiBar').innerHTML = M.maker ?
     card('send', 'o', K.belum, 'not submitted · ' + rpShort(K.nBelum), K.belum > 0) + card('warn', 'r', K.ulang, 'resubmit required') + card('clk', 't', K.tunggu, 'pending Section Head · ' + rpShort(K.nTunggu)) + card('chk', 'g', K.ok, 'approved this month · avg ' + rata + ' days') :
     card('clk', 't', K.tunggu, 'awaiting your decision', K.tunggu > 0) + card('cal', 'o', K.lama, 'pending &gt; 2 days') + card('coin', 'b', rpShort(K.nTunggu), 'amount pending') + card('chk', 'g', K.ok, 'approved this month · avg ' + rata + ' days');
@@ -3170,7 +3186,7 @@ function ovRender(d) {
     h += '<div class="ov-p"><h3>Action needed<span class="r">today</span></h3><div class="s">Shortcuts to pending work</div>' +
       ac('send', '#FFF3DA', '#A86C00', 'Not yet submitted for approval', A.k.belum, 'setuju') + ac('warn', '#FDECEA', '#B42318', 'Resubmit required', A.k.ulang, 'setuju') +
       ac('mail', '#FDECEA', '#B42318', 'Collection letters due', sr, 'surat') + ac('clk', '#E3F4F5', '#0F7C86', 'Payment promises / deadlines missed', d.attn.janji, 'surat') +
-      ac('fold', '#E8EEF8', '#2F5597', 'Month-end close documents open', dokPending(), 'dok') + ac('warn', '#F3E8FA', '#6B3FA0', 'Data check findings', d.issues, 'sheet') + '</div>';
+      ac('fold', '#E8EEF8', '#2F5597', 'Month-end close documents open', dokPending(), 'dok') + ac('doc', '#E3F4F5', '#0F7C86', 'Document filing incomplete (signed pack / e-Faktur)', dfMissingCount(), 'buka') + ac('warn', '#F3E8FA', '#6B3FA0', 'Data check findings', d.issues, 'sheet') + '</div>';
   } else {
     var T = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : ''; };
     h += '<div class="ov-p"><h3>Awaiting your decision<span class="r">' + A.k.tunggu + ' requests</span></h3><div class="s">Oldest first · click to review</div>' +
@@ -3212,6 +3228,102 @@ function ovTrend(T) {
   });
   return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="12-month trend of invoices issued and cash received">' + svg + '</svg>';
 }
+
+/* ====================================================== v2.8.5: Document filing (berkas tagihan ber-TTD & PDF faktur pajak) */
+var DF = null, PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+function dfNeed(i) { var mulai = (B.params && B.params.MULAI_PERSETUJUAN) || '2026-10-01'; return i && i.status_inv !== 'BATAL' && !i.migr && i.tgl >= mulai; }
+function dfState(i) { return { pack: !!(i && i.link_inv), fp: !(i && i.ppn > 0) || !!(i && i.link_fp), needFp: !!(i && i.ppn > 0) }; }
+function dfBadge(i) { if (!i) return ''; var s = dfState(i); return s.pack && s.fp ? '<span class="dfb y">filed ✓</span>' : '<span class="dfb n">' + (!s.pack && !s.fp ? '2 missing' : '1 missing') + '</span>'; }
+function dfChips(i) {
+  var s = dfState(i); if (!dfNeed(i) && !s.pack && !(i.link_fp)) return '';
+  return '<br><span class="dfc"><span class="' + (s.pack ? 'y' : 'n') + '">pack ' + (s.pack ? '✓' : '✗') + '</span>' + (s.needFp ? '<span class="' + (i.link_fp ? 'y' : 'n') + '">e-Faktur ' + (i.link_fp ? '✓' : '✗') + '</span>' : '') + '</span>' +
+    (B.access && B.access.maker ? ' <button class="linkbtn" type="button" data-df="' + esc(i.nomor) + '">Document filing…</button>' : '');
+}
+function dfMissingCount() { return B.invoices.filter(function (i) { if (!dfNeed(i)) return false; var s = dfState(i); return !s.pack || !s.fp; }).length; }
+function dfOpen(nomor) {
+  var i = invBy(nomor); if (!i) { toast('Invoice not found.'); return; }
+  DF = { nomor: i.nomor, busy: '', fp: null, fpFile: null, msg: {} }; dfRender();
+  if (!$('dfDlg').open) $('dfDlg').showModal();
+}
+function dfRender() {
+  var i = invBy(DF.nomor), s = dfState(i), f = DF.fp, h = '<h3>' + ico('fold') + 'Document filing</h3><div class="dsub">4C.' + esc(short(i.nomor)) + ' · ' + esc(titleCaseS(i.pelanggan)) + ' · ' + esc(i.invke || '') + ' · Rp ' + nfDot(i.total) + '</div>';
+  var link = function (u) { return u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">View file</a>' : ''; };
+  h += '<div class="df-slot' + (s.pack ? ' ok' : '') + '"><h4>' + (s.pack ? '✓ ' : '') + 'Signed billing pack</h4><div class="hint">Invoice, kwitansi, BAP & payment certificate after signing — scanned PDF (or JPG/PNG), max. 10 MB</div>' +
+    '<div class="row-a">' + link(i.link_inv) + '<input type="file" id="dfPack" accept="application/pdf,image/jpeg,image/png"><button type="button" class="df-pick" data-dfp="dfPack"' + (DF.busy ? ' disabled' : '') + '>' + (s.pack ? 'Replace' : 'Attach PDF') + '</button></div>' +
+    '<div class="df-st" id="dfMsgPACK">' + (DF.msg.PACK || '') + '</div></div>';
+  if (s.needFp || i.link_fp) {
+    h += '<div class="df-slot' + (i.link_fp ? ' ok' : '') + '"><h4>' + (i.link_fp ? '✓ ' : '') + 'Tax invoice (e-Faktur)</h4><div class="hint">PDF downloaded from Coretax — number & date are read automatically and checked against the invoice</div>' +
+      '<div class="row-a">' + link(i.link_fp) + (i.no_fp ? '<span style="font-size:12px">No. ' + esc(i.no_fp) + (i.tgl_fp ? ' · ' + tg(i.tgl_fp) : '') + '</span>' : '') + '<input type="file" id="dfFp" accept="application/pdf"><button type="button" class="df-pick" data-dfp="dfFp"' + (DF.busy ? ' disabled' : '') + '>' + (i.link_fp ? 'Replace' : 'Attach PDF') + '</button></div>';
+    if (f) {
+      var ok = function (b) { return b ? '<span class="df-ok">✓</span>' : '<span class="df-bad">✗ differs</span>'; }, refOk = !f.ref || E.normInv(String(f.ref).split(/\s+-\s+/)[0]) === E.normInv(i.nomor);
+      h += '<table class="df-t"><tr><td>Tax invoice no.</td><td><input id="dfNo" value="' + esc(f.no || '') + '" inputmode="numeric" placeholder="17 digits"></td><td>' + (f.no ? '<span class="df-ok">read from PDF</span>' : '<span class="df-wt">type it in</span>') + '</td></tr>' +
+        '<tr><td>Tax invoice date</td><td><input id="dfTgl" type="date" value="' + esc(f.tgl || '') + '"></td><td>' + (f.tgl ? '<span class="df-ok">read from PDF</span>' : '<span class="df-wt">type it in</span>') + '</td></tr>' +
+        (f.harga ? '<tr><td>Selling price (= invoice tax base)</td><td>' + nfDot(f.harga) + '</td><td>' + ok(Math.abs(f.harga - i.dpp) <= 1) + '</td></tr>' : '') +
+        (f.ppn ? '<tr><td>VAT</td><td>' + nfDot(f.ppn) + '</td><td>' + ok(Math.abs(f.ppn - i.ppn) <= 1) + '</td></tr>' : '') +
+        (f.dppnl ? '<tr><td>DPP nilai lain</td><td>' + nfDot(f.dppnl) + '</td><td></td></tr>' : '') +
+        (f.buyer ? '<tr><td>Buyer</td><td>' + esc(f.buyer) + '</td><td></td></tr>' : '') +
+        (f.ref ? '<tr><td>Reference</td><td>' + esc(f.ref) + '</td><td>' + (refOk ? '<span class="df-ok">✓ this invoice</span>' : '<span class="df-bad">✗ other invoice</span>') + '</td></tr>' : '') + '</table>' +
+        (f.err ? '<div class="df-st df-wt">' + esc(f.err) + '</div>' : '') +
+        '<div class="row-a"><button type="button" class="df-go" id="dfFpGo"' + (DF.busy ? ' disabled' : '') + '>File tax invoice</button><span style="font-size:11.5px;color:#6B7A90">' + esc(DF.fpFile ? DF.fpFile.name : '') + '</span></div>';
+    }
+    h += '<div class="df-st" id="dfMsgFP">' + (DF.msg.FP || '') + '</div></div>';
+  }
+  h += '<div class="hint" style="font-size:11.5px;color:#6B7A90">Files are saved in the archive folder ▸ Berkas Tagihan &amp; Faktur Pajak ▸ ' + esc(String(i.tgl).substring(0, 4)) + ' and renamed automatically (e.g. <i>4C.' + esc(short(i.nomor).replace(/\/(\d{2})(\d{2})$/, '.$2')) + ' - INV …</i>). The links appear in Monitoring Invoice, Rekap Invoice Keluar and the Tax file.</div>';
+  $('dfBody').innerHTML = h;
+  $('dfBody').querySelectorAll('[data-dfp]').forEach(function (b) { b.onclick = function () { $(b.dataset.dfp).click(); }; });
+  if ($('dfPack')) $('dfPack').onchange = function () { var fl = this.files[0]; if (fl) dfUpload('PACK', fl, null); };
+  if ($('dfFp')) $('dfFp').onchange = function () { var fl = this.files[0]; if (fl) dfReadFp(fl); };
+  if ($('dfFpGo')) $('dfFpGo').onclick = function () { var fp = Object.assign({}, DF.fp, { no: ($('dfNo').value || '').replace(/\D/g, ''), tgl: $('dfTgl').value }); if (fp.no && !/^\d{16,17}$/.test(fp.no)) { DF.msg.FP = '<span class="df-bad">Tax invoice no. must be 16–17 digits.</span>'; dfRender(); return; } dfUpload('FP', DF.fpFile, fp); };
+}
+function dfB64(file) { return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1] || ''); }; r.onerror = function () { no(new Error('The file could not be read.')); }; r.readAsDataURL(file); }); }
+function dfCheck(file, kind) {
+  if (file.size > 10 * 1024 * 1024) return 'The file is ' + (file.size / 1048576).toFixed(1).replace('.', ',') + ' MB — max. 10 MB. Scan at 150–200 dpi or compress the PDF.';
+  if (kind === 'FP' ? file.type !== 'application/pdf' : ['application/pdf', 'image/jpeg', 'image/png'].indexOf(file.type) < 0) return kind === 'FP' ? 'Choose the PDF from Coretax.' : 'Choose a PDF, JPG or PNG file.';
+  return '';
+}
+function dfUpload(kind, file, fp, force) {
+  var bad = dfCheck(file, kind); if (bad) { DF.msg[kind] = '<span class="df-bad">' + esc(bad) + '</span>'; dfRender(); return; }
+  DF.busy = kind; DF.msg[kind] = '<span class="df-wt"><span class="bgspin" style="border-color:#E6D3A8;border-top-color:#A86C00"></span> Uploading ' + esc(file.name) + ' (' + Math.max(1, Math.round(file.size / 1024)) + ' KB)…</span>'; dfRender();
+  dfB64(file).then(function (b64) {
+    call('apiFileDoc', [DF.nomor, kind, { b64: b64, mime: file.type, size: file.size, fp: fp, force: !!force }], function (r) {
+      var i = invBy(DF.nomor); if (i) { if (kind === 'FP') { i.link_fp = r.url; if (fp && fp.no) i.no_fp = fp.no; if (fp && fp.tgl) i.tgl_fp = fp.tgl; DF.fp = null; DF.fpFile = null; } else i.link_inv = r.url; }
+      DF.busy = ''; DF.msg[kind] = '<span class="df-ok">✓ Filed as ' + esc(r.name) + '</span>' + (r.moved ? '<br><span style="color:#6B7A90">previous file moved to "Revisi lama"</span>' : '') + (r.warnings || []).map(function (w) { return '<br><span class="df-wt">⚠ ' + esc(w) + '</span>'; }).join('');
+      dfRender(); renderList(); OV = {}; if (STACK && PKG && PKG.kind === 'INV') pkgActions(); toast(kind === 'FP' ? 'Tax invoice filed.' : 'Signed billing pack filed.'); bgReports();
+    }, function (e) {
+      var msg = String(e.message || e); DF.busy = '';
+      if (/REF_MISMATCH/.test(msg) && kind === 'FP') { DF.busy = ''; dfRender(); confirmDlg('Different invoice reference', esc(msg.replace(/^.*REF_MISMATCH:\s*/, '')) + '<br>File it to <b>' + esc(DF.nomor) + '</b> anyway?', 'File anyway', function () { dfUpload('FP', file, fp, true); }); return; }
+      DF.msg[kind] = '<span class="df-bad">' + esc(msg) + '</span>'; dfRender();
+    });
+  }, function (e) { DF.busy = ''; DF.msg[kind] = '<span class="df-bad">' + esc(e.message) + '</span>'; dfRender(); });
+}
+/** baca teks PDF faktur Coretax di browser (pdf.js dimuat hanya saat dibutuhkan) */
+function pdfjsLoad() { if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib); return loadScript(PDFJS + 'pdf.min.js').then(function () { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; return window.pdfjsLib; }); }
+function pdfText(file) {
+  return file.arrayBuffer().then(function (buf) { return pdfjsLoad().then(function (lib) { return lib.getDocument({ data: new Uint8Array(buf) }).promise; }); })
+    .then(function (doc) { var ps = []; for (var k = 1; k <= Math.min(doc.numPages, 3); k++) ps.push(doc.getPage(k).then(function (pg) { return pg.getTextContent(); }).then(function (tc) { return tc.items.map(function (x) { return x.str; }).join(' '); })); return Promise.all(ps); })
+    .then(function (a) { return a.join(' ').replace(/\s+/g, ' '); });
+}
+var BLN_FP = ['januari', 'februari', 'maret', 'april', 'mei', 'juni', 'juli', 'agustus', 'september', 'oktober', 'november', 'desember'];
+function fpParse(t) {
+  var num = function (v) { return v ? Number(String(v).replace(/\./g, '').replace(',', '.')) : 0; }, last = function (re) { var m, r = null; re.lastIndex = 0; while ((m = re.exec(t))) r = m; return r; };
+  var o = {}, m = t.match(/Nomor Seri Faktur Pajak\s*:?\s*([\d][\d.\-\s]{14,24}\d)/i); if (m) { var d = m[1].replace(/\D/g, ''); if (d.length >= 16) o.no = d.substring(0, 17); }
+  var dt = last(/(\d{1,2})\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{4})/gi);
+  if (dt) o.tgl = dt[3] + '-' + ('0' + (BLN_FP.indexOf(dt[2].toLowerCase()) + 1)).slice(-2) + '-' + ('0' + dt[1]).slice(-2);
+  var hj = last(/Uang Muka \/ Termin\s+(?:\(Rp\)\s+)?([\d.]+,\d{2})/gi); if (hj) o.harga = num(hj[1]);
+  m = t.match(/Dasar Pengenaan Pajak\s+([\d.]+,\d{2})/i); if (m) o.dppnl = num(m[1]);
+  m = t.match(/Jumlah PPN \(Pajak Pertambahan Nilai\)\s+([\d.]+,\d{2})/i); if (m) o.ppn = num(m[1]);
+  m = t.match(/Referensi\s*:\s*([^)]+)\)/i); if (m) o.ref = m[1].trim();
+  m = t.match(/Pembeli Barang Kena Pajak\s*\/\s*Penerima Jasa Kena Pajak\s*:?\s*Nama\s*:\s*(.+?)\s+Alamat/i); if (m) o.buyer = m[1].trim();
+  return o;
+}
+function dfReadFp(file) {
+  var bad = dfCheck(file, 'FP'); if (bad) { DF.msg.FP = '<span class="df-bad">' + esc(bad) + '</span>'; dfRender(); return; }
+  DF.fpFile = file; DF.busy = 'read'; DF.msg.FP = '<span class="df-wt">Reading the tax invoice…</span>'; dfRender();
+  pdfText(file).then(function (t) { DF.fp = fpParse(t); if (!DF.fp.no) DF.fp.err = 'The number could not be read automatically — please type it from the PDF.'; },
+    function () { DF.fp = { err: 'The PDF could not be read automatically (no internet access to the PDF reader?) — type the number and date, then file it.' }; })
+    .then(function () { DF.busy = ''; DF.msg.FP = ''; dfRender(); });
+}
+
 /** v2.8.4: simpan cepat — laporan & file turunan diperbarui di latar belakang; pengguna bisa langsung lanjut bekerja */
 function bgReports() {
   var c = $('bgChip'); c.hidden = false; c.innerHTML = '<span class="bgspin"></span>Updating reports in the background…';

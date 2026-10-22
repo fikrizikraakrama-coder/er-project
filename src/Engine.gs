@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.8.5 · 20-10-2026';
+  var VERSION = '2.8.6 · 22-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -33,7 +33,7 @@ var ENGINE = (function () {
       ['jt', 'TGL JATUH TEMPO', 'auto', 12, 'date'], ['jt_akt', 'JT AKUNTANSI (TGL INVOICE + 30)', 'auto', 12, 'date'],
       ['statdok', 'STATUS DOKUMEN TAGIHAN', 'manual', 20],
       ['no_fp', 'NOMOR FAKTUR PAJAK', 'manual', 19], ['tgl_fp', 'TANGGAL FAKTUR PAJAK', 'manual', 12, 'date'],
-      ['link_inv', 'DOKUMEN INVOICE', 'manual', 16], ['link_fp', 'DOKUMEN FAKTUR PAJAK', 'manual', 16],
+      ['link_inv', 'BERKAS TAGIHAN (TTD)', 'manual', 16], ['link_fp', 'FAKTUR PAJAK (PDF)', 'manual', 16],
       ['sap_doc', 'NO. DOK SAP (INVOICE)', 'manual', 13],
       ['validasi', 'USULAN RENCANA CAIR', 'manual', 18], ['rencana', 'RENCANA TGL CAIR', 'manual', 12, 'date'],
       ['validasi_ok', 'VALIDASI SECTION HEAD', 'auto', 22],
@@ -133,11 +133,11 @@ var ENGINE = (function () {
     ret_pos: ['AWAL', 'AKHIR', 'TIDAK ADA'], dasar_pph: ['SETELAH RETENSI', 'SEBELUM RETENSI'], yatidak: ['YA', 'TIDAK'],
     jenis_pel: ['WIKA', 'BUMN', 'SWASTA', 'JO'], kelompok: ['PIHAK BERELASI', 'PIHAK KETIGA'], dasar_jt: ['TGL SUBMIT', 'TGL TANDA TERIMA'],
     akun_peng: ['TAGBRUT', 'HAD'], sumber_tag: ['P&E MINGGUAN', 'LK BULANAN', 'SALDO AWAL LK', 'KOREKSI'],
-    peran: ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI (TTD BASAH)', 'PENERIMA', 'P&E (LIHAT)']
+    peran: ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI (TTD BASAH)', 'PENERIMA', 'P&E (LIHAT)', 'PAJAK (LIHAT)']
   };
   // jenis dokumen persetujuan
   // judul kolom lama (sebelum v2.8.2) tetap dikenali; kunci: <sheet>|<kolom>
-  var HDR_LAMA = { 'Monitoring Invoice|persetujuan': ['PERSETUJUAN PAKET INVOICE'], 'Monitoring Invoice|link_paket': ['ARSIP PAKET (LINK)'], 'Log Penerimaan|persetujuan': ['PERSETUJUAN PAKET'] };
+  var HDR_LAMA = { 'Monitoring Invoice|persetujuan': ['PERSETUJUAN PAKET INVOICE'], 'Monitoring Invoice|link_paket': ['ARSIP PAKET (LINK)'], 'Monitoring Invoice|link_inv': ['DOKUMEN INVOICE'], 'Monitoring Invoice|link_fp': ['DOKUMEN FAKTUR PAJAK'], 'Log Penerimaan|persetujuan': ['PERSETUJUAN PAKET'] };
   // JENIS di Log Persetujuan tetap kunci lama ("PAKET INVOICE"/"PAKET PENERIMAAN"); yang tampil & tercetak memakai nama baru
   var JENIS_TAMPIL = { 'PAKET INVOICE': 'INVOICE KELUAR', 'PAKET PENERIMAAN': 'PENERIMAAN TERMIN' };
   function jenisTampil(j) { return JENIS_TAMPIL[U(j)] || S(j); }
@@ -1450,7 +1450,7 @@ var ENGINE = (function () {
     blocks.push(block(r2, 1, lr, { styles: [sty(0, 'title'), sty(1, 'hdr'), sty(lr.length - 1, 'total')], fmt: { 1: 'date', 7: 'money', 8: 'money', 9: 'money', 10: 'money', 12: 'date' } }));
     // buku penjualan (format BUK PEN bagian Pajak) — berdasarkan tanggal faktur
     var BP = bukuPenjualan(ctx, sel.start, sel.end), r3 = r2 + lr.length + 2;
-    var bk = [['BUKU PENJUALAN (FORMAT BUK PEN BAGIAN PAJAK) — ' + sel.label.toUpperCase() + ' · berdasarkan tanggal faktur; harga jual = DPP pasti dari invoice · ekspor: menu AR CSU ▸ Ekspor Buku Penjualan'],
+    var bk = [['BUKU PENJUALAN (FORMAT BUK PEN BAGIAN PAJAK) — ' + sel.label.toUpperCase() + ' · berdasarkan tanggal faktur; harga jual = DPP pasti dari invoice · versi bagian Pajak: file REKAP INVOICE KELUAR & BUKU PENJUALAN — CSU (PAJAK)'],
       ['NO', 'KODE FP', 'KD STATUS', 'NOMOR SERI FP', 'NOMOR FAKTUR', 'TANGGAL FP', 'NPWP', 'NAMA PELANGGAN', 'URAIAN FAKTUR PAJAK', 'HARGA JUAL', 'DPP NILAI LAIN', 'PPN', 'NO SAP', 'NOMOR INVOICE', 'CEK']];
     BP.forEach(function (x, ix) { bk.push([ix + 1, x.kode, x.status, x.seri, x.nomorFP, x.tglFP, x.npwp, x.nama, x.uraian, x.harga, x.dppnl, x.ppn, x.sap, x.nomor, x.cek]); });
     bk.push(['', 'TOTAL', '', '', '', '', '', '', '', sumBy(BP, function (x) { return x.harga; }), sumBy(BP, function (x) { return x.dppnl; }), sumBy(BP, function (x) { return x.ppn; })]);
@@ -2484,6 +2484,45 @@ var ENGINE = (function () {
           uraian: uraianOf(i), harga: i._a.dpp, dppnl: fd.dppnl, ppn: i._a.ppn, sap: i.sap_doc, nomor: i.nomor, tgl: i.tgl, cek: !i.no_fp ? 'Faktur belum dicatat' : (fd.ppn !== i._a.ppn ? 'PPN beda ' + fmtRp(fd.ppn - i._a.ppn) + ' vs Coretax' : '✓') }; });
   }
 
+  // ------------------------------------------------------------------ FILE PAJAK (v2.8.5): rekap invoice keluar, buku penjualan per bulan, kelengkapan dokumen
+  function linkCell(u, t) { u = S(u); return /^https:\/\//.test(u) ? '=HYPERLINK("' + u.replace(/"/g, '%22') + '","' + t + '")' : ''; }
+  /** kind: 'REKAP' (tahun y) · 'BUKPEN' (bulan y-m, berdasarkan tanggal faktur) · 'DOK' (invoice ber-PPN sejak MULAI_PERSETUJUAN yang dokumennya belum lengkap) */
+  function pajakReport(ctx, kind, y, m) {
+    var act = ctx.invs.filter(function (i) { return !i._batal && i.tgl; }), docs = function (i) { return [linkCell(i.link_inv, 'PDF') || 'belum', linkCell(i.link_fp, 'PDF') || (i._a.ppn > 0 ? 'belum' : '-')]; };
+    if (kind === 'REKAP') {
+      var rows = [['REKAP INVOICE KELUAR TAHUN ' + y], ['BULAN', 'JUMLAH INVOICE', 'DPP', 'PPN', 'TOTAL INVOICE', 'RETENSI', 'FAKTUR TERCATAT', 'BERKAS TTD TERARSIP', 'FAKTUR PDF TERARSIP']];
+      for (var k = 1; k <= 12; k++) {
+        var s0 = monthStart(y, k), s1 = monthEnd(y, k), L = act.filter(function (i) { return i.tgl >= s0 && i.tgl <= s1; });
+        rows.push([monthLabel(y, k), L.length, sumBy(L, function (i) { return i._a.dpp; }), sumBy(L, function (i) { return i._a.ppn; }), sumBy(L, function (i) { return i._a.total; }), sumBy(L, function (i) { return i._a.ret; }),
+          L.filter(function (i) { return i.no_fp; }).length, L.filter(function (i) { return S(i.link_inv); }).length, L.filter(function (i) { return S(i.link_fp); }).length]);
+      }
+      var body = rows.slice(2); rows.push(['TOTAL ' + y].concat([1, 2, 3, 4, 5, 6, 7, 8].map(function (j) { return sumBy(body, function (r) { return r[j]; }); })));
+      var LY = act.filter(function (i) { return i.tgl.substring(0, 4) === String(y); }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : a.tgl > b.tgl ? 1 : (a.nomor < b.nomor ? -1 : 1); });
+      var lr = [['DAFTAR INVOICE KELUAR TAHUN ' + y], ['NO', 'BULAN', 'TGL INVOICE', 'NOMOR INVOICE', 'NAMA PELANGGAN', 'NPP', 'NAMA PROYEK', 'INVOICE KE-', 'DPP', 'PPN', 'TOTAL INVOICE', 'NOMOR FAKTUR PAJAK', 'TGL FAKTUR', 'NO. DOK SAP', 'BERKAS TAGIHAN (TTD)', 'FAKTUR PAJAK (PDF)']];
+      LY.forEach(function (i, ix) { var d = docs(i); lr.push([ix + 1, MONTHS[+i.tgl.substring(5, 7) - 1], i.tgl, i.nomor, i.pelanggan, i.npp, i._pro ? i._pro.singkat : '', S(i.invke), i._a.dpp, i._a.ppn, i._a.total, i.no_fp, i.tgl_fp, i.sap_doc, d[0], d[1]]); });
+      lr.push(['', '', 'TOTAL', '', '', '', '', '', sumBy(LY, function (i) { return i._a.dpp; }), sumBy(LY, function (i) { return i._a.ppn; }), sumBy(LY, function (i) { return i._a.total; })]);
+      var r2 = 6 + rows.length + 2;
+      return { from: 6, blocks: [block(6, 1, rows, { styles: [sty(0, 'title'), sty(1, 'hdr'), sty(rows.length - 1, 'total')], fmt: { 1: 'int', 2: 'money', 3: 'money', 4: 'money', 5: 'money', 6: 'int', 7: 'int', 8: 'int' } }),
+        block(r2, 1, lr, { styles: [sty(0, 'title'), sty(1, 'hdr'), sty(lr.length - 1, 'total')], fmt: { 2: 'date', 8: 'money', 9: 'money', 10: 'money', 12: 'date' } })] };
+    }
+    if (kind === 'BUKPEN') {
+      var BP = bukuPenjualan(ctx, monthStart(y, m), monthEnd(y, m)), byNo = {}; act.forEach(function (i) { byNo[i.nomor] = i; });
+      var bk = [['BUKU PENJUALAN — ' + monthLabel(y, m).toUpperCase() + ' · I. PENYERAHAN PPN YANG HARUS DIPUNGUT SENDIRI · berdasarkan tanggal faktur (invoice tanpa faktur: tanggal invoice)'],
+        ['NO', 'KODE FP', 'KD STATUS', 'NOMOR SERI FP', 'NOMOR FAKTUR', 'TANGGAL FP', 'NPWP', 'NAMA PELANGGAN', 'URAIAN FAKTUR PAJAK', 'HARGA JUAL', 'DPP NILAI LAIN', 'PPN', 'NO SAP', 'NOMOR INVOICE', 'CEK', 'BERKAS TAGIHAN (TTD)', 'FAKTUR PAJAK (PDF)']];
+      BP.forEach(function (x, ix) { var d = byNo[x.nomor] ? docs(byNo[x.nomor]) : ['', '']; bk.push([ix + 1, x.kode, x.status, x.seri, x.nomorFP, x.tglFP, x.npwp, x.nama, x.uraian, x.harga, x.dppnl, x.ppn, x.sap, x.nomor, x.cek, d[0], d[1]]); });
+      bk.push(['', 'TOTAL', '', '', '', '', '', '', '', sumBy(BP, function (x) { return x.harga; }), sumBy(BP, function (x) { return x.dppnl; }), sumBy(BP, function (x) { return x.ppn; })]);
+      return { from: 6, n: BP.length, blocks: [block(6, 1, bk, { styles: [sty(0, 'title'), sty(1, 'hdr'), sty(bk.length - 1, 'total')], fmt: { 5: 'date', 9: 'money', 10: 'money', 11: 'money' } })] };
+    }
+    var mulai = D(ctx.params.MULAI_PERSETUJUAN) || '2026-10-01';
+    var LD = act.filter(function (i) { return i.tgl >= mulai && (!S(i.link_inv) || (i._a.ppn > 0 && (!i.no_fp || !S(i.link_fp)))); }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; });
+    var dr = [['KELENGKAPAN DOKUMEN — invoice sejak ' + tglPanjang(mulai) + ' yang berkas tagihan ber-TTD / faktur pajaknya belum lengkap · ' + LD.length + ' invoice'],
+      ['NO', 'TGL INVOICE', 'NOMOR INVOICE', 'NAMA PELANGGAN', 'INVOICE KE-', 'DPP', 'PPN', 'NOMOR FAKTUR PAJAK', 'BERKAS TAGIHAN (TTD)', 'FAKTUR PAJAK (PDF)', 'UMUR (HARI)', 'YANG KURANG']];
+    LD.forEach(function (i, ix) { var d = docs(i), kur = []; if (!S(i.link_inv)) kur.push('berkas TTD'); if (i._a.ppn > 0 && !i.no_fp) kur.push('nomor faktur'); if (i._a.ppn > 0 && !S(i.link_fp)) kur.push('PDF faktur');
+      dr.push([ix + 1, i.tgl, i.nomor, i.pelanggan, S(i.invke), i._a.dpp, i._a.ppn, i.no_fp, d[0], d[1], diffDays(ctx.today, i.tgl), kur.join(', ')]); });
+    if (!LD.length) dr.push(['✓', 'Semua dokumen lengkap']);
+    return { from: 6, blocks: [block(6, 1, dr, { styles: [sty(0, 'title'), sty(1, 'hdr')], fmt: { 1: 'date', 5: 'money', 6: 'money', 10: 'int' } })] };
+  }
+
   // ------------------------------------------------------------------ DATA UNTUK APLIKASI
   function roles(params) {
     var r = {}; ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI', 'PENERIMA'].forEach(function (k) { var u = userByRole(params, k); r[k] = u ? { nama: u.nama, jabatan: u.jabatan, nip: u.nip } : null; });
@@ -2496,7 +2535,7 @@ var ENGINE = (function () {
         keP: r.ke_ppn, keN: r.ke_net, diterima: r.diterima, sisa: r.sisa, status: r.status, rev: N(i.rev), status_inv: i._batal ? 'BATAL' : 'AKTIF', batalPend: i._batalPend || '', json: !!S(i.json), sap: i.sap_doc, no_fp: i.no_fp,
         admMax: pel ? N(pel.adm) : N(P.ADM_DEFAULT), appr: i._batal ? '' : apprStatusText(ctx.latest(DOC.INV, normInv(i.nomor)), i._fp),
         jenis: a.jenis, umk: a.umk, ret: a.ret, dpp: a.dpp, pot_pph: r.pot_pph, closed: !!r.closed, tutup: U(i.tutup) === 'CLOSE MANUAL', alasan_tutup: S(i.alasan_tutup), ba_no: S(i.ba_no),
-        migr: /^MIGRASI/.test(U(i.sumber)) }; });
+        migr: /^MIGRASI/.test(U(i.sumber)), link_inv: S(i.link_inv), link_fp: S(i.link_fp), tgl_fp: D(i.tgl_fp) || '' }; });
     var payments = ctx.pays.filter(function (p) { return p._inv; }).slice(-300).map(function (p) { var i = p._inv, k = payKey(p), g = ctx.payGroups[k];
       return { key: k, idp: p.idp, tgl: p.tgl, ref: S(p.ref), nomor: i.nomor, pelanggan: i.pelanggan, nominal: p.nominal, keN: p._keN, keP: p._keP, aturan: p._rule, pb: !!p._pb, rekening: p._rek ? p._rek.label : S(p.rekening),
         appr: g ? apprStatusText(ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', migr: !!p._migr, cek: p._cek.length ? p._cek.join('; ') : '', sap: S(p.sap_doc) }; });
@@ -2861,7 +2900,7 @@ var ENGINE = (function () {
     monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,
     MEMO: MEMO, PEREF: PEREF, MEMO_KODE: MEMO_KODE, memorial: memorial, memoParse: memoParse, memoSheetRows: memoSheetRows, peSummary: peSummary, peSummaryBlocks: peSummaryBlocks,
     delegasiFor: delegasiFor, isDelegasi: isDelegasi, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
-    DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData, overview: overview
+    DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData, overview: overview, pajakReport: pajakReport
   };
 })();
 if (typeof module !== 'undefined') module.exports = ENGINE;

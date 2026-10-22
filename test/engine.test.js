@@ -220,3 +220,18 @@ test('Overview: bulan berjalan & bulan lalu, ganti tahun, tidak melewati bulan b
   assert.strictEqual(ENGINE.overview(r.ctx, '2026-12').ref, '2026-10', 'bulan depan dibatasi ke bulan berjalan');
   const jan = ENGINE.overview(r.ctx, '2026-01'); assert.strictEqual(jan.trend[0].ref, '2025-02'); assert.strictEqual(jan.trend[11].ref, '2026-01');
 });
+
+test('File Pajak: rekap tahunan, buku penjualan per bulan (tanggal faktur), kelengkapan dokumen', () => {
+  const input = fixture({ no_fp: '04002600398053546', tgl_fp: '2026-10-02', link_inv: 'https://drive.google.com/file/d/a' });
+  input.register.push(row(ENGINE.REG, { tgl: '2026-10-05', nomor: 'KU.02.02/WB-4C.0102/2026', jenis: 'PROGRES', pelanggan: 'PT CONTOH', npp: NPP, dpp: 50e6, ppn: 5.5e6, tarif: 0.0265, top: 30, status_inv: 'AKTIF' }));
+  input.light = true;
+  const ctx = ENGINE.compute(input).ctx;
+  const rk = ENGINE.pajakReport(ctx, 'REKAP', 2026), sum = rk.blocks[0].rows;
+  assert.strictEqual(sum[10][1], 1); assert.strictEqual(sum[11][1], 1); assert.strictEqual(sum[14][1], 2, 'total tahun');
+  const okt = ENGINE.pajakReport(ctx, 'BUKPEN', 2026, 10).blocks[0].rows, sep = ENGINE.pajakReport(ctx, 'BUKPEN', 2026, 9).blocks[0].rows;
+  assert.strictEqual(okt.length, 2 + 2 + 1, 'faktur Oktober: invoice September (FP 2 Okt) + invoice Oktober tanpa FP');
+  assert.strictEqual(sep.length, 2 + 1, 'September kosong karena faktur bertanggal Oktober');
+  assert.ok(/HYPERLINK/.test(okt[2][15]), 'link berkas TTD');
+  const dok = ENGINE.pajakReport(ctx, 'DOK').blocks[0].rows;
+  assert.strictEqual(dok.length, 3); assert.strictEqual(dok[2][2], 'KU.02.02/WB-4C.0102/2026'); assert.ok(/berkas TTD/.test(dok[2][11]));
+});

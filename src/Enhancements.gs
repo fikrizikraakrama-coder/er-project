@@ -243,6 +243,7 @@ function arFormatSourceSheets_(ss) {
     });
   });
   ['Parameter','Data LK (Tempel)','Tempel SAP','Riwayat Revisi'].forEach(function(n){var sh=ss.getSheetByName(n);if(sh&&sh.getLastRow())arFormatGeneric_(sh);});
+  try{arGroupRegister_(ss);}catch(e){}
   // judul kolom lama → judul baru (kolom tetap dikenali lewat ENGINE.HDR_LAMA)
   [ENGINE.REG,ENGINE.LOG].forEach(function(sc){try{var sh=ss.getSheetByName(sc.sheet);if(!sh)return;var lc=sh.getLastColumn(),h=sh.getRange(sc.headerRow,1,1,lc).getValues()[0];
     sc.cols.forEach(function(c){var old=(ENGINE.HDR_LAMA[sc.sheet+'|'+c[0]]||[]);h.forEach(function(v,j){if(old.indexOf(String(v).replace(/\s+/g,' ').trim().toUpperCase())>=0)sh.getRange(sc.headerRow,j+1).setValue(c[1]);});});}catch(e){}});
@@ -915,4 +916,60 @@ function apiOverview(month) {
   o.reportTime = ''; try { o.reportTime = arProps_().getProperty('REPORT_TIME') || ''; } catch (e) {}
   var out = plain_(o); arCachePut_(key, JSON.stringify(out), 300);
   return out;
+}
+
+
+/** v2.8.5: Monitoring Invoice dipendekkan — kolom rincian hitungan, dokumen, alokasi penerimaan & kolom sistem dikelompokkan (tombol +/− di atas kolom),
+ *  tidak dihapus karena dipakai aplikasi untuk mencetak ulang & merevisi invoice. Kelompok hanya dibuat (dan ditutup) sekali; bila dibuka pengguna, dibiarkan. */
+var AR_REG_GROUP_ = ['template','bruto','umk','retensi','retpos','netto','tarif','dasar','tagih','ttd','rev','uraian','jt_akt','link_inv','link_fp','ba_no','ba_tgl',
+  'ke_ppn','ke_net','pot_pph','adm','sel_pph','link_paket','sumber','dibuat','json','memorial'];
+function arGroupRegister_(ss) {
+  var sh=ss.getSheetByName(ENGINE.REG.sheet);if(!sh)return 0;
+  var map=colMap_(sh,ENGINE.REG,ENGINE.REG_ALIAS),cols=AR_REG_GROUP_.map(function(k){return map[k];}).filter(Boolean).sort(function(a,b){return a-b;}),runs=[],made=0;
+  cols.forEach(function(c){var r=runs[runs.length-1];if(r&&c===r[1]+1)r[1]=c;else runs.push([c,c]);});
+  runs.forEach(function(r){
+    try{
+      if(sh.getColumnGroupDepth(r[0])>0)return; // sudah dikelompokkan
+      sh.getRange(1,r[0],1,r[1]-r[0]+1).shiftColumnGroupDepth(1);made++;
+      try{sh.getColumnGroup(r[0],1).collapse();}catch(e){}
+    }catch(e){}
+  });
+  return made;
+}
+
+/** v2.8.5: file turunan untuk bagian Pajak — REKAP INVOICE KELUAR (per tahun), BUK PEN per bulan (berdasarkan tanggal faktur) & KELENGKAPAN DOKUMEN.
+ *  Isi ditimpa sistem; tab bulan lama tidak dihapus. Pengguna peran PAJAK (LIHAT) di Parameter ▸ Pengguna & Peran diberi akses lihat. */
+var AR_PAJAK_TITLE_='REKAP INVOICE KELUAR & BUKU PENJUALAN — CSU (PAJAK)';
+function arPushPajak_(res,opt) {
+  opt=opt||{};
+  var x=paramKV_('FILE_PAJAK_ID');if(!(x&&x.val)&&!opt.create)return 0;
+  var ss=derivedFile_('FILE_PAJAK_ID',AR_PAJAK_TITLE_),ctx=res.ctx,today=ctx.today,stamp=arNow_(),y=+today.substring(0,4),m=+today.substring(5,7),count=0,names=[];
+  if(ss.getSpreadsheetTimeZone()!==TZ)ss.setSpreadsheetTimeZone(TZ);
+  var put=function(name,rep,t1,t2,idx){
+    var sh=ss.getSheetByName(name);if(!sh)sh=ss.insertSheet(name,Math.min(idx,ss.getSheets().length));names.push(name);
+    var key='PJ285_'+ss.getId()+'_'+name,dg=ENGINE.hash(JSON.stringify(rep.blocks.map(function(b){return b.rows;}))+'|'+ENGINE.VERSION);
+    sh.getRange('A3').setValue('Diperbarui '+stamp+' WIB · Sistem AR CSU v'+ENGINE.VERSION+' · isi file ini ditimpa sistem, jangan diubah manual.');
+    if(arProps_().getProperty(key)===dg&&sh.getLastRow()>6)return;
+    sh.getRange('A1').setValue(t1).setFontSize(14).setFontWeight('bold').setFontColor(C.navy);
+    sh.getRange('A2').setValue(t2);
+    writeReport_(sh,rep,'PAJAK_'+name,{key:key});sh.setHiddenGridlines(true);sh.setFrozenRows(7);
+    arProps_().setProperty(key,dg);count++;
+  };
+  put('KELENGKAPAN DOKUMEN',ENGINE.pajakReport(ctx,'DOK'),'KELENGKAPAN DOKUMEN TAGIHAN & FAKTUR PAJAK','PT Wijaya Karya Beton Tbk · Concrete Services Unit · berkas tagihan ber-TTD & PDF faktur diunggah AR lewat aplikasi (Document filing)',0);
+  put('REKAP '+y,ENGINE.pajakReport(ctx,'REKAP',y),'REKAP INVOICE KELUAR TAHUN '+y,'PT Wijaya Karya Beton Tbk · Concrete Services Unit · invoice batal tidak dihitung',1);
+  // BUK PEN: bulan berjalan & bulan-bulan sebelumnya pada tahun ini (Januari: termasuk Desember tahun lalu)
+  var months=[];for(var k=m;k>=1;k--)months.push([y,k]);if(m===1)months.push([y-1,12]);
+  months.forEach(function(ym,ix){var rep=ENGINE.pajakReport(ctx,'BUKPEN',ym[0],ym[1]);
+    put('BUK PEN '+ENGINE.MONTHS[ym[1]-1].substring(0,3).toUpperCase()+' '+String(ym[0]).substring(2),rep,'BUKU PENJUALAN — '+ENGINE.monthLabel(ym[0],ym[1]).toUpperCase(),'PT Wijaya Karya Beton Tbk · Concrete Services Unit · format BUK PEN · '+rep.n+' faktur',2+ix);});
+  arOrderNamed_(ss,names);dropDefaultSheet_(ss);
+  var emails=(res.params.users||[]).filter(function(u){return /^PAJAK/.test(u.peran)&&u.email;}).map(function(u){return u.email;});
+  if(emails.length)shareTo_(ss,emails,false);
+  return count;
+}
+/** menu Pengaturan ▸ Aktifkan file Pajak: membuat file (sekali) di akun pemilik lalu mengisi & membagikannya */
+function arEnablePajak() {
+  arRequireMaker_();var ui=SpreadsheetApp.getUi(),lock=arLock_(),n;lock.waitLock(28000);
+  try{n=arPushPajak_(compute_(),{create:true});}finally{lock.releaseLock();}
+  var x=paramKV_('FILE_PAJAK_ID'),url=x&&x.val?'https://docs.google.com/spreadsheets/d/'+x.val:'-';
+  ui.showModalDialog(HtmlService.createHtmlOutput('<div style="font:13px/1.5 Arial,sans-serif"><p>File Pajak siap ('+n+' tab diperbarui):</p><p><a target="_blank" href="'+url+'">'+AR_PAJAK_TITLE_+'</a></p><p>Isi email bagian Pajak di <b>Parameter ▸ Pengguna &amp; Peran</b> dengan peran <b>PAJAK (LIHAT)</b> — akses lihat diberikan otomatis setiap sinkron. File diperbarui otomatis tiap jam bersama file Akuntansi &amp; P&amp;E.</p></div>').setWidth(520).setHeight(230),'File Pajak');
 }

@@ -20,34 +20,37 @@ var PENGEMBANG = 'Fikri Zikra Akrama';
 
 // =====================================================================  MENU & PEMICU
 function onOpen() {
-  // v2.6: alat sekali jalan (migrasi lama) dihapus dari menu — fungsinya tetap ada dan bisa dijalankan dari editor Apps Script bila diperlukan
-  var v26 = false, v28 = false; try { v26 = arProps_().getProperty('V26_DONE') === '1'; v28 = arProps_().getProperty('V28_DONE') === '1'; } catch (e) { }
-  var m = SpreadsheetApp.getUi().createMenu('AR CSU')
-    .addItem('Perbarui semua laporan', 'rebuildAll');
-  if (!v28) m = m.addItem('Pasang pembaruan v2.8 (backup dahulu)', 'applyV28');
-  m = m.addItem('Buat / lihat analisis bulan lalu', 'arMonthlyMenu')
-    .addItem('Revisi analisis bulanan…', 'arMonthlyRevisionMenu')
-    .addItem('Aktifkan pilihan tanggal P&E', 'arEnablePE')
+  // v2.8.5: menu harian di atas, sisanya di sub-menu. Alat sekali jalan (v2.6) & Ekspor Buku Penjualan (diganti file Pajak) dihapus dari menu —
+  // fungsinya tetap ada dan bisa dijalankan dari editor Apps Script bila diperlukan
+  var ui = SpreadsheetApp.getUi(), v28 = false; try { v28 = arProps_().getProperty('V28_DONE') === '1'; } catch (e) { }
+  var m = ui.createMenu('AR CSU')
+    .addItem('Perbarui semua laporan', 'rebuildAll')
     .addItem('Buka aplikasi (jendela)', 'openAppDialog')
-    .addItem('Tampilkan link aplikasi', 'showAppLink')
-    .addSeparator()
-    .addItem('Perbarui file Akuntansi (memorial) & P&E sekarang', 'syncTurunan')
-    .addItem('Isi No. Dok SAP dari Tempel SAP', 'fillSapFromTempel')
-    .addItem('Isi No. Dok SAP dari Data LK', 'fillSapFromLK')
-    .addItem('Bangun ulang blok memorial (baris terpilih)', 'memoRebuildSelected')
-    .addItem('Ekspor Buku Penjualan (bulan di Rekap Invoice Keluar)', 'exportBukuPenjualan')
-    .addSeparator()
-    .addItem('Ganti NPP proyek…', 'renameNpp')
-    .addItem('Pindahkan proyek ARSIP ke sheet arsip…', 'arArsipPindahMenu')
-    .addItem('Kembalikan proyek dari arsip…', 'arArsipKembalikanMenu');
-  if (!v26) m = m.addItem('Terapkan pembaruan v2.6 (sekali jalan)', 'applyV26');
+    .addItem('Link aplikasi (lihat / simpan)', 'showAppLink');
+  if (!v28) m = m.addItem('Pasang pembaruan v2.8 (backup dahulu)', 'applyV28');
   m.addSeparator()
-    .addItem('Aktifkan otomatisasi (sekali saja)', 'setupTriggers')
-    .addItem('Kunci struktur & periksa hak akses', 'lockSystem')
-    .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
-    .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
-    .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
-    .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal')
+    .addSubMenu(ui.createMenu('Analisis bulanan')
+      .addItem('Buat / lihat analisis bulan lalu', 'arMonthlyMenu')
+      .addItem('Revisi analisis bulanan…', 'arMonthlyRevisionMenu'))
+    .addSubMenu(ui.createMenu('Akuntansi, P&E & Pajak')
+      .addItem('Perbarui file Akuntansi (memorial), P&E & Pajak sekarang', 'syncTurunan')
+      .addItem('Isi No. Dok SAP dari Tempel SAP', 'fillSapFromTempel')
+      .addItem('Isi No. Dok SAP dari Data LK', 'fillSapFromLK')
+      .addItem('Bangun ulang blok memorial (baris terpilih)', 'memoRebuildSelected'))
+    .addSubMenu(ui.createMenu('Data proyek')
+      .addItem('Ganti NPP proyek…', 'renameNpp')
+      .addItem('Pindahkan proyek ARSIP ke sheet arsip…', 'arArsipPindahMenu')
+      .addItem('Kembalikan proyek dari arsip…', 'arArsipKembalikanMenu'))
+    .addSubMenu(ui.createMenu('Pengaturan (pemilik)')
+      .addItem('Aktifkan otomatisasi (sekali saja)', 'setupTriggers')
+      .addItem('Kunci struktur & periksa hak akses', 'lockSystem')
+      .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
+      .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
+      .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
+      .addItem('Aktifkan pilihan tanggal P&E', 'arEnablePE')
+      .addItem('Aktifkan file Pajak (bagikan ke peran PAJAK)', 'arEnablePajak')
+      .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal'))
+    .addSeparator()
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();
 }
@@ -240,6 +243,7 @@ function rebuildAll_(opt) {
     ensureSelectors_(ss, res);
     arWriteReconciliation_(res);
     if (opt.format) arFormatSourceSheets_(ss);
+    else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
     var stamp = 'Diperbarui otomatis: ' + Utilities.formatDate(new Date(), TZ, 'dd MMM yyyy HH:mm') + ' · Sistem AR CSU v' + ENGINE.VERSION + ' · dirancang & dikembangkan oleh ' + PENGEMBANG +
       (aktif ? '' : '   ⚠ OTOMATISASI BELUM AKTIF — jalankan menu AR CSU ▸ Aktifkan otomatisasi agar pilihan bulan/NPP langsung memperbarui laporan');
@@ -1223,7 +1227,7 @@ function archiveFolder_(P, kind, month) {
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
-  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan' }[kind] || 'Lainnya';
+  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
   return sub(sub(f, y), ('0' + mm).slice(-2) + ' ' + ENGINE.MONTHS[mm - 1] + ' ' + y);
 }
@@ -1246,6 +1250,51 @@ function apiArchive(kind, ref, meta, fileName) { arRequireAccess_();
   var f = folder.createFile(blob);
   if (kind === 'INV') setRegisterValue_(ref, 'link_paket', f.getUrl());
   return { ok: true, url: f.getUrl(), name: f.getName(), folder: folder.getName(), moved: moved };
+}
+
+// =====================================================================  DOCUMENT FILING (v2.8.5)
+/** nama file mengikuti kebiasaan AR: "4C.0183.26 - INV Prog 4 - Metland Perbaikan Struktur Irigasi Sign.Rev.00.pdf" / "4C.0183.26 - FP Prog 4 - … .pdf" */
+function docFileName_(inv, kind, ext) {
+  var m = String(inv.nomor).match(/4C\.(\d{4}[A-Z]?)\/(\d{4})/), id = m ? '4C.' + m[1] + '.' + m[2].substring(2) : String(inv.nomor).replace(/[^\w.]/g, '');
+  var ke = String(inv.invke || '').replace(/Progres\s+/gi, 'Prog ').replace(/^Down Payment\/?\s*UM$/i, 'UM').replace(/^Termin\s+/i, 'Termin ').split('(')[0].trim() || 'Tagihan';
+  var pro = String((inv._pro && (inv._pro.singkat || inv._pro.nama_pe)) || inv.npp).replace(/\s*-\s*/g, ' ').toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  var base = id + ' - ' + (kind === 'FP' ? 'FP' : 'INV') + ' ' + ke + ' - ' + pro + (kind === 'FP' ? '' : ' Sign.Rev.' + ('0' + (Number(inv.rev) || 0)).slice(-2));
+  return { prefix: id + ' - ' + (kind === 'FP' ? 'FP' : 'INV') + ' ', name: base.replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim() + '.' + ext };
+}
+/** unggah berkas tagihan ber-TTD (PACK) atau PDF faktur pajak (FP) untuk satu invoice.
+ *  m = { b64, mime, size, fp: { no, tgl, ref, harga, ppn } (hasil baca PDF Coretax di aplikasi), force } */
+function apiFileDoc(nomor, kind, m) {
+  arRequireMaker_(); m = m || {};
+  if (['PACK', 'FP'].indexOf(kind) < 0) throw new Error('Unknown document type.');
+  var mime = String(m.mime || ''), ext = mime === 'application/pdf' ? 'pdf' : mime === 'image/jpeg' ? 'jpg' : mime === 'image/png' ? 'png' : '';
+  if (!ext || (kind === 'FP' && ext !== 'pdf')) throw new Error(kind === 'FP' ? 'The tax invoice must be the PDF from Coretax.' : 'Only PDF, JPG or PNG files can be filed.');
+  var bytes = Utilities.base64Decode(String(m.b64 || ''));
+  if (!bytes.length) throw new Error('The file is empty.');
+  if (bytes.length > 10 * 1024 * 1024) throw new Error('The file is larger than 10 MB. Scan at 150–200 dpi or compress the PDF, then try again.');
+  var res = computeLight_(), ctx = res.ctx, key = ENGINE.normInv(nomor), inv = ctx.invs.filter(function (i) { return ENGINE.normInv(i.nomor) === key && !i._batal; })[0];
+  if (!inv) throw new Error('Invoice ' + nomor + ' not found (or cancelled).');
+  var warn = [], fp = m.fp || null;
+  if (kind === 'FP' && fp) {
+    if (fp.ref && ENGINE.normInv(String(fp.ref).split(/\s+-\s+/)[0]) !== key && !m.force) throw new Error('REF_MISMATCH: This tax invoice refers to ' + fp.ref + ', not ' + inv.nomor + '.');
+    if (fp.harga && Math.abs(Number(fp.harga) - inv._a.dpp) > 1) warn.push('Selling price on the tax invoice (' + ENGINE.fmtRp(fp.harga) + ') differs from the invoice tax base (' + ENGINE.fmtRp(inv._a.dpp) + ').');
+    if (fp.ppn && Math.abs(Number(fp.ppn) - inv._a.ppn) > 1) warn.push('VAT on the tax invoice (' + ENGINE.fmtRp(fp.ppn) + ') differs from the invoice VAT (' + ENGINE.fmtRp(inv._a.ppn) + ').');
+  }
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var folder = archiveFolder_(res.params, 'DOK', String(inv.tgl).substring(0, 7)), fn = docFileName_(inv, kind, ext), moved = 0, old = null, files = folder.getFiles();
+    while (files.hasNext()) { var f0 = files.next(); if (String(f0.getName()).indexOf(fn.prefix) === 0) { if (!old) { var it = folder.getFoldersByName('Revisi lama'); old = it.hasNext() ? it.next() : folder.createFolder('Revisi lama'); } f0.moveTo(old); moved++; } }
+    var f = folder.createFile(Utilities.newBlob(bytes, mime, fn.name)), sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, inv.nomor, map), was = {};
+    if (!row) throw new Error('Invoice row not found in Monitoring Invoice.');
+    var set = function (k, v, fmt) { if (!map[k]) return; var c = sh.getRange(row, map[k]); was[k] = c.getDisplayValue(); if (fmt) c.setNumberFormat(fmt); c.setValue(v); };
+    set(kind === 'FP' ? 'link_fp' : 'link_inv', f.getUrl());
+    if (kind === 'FP' && fp && /^\d{16,17}$/.test(String(fp.no || ''))) {
+      var nf = String(fp.no); set('no_fp', nf, '@'); if (was.no_fp && was.no_fp.replace(/\D/g, '') !== nf.replace(/\D/g, '')) warn.push('Tax invoice no. in the register (' + was.no_fp + ') was replaced by ' + nf + ' from the PDF.');
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(fp.tgl || ''))) { var p = fp.tgl.split('-'); set('tgl_fp', dateAt_(+p[0], +p[1], +p[2]), 'dd/mm/yyyy'); }
+    }
+    // tercatat lewat aplikasi (bukan edit langsung), jadi tidak masuk Jejak Edit Langsung
+    arMarkDirty_();
+    return plain_({ ok: true, url: f.getUrl(), name: fn.name, folder: folder.getName(), moved: moved, warnings: warn });
+  } finally { lock.releaseLock(); }
 }
 
 // =====================================================================  SURAT PERMOHONAN PERCEPATAN PEMBAYARAN
@@ -1665,7 +1714,7 @@ function pushPE_(res, npps) { return arPushPE_(res, npps); }
 /** sinkron file turunan: tarik centang Akuntansi → hitung ulang → kirim memorial & kartu P&E */
 function syncTurunan_(opt) {
   opt = opt || {};
-  var out = { verif: 0, memo: 0, pe: 0, err: [] }, res, sl = arLock_();
+  var out = { verif: 0, memo: 0, pe: 0, pajak: 0, err: [] }, res, sl = arLock_();
   if (!sl.tryLock(opt.noPull ? 2000 : 30000)) { out.err.push('another sync is running — it will retry on the next schedule'); return out; }
   try { return syncRun_(opt, out); } finally { sl.releaseLock(); }
 }
@@ -1678,20 +1727,21 @@ function syncRun_(opt, out) {
   }
   try { out.memo = pushMemorial_(res, opt.months); } catch (e) { out.err.push('Accounting file: ' + e.message); }
   try { out.pe = pushPE_(res, opt.npps); } catch (e) { out.err.push('P&E file: ' + e.message); }
+  try { out.pajak = arPushPajak_(res); } catch (e) { out.err.push('Tax file: ' + e.message); }
   arProps_().setProperty('SYNC_LAST', Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'));
   return out;
 }
-function syncTurunanAuto(e) { if (!arFromTrigger_(e)) arRequireMaker_(); var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'); if (!(a && a.val) && !(b && b.val)) return; syncTurunan_(); }
+function syncTurunanAuto(e) { if (!arFromTrigger_(e)) arRequireMaker_(); var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'), c = paramKV_('FILE_PAJAK_ID'); if (!(a && a.val) && !(b && b.val) && !(c && c.val)) return; syncTurunan_(); }
 function syncTurunan() { arRequireMaker_();
-  var r = syncTurunan_(), A = paramKV_('FILE_AKUNTANSI_ID'), P = paramKV_('FILE_PE_ID');
+  var r = syncTurunan_(), A = paramKV_('FILE_AKUNTANSI_ID'), P = paramKV_('FILE_PE_ID'), J = paramKV_('FILE_PAJAK_ID');
   var url = function (x) { return x && x.val ? 'https://docs.google.com/spreadsheets/d/' + x.val : '-'; };
   SpreadsheetApp.getUi().alert('File turunan diperbarui', 'Centang verifikasi baru dari Akuntansi: ' + r.verif + '\nTab memorial dikirim: ' + r.memo + '\nKartu proyek dikirim ke P&E: ' + r.pe +
-    '\n\nFile Akuntansi: ' + url(A) + '\nFile P&E: ' + url(P) + (r.err.length ? '\n\n⚠ ' + r.err.join('\n⚠ ') : '') +
+    '\nTab Pajak diperbarui: ' + (r.pajak || 0) + '\n\nFile Akuntansi: ' + url(A) + '\nFile P&E: ' + url(P) + '\nFile Pajak: ' + url(J) + (r.err.length ? '\n\n⚠ ' + r.err.join('\n⚠ ') : '') +
     '\n\nAkses: email PENERIMA (Akuntansi) di Parameter ▸ Pengguna & Peran diberi akses edit kolom VERIF; email peran P&E (LIHAT) diberi akses lihat.', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 /** setelah simpan invoice / penerimaan: kirim hanya bulan & proyek yang terkait (gagal pun tidak membatalkan simpan) */
 function syncAfterSave_(npps, months) {
-  try { var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'); if (!(a && a.val) && !(b && b.val)) return; syncTurunan_({ npps: npps, months: months, noPull: true }); } catch (e) { }
+  try { var a = paramKV_('FILE_AKUNTANSI_ID'), b = paramKV_('FILE_PE_ID'), c = paramKV_('FILE_PAJAK_ID'); if (!(a && a.val) && !(b && b.val) && !(c && c.val)) return; syncTurunan_({ npps: npps, months: months, noPull: true }); } catch (e) { }
 }
 
 // ---------------------------------------------------------------- TEMPEL SAP → No. Dok SAP
