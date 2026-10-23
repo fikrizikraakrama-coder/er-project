@@ -840,7 +840,7 @@ function setupAdendum() { arRequireMaker_();
       var d = v1 - v0; if (Math.abs(d) < 1) continue;
       rows.push([p, 1, '', '', d > 0 ? 'TAMBAH' : 'KURANG', Math.abs(Math.round(d)), 'Dari kolom lama "Nilai Addendum Terakhir" (Rp ' + v1 + '). Lengkapi NO. DOKUMEN & TANGGAL BERLAKU.']);
     }
-    if (rows.length) { var lr = Math.max(ra.getLastRow(), A.headerRow); ra.getRange(lr + 1, 1, rows.length, rows[0].length).setValues(rows); pindah = rows.length; }
+    if (rows.length) { var lr = Math.max(ra.getLastRow(), A.headerRow); roomFor_(ra, lr + rows.length); ra.getRange(lr + 1, 1, rows.length, rows[0].length).setValues(rows); pindah = rows.length; }
     mp.insertColumnAfter(kLama);
     var L = function (c) { return mp.getRange(1, c).getA1Notation().replace(/\d+/g, ''); };
     var cJ = L(kNilai), cT = L(kLama), cK = L(kLama + 1);

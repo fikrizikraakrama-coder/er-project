@@ -451,7 +451,7 @@ function arCreateMonthly_(month,revise,reason) {
     if(revise&&String(reason||'').trim().length<10)throw new Error('The revision reason must be at least 10 characters.');
     var input=readAll_(),m=ENGINE.monthlyMetrics(input,cutoff),n=arMonthlyNarrative_(m),ai=arAINarrative_(m),rev=old.length,id=month+'-Rev.'+('0'+rev).slice(-2),digest=arDigest_(JSON.stringify(m));
     var row=[id,month,rev,cutoff,arNow_(),email_()||Session.getEffectiveUser().getEmail(),digest,reason||'Snapshot otomatis akhir bulan',JSON.stringify(m),n,ai.text,ai.status],sh=arMonthlyArchive_();
-    sh.getRange(sh.getLastRow()+1,1,1,12).setNumberFormat('@').setValues([row.map(arSafeCell_)]);
+    roomFor_(sh,sh.getLastRow()+1);sh.getRange(sh.getLastRow()+1,1,1,12).setNumberFormat('@').setValues([row.map(arSafeCell_)]);
     arRenderMonthly_(row);
     return {created:true,id:id,ai:ai.status};
   }finally{lock.releaseLock();}
@@ -701,6 +701,7 @@ function arAuditSheet_() {
 function arAuditLog_(rows, subject) {
   if (!rows.length) return;
   var sh = arAuditSheet_();
+  roomFor_(sh, sh.getLastRow() + rows.length);
   sh.getRange(sh.getLastRow() + 1, 1, rows.length, 10).setNumberFormat('@').setValues(rows.map(function(r){ return r.map(function(v){ return arSafeCell_(String(v === null || v === undefined ? '' : v)); }); }));
   arNotify_(subject, ['Perubahan berikut dibuat langsung di spreadsheet, tidak melalui aplikasi (tanpa validasi, tanpa tutup periode):', ''].concat(rows.slice(0, 40).map(function(r) {
     return '• ' + r[2] + ' ' + r[3] + ' · ' + r[4] + ' · ' + r[5] + ': "' + r[6] + '" → "' + r[7] + '"' + (r[8] ? ' · ' + r[8] : '') + ' · oleh ' + r[1];
@@ -839,6 +840,7 @@ function arArsipPindahMenu() {
     }
     var w = out.reduce(function(m, r) { return Math.max(m, r.length); }, 0), row0 = Math.max(ar.getLastRow() + 1, AR_ARSIP_FIRST_);
     if (ar.getMaxColumns() < w) ar.insertColumnsAfter(ar.getMaxColumns(), w - ar.getMaxColumns());
+    roomFor_(ar, row0 + out.length - 1);
     ar.getRange(row0, 1, out.length, w).setValues(out.map(function(r) { while (r.length < w) r.push(''); return r; }));
     out.forEach(function(r, i) { if (/^#JUDUL/.test(r[0])) ar.getRange(row0 + i, 1, 1, w).setFontWeight('bold').setBackground(C.tot); });
     // hapus dari bawah ke atas, per rentang berurutan
@@ -876,11 +878,11 @@ function arArsipKembalikanMenu() {
           var cols = String(p.v[2]).replace(/^TAG\|/, '').split(',').map(Number), tm = colMap_(sh, ENGINE.TAG), npc = tm.npp, row = ENGINE.TAG.firstRow;
           var vals = sh.getRange(ENGINE.TAG.firstRow, npc, Math.max(sh.getLastRow() - ENGINE.TAG.firstRow + 1, 1), 1).getValues();
           while (row - ENGINE.TAG.firstRow < vals.length && String(vals[row - ENGINE.TAG.firstRow][0]).trim()) row++;
-          cols.forEach(function(j, k) { sh.getRange(row, j).setValue(p.v[AR_ARSIP_META_ + k]); });
+          roomFor_(sh, row); cols.forEach(function(j, k) { sh.getRange(row, j).setValue(p.v[AR_ARSIP_META_ + k]); });
         });
       } else {
         var lc = sh.getLastColumn(), rows = L.map(function(p) { return p.v.slice(AR_ARSIP_META_, AR_ARSIP_META_ + lc); });
-        sh.getRange(sh.getLastRow() + 1, 1, rows.length, lc).setValues(rows);
+        roomFor_(sh, sh.getLastRow() + rows.length); sh.getRange(sh.getLastRow() + 1, 1, rows.length, lc).setValues(rows);
       }
     });
     pick.slice().reverse().forEach(function(p) { ar.deleteRow(AR_ARSIP_FIRST_ + p.i); });
