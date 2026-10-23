@@ -1141,9 +1141,11 @@ function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function 
 function tglIndo(s, pad2) { if (!s) return ''; var p = s.split('-'); var d = +p[2]; return (pad2 && d < 10 ? '0' + d : d) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0]; }
 function titleCase(s) { return String(s || '').toLowerCase().replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); }).replace(/\bPt\b/g, 'PT').replace(/\bTbk\b/g, 'Tbk').replace(/\bKso\b/g, 'KSO'); }
 function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('show'); }, 4200); }
+/** v2.8.6: pengajuan, keputusan & draf usulan langsung selesai — laporan diperbarui di latar belakang */
+var BG_FN = { apiSubmit: 1, apiDecide: 1, apiSaveUsulan: 1 };
 function call(fn, args, ok, fail) {
-  if (!RUN) { if (window.MOCK && MOCK[fn]) { setTimeout(function () { try { ok(MOCK[fn].apply(null, args || [])); } catch (e) { (fail || alert)(e); } }, 30); } return; }
-  var r = RUN.withSuccessHandler(ok).withFailureHandler(function (e) { (fail || function (x) { alert(x.message || x); })(e); });
+  if (!RUN) { if (window.MOCK && MOCK[fn]) { setTimeout(function () { try { var x = MOCK[fn].apply(null, args || []); ok(x); if (BG_FN[fn] && x && x.background) bgReports(); } catch (e) { (fail || alert)(e); } }, 30); } return; }
+  var r = RUN.withSuccessHandler(BG_FN[fn] ? function (x) { ok(x); if (x && x.background) bgReports(); } : ok).withFailureHandler(function (e) { (fail || function (x) { alert(x.message || x); })(e); });
   r[fn].apply(r, args || []);
 }
 function confirmDlg(title, html, yes, onYes) { $('dlgT').textContent = title; $('dlgB').innerHTML = html; $('dlgYes').textContent = yes || 'Continue'; var d = $('dlg'); $('dlgYes').onclick = function () { d.close(); onYes(); }; $('dlgNo').onclick = function () { d.close(); }; d.showModal(); }
@@ -2894,7 +2896,7 @@ function decidePkg(setuju) {
       '<textarea id="dlgNote" style="margin-top:8px" placeholder="note (optional)"></textarea>', 'Approve', function () {
       var note = ($('dlgNote') || {}).value || '';
       $('pkgStatus').textContent = 'Saving decision…';
-      call('apiDecide', [a.id, 'SETUJU', note, dec], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
+      call('apiDecide', [a.id, 'SETUJU', note, dec], function (r) { toast(r.id + ' ' + (r.status === 'DISETUJUI' ? 'approved' : r.status === 'DITOLAK' ? 'rejected' : r.status) + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
         refreshAll(function () { openPackage(PKG.kind, PKG.ref, true, function () { archivePkg(true); }); }); },
         function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
     });
@@ -2904,7 +2906,7 @@ function decidePkg(setuju) {
     '<textarea id="dlgNote" style="margin-top:8px" placeholder="' + (setuju ? 'note (optional)' : 'reason (required)') + '"></textarea>', setuju ? 'Approve' : 'Reject', function () {
     var note = ($('dlgNote') || {}).value || '';
     $('pkgStatus').textContent = 'Saving decision…';
-    call('apiDecide', [a.id, setuju ? 'SETUJU' : 'TOLAK', note], function (r) { toast(r.id + ' ' + r.status + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
+    call('apiDecide', [a.id, setuju ? 'SETUJU' : 'TOLAK', note], function (r) { toast(r.id + ' ' + (r.status === 'DISETUJUI' ? 'approved' : r.status === 'DITOLAK' ? 'rejected' : r.status) + (r.kode ? ' · code ' + r.kode : '')); $('pkgStatus').textContent = 'Decision saved: ' + r.status + (r.kode ? ' · verification code ' + r.kode : '') + '.';
       refreshAll(function () { if (!setuju && AP_NEXT && apGoNext()) return; if (!setuju) AP_NEXT = false; openPackage(PKG.kind, PKG.ref, true, setuju ? function () { archivePkg(true); } : null); }); },
       function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; refreshAll(); });
   });
@@ -3378,13 +3380,19 @@ function dfReadFp(file) {
 }
 
 /** v2.8.4: simpan cepat — laporan & file turunan diperbarui di latar belakang; pengguna bisa langsung lanjut bekerja */
+var BG_RUN = false, BG_AGAIN = false;
 function bgReports() {
+  if (BG_RUN) { BG_AGAIN = true; return; } // satu pembaruan sekaligus; klik beruntun (Approve & next) digabung
+  BG_RUN = true; BG_AGAIN = false;
   var c = $('bgChip'); c.hidden = false; c.innerHTML = '<span class="bgspin"></span>Updating reports in the background…';
   var hide = function (ms) { setTimeout(function () { c.hidden = true; }, ms); };
+  var done = function () { BG_RUN = false; if (BG_AGAIN) { BG_AGAIN = false; bgReports(); } };
   call('apiAfterSave', [], function (r) {
+    if (BG_AGAIN) return done(); // ada perubahan baru selama pembaruan: langsung jalankan sekali lagi
     if (r && r.reportPending) { c.innerHTML = '⚠ Reports not fully updated · <a href="#" style="color:#9FE3E8" id="bgRetry">retry</a>'; $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(15000); }
     else { c.innerHTML = '✓ Reports updated'; hide(3500); }
-  }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); });
+    done();
+  }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); done(); });
 }
 function showSavedNotice(r) {
   if (r && r.background) bgReports();

@@ -155,12 +155,12 @@ function arSavePayments_(rows, requestId, opt) {
   try { var b=ENGINE.bootstrap(computeLight_(),access.email); saved.invoices=b.invoices.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}); saved.payments=b.payments.filter(function(p){return (rows[0].ref && p.ref===rows[0].ref) || (!rows[0].ref && p.key===saved.key);}); } catch(e) { saved.reportPending=true;saved.warnings.push('Summary not loaded yet: '+e.message); }
   return plain_(saved);
 }
-function arAfterSave_(npps,months) {
+function arAfterSave_(npps,months,noDerived) {
   var out={reportPending:false,warnings:[]};
   try { rebuildAll(); } catch(e) { out.reportPending=true;out.warnings.push('Main reports: '+e.message); }
-  try {
-    var a=paramKV_('FILE_AKUNTANSI_ID'),b=paramKV_('FILE_PE_ID');
-    if ((a&&a.val)||(b&&b.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}); if(r.err.length) {out.reportPending=true;out.warnings=out.warnings.concat(r.err);} }
+  if (!noDerived) try {
+    var a=paramKV_('FILE_AKUNTANSI_ID'),b=paramKV_('FILE_PE_ID'),c=paramKV_('FILE_PAJAK_ID');
+    if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}); if(r.err.length) {out.reportPending=true;out.warnings=out.warnings.concat(r.err);} }
   } catch(e) {out.reportPending=true;out.warnings.push('Derived files: '+e.message);}
   return out;
 }
@@ -175,11 +175,15 @@ function arQueueAfterSave_(npps,months) {
   return {reportPending:false,background:true,warnings:[]};
 }
 function apiAfterSave() {
-  arRequireMaker_();
-  var pr=PropertiesService.getScriptProperties(),q=null;
+  // v2.8.6: juga dipanggil aplikasi Section Head setelah Approve/Reject; file turunan (Akuntansi, P&E, Pajak) hanya dari akun Pembuat
+  //   (Section Head belum tentu punya akses ke file itu — jadwal per jam tetap memperbarui)
+  var acc=arRequireAccess_(),pr=PropertiesService.getScriptProperties(),q=null,t=pr.getProperty(AR_DIRTY_KEY_);
   try{q=JSON.parse(pr.getProperty('AFTER_SAVE')||'null');}catch(e){}
+  if(!q&&!t)return {reportPending:false,warnings:[],skipped:true}; // sudah diperbarui oleh panggilan lain
   pr.deleteProperty('AFTER_SAVE');
-  return arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null);
+  var out=arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null,!acc.maker);
+  if(!out.reportPending&&t&&pr.getProperty(AR_DIRTY_KEY_)===t)pr.deleteProperty(AR_DIRTY_KEY_);
+  return out;
 }
 // ---------------- v2.8.4: cache data aplikasi (CacheService, dipecah per 30.000 karakter)
 function arBootBust_(){try{PropertiesService.getScriptProperties().setProperty('BOOT_VER',String(Date.now()));}catch(e){}}

@@ -1122,7 +1122,8 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
     out = { ok: true, id: rec.id, label: rec.label };
   } finally { lock.releaseLock(); }
-  rebuildAll();
+  // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
+  out.background = arQueueAfterSave_().background;
   return out;
 }
 function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
@@ -1182,7 +1183,8 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   // bukti di luar sistem: kode HMAC bisa dihitung ulang oleh editor proyek, email di kotak masuk Section Head tidak
   out.warnings = [];
   var w = arNotifyDecision_(notif); if (w) out.warnings.push(w);
-  rebuildAll();
+  // v2.8.6: laporan diperbarui di latar belakang; koreksi periode tertutup tetap langsung (snapshot analisis bulanan ikut direvisi)
+  if (kTglD && out.status === 'DISETUJUI') rebuildAll(); else out.background = arQueueAfterSave_().background;
   if (kTglD && out.status === 'DISETUJUI') { var rf = arRefreshClosedMonths_([kTglD], out.id + ' ' + (notif.r.catatan || notif.r.label || '')); out.warnings = out.warnings.concat(rf.warnings); out.snapshots = rf.ids; }
   return out;
 }
@@ -2036,7 +2038,7 @@ function apiSaveUsulan(ref, pl) { arRequireMaker_();
     var n = writeUsulan_(pl);
     out = { ok: true, n: n, at: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm') };
   } finally { lock.releaseLock(); }
-  rebuildAll();
+  out.background = arQueueAfterSave_().background;
   return out;
 }
 /** PDF lembar validasi bulan itu (termasuk di "Revisi lama") dipindah ke subfolder "Dibatalkan" */
