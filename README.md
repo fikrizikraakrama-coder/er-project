@@ -41,6 +41,9 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - **File Pajak** "REKAP INVOICE KELUAR & BUKU PENJUALAN — CSU (PAJAK)": tab KELENGKAPAN DOKUMEN, REKAP tahun, BUK PEN per bulan (tanggal faktur). Dibuat lewat menu
   *Pengaturan ▸ Aktifkan file Pajak*, lalu diperbarui tiap jam bersama file Akuntansi & P&E. Email Pajak: Parameter ▸ Pengguna & Peran, peran **PAJAK (LIHAT)** (akses lihat otomatis).
 - **Monitoring Invoice**: kolom rincian hitungan, dokumen & faktur, alokasi penerimaan dan kolom sistem dikelompokkan (tombol +/− di atas kolom), tidak dihapus. Dibuat otomatis sekali pada pembaruan laporan berikutnya.
+- **Filter di sheet isian & log** (Monitoring Invoice, Log Penerimaan, Log Persetujuan, Log Surat Penagihan, master, dll.): setiap pembaruan laporan, rentang filter aktif dilebarkan sampai baris terakhir sheet
+  (pilihan filter tetap), sehingga invoice/penerimaan baru dari aplikasi ikut tersaring. Tampilan filter (filter view) ikut dilebarkan bila layanan lanjutan **Google Sheets API** diaktifkan
+  (Apps Script ▸ Layanan ▸ + ▸ Google Sheets API). Data & laporan selalu membaca semua baris — filter hanya memengaruhi tampilan.
 - **Menu AR CSU**: menu harian di atas, sisanya di sub-menu (Analisis bulanan · Akuntansi, P&E & Pajak · Data proyek · Pengaturan). *Terapkan pembaruan v2.6* dan *Ekspor Buku Penjualan* dihapus.
 
 ## Aplikasi v2.8.5: Overview, form bertahap & bahasa Inggris

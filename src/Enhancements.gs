@@ -977,3 +977,37 @@ function arEnablePajak() {
   var x=paramKV_('FILE_PAJAK_ID'),url=x&&x.val?'https://docs.google.com/spreadsheets/d/'+x.val:'-';
   ui.showModalDialog(HtmlService.createHtmlOutput('<div style="font:13px/1.5 Arial,sans-serif"><p>File Pajak siap ('+n+' tab diperbarui):</p><p><a target="_blank" href="'+url+'">'+AR_PAJAK_TITLE_+'</a></p><p>Isi email bagian Pajak di <b>Parameter ▸ Pengguna &amp; Peran</b> dengan peran <b>PAJAK (LIHAT)</b> — akses lihat diberikan otomatis setiap sinkron. File diperbarui otomatis tiap jam bersama file Akuntansi &amp; P&amp;E.</p></div>').setWidth(520).setHeight(230),'File Pajak');
 }
+
+/** v2.8.6: filter yang dipasang pengguna di sheet isian/log tidak ikut melebar saat sistem menambah baris di bawah (perilaku Google Sheets),
+ *  sehingga baris baru tampil walau tidak cocok dengan filter. Setiap pembaruan laporan, rentang filter dilebarkan sampai baris terakhir sheet;
+ *  pilihan filter per kolom dipertahankan. Tampilan filter (filter view) ikut dilebarkan bila layanan lanjutan "Google Sheets API" diaktifkan. */
+var AR_FILTER_SHEETS_ = ['Monitoring Invoice','Log Penerimaan','Log Persetujuan','Log Surat Penagihan','Master Pelanggan','Master Proyek','Riwayat Adendum','Input Tagbrut','Referensi P&E','Riwayat Revisi','Jejak Edit Langsung','Arsip Data Lama'];
+function arExtendFilters_(ss) {
+  var n = 0;
+  AR_FILTER_SHEETS_.forEach(function(name){
+    try {
+      var sh = ss.getSheetByName(name), f = sh && sh.getFilter(); if (!f) return;
+      var r = f.getRange(), maxR = sh.getMaxRows(); if (r.getLastRow() >= maxR) return;
+      var c0 = r.getColumn(), crit = [];
+      for (var c = c0; c <= r.getLastColumn(); c++) { var k = f.getColumnFilterCriteria(c); if (k) crit.push([c, k]); }
+      f.remove();
+      var nf;
+      try { nf = sh.getRange(r.getRow(), c0, maxR - r.getRow() + 1, r.getNumColumns()).createFilter(); n++; }
+      catch (e) { nf = r.createFilter(); } // tidak berhak mengubah: pasang lagi filter semula, jangan sampai filter hilang
+      crit.forEach(function(x){ try { nf.setColumnFilterCriteria(x[0], x[1]); } catch (e) {} });
+    } catch (e) {}
+  });
+  // tampilan filter (Data ▸ Tampilan filter): hanya bila layanan lanjutan Sheets API aktif di proyek Apps Script
+  try {
+    if (typeof Sheets === 'undefined') return n;
+    var meta = Sheets.Spreadsheets.get(ss.getId(), { fields: 'sheets(properties(sheetId,title,gridProperties.rowCount),filterViews(filterViewId,range))' }), req = [];
+    (meta.sheets || []).forEach(function(s){
+      if (AR_FILTER_SHEETS_.indexOf(s.properties.title) < 0) return;
+      var rows = s.properties.gridProperties.rowCount;
+      (s.filterViews || []).forEach(function(v){ var rg = v.range || {};
+        if (rg.endRowIndex !== undefined && rg.endRowIndex < rows) { rg.endRowIndex = rows; req.push({ updateFilterView: { filter: { filterViewId: v.filterViewId, range: rg }, fields: 'range' } }); } });
+    });
+    if (req.length) { Sheets.Spreadsheets.batchUpdate({ requests: req }, ss.getId()); n += req.length; }
+  } catch (e) {}
+  return n;
+}

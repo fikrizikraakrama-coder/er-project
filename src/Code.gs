@@ -242,6 +242,7 @@ function rebuildAll_(opt) {
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
     ensureSelectors_(ss, res);
     arWriteReconciliation_(res);
+    try { arExtendFilters_(ss); } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
