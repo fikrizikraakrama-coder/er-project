@@ -469,6 +469,8 @@ function findRegisterRow_(sh, nomor, map) {
   for (var i = 0; i < vals.length; i++) if (String(vals[i][0]).trim() && ENGINE.normInv(vals[i][0]) === key) return first + i;
   return 0;
 }
+/** pastikan baris tujuan ada: bila sheet sudah habis barisnya, tambah 50 baris kosong (format mengikuti baris terakhir) */
+function roomFor_(sh, row) { var mx = sh.getMaxRows(); if (row > mx) sh.insertRowsAfter(mx, row - mx + 50); }
 function lastDataRow_(sh, firstRow, cols) {
   var last = sh.getLastRow(); if (last < firstRow) return firstRow - 1;
   var vals = sh.getRange(firstRow, 1, last - firstRow + 1, sh.getLastColumn()).getValues();
@@ -962,7 +964,7 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
       result = { ok: true, mode: 'revisi', nomor: nomor, rev: rev, perluFP: perluFP, jenis: rj.jenis, perubahan: rj.diff };
     } else {
       p.rev = 0; p.status_inv = 'AKTIF';
-      var target = lastDataRow_(sh, ENGINE.REG.firstRow, [map.nomor]) + 1, lc2 = sh.getLastColumn(), arr = [];
+      var target = lastDataRow_(sh, ENGINE.REG.firstRow, [map.nomor]) + 1, lc2 = sh.getLastColumn(), arr = []; roomFor_(sh, target);
       for (var k = 0; k < lc2; k++) arr.push('');
       cols.forEach(function (c) { var j = map[c[0]]; if (j && (colType_(c) === 'app' || c[0] === 'status_inv' || c[0] === 'top') && p[c[0]] !== undefined) arr[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
       var keep = sh.getRange(target, 1, 1, lc2).getFormulas()[0];
@@ -1118,7 +1120,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
       nilai: Math.round(snap.nilai || 0), sidik: d.fp, oleh: me, status: 'MENUNGGU', putus_oleh: '', putus_waktu: '', catatan: '', kode: '', data: JSON.stringify(snap) };
     var lc = Math.max(A.sh.getLastColumn(), ENGINE.APPR.cols.length), arr = []; for (var k = 0; k < lc; k++) arr.push('');
     ENGINE.APPR.cols.forEach(function (c) { var j = A.map[c[0]]; if (j) arr[j - 1] = rec[c[0]]; });
-    var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1;
+    var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1; roomFor_(A.sh, row);
     A.sh.getRange(row, 1, 1, lc).setNumberFormat('@').setValues([arr]);
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
     out = { ok: true, id: rec.id, label: rec.label };
@@ -1351,7 +1353,7 @@ function apiSuratSimpan(m) {
       if (used(nomor)) throw new Error('Letter number ' + nomor + ' is already recorded in the Log Surat Penagihan sheet.');
       var map = colMap_(sh, ENGINE.SURAT), lc = Math.max(sh.getLastColumn(), ENGINE.SURAT.cols.length), row = Array(lc).fill('');
       ENGINE.SURAT.cols.forEach(function (c) { var j = map[c[0]]; if (j) row[j - 1] = arSafeCell_(toCell_(rec[c[0]], colFmt_(c))); });
-      var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1;
+      var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1; roomFor_(sh, at);
       sh.getRange(at, 1, 1, lc).setValues([row]);
     } finally { lock.releaseLock(); }
     if (asal) suratUpdate_(asal.nomor, { ganti: nomor }); else { try { rebuildAll_(); } catch (e) { } }
