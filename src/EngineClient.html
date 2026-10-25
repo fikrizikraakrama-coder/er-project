@@ -24,7 +24,7 @@ var ENGINE = (function () {
       ['invke', 'INVOICE KE-', 'app', 16], ['template', 'TEMPLATE', 'app', 12],
       ['bruto', 'NILAI PROGRES / BRUTO', 'app', 16, 'money'], ['umk', 'PENGEMBALIAN UM', 'app', 15, 'money'],
       ['retensi', 'RETENSI', 'app', 14, 'money'], ['retpos', 'POSISI RETENSI', 'app', 11],
-      ['dpp', 'DPP (FAKTUR)', 'app', 16, 'money'], ['ppn', 'PPN', 'app', 15, 'money'], ['total', 'TOTAL INVOICE (DPP + PPN)', 'auto', 16, 'money'],
+      ['dpp', 'DPP (FAKTUR)', 'app', 16, 'money'], ['dpp_adj', 'ADJUSTMENT DPP (DASAR PPN SAJA)', 'manual', 15, 'money'], ['ppn', 'PPN', 'app', 15, 'money'], ['total', 'TOTAL INVOICE (DPP + PPN)', 'auto', 16, 'money'],
       ['netto', 'NETTO TERCATAT', 'auto', 16, 'money'], ['tarif', 'TARIF PPh', 'app', 8, 'pct'], ['dasar', 'DASAR PPh', 'app', 14],
       ['pph', 'PPh', 'auto', 14, 'money'], ['tagih', 'NILAI DI INVOICE (DIBAYAR)', 'app', 16, 'money'],
       ['kas', 'SEHARUSNYA DITERIMA (KAS)', 'auto', 16, 'money'], ['ttd', 'PENANDATANGAN', 'app', 20], ['rev', 'REVISI KE', 'app', 7, 'int'],
@@ -400,21 +400,24 @@ var ENGINE = (function () {
   // ------------------------------------------------------------------ PERHITUNGAN INVOICE
   function invoiceAmounts(inv, proj, params) {
     var dpp = rnd(N(inv.dpp)), ppn = rnd(N(inv.ppn)), ret = rnd(N(inv.retensi)), umk = rnd(N(inv.umk));
+    // v2.8.7: ADJUSTMENT DPP = tambahan DPP faktur yang hanya menaikkan dasar PPN (mis. BAPP WRK butir 3.4) — bukan tagihan:
+    // DPP faktur (pajak) tetap, piutang & dasar PPh memakai DPP − adjustment (sama dengan pencatatan Akuntansi)
+    var adj = Math.max(0, Math.min(dpp, rnd(N(inv.dpp_adj)))), dppAr = dpp - adj;
     var retpos = U(inv.retpos) || 'TIDAK ADA';
-    var netto = dpp - (retpos === 'AKHIR' ? ret : 0);
+    var netto = dppAr - (retpos === 'AKHIR' ? ret : 0);
     var tarif = isNum(inv.tarif) && inv.tarif > 0 ? inv.tarif : (proj ? proj.tarif_eff : tarifDefault(params, inv.npp));
     var dasar = U(inv.dasar) || (proj ? proj.dasar_pph : 'SETELAH RETENSI');
-    var base = dasar === 'SEBELUM RETENSI' ? dpp : netto;
+    var base = dasar === 'SEBELUM RETENSI' ? dppAr : netto;
     var tpl = U(inv.template) || (proj ? proj.template : 'UMUM');
     var jenis = U(inv.jenis) || 'PROGRES';
     // retensi posisi AKHIR (IKK/KIDOH) dengan dasar PPh SEBELUM RETENSI: PPh atas retensi sudah dipotong di invoice progres → pelepasan retensi tanpa PPh
     var pphRetLunas = jenis === 'RETENSI' && (tpl === 'IKK' || tpl === 'KIDOH') && dasar === 'SEBELUM RETENSI';
     var pph = pphRetLunas ? 0 : tpl === 'KIDOH' ? flo(tarif * base) : rnd(tarif * base);
-    var altBase = dasar === 'SEBELUM RETENSI' ? netto : dpp;
+    var altBase = dasar === 'SEBELUM RETENSI' ? netto : dppAr;
     var pphAlt = pphRetLunas ? 0 : tpl === 'KIDOH' ? flo(tarif * altBase) : rnd(tarif * altBase);
     // nilai bruto (pengurang tagbrut): progres sebelum potongan UM & retensi
     var bruto = N(inv.bruto) > 0 ? rnd(N(inv.bruto)) : netto + ret + umk;
-    return { dpp: dpp, ppn: ppn, ret: ret, umk: umk, retpos: retpos, total: dpp + ppn, netto: netto, tarif: tarif, dasar: dasar, pph: pph, pphAlt: pphAlt,
+    return { dpp: dpp, adj: adj, dppAr: dppAr, ppn: ppn, ret: ret, umk: umk, retpos: retpos, total: dpp + ppn, netto: netto, tarif: tarif, dasar: dasar, pph: pph, pphAlt: pphAlt,
       kas: netto + ppn - pph, bruto: bruto, jenis: jenis, tpl: tpl };
   }
 
@@ -838,7 +841,7 @@ var ENGINE = (function () {
     L.forEach(function (i) {
       // debit/kredit per komponen (Netto, PPN, PPh, adm), tanpa saldo berjalan; tiap invoice ditutup baris "Sisa tagihan"
       var a = i._a, rows = [], sN = a.netto, sP = a.ppn, sh = i.nomor;
-      var desc = 'Tagihan ' + invLabel(i) + ' — ' + sh + ' (DPP ' + fmtRp(a.dpp) + ' + PPN ' + fmtRp(a.ppn) + (a.retpos === 'AKHIR' && a.ret ? '; retensi ' + fmtRp(a.ret) + ' ditahan' : '') + ')';
+      var desc = 'Tagihan ' + invLabel(i) + ' — ' + sh + ' (DPP ' + fmtRp(a.dpp) + ' + PPN ' + fmtRp(a.ppn) + (a.adj ? '; adjustment DPP ' + fmtRp(a.adj) + ' hanya dasar PPN, bukan piutang' : '') + (a.retpos === 'AKHIR' && a.ret ? '; retensi ' + fmtRp(a.ret) + ' ditahan' : '') + ')';
       var row = function (o) { o.nomor = i.nomor; o.debit = o.debit || 0; o.kredit = o.kredit || 0; o.saldo = o.saldo === undefined ? '' : o.saldo; o.ket = o.ket || ''; o.ref = o.ref || ''; o.sap = o.sap || ''; rows.push(o); return o; };
       row({ kind: 'inv', tgl: i.tgl, uraian: desc, ref: S(i.no_fp) ? 'FP ' + i.no_fp : '', sap: i.sap_doc, debit: a.netto + a.ppn });
       var nN = i._pays.filter(function (p) { return p._keN > 0 && !p._nk && p.tgl && p.tgl <= C; }).length, kN = 0, pphNanti = true;
@@ -1260,7 +1263,7 @@ var ENGINE = (function () {
       if (prog && !(N(i.bruto) > 0) && (pr.um > 0 || pr.um_awal > 0 || pr.ret_pct > 0)) (lamaBy[i.npp] = lamaBy[i.npp] || []).push(i.nomor.replace(/^KU\.02\.02\/WB-4C\./, ''));
       if (N(i.bruto) > 0 && prog) {
         var exp = a.retpos === 'AWAL' ? a.bruto - a.umk - a.ret : a.bruto - a.umk;
-        if (Math.abs(exp - a.dpp) > TOLB) I.push(['DATA INVOICE', REG.sheet, i.nomor, 'Nilai progres − pot. UM' + (a.retpos === 'AWAL' ? ' − retensi' : '') + ' = ' + fmtRp(exp) + ' tidak sama dengan DPP ' + fmtRp(a.dpp), 'Periksa NILAI PROGRES / BRUTO, PENGEMBALIAN UM, RETENSI, POSISI RETENSI']);
+        if (Math.abs(exp - a.dppAr) > TOLB) I.push(['DATA INVOICE', REG.sheet, i.nomor, 'Nilai progres − pot. UM' + (a.retpos === 'AWAL' ? ' − retensi' : '') + ' = ' + fmtRp(exp) + ' tidak sama dengan DPP ' + fmtRp(a.dppAr) + (a.adj ? ' (DPP faktur − adjustment)' : ''), 'Periksa NILAI PROGRES / BRUTO, PENGEMBALIAN UM, RETENSI, POSISI RETENSI' + (a.adj ? ', ADJUSTMENT DPP' : '; bila selisihnya tambahan DPP yang hanya untuk dasar PPN (BAPP "Adjustment DPP"), isi ADJUSTMENT DPP (DASAR PPN SAJA)')]);
       }
       if (a.ret > 0 && a.retpos !== 'AWAL' && a.retpos !== 'AKHIR' && a.jenis !== 'RETENSI') I.push(['DATA INVOICE', REG.sheet, i.nomor, 'Retensi diisi tetapi POSISI RETENSI kosong', 'Isi AWAL (dipotong sebelum DPP) atau AKHIR (ditahan dari pembayaran). AKHIR mengubah Netto tercatat.']);
     });

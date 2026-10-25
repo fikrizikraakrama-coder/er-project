@@ -43,8 +43,12 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - **PPh sesuai bukti potong** (kolom baru `PPh DIPOTONG SESUAI BUPOT (OPSIONAL)` di Log Penerimaan, dibuat otomatis saat pertama dipakai): di aplikasi muncul saat *paid in full* dicentang
   (transfer) atau di tab Compensation. Bila diisi, PPh diakui **sebesar bupot** (bukan hitungan sistem); selisih terhadap hitungan sistem ditulis di keterangan kartu piutang.
   Kosongkan untuk invoice normal — deteksi otomatis tetap berjalan seperti sebelumnya.
-- Contoh 4C.0141/2026 (WRK, progres 12): setor tunai 5.766.264.127 (transfer biasa) + kompensasi klaim solar 2.187.937.500 (✓ pelunasan, PPh bupot 192.362.268)
-  → KURANG BAYAR ± 365,57 jt (adjustment DPP di BAPP yang tidak dibayar) → selesaikan dengan **TUTUP MANUAL** + alasan, disetujui Section Head.
+- **ADJUSTMENT DPP (DASAR PPN SAJA)** — kolom isian baru di Monitoring Invoice (ditambahkan otomatis di ujung kanan pada pembaruan laporan berikutnya).
+  Untuk tambahan DPP di faktur yang hanya menaikkan dasar PPN dan tidak dibayar (BAPP butir *Adjustment DPP*). DPP faktur, PPN, file Pajak & Buku Penjualan tetap;
+  piutang, dasar PPh, status & kartu piutang memakai **DPP − adjustment** (sama dengan pencatatan Akuntansi di LK). Isi = DPP faktur − DPP tagihan BAPP.
+  Mengisinya mengubah sidik invoice → **ajukan ulang** paket invoice ke Section Head.
+- Contoh 4C.0141/2026 (WRK, progres 12): ADJUSTMENT DPP 365.569.857 (8.069.185.245 − 7.703.615.388) → piutang Netto 7.258.953.518 (= LK Sep-26), PPh 192.362.268 (= BAPP).
+  Setor tunai 5.766.264.127 (transfer) + kompensasi klaim solar 2.187.937.500 → **LUNAS**, tanpa tutup manual.
 
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
 - **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.

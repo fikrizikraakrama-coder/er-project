@@ -275,3 +275,19 @@ test('PPh sesuai bupot: kas + PPh bupot = tagihan → LUNAS walau PPh beda dari 
   i = invOf(ENGINE.compute(input));
   assert.strictEqual(i._res.status, 'LUNAS'); assert.strictEqual(i._res.pot_pph, 2650000);
 });
+
+test('ADJUSTMENT DPP (dasar PPN saja): DPP faktur tetap, piutang & PPh dari DPP − adjustment; kas + kompensasi + PPh = LUNAS (kasus WRK 0141)', () => {
+  const input = fixture({ dpp: 8069185245, dpp_adj: 365569857, ppn: 887610377, retensi: 444661870, retpos: 'AKHIR', bruto: 8893237398, umk: 1189622010, submit: '2026-08-06' });
+  input.log = [
+    row(ENGINE.LOG, { tgl: '2026-10-10', inv: NOMOR, nominal: 5766264127, ref: '086730', rekening: 'MANDIRI 0060097045854' }),
+    row(ENGINE.LOG, { tgl: '2026-10-10', inv: NOMOR, nominal: 2187937500, ref: 'MEMO DIR 15-10-2026', jenis_trx: 'KOMPENSASI', ket: 'Klaim solar' })];
+  const res = ENGINE.compute(input), i = invOf(res), a = i._a;
+  assert.strictEqual(a.dpp, 8069185245, 'DPP faktur tidak berubah');
+  assert.strictEqual(a.netto, 7258953518, 'piutang Netto = LK Akuntansi');
+  assert.strictEqual(a.pph, 192362268, 'PPh = BAPP');
+  assert.strictEqual(i._res.status, 'LUNAS'); assert.strictEqual(i._res.pot_pph, 192362268);
+  assert.ok(!res.issues.some(x => x[2] === NOMOR && /tidak sama dengan DPP/.test(x[3])), 'bruto − UM cocok dengan DPP − adjustment');
+  const k = ENGINE.kartuPlain(res.ctx, NPP, res.ctx.today);
+  assert.match(k.groups[0].rows[0].uraian, /adjustment DPP 365\.569\.857 hanya dasar PPN/);
+  assert.strictEqual(k.T.kas, 5766264127);
+});

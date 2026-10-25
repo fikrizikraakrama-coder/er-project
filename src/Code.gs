@@ -245,6 +245,8 @@ function rebuildAll_(opt) {
     try { arExtendFilters_(ss); } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
+    // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)
+    try { if (arProps_().getProperty('REG_ADJ_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); arProps_().setProperty('REG_ADJ_V287', '1'); } } catch (err) { }
     var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
     var stamp = 'Diperbarui otomatis: ' + Utilities.formatDate(new Date(), TZ, 'dd MMM yyyy HH:mm') + ' · Sistem AR CSU v' + ENGINE.VERSION + ' · dirancang & dikembangkan oleh ' + PENGEMBANG +
       (aktif ? '' : '   ⚠ OTOMATISASI BELUM AKTIF — jalankan menu AR CSU ▸ Aktifkan otomatisasi agar pilihan bulan/NPP langsung memperbarui laporan');
