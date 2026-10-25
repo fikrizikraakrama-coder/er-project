@@ -662,7 +662,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div class="scroll fx" id="mode-bayar" hidden>
       <div class="fx-hd"><h2>Record Cash Receipt</h2><p>Incoming customer payment, applied to open invoices (VAT first, then net)</p></div>
       <div class="fx-steps" id="stPay"><span>1 · Bank details</span><span>2 · Apply to invoices</span><span>3 · Review &amp; save</span></div>
-      <div class="seg" role="group" aria-label="Receipt type"><button type="button" data-pj="trf" aria-pressed="true">Bank transfer</button><button type="button" data-pj="pb" aria-pressed="false">Offset / reclass</button></div>
+      <div class="seg" role="group" aria-label="Receipt type"><button type="button" data-pj="trf" aria-pressed="true">Bank transfer</button><button type="button" data-pj="pb" aria-pressed="false">Offset / reclass</button><button type="button" data-pj="kom" aria-pressed="false">Compensation</button></div>
       <div id="pjTrf">
         <fieldset class="stp">
           <legend><i>1</i>Bank details</legend>
@@ -691,6 +691,21 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <label for="bNom">Amount moved (IDR)</label><input id="bNom" inputmode="decimal" class="num">
           <label for="bKet">Remarks</label><input id="bKet" placeholder="e.g. offset of WHT not withheld on Term II">
           <datalist id="dlAll"></datalist>
+        </fieldset>
+      </div>
+      <div id="pjKom" hidden>
+        <fieldset class="stp">
+          <legend><i>1</i>Compensation — receivable settled against our payable to the customer (no cash in, excluded from collections)</legend>
+          <div class="row"><div><label for="cTgl">Date</label><input id="cTgl" type="date"></div><div><label for="cRef">BA / memo no.</label><input id="cRef" placeholder="compensation agreement number"><div class="hint">used as the reference; attach the signed BA / memo</div></div></div>
+          <label for="cInv">Invoice</label><input id="cInv" list="dlOpen" placeholder="invoice no. being compensated">
+          <div class="note" id="cInfo"></div>
+          <div class="row"><div><label for="cNom">Compensated amount (IDR)</label><input id="cNom" inputmode="decimal" class="num" placeholder="per BA / memo"></div><div><label for="cKet">Description</label><input id="cKet" placeholder="e.g. Klaim pemakaian solar s.d. 20-07-2026"></div></div>
+        </fieldset>
+        <fieldset class="stp">
+          <legend><i>2</i>Settlement</legend>
+          <label class="inline" style="margin:0"><input type="checkbox" id="cLunas" style="width:auto"> Final settlement of this invoice (customer confirms nothing more will be paid)</label>
+          <div class="row"><div><label for="cPph">WHT withheld per slip (IDR)</label><input id="cPph" inputmode="decimal" class="num" placeholder="optional"><div class="hint">fill when the customer's withholding slip differs from the system WHT</div></div><div><label for="cBupot">Withholding slip no.</label><input id="cBupot" placeholder="optional"></div></div>
+          <div class="note" id="cRes"></div>
         </fieldset>
       </div>
       <fieldset class="stp" style="margin-top:14px"><legend>Cash receipts · <select id="pMon" aria-label="Receipt month" style="width:auto;display:inline-block;padding:3px 6px;font-weight:700"></select></legend><div class="fsum" id="pSum"></div><div id="payList"></div></fieldset>
@@ -1727,9 +1742,10 @@ function fillOpenList() {
 }
 function setPj(m) {
   PAY.mode = m; document.querySelectorAll('[data-pj]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.pj === m); });
-  $('pjTrf').hidden = m !== 'trf'; $('pjPb').hidden = m !== 'pb';
+  $('pjTrf').hidden = m !== 'trf'; $('pjPb').hidden = m !== 'pb'; $('pjKom').hidden = m !== 'kom';
   if (m === 'pb') { $('bRef').value = B.nextPB || 'PB-0001'; if (!$('bTgl').value) $('bTgl').value = today(); pbInfo(); }
-  $('btnPay').textContent = m === 'pb' ? 'Save offset' : 'Save receipt';
+  if (m === 'kom' && !$('cTgl').value) $('cTgl').value = today();
+  $('btnPay').textContent = m === 'pb' ? 'Save offset' : m === 'kom' ? 'Save compensation' : 'Save receipt';
   payChanged();
 }
 function addPayInv(no) {
@@ -1767,6 +1783,7 @@ function renderPayRows() {
       '<td><input data-k="' + k + '" data-f="nominal" class="num" inputmode="decimal" value="' + nfDot(r.nominal) + '" aria-label="Amount for ' + esc(short(r.nomor)) + '">' +
       '<div class="inline" style="margin-top:4px;gap:4px"><select data-k="' + k + '" data-f="alokasi" aria-label="Allocation"><option value="OTOMATIS">Auto</option><option value="NETTO"' + (r.alokasi === 'NETTO' ? ' selected' : '') + '>Net</option><option value="PPN"' + (r.alokasi === 'PPN' ? ' selected' : '') + '>VAT</option></select>' +
       '<label class="inline" style="margin:0;font-size:11px;white-space:nowrap" title="Customer confirms this invoice is fully paid"><input type="checkbox" data-k="' + k + '" data-f="lunas"' + (r.lunas ? ' checked' : '') + ' style="width:auto"> paid in full</label></div>' +
+      (r.lunas ? '<input data-k="' + k + '" data-f="pph" class="num" inputmode="decimal" style="margin-top:4px" value="' + (num(r.pph) ? nfDot(num(r.pph)) : '') + '" placeholder="WHT per slip (optional)" title="Fill only when the customer withheld a different WHT amount than the system" aria-label="WHT per withholding slip">' : '') +
       (x ? '<div class="pv' + (x.cek && x.cek.indexOf('⚠') >= 0 ? ' bad' : '') + '">Net ' + nfDot(x.keN) + ' · VAT ' + nfDot(x.keP) + (x.pph ? ' · WHT ' + nfDot(x.pph) : '') + (x.adm ? ' · bank charge ' + nfDot(x.adm) : '') + '<br>→ ' + esc(x.status) + (x.cek && x.cek.indexOf('⚠') >= 0 ? '<br>' + esc(x.cek) : '') + '</div>' : '') + '</td>' +
       '<td style="width:20px"><button class="x" type="button" data-del="' + k + '" aria-label="Remove row">✕</button></td></tr>';
   }).join('') : '<tr><td class="sub">No invoices yet. Type an invoice number and click Add — one transfer can cover several invoices.</td></tr>';
@@ -1794,10 +1811,15 @@ function payRowsPayload() {
     if (!a || !b || !x || !t || E.normInv(a.nomor) === E.normInv(b.nomor)) return [];
     return [{ tgl: t, ref: ref, inv: a.nomor, nominal: -x, jenis_trx: 'PINDAH BUKU', ket: k || 'Pindah buku ke ' + short(b.nomor) }, { tgl: t, ref: ref, inv: b.nomor, nominal: x, jenis_trx: 'PINDAH BUKU', ket: k || 'Pindah buku dari ' + short(a.nomor) }];
   }
+  if (PAY.mode === 'kom') {
+    var ci = invBy($('cInv').value), cx = Math.round(num($('cNom').value)), cp = Math.round(num($('cPph').value)), ct = $('cTgl').value, cr = $('cRef').value.trim();
+    if (!ci || !(cx > 0) || !ct || cr.length < 3) return [];
+    return [{ tgl: ct, ref: cr, inv: ci.nomor, nominal: cx, jenis_trx: 'KOMPENSASI', lunas: $('cLunas').checked ? '✓' : '', pph_bupot: cp > 0 ? cp : '', bupot: $('cBupot').value.trim(), ket: $('cKet').value.trim() || 'Kompensasi utang–piutang' }];
+  }
   var T = Math.round(num($('pTrf').value));
   return PAY.rows.filter(function (r) { return Math.round(num(r.nominal)) > 0; }).map(function (r) {
     return { tgl: $('pTgl').value, ref: $('pRef').value.trim(), transfer: PAY.rows.length > 1 && T ? T : '', rekening: $('pRek').value, inv: r.nomor, nominal: Math.round(num(r.nominal)),
-      alokasi: r.alokasi === 'OTOMATIS' ? '' : r.alokasi, lunas: r.lunas ? '✓' : '', ket: $('pKet').value.trim() };
+      alokasi: r.alokasi === 'OTOMATIS' ? '' : r.alokasi, lunas: r.lunas ? '✓' : '', pph_bupot: r.lunas && Math.round(num(r.pph)) > 0 ? Math.round(num(r.pph)) : '', ket: $('pKet').value.trim() };
   });
 }
 function pbInfo() {
@@ -1811,8 +1833,20 @@ function pbInfo() {
   if (b) { $('bToInfo').className = 'note'; $('bToInfo').innerHTML = esc(b.pelanggan) + ' · ' + esc(b.status) + ' · outstanding Rp ' + nfDot(b.sisa); } else { $('bToInfo').className = 'note'; $('bToInfo').textContent = 'Select the target invoice.'; }
   if (PAY.mode === 'pb') { ok = ok && !!$('bTgl').value; $('btnPay').disabled = !!savePay._busy || !ok; $('btnPaySub').disabled = $('btnPay').disabled; steps('stPay', [!!(a && b), ok, false]); }
 }
+/** kompensasi: info invoice, hasil pratinjau, tombol simpan */
+function komInfo() {
+  var i = invBy($('cInv').value), x = Math.round(num($('cNom').value)), ref = $('cRef').value.trim(), pv = PAY.prev && PAY.prev.rows && PAY.prev.rows[0];
+  if (i) { $('cInfo').className = 'note'; $('cInfo').innerHTML = esc(i.pelanggan) + ' · ' + esc(i.invke) + ' · ' + esc(i.status) + '<br>Outstanding Rp ' + nfDot(i.sisa) + (i.pph ? ' · system WHT Rp ' + nfDot(i.pph) : ''); }
+  else { $('cInfo').className = 'note'; $('cInfo').textContent = 'Select the invoice being compensated.'; }
+  var ok = !!(i && x > 0 && $('cTgl').value && ref.length >= 3);
+  if (!ok) { $('cRes').className = 'note'; $('cRes').textContent = !ref ? 'Enter the BA / memo number — it is the reference for this compensation.' : 'Complete the date, invoice and amount.'; }
+  else if (pv) { var bad = pv.cek && pv.cek.indexOf('⚠') >= 0; $('cRes').className = 'note ' + (bad ? 'err' : 'ok'); $('cRes').innerHTML = 'Net ' + nfDot(pv.keN) + ' · VAT ' + nfDot(pv.keP) + (pv.pph ? ' · WHT ' + nfDot(pv.pph) : '') + (pv.adm ? ' · bank charge ' + nfDot(pv.adm) : '') + '<br>→ ' + esc(pv.status) + (pv.sisa ? ' · remaining Rp ' + nfDot(pv.sisa) : '') + (bad ? '<br>' + esc(pv.cek) : '') + '<br><span style="color:var(--steel)">Not counted as cash collection (RA-RI / INKASO).</span>'; }
+  else { $('cRes').className = 'note'; $('cRes').textContent = 'Calculating…'; }
+  $('btnPay').disabled = !!savePay._busy || !ok; $('btnPaySub').disabled = $('btnPay').disabled;
+  steps('stPay', [!!(i && $('cTgl').value), ok, false]);
+}
 function payChanged() {
-  if (PAY.mode === 'trf') payBalance(); else pbInfo();
+  if (PAY.mode === 'trf') payBalance(); else if (PAY.mode === 'kom') komInfo(); else pbInfo();
   clearTimeout(PAY.t); PAY.t = setTimeout(payPreview, 650);
 }
 function payPreview() {
@@ -1822,7 +1856,7 @@ function payPreview() {
   call('apiPayPreview', [rows], function (r) {
     if (my !== PAY.seq) return;
     PAY.prev = r; $('payStatus').textContent = '';
-    if (PAY.mode === 'trf') renderPayRows();
+    if (PAY.mode === 'trf') renderPayRows(); else if (PAY.mode === 'kom') komInfo();
     renderPayView();
   }, function (e) { if (my === PAY.seq) $('payStatus').innerHTML = '<span style="color:var(--red)">Preview failed: ' + esc(e.message || e) + '</span>'; });
 }
@@ -1845,9 +1879,9 @@ function savePay() {
     $('payStatus').innerHTML = '<span style="color:var(--green)">Saved: ' + rows.length + ' row(s). ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
     LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY; steps('stPay', [true, true, true]);
     var subNow = SUBMIT_AFTER && LASTPAY; SUBMIT_AFTER = false; if (subNow) submitAfterSave('PAY', LASTPAY, 'payStatus');
-    toast(PAY.mode === 'pb' ? 'Offset saved.' : 'Payment of Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' recorded.');
+    toast(PAY.mode === 'pb' ? 'Offset saved.' : PAY.mode === 'kom' ? 'Compensation saved (not counted as cash).' : 'Payment of Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' recorded.');
     var keep = rows.map(function (x) { return x.inv; });
-    PAY.rows = []; PAY.splitNote = ''; $('pTrf').value = ''; $('pRef').value = ''; $('pKet').value = ''; $('bFrom').value = ''; $('bTo').value = ''; $('bNom').value = ''; $('bKet').value = '';
+    PAY.rows = []; PAY.splitNote = ''; $('pTrf').value = ''; $('pRef').value = ''; $('pKet').value = ''; $('bFrom').value = ''; $('bTo').value = ''; $('bNom').value = ''; $('bKet').value = ''; ['cInv', 'cNom', 'cRef', 'cKet', 'cPph', 'cBupot'].forEach(function (id) { $(id).value = ''; }); $('cLunas').checked = false;
     call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB; renderPayRows();
       // tampilkan kartu sesudah tersimpan
       PAY.prev = null;
@@ -2211,11 +2245,14 @@ function bind() {
   $('pSplit').onclick = function () { splitAuto(); payChanged(); };
   $('pClear').onclick = function () { PAY.rows = []; PAY.splitNote = ''; PAY.prev = null; renderPayRows(); payChanged(); };
   $('pRows').oninput = function (e) { var t = e.target, k = +t.dataset.k; if (!t.dataset.f || !PAY.rows[k]) return; var r = PAY.rows[k];
-    if (t.dataset.f === 'nominal') { r.nominal = num(t.value); r.manual = true; PAY.splitNote = ''; payBalance(); } else if (t.dataset.f === 'lunas') r.lunas = t.checked; else r.alokasi = t.value;
+    if (t.dataset.f === 'nominal') { r.nominal = num(t.value); r.manual = true; PAY.splitNote = ''; payBalance(); } else if (t.dataset.f === 'lunas') { r.lunas = t.checked; if (!r.lunas) r.pph = ''; } else if (t.dataset.f === 'pph') r.pph = num(t.value); else r.alokasi = t.value;
     clearTimeout(PAY.t); PAY.t = setTimeout(payPreview, 650); };
-  $('pRows').onchange = function (e) { var t = e.target; if (t.dataset.f === 'nominal') t.value = nfDot(num(t.value)); if (t.dataset.f === 'lunas' || t.dataset.f === 'alokasi') $('pRows').oninput(e); };
+  $('pRows').onchange = function (e) { var t = e.target; if (t.dataset.f === 'nominal' || (t.dataset.f === 'pph' && num(t.value))) t.value = nfDot(num(t.value)); if (t.dataset.f === 'lunas') renderPayRows(); if (t.dataset.f === 'lunas' || t.dataset.f === 'alokasi') $('pRows').oninput(e); };
   $('pRows').onclick = function (e) { var k = e.target.dataset.del; if (k === undefined) return; PAY.rows.splice(+k, 1); PAY.prev = null; renderPayRows(); payChanged(); };
   ['bFrom', 'bTo', 'bTgl', 'bKet'].forEach(function (id) { $(id).onchange = payChanged; });
+  ['cInv', 'cTgl', 'cRef', 'cKet', 'cBupot', 'cLunas'].forEach(function (id) { $(id).onchange = payChanged; });
+  ['cNom', 'cPph', 'cRef'].forEach(function (id) { $(id).oninput = payChanged; });
+  ['cNom', 'cPph'].forEach(function (id) { $(id).onblur = function () { var v = num(this.value); if (v) this.value = nfDot(v); }; });
   $('bNom').oninput = payChanged; $('bNom').onblur = function () { var v = num(this.value); if (v) this.value = nfDot(v); };
   $('btnPay').onclick = function () { SUBMIT_AFTER = false; savePay(); };
   $('btnPaySub').onclick = function () { SUBMIT_AFTER = true; savePay(); };
@@ -2396,13 +2433,15 @@ function pgFaktur(f, i, pkg) {
   return h + docFoot(pkg) + '</div>';
 }
 function pgBukti(pkg) {
-  var rows = pkg.rows, t = { n: 0, N: 0, P: 0, h: 0, a: 0 };
-  var h = '<div class="page pg-flow land">' + docHead('LEMBAR PENGESAHAN PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, untuk diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key)));
-  h += '<table class="t"><tr><th>ID</th><th>Tgl bayar</th><th>Ref. transfer · rekening</th><th>No. invoice</th><th>Pelanggan · NPP</th><th>Nominal</th><th>→ Netto</th><th>→ PPN</th><th>PPh diakui</th><th>Adm bank</th><th>Status setelah bayar</th><th>Sisa</th></tr>';
+  var rows = pkg.rows, t = { n: 0, N: 0, P: 0, h: 0, a: 0 }, kom = rows.some(function (r) { return r.kom; });
+  var h = '<div class="page pg-flow land">' + (kom ? docHead('LEMBAR PENGESAHAN KOMPENSASI PIUTANG', 'Piutang dilunasi dengan utang perusahaan kepada pelanggan (bukan uang masuk; tidak dihitung inkaso), untuk diserahkan ke Akuntansi sebagai dasar jurnal FB01 di SAP.',
+    'No. BA / memo ' + esc(rows[0].ref)) : docHead('LEMBAR PENGESAHAN PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, untuk diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key))));
+  h += '<table class="t"><tr><th>ID</th><th>' + (kom ? 'Tanggal' : 'Tgl bayar') + '</th><th>Ref. transfer · rekening</th><th>No. invoice</th><th>Pelanggan · NPP</th><th>Nominal</th><th>→ Netto</th><th>→ PPN</th><th>PPh diakui</th><th>Adm bank</th><th>Status setelah bayar</th><th>Sisa</th></tr>';
   rows.forEach(function (r) { h += '<tr><td>' + esc(r.idp) + '</td><td>' + tg(r.tgl) + '</td><td>' + esc(r.ref) + '<br>' + esc(r.pb ? 'PINDAH BUKU' : r.rekening || '') + '</td><td>' + esc(r.nomor) + '<br>' + esc(r.invke) + '</td><td>' + esc(r.pelanggan) + '<br>' + esc(r.npp) + '</td><td class="n">' + nd(r.nominal) + '</td><td class="n">' + nd(r.keN) + '</td><td class="n">' + nd(r.keP) + '</td><td class="n">' + nd(r.pph) + '</td><td class="n">' + nd(r.adm) + '</td><td>' + esc(r.status) + '</td><td class="n">' + nd(r.sisa) + '</td></tr>';
     t.n += r.nominal; t.N += r.keN; t.P += r.keP; t.h += r.pph; t.a += r.adm; });
   h += '<tr class="tot"><td></td><td></td><td></td><td></td><td>TOTAL</td><td class="n">' + nd(t.n) + '</td><td class="n">' + nd(t.N) + '</td><td class="n">' + nd(t.P) + '</td><td class="n">' + nd(t.h) + '</td><td class="n">' + nd(t.a) + '</td><td></td><td></td></tr></table>';
-  h += '<h3>Lampiran</h3><ul class="chk"><li>Bukti penerimaan / mutasi rekening ' + esc(rows.filter(function (r) { return r.rekening && !r.pb; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + ' (lampirkan)</li><li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (F-28 · DZ)</li></ul>';
+  if (kom) h += '<h3>Lampiran</h3><ul class="chk"><li>Berita acara / memo kompensasi ' + esc(rows[0].ref) + ' beserta rincian klaim (lampirkan)</li>' + (rows.some(function (r) { return r.pph; }) ? '<li>Bukti potong PPh dari pelanggan</li>' : '') + '<li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (FB01 · SA): utang kepada pelanggan (D) / piutang usaha (K)</li></ul>';
+  else h += '<h3>Lampiran</h3><ul class="chk"><li>Bukti penerimaan / mutasi rekening ' + esc(rows.filter(function (r) { return r.rekening && !r.pb && !r.kom; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + ' (lampirkan)</li><li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (F-28 · DZ)</li></ul>';
   return h + signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
 }
 /* ---------- v2.6: Lembar Pembatalan Invoice ---------- */
@@ -2644,7 +2683,7 @@ function buildPages(pkg, invDocs) {
     internal = pgPengesahan(pkg, !!invDocs && pkg.inv.template === 'FAJARPUTERA', migr) + pgKartu(pkg.kartu, pkg) + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — INVOICE ' + pkg.inv.nomor, null, pkg) + pgFaktur(pkg.faktur, pkg.inv, pkg);
     all = pgPengesahan(pkg, !!invDocs && pkg.inv.template === 'FAJARPUTERA', migr) + (invDocs || '') + pgKartu(pkg.kartu, pkg) + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — INVOICE ' + pkg.inv.nomor, null, pkg) + pgFaktur(pkg.faktur, pkg.inv, pkg);
   } else if (k === 'PAY') {
-    internal = all = pgBukti(pkg) + pkg.kartu.map(function (x) { return pgKartu(x, pkg); }).join('') + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — PENERIMAAN ' + pkg.key, null, pkg);
+    internal = all = pgBukti(pkg) + pkg.kartu.map(function (x) { return pgKartu(x, pkg); }).join('') + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — ' + (pkg.rows.some(function (r) { return r.kom; }) ? 'KOMPENSASI ' : 'PENERIMAAN ') + pkg.key, null, pkg);
   } else if (k === 'KP') internal = all = pgKartu(pkg.kartu, pkg);
   else if (k === 'TUTUP') internal = all = pgTutup(pkg) + pgKartu(pkg.kartu, pkg);
   else if (k === 'VAL') internal = all = pgValidasi(pkg);
@@ -2739,7 +2778,8 @@ function pkgChrome(canSubmit, canDecide) {
   var ck = '', mk = function (ok, t, warn) { return '<span class="' + (ok ? 'ok' : warn ? 'no' : 'bad') + '">' + ico(ok ? 'chk' : 'warn') + esc(t) + '</span>'; };
   if (canDecide || (!maker && a && a.status === 'MENUNGGU')) ck = a.berubah ? mk(false, 'Data changed since submission — cannot be approved') : mk(true, 'Data unchanged since submission');
   else if (maker && PKG.kind === 'PAY' && canSubmit) { var R = B.payments.filter(function (p) { return p.key === PKG.ref; });
-    ck = mk(R.every(function (p) { return p.pb || p.rekening; }), 'Bank account') + mk(R.every(function (p) { return p.ref || p.migr || p.pb; }), 'Bank reference', true) + mk(R.every(function (p) { return !p.cek; }), R.some(function (p) { return p.cek; }) ? 'Check: ' + R.filter(function (p) { return p.cek; })[0].cek.replace(/⚠\s*/g, '') : 'Allocation'); }
+    var kom = R.some(function (p) { return p.kom; });
+    ck = (kom ? mk(R.every(function (p) { return p.ref; }), 'BA / memo reference') : mk(R.every(function (p) { return p.pb || p.rekening; }), 'Bank account') + mk(R.every(function (p) { return p.ref || p.migr || p.pb; }), 'Bank reference', true)) + mk(R.every(function (p) { return !p.cek; }), R.some(function (p) { return p.cek; }) ? 'Check: ' + R.filter(function (p) { return p.cek; })[0].cek.replace(/⚠\s*/g, '') : 'Allocation'); }
   else if (maker && PKG.kind === 'INV' && canSubmit) { var I = B.invoices.filter(function (i) { return E.normInv(i.nomor) === E.normInv(PKG.ref); })[0] || {};
     ck = mk(!!I.no_fp || !I.ppn, I.no_fp ? 'Tax invoice' : 'Tax invoice not recorded', true) + mk(!!I.json, I.json ? 'Form data' : 'Legacy invoice (no app form)', true); }
   var nx = apNextItem(PKG.kind + '|' + PKG.ref), more = !!nx;
@@ -2765,7 +2805,7 @@ function invkeShort(s) { return String(s || '').split('(')[0].replace(/[\\\/:*?"
 function archiveMeta(P) {
   var a = P.appr, kode = a && a.status === 'DISETUJUI' && !a.berubah ? a.kode : 'DRAFT', k = P.kind, j = function (L) { return L.filter(String).join('_'); };
   if (k === 'INV') { var i = P.inv, sh = shortInv(i.nomor), base = j([sh, cleanPel(i.pelanggan), invkeShort(i.invke), 'Rev.' + ('0' + (i.rev || 0)).slice(-2)]); return { name: base + '_' + kode, month: String(i.tgl).slice(0, 7), prefix: sh + '_' }; }
-  if (k === 'PAY') { var r = P.rows[0] || {}, n = P.rows.length, sh2 = shortInv(r.nomor) + (n > 1 ? '+' + (n - 1) : ''), lbl = r.pb ? 'Pindah buku' : (/^(LUNAS|CLOSE)/.test(r.status || '') ? 'Pelunasan' : 'Penerimaan ke-' + (r.cicil || 1)), id = String(P.key).replace(/^REF\s+/, 'REF ').replace(/[\\\/:*?"<>|]/g, '-');
+  if (k === 'PAY') { var r = P.rows[0] || {}, n = P.rows.length, sh2 = shortInv(r.nomor) + (n > 1 ? '+' + (n - 1) : ''), lbl = r.pb ? 'Pindah buku' : r.kom ? 'Kompensasi' : (/^(LUNAS|CLOSE)/.test(r.status || '') ? 'Pelunasan' : 'Penerimaan ke-' + (r.cicil || 1)), id = String(P.key).replace(/^REF\s+/, 'REF ').replace(/[\\\/:*?"<>|]/g, '-');
     var b2 = j([sh2, cleanPel(r.pelanggan), lbl, id]); return { name: b2 + '_' + kode, month: String(r.tgl || B.today).slice(0, 7), prefix: b2 + '_' }; }
   if (k === 'KP') { var kk = P.kartu || {}, b3 = j(['KP', String(P.npp).replace(/\s+/g, ''), cleanPel(kk.pelanggan), 'per ' + tg(P.asOf)]); return { name: b3 + '_' + kode, month: String(P.asOf).slice(0, 7), prefix: b3 + '_' }; }
   if (k === 'TUTUP') { var b4 = j([shortInv(P.inv.nomor), cleanPel(P.inv.pelanggan), 'Tutup manual']); return { name: b4 + '_' + kode, month: String(B.today).slice(0, 7), prefix: b4 + '_' }; }
@@ -2949,13 +2989,13 @@ function renderSetuju() {
   // daftar penerimaan per bulan uang diterima (value date); satu kartu per transfer / ID penerimaan
   if ($('pMon') && !$('pMon').options.length) $('pMon').innerHTML = monthOpts(PAY_M);
   var pm = PAY_M === 'CUR' ? B.today.substring(0, 7) : PAY_M, G = {}, order = [];
-  B.payments.forEach(function (p) { if (String(p.tgl || '').substring(0, 7) !== pm) return; var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, appr: p.appr, ids: [] }; order.push(g); }
+  B.payments.forEach(function (p) { if (String(p.tgl || '').substring(0, 7) !== pm) return; var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ids: [] }; order.push(g); }
     g.n += p.pb ? Math.max(0, p.nominal) : p.nominal; if (g.inv.indexOf(short(p.nomor)) < 0) g.inv.push(short(p.nomor)); if (p.idp && g.ids.indexOf(p.idp) < 0) g.ids.push(p.idp); if (p.tgl > g.tgl) g.tgl = p.tgl; });
   order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
-  var cash = order.reduce(function (t, g) { return t + (g.pb ? 0 : g.n); }, 0);
-  if ($('pSum')) $('pSum').innerHTML = '<b>' + monEn(pm) + '</b> · ' + plural(order.length, 'receipt') + ' · ' + rpShort(cash) + ' received' + (order.some(function (g) { return g.pb; }) ? ' (offsets excluded)' : '');
+  var cash = order.reduce(function (t, g) { return t + (g.pb || g.kom ? 0 : g.n); }, 0);
+  if ($('pSum')) $('pSum').innerHTML = '<b>' + monEn(pm) + '</b> · ' + plural(order.length, 'receipt') + ' · ' + rpShort(cash) + ' received' + (order.some(function (g) { return g.pb || g.kom; }) ? ' (offsets & compensations excluded)' : '');
   $('payList').innerHTML = order.length ? order.map(function (g) {
-    return '<div class="card"><h4>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + ' · Rp ' + nfDot(g.n) + (g.pb ? ' <span class="pill">offset</span>' : '') + '</h4><div class="meta">' + esc(tg(g.tgl)) + ' · ' + esc(titleCaseS(g.pel)) + ' · 4C.' + esc(g.inv.join(', 4C.')) + '<br>' + esc(apprEn(g.appr)) + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(g.key) + '">View approval sheet</button></div></div>';
+    return '<div class="card"><h4>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + ' · Rp ' + nfDot(g.n) + (g.pb ? ' <span class="pill">offset</span>' : g.kom ? ' <span class="pill">compensation</span>' : '') + '</h4><div class="meta">' + esc(tg(g.tgl)) + ' · ' + esc(titleCaseS(g.pel)) + ' · 4C.' + esc(g.inv.join(', 4C.')) + '<br>' + esc(apprEn(g.appr)) + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(g.key) + '">View approval sheet</button></div></div>';
   }).join('') : '<div class="ap-empty">No cash receipts recorded in ' + monEn(pm) + '.</div>';
 }
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
@@ -3008,7 +3048,7 @@ function mSumRender() {
   if (P.kind === 'PAY') {
     var R = P.rows, r0 = R[0], tot = R.reduce(function (t, r) { return t + (r.pb ? Math.max(0, r.nominal) : r.nominal); }, 0), S0 = { N: 0, P: 0, h: 0, a: 0 };
     R.forEach(function (r) { S0.N += r.keN || 0; S0.P += r.keP || 0; S0.h += r.pph || 0; S0.a += r.adm || 0; });
-    h += '<div class="ms-card"><h4>' + esc(titleCaseS(r0.pelanggan)) + '</h4><div class="s">' + esc(r0.npp) + ' · ' + (r0.pb ? 'offset / reclass' : esc(r0.rekening || '')) + (r0.ref ? ' · ref ' + esc(r0.ref) : '') + '</div>' +
+    h += '<div class="ms-card"><h4>' + esc(titleCaseS(r0.pelanggan)) + '</h4><div class="s">' + esc(r0.npp) + ' · ' + (r0.pb ? 'offset / reclass' : r0.kom ? 'compensation (no cash)' : esc(r0.rekening || '')) + (r0.ref ? ' · ref ' + esc(r0.ref) : '') + '</div>' +
       '<div class="ms-big">Rp ' + nfDot(tot) + '</div><table class="ms-t">' + tr('Value date', tg(r0.tgl));
     R.forEach(function (r) { h += '<tr class="h"><td colspan="2">' + esc((r.idp ? r.idp + ' · ' : '') + '4C.' + short(r.nomor) + ' · ' + (r.invke || '')) + '</td></tr>' + tr('Amount', nfDot(r.nominal)) + tr('Status after receipt', esc(r.status) + ' · balance ' + nfDot(r.sisa)); });
     h += '<tr class="h"><td colspan="2">Applied to</td></tr>' + tr('→ Net', nfDot(S0.N)) + tr('→ VAT', nfDot(S0.P)) + (S0.h ? tr('WHT recognised', nfDot(S0.h)) : '') + (S0.a ? tr('Bank charge', nfDot(S0.a)) : '') + '</table></div>';

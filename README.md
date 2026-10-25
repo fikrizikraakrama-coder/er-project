@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.6
+## Pemasangan v2.8.7
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -31,6 +31,20 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 Invoice & penerimaan dicatat lewat aplikasi. Ketikan / tempel manual pada kolom terkontrol Monitoring Invoice (kolom isian aplikasi)
 dan Log Penerimaan (semua kecuali KET, NO. DOK SAP, BUKTI POTONG) dicatat di sheet **Jejak Edit Langsung** dan dikirim ke email Section Head.
 Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Perlu trigger `onChangeInstalled` (menu **Aktifkan otomatisasi**).
+
+## v2.8.7: Kompensasi utang–piutang & PPh sesuai bukti potong
+- **Cash Receipts ▸ Compensation** (jenis transaksi `KOMPENSASI` di Log Penerimaan): piutang dilunasi dengan utang perusahaan kepada pelanggan
+  (mis. klaim pemakaian solar yang dipotong dari pembayaran progres). Isi tanggal, **nomor BA / memo** (jadi REF, wajib), invoice, nominal, uraian.
+  - Mengurangi piutang dan tampil di kartu piutang sebagai *"Dikompensasi dengan utang ke pelanggan — …"*.
+  - **Tidak dihitung uang masuk**: tidak masuk INKASO, RA-RI, Overview "received", maupun "Diterima (kas)" di kartu piutang.
+  - Jurnal usulan & memorial: **Utang Usaha (kompensasi) D / Piutang Usaha K** (FB01 · SA). Akun `UTANG_KOMPENSASI` ditambahkan otomatis ke
+    Parameter ▸ Pemetaan Akun SAP saat kompensasi pertama disimpan, dengan GL kosong — **isi GL & kode memorial dari Akuntansi**, lalu hapus kata "konfirmasi". Selama belum diisi, Cek Data mengingatkan.
+  - Lembar pengesahan berjudul *LEMBAR PENGESAHAN KOMPENSASI PIUTANG* (lampiran: BA/memo, bukti potong, kartu piutang, jurnal FB01).
+- **PPh sesuai bukti potong** (kolom baru `PPh DIPOTONG SESUAI BUPOT (OPSIONAL)` di Log Penerimaan, dibuat otomatis saat pertama dipakai): di aplikasi muncul saat *paid in full* dicentang
+  (transfer) atau di tab Compensation. Bila diisi, PPh diakui **sebesar bupot** (bukan hitungan sistem); selisih terhadap hitungan sistem ditulis di keterangan kartu piutang.
+  Kosongkan untuk invoice normal — deteksi otomatis tetap berjalan seperti sebelumnya.
+- Contoh 4C.0141/2026 (WRK, progres 12): setor tunai 5.766.264.127 (transfer biasa) + kompensasi klaim solar 2.187.937.500 (✓ pelunasan, PPh bupot 192.362.268)
+  → KURANG BAYAR ± 365,57 jt (adjustment DPP di BAPP yang tidak dibayar) → selesaikan dengan **TUTUP MANUAL** + alasan, disetujui Section Head.
 
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
 - **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.

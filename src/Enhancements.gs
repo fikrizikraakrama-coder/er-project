@@ -71,37 +71,50 @@ function arValidatePayments_(rows, input) {
   var today = input.today, by = {}, p = computed.params, groups = {}, ctx = computed.ctx;
   ctx.invs.forEach(function(i) { by[ENGINE.normInv(i.nomor)] = i; });
   rows.forEach(function(r,i) {
-    var n = Number(r.nominal), inv = by[ENGINE.normInv(r.inv)], pb = String(r.jenis_trx || '').toUpperCase() === 'PINDAH BUKU';
+    var n = Number(r.nominal), inv = by[ENGINE.normInv(r.inv)], jt = String(r.jenis_trx || '').toUpperCase(), pb = jt === 'PINDAH BUKU', kom = jt === 'KOMPENSASI', px = Number(r.pph_bupot) || 0;
     if (!isFinite(n) || !Number.isSafeInteger(n) || Math.abs(n) > 1e15) throw new Error('Row '+(i+1)+': amount must be a valid whole rupiah value.');
     if (!arValidDate_(r.tgl) || r.tgl > today) throw new Error('Row '+(i+1)+': invalid or future date.');
     if (!inv || inv._batal) throw new Error('Row '+(i+1)+': invoice not found or cancelled.');
     if (inv.tgl && r.tgl < inv.tgl) throw new Error('Payment date is before the invoice date.');
     if (inv._closedManual) throw new Error('The invoice has been manually closed. Reconcile the manual close before recording a new receipt.');
-    if (r.jenis_trx && !pb && String(r.jenis_trx).toUpperCase() !== 'TRANSFER') throw new Error('Unrecognized transaction type.');
+    if (r.jenis_trx && !pb && !kom && jt !== 'TRANSFER') throw new Error('Unrecognized transaction type.');
+    if (kom && !(n > 0)) throw new Error('Row '+(i+1)+': compensation amount must be positive.');
+    if (kom && String(r.ref || '').trim().length < 3) throw new Error('Row '+(i+1)+': enter the compensation BA / memo number as the reference.');
+    if (kom && String(r.rekening || '').trim()) throw new Error('Row '+(i+1)+': a compensation has no receiving bank account.');
+    if (r.pph_bupot !== undefined && r.pph_bupot !== '' && (!isFinite(px) || px < 0 || !Number.isSafeInteger(px))) throw new Error('Row '+(i+1)+': WHT per withholding slip must be a whole rupiah amount ≥ 0.');
+    if (px > 0 && pb) throw new Error('WHT per withholding slip cannot be entered on an offset / reclass row.');
+    if (px > 0 && inv._a && px > inv._a.netto) throw new Error('Row '+(i+1)+': WHT per withholding slip exceeds the invoice net amount.');
     if (r.alokasi && ENGINE.OPT.alokasi.indexOf(String(r.alokasi).toUpperCase()) < 0) throw new Error('Allocation must be OTOMATIS, NETTO or PPN.');
-    if (!pb && !ENGINE.rekOf(p,r.rekening)) throw new Error('Bank account not found in Parameter.');
+    if (!pb && !kom && !ENGINE.rekOf(p,r.rekening)) throw new Error('Bank account not found in Parameter.');
     if (r.transfer !== undefined && r.transfer !== '' && (!isFinite(Number(r.transfer)) || Number(r.transfer) < 0)) throw new Error('Invalid transfer amount.');
     if (String(r.ref || '').toUpperCase() === 'MIGRASI') throw new Error('Reference MIGRASI is reserved for legacy data.');
     if (pb && !String(r.ref || '').trim()) throw new Error('An offset / reclass reference is required.');
-    var key = (pb ? 'PB|' : 'TRF|') + String(r.ref || '_TANPA_REF_').trim(), g = groups[key] || (groups[key] = {pb:pb,rows:[],total:0});
+    var key = (pb ? 'PB|' : kom ? 'KOM|' : 'TRF|') + String(r.ref || '_TANPA_REF_').trim(), g = groups[key] || (groups[key] = {pb:pb,kom:kom,rows:[],total:0});
     g.rows.push(r); g.total += n; r.nominal = n;
   });
   Object.keys(groups).forEach(function(k) {
     var g = groups[k], a = g.rows, first = a[0];
-    if (a.some(function(r) { return r.tgl !== first.tgl || (!g.pb && ENGINE.rekOf(p,r.rekening).label !== ENGINE.rekOf(p,first.rekening).label); })) throw new Error('All rows under one reference must use the same date and bank account.');
+    if (a.some(function(r) { return r.tgl !== first.tgl || (!g.pb && !g.kom && ENGINE.rekOf(p,r.rekening).label !== ENGINE.rekOf(p,first.rekening).label); })) throw new Error('All rows under one reference must use the same date and bank account.');
     if (g.pb) {
       var invoices = {}; a.forEach(function(r) { invoices[r.inv]=1; });
       if (a.length < 2 || Object.keys(invoices).length < 2 || Math.abs(g.total) > 1 || !a.some(function(r){return r.nominal<0;}) || !a.some(function(r){return r.nominal>0;})) throw new Error('Each offset / reclass reference must balance and have different source and target invoices.');
-    } else {
+    } else if (!g.kom) {
       var totals = a.map(function(r) { return Number(r.transfer) || 0; }).filter(function(v){return v>0;});
       if (a.length > 1 && (!String(first.ref || '').trim() || !totals.length)) throw new Error('A split transfer requires a bank reference and the total transfer amount.');
       if (totals.some(function(v) { return Math.abs(v-g.total)>1; })) throw new Error('Total allocations differ from the transfer amount.');
     }
   });
 }
+/** baris UTANG_KOMPENSASI di Parameter ▸ Pemetaan Akun SAP (GL menunggu konfirmasi Akuntansi) */
+function arEnsureAkunKompensasi_() {
+  var par=sheet_('Parameter'); if(!par||norm_(par.getRange('O3').getValue())!=='KODE') return;
+  var ak=par.getRange('O4:O80').getValues().map(function(r){return norm_(r[0]);}),last=3; if(ak.indexOf('UTANG_KOMPENSASI')>=0) return;
+  ak.forEach(function(k,i){if(k)last=4+i;}); if(last>=80) return;
+  par.getRange(last+1,15,1,5).setNumberFormat('@').setValues([['UTANG_KOMPENSASI','Utang Usaha (kompensasi dengan piutang)','','','MOHON KONFIRMASI Akuntansi — akun utang ke pelanggan yang dikompensasi (mis. klaim solar)']]);
+}
 function arPaymentCanonical_(rows) {
   var keys = ENGINE.LOG.cols.filter(function(c) { return colType_(c)==='manual'; }).map(function(c){return c[0];});
-  return JSON.stringify(rows.map(function(r) { return keys.map(function(k) { var v=r[k]; if (['nominal','transfer'].indexOf(k)>=0) return Number(v)||0; return v === undefined || v === null ? '' : String(v).trim(); }); }));
+  return JSON.stringify(rows.map(function(r) { return keys.map(function(k) { var v=r[k]; if (['nominal','transfer','pph_bupot'].indexOf(k)>=0) return Number(v)||0; return v === undefined || v === null ? '' : String(v).trim(); }); }));
 }
 function arSavePayments_(rows, requestId, opt) {
   var access = arRequireMaker_(), lock = arLock_(), saved, npps = [], months = [];
@@ -114,7 +127,11 @@ function arSavePayments_(rows, requestId, opt) {
   if (!/^[A-Za-z0-9_-]{12,100}$/.test(token)) throw new Error('Invalid request ID. Reload the app.');
   lock.waitLock(28000);
   try {
-    var input = readAll_(), sh = sheet_('Log Penerimaan'), map = colMap_(sh,ENGINE.LOG), cols = ENGINE.LOG.cols;
+    var sh = sheet_('Log Penerimaan');
+    // v2.8.7: kolom PPh SESUAI BUPOT & akun UTANG_KOMPENSASI dibuat otomatis saat pertama dipakai
+    if (!colMap_(sh,ENGINE.LOG).pph_bupot && rows.some(function(r){return Number(r.pph_bupot)>0;})) ensureSchema_(sh,ENGINE.LOG,null,4);
+    if (rows.some(function(r){return String(r.jenis_trx||'').toUpperCase()==='KOMPENSASI';})) arEnsureAkunKompensasi_();
+    var input = readAll_(), map = colMap_(sh,ENGINE.LOG), cols = ENGINE.LOG.cols;
     if (!map.request_id || !map.request_hash || !map.request_user) throw new Error('The v2.8 update has not been installed on the spreadsheet.');
     var ix = function(k) { return ENGINE.colIndex(ENGINE.LOG,k); };
     var existing = input.log.filter(function(r) { return String(r[ix('request_id')] || '') === token; });

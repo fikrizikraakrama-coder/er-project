@@ -235,3 +235,43 @@ test('File Pajak: rekap tahunan, buku penjualan per bulan (tanggal faktur), kele
   const dok = ENGINE.pajakReport(ctx, 'DOK').blocks[0].rows;
   assert.strictEqual(dok.length, 3); assert.strictEqual(dok[2][2], 'KU.02.02/WB-4C.0102/2026'); assert.ok(/berkas TTD/.test(dok[2][11]));
 });
+
+test('KOMPENSASI + PPh sesuai bupot: piutang berkurang tanpa masuk kas/inkaso; PPh diakui sebesar bupot; sisa = kurang bayar', () => {
+  // tagihan 111 jt (Netto 100 + PPN 11), PPh sistem 2,65 jt; pelanggan: kas 85,35 jt + kompensasi klaim 20 jt, PPh bupot 2,5 jt, sisa 3,15 jt
+  const input = fixture({ submit: '2026-09-21' });
+  input.log = [
+    row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 85350000, ref: 'BVF-1', rekening: 'MANDIRI 0060097045854' }),
+    row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 20000000, ref: 'MEMO-15/X', jenis_trx: 'KOMPENSASI', ket: 'Klaim solar', lunas: '✓', pph_bupot: 2500000, bupot: 'BP-1' })];
+  const res = ENGINE.compute(input), i = invOf(res), kom = res.ctx.pays[1];
+  assert.deepStrictEqual(kom._cek, []);
+  assert.strictEqual(kom._pph, 2500000);
+  assert.strictEqual(i._res.pot_pph, 2500000);
+  assert.strictEqual(i._res.sisa, 3150000);
+  assert.strictEqual(i._res.status, 'KURANG BAYAR 3.150.000');
+  const k = ENGINE.kartuPlain(res.ctx, NPP, res.ctx.today);
+  assert.strictEqual(k.T.kas, 85350000, 'kompensasi bukan penerimaan kas');
+  assert.strictEqual(k.T.pot, 2500000);
+  const rows = k.groups[0].rows.map(r => r.uraian).join(' | ');
+  assert.match(rows, /Dikompensasi dengan utang ke pelanggan — Klaim solar/);
+  assert.match(rows, /sesuai bukti potong/);
+  // jurnal: utang (D) / piutang (K), tanpa bank
+  const pk = ENGINE.payPackage(res.ctx, 'REF MEMO-15/X'), kode = pk.jurnal[0].lines.map(l => l.nama + ':' + l.debit + ':' + l.kredit);
+  assert.strictEqual(pk.rows[0].rekening, 'KOMPENSASI');
+  assert.ok(kode.includes('UTANG_KOMPENSASI:20000000:0'), kode.join(' '));
+  assert.ok(!kode.some(x => /^BANK/.test(x))); assert.strictEqual(pk.jurnal[0].tcode, 'FB01');
+  // akun lawan belum diisi → temuan Parameter
+  assert.ok(res.issues.some(x => /UTANG_KOMPENSASI/.test(x[2])));
+  // kompensasi wajib REF
+  const in2 = fixture(); in2.log = [row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 1000, jenis_trx: 'KOMPENSASI' })];
+  assert.match(ENGINE.compute(in2).ctx.pays[0]._cek.join(), /KOMPENSASI WAJIB PUNYA REF/);
+});
+
+test('PPh sesuai bupot: kas + PPh bupot = tagihan → LUNAS walau PPh beda dari hitungan sistem; tanpa isian tetap otomatis', () => {
+  const input = fixture({ submit: '2026-09-21' });
+  input.log = [row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 108500000, ref: 'BVF-2', rekening: 'MANDIRI 0060097045854', pph_bupot: 2500000 })];
+  let i = invOf(ENGINE.compute(input));
+  assert.strictEqual(i._res.status, 'LUNAS'); assert.strictEqual(i._res.pot_pph, 2500000); assert.strictEqual(i._res.adm, 0);
+  input.log = [row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 108350000, ref: 'BVF-3', rekening: 'MANDIRI 0060097045854' })];
+  i = invOf(ENGINE.compute(input));
+  assert.strictEqual(i._res.status, 'LUNAS'); assert.strictEqual(i._res.pot_pph, 2650000);
+});

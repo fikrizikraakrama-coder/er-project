@@ -674,7 +674,7 @@ function applyV22() { arRequireMaker_();
   // pilihan (dropdown)
   var lp = ss.getSheetByName('Log Penerimaan'), lm = colMap_(lp, ENGINE.LOG), nR = Math.max(lp.getMaxRows() - ENGINE.LOG.firstRow + 1, 1);
   if (lm.rekening) lp.getRange(ENGINE.LOG.firstRow, lm.rekening, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(V22_REK.map(function (r) { return r[0] + ' ' + r[1]; }), true).setAllowInvalid(true).build());
-  if (lm.jenis_trx) lp.getRange(ENGINE.LOG.firstRow, lm.jenis_trx, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.jenis_trx, true).setAllowInvalid(true).setHelpText('Kosong = transfer biasa. PINDAH BUKU = kompensasi antar invoice (baris − di invoice asal, + di invoice tujuan, REF sama).').build());
+  if (lm.jenis_trx) lp.getRange(ENGINE.LOG.firstRow, lm.jenis_trx, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.jenis_trx, true).setAllowInvalid(true).setHelpText('Kosong = transfer biasa. PINDAH BUKU = antar invoice (baris − di invoice asal, + di invoice tujuan, REF sama). KOMPENSASI = piutang dihapus dengan utang ke pelanggan (REF = no. BA/memo; tidak masuk inkaso).').build());
   var mp = ss.getSheetByName('Master Proyek'), pm = colMap_(mp, ENGINE.MPRO, ENGINE.MPRO_ALIAS);
   if (pm.aktif) mp.getRange(ENGINE.MPRO.firstRow, pm.aktif, Math.max(mp.getMaxRows() - 2, 1), 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.aktif_pro, true).setAllowInvalid(true).setHelpText('SELESAI = proyek selesai & lunas (tidak muncul di aplikasi, tidak dicek kelengkapannya). ARSIP = selesai & lunas sebelum sistem dipakai: semua invoice, penerimaan & tagbrut-nya diabaikan sistem dan barisnya disembunyikan (tidak dihapus).').build());
   var it = ss.getSheetByName('Input Tagbrut');
@@ -1019,9 +1019,9 @@ function payRow_(p) { return ENGINE.LOG.cols.map(function (c) { var v = p[c[0]];
 function checkPayRows_(rows) {
   if (!rows || !rows.length) throw new Error('No payment rows yet.');
   rows.forEach(function (p, i) {
-    var pb = String(p.jenis_trx || '').toUpperCase() === 'PINDAH BUKU', n = Number(p.nominal) || 0;
+    var jt = String(p.jenis_trx || '').toUpperCase(), pb = jt === 'PINDAH BUKU', kom = jt === 'KOMPENSASI', n = Number(p.nominal) || 0;
     if (!p.inv || !p.tgl || !n || (!pb && n < 0)) throw new Error('Row ' + (i + 1) + ': date, invoice number and amount are required (negative amounts only for offset / reclass).');
-    if (!pb && !String(p.rekening || '').trim()) throw new Error('Row ' + (i + 1) + ': select the receiving bank account.');
+    if (!pb && !kom && !String(p.rekening || '').trim()) throw new Error('Row ' + (i + 1) + ': select the receiving bank account.');
     p.inv = ENGINE.normInv(p.inv);
   });
   var pbs = rows.filter(function (p) { return String(p.jenis_trx || '').toUpperCase() === 'PINDAH BUKU'; });
@@ -1410,6 +1410,7 @@ var V2_AKUN = [
   ['PPH_23', 'PPh Pasal 23 Wajib Bayar', '1110141000', '1110141000', 'PPh 23 sewa alat (JL)'],
   ['BANK', 'Bank Mandiri 166-0004-4934-17', '1101211187', '1101211187', 'Rekening penerimaan unit'],
   ['BEBAN_ADM_BANK', 'Proses Penagihan Piutang Usaha', '6401140001', '6401140001', 'MOHON KONFIRMASI Akuntansi (alternatif 6311071003)'],
+  ['UTANG_KOMPENSASI', 'Utang Usaha (kompensasi dengan piutang)', '', '', 'MOHON KONFIRMASI Akuntansi — akun utang ke pelanggan yang dikompensasi (mis. klaim solar)'],
   ['CKPN_PIUTANG_USAHA', 'Akumulasi Penyisihan Piutang Usaha', '1104119000', '1104219000', ''],
   ['CKPN_RETENSI', 'Cad. Kerugian Penurunan Nilai Piutang Retensi', '1105112000', '1105212000', ''],
   ['CKPN_TAGBRUT', 'Cad. KPN Pendapatan Yang Diperhitungkan', '1109112000', '1109122000', ''],
