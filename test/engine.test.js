@@ -244,7 +244,8 @@ test('KOMPENSASI + PPh sesuai bupot: piutang berkurang tanpa masuk kas/inkaso; P
     row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 20000000, ref: 'MEMO-15/X', jenis_trx: 'KOMPENSASI', ket: 'Klaim solar', lunas: '✓', pph_bupot: 2500000, bupot: 'BP-1' })];
   const res = ENGINE.compute(input), i = invOf(res), kom = res.ctx.pays[1];
   assert.deepStrictEqual(kom._cek, []);
-  assert.strictEqual(kom._pph, 2500000);
+  assert.strictEqual(kom._pph, 0, 'PPh tidak di baris kompensasi');
+  assert.strictEqual(res.ctx.pays[0]._pph, 2500000, 'PPh di penerimaan kas'); assert.strictEqual(res.ctx.pays[0]._bupotNo, 'BP-1');
   assert.strictEqual(i._res.pot_pph, 2500000);
   assert.strictEqual(i._res.sisa, 3150000);
   assert.strictEqual(i._res.status, 'KURANG BAYAR 3.150.000');
@@ -256,6 +257,7 @@ test('KOMPENSASI + PPh sesuai bupot: piutang berkurang tanpa masuk kas/inkaso; P
   assert.match(rows, /sesuai bukti potong/);
   // jurnal: utang (D) / piutang (K), tanpa bank
   const pk = ENGINE.payPackage(res.ctx, 'REF MEMO-15/X'), kode = pk.jurnal[0].lines.map(l => l.nama + ':' + l.debit + ':' + l.kredit);
+  assert.deepStrictEqual(kode, ['UTANG_KOMPENSASI:20000000:0', 'PIUTANG_USAHA:0:20000000'], 'jurnal kompensasi tanpa PPh');
   assert.strictEqual(pk.rows[0].rekening, 'KOMPENSASI');
   assert.ok(kode.includes('UTANG_KOMPENSASI:20000000:0'), kode.join(' '));
   assert.ok(!kode.some(x => /^BANK/.test(x))); assert.strictEqual(pk.jurnal[0].tcode, 'FB01');
@@ -290,6 +292,10 @@ test('ADJUSTMENT DPP (dasar PPN saja): DPP faktur tetap, piutang & PPh dari DPP 
   const k = ENGINE.kartuPlain(res.ctx, NPP, res.ctx.today);
   assert.match(k.groups[0].rows[0].uraian, /adjustment DPP 365\.569\.857 hanya dasar PPN/);
   assert.strictEqual(k.T.kas, 5766264127);
+  const [cash, kom] = res.ctx.pays;
+  assert.strictEqual(cash._pph, 192362268); assert.strictEqual(kom._pph, 0); assert.strictEqual(kom._adm, 0);
+  // posisi sebelum kompensasi: PPh belum diakui
+  assert.strictEqual(ENGINE.invAt(i, '2026-10-10', res.ctx.params).paid.length, 2);
 });
 
 test('TTD basah: jenis bawaan INV/PAY/KP/REK, TIDAK mematikan; status DISETUJUI tanpa nama Section Head', () => {

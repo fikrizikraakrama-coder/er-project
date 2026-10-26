@@ -40,6 +40,8 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
   - Jurnal usulan & memorial: **Utang Usaha (kompensasi) D / Piutang Usaha K** (FB01 · SA). Akun `UTANG_KOMPENSASI` ditambahkan otomatis ke
     Parameter ▸ Pemetaan Akun SAP saat kompensasi pertama disimpan, dengan GL kosong — **isi GL & kode memorial dari Akuntansi**, lalu hapus kata "konfirmasi". Selama belum diisi, Cek Data mengingatkan.
   - Lembar pengesahan berjudul *LEMBAR PENGESAHAN KOMPENSASI PIUTANG* (lampiran: BA/memo, bukti potong, kartu piutang, jurnal FB01).
+- Baris KOMPENSASI tidak pernah memikul PPh / adm: bila kompensasi yang menuntaskan invoice, PPh (dan nomor bupot) diakui pada **penerimaan kas terakhir**
+  (jurnal F-28), kompensasi hanya Utang kompensasi / Piutang (FB01).
 - **PPh sesuai bukti potong** (kolom baru `PPh DIPOTONG SESUAI BUPOT (OPSIONAL)` di Log Penerimaan, dibuat otomatis saat pertama dipakai): di aplikasi muncul saat *paid in full* dicentang
   (transfer) atau di tab Compensation. Bila diisi, PPh diakui **sebesar bupot** (bukan hitungan sistem); selisih terhadap hitungan sistem ditulis di keterangan kartu piutang.
   Kosongkan untuk invoice normal — deteksi otomatis tetap berjalan seperti sebelumnya.

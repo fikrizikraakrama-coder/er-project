@@ -489,10 +489,25 @@ var ENGINE = (function () {
       var fl = inv._pays.filter(function (p) { return S(p.lunas); });
       if (fl.length) { var lp = fl[fl.length - 1], ns2 = a.netto - keN; settle = { i: inv._pays.indexOf(lp), tgl: lp.tgl, pot: Math.max(0, Math.min(a.pph, ns2)), adm: 0, sel: 0, kurang: true }; lp._pph = settle.pot; }
     }
+    if (settle) settle = pphKeKas(inv, settle);
     inv._settle = settle;
     return { keP: keP, keN: keN, admMax: admMax };
   }
 
+  /** v2.8.7: PPh, selisih PPh & adm melekat pada invoice dan dicatat bersama PENERIMAAN KAS (F-28), bukan pada baris KOMPENSASI —
+   *  bila yang menuntaskan invoice adalah kompensasi, pengakuan dipindah ke penerimaan kas terakhir sebelumnya (bukti potong ikut) */
+  function pphKeKas(inv, settle) {
+    var sp = inv._pays[settle.i]; if (!sp || !sp._kom) return settle;
+    for (var j = settle.i - 1; j >= 0; j--) {
+      var q = inv._pays[j]; if (q._nk || !(q.nominal > 0)) continue;
+      q._pph = sp._pph || 0; q._adm = sp._adm || 0; q._sel = sp._sel || 0; sp._pph = 0; sp._adm = 0; sp._sel = 0;
+      if (!S(q.bupot) && S(sp.bupot)) q._bupotNo = S(sp.bupot);
+      if (!(q.pph_bupot > 0) && sp.pph_bupot > 0) q._pphBupot = sp.pph_bupot;
+      settle.i = j; settle.tgl = q.tgl; settle.dariKom = sp.idp; return settle;
+    }
+    return settle;
+  }
+  function bupotOf(p) { return S(p.bupot) || S(p._bupotNo); }
   /** posisi satu invoice per tanggal tertentu (untuk CKPN, rekon, kartu per tanggal) */
   function invAt(inv, C, params) {
     var a = inv._a, TOL = N(params.TOL_PEMBULATAN);
@@ -747,9 +762,10 @@ var ENGINE = (function () {
       }
       // invoice lunas tetapi porsi Netto belum pernah "selesai" (mis. alokasi manual) → PPh diakui pada pembayaran terakhir
       if (res.closed && !inv._batal && /^(LUNAS|CLOSE –)/.test(res.status) && !inv._settle && inv._pays.length) {
-        var lp = inv._pays[inv._pays.length - 1];
+        var lpi = inv._pays.length - 1; for (var li = lpi; li >= 0; li--) if (!inv._pays[li]._nk && inv._pays[li].nominal > 0) { lpi = li; break; } // utamakan penerimaan kas
+        var lp = inv._pays[lpi];
         lp._pph = res.pot_pph; lp._adm = res.adm; lp._sel = res.sel_pph;
-        inv._settle = { i: inv._pays.length - 1, tgl: lp.tgl, pot: res.pot_pph, adm: res.adm, sel: res.sel_pph };
+        inv._settle = { i: lpi, tgl: lp.tgl, pot: res.pot_pph, adm: res.adm, sel: res.sel_pph };
       }
       if (/^KURANG BAYAR \d/.test(res.status)) issues.push(['STATUS', REG.sheet, inv.nomor, res.status + ' (pelunasan sudah ditandai)', 'Bila kekurangan ditagih lewat berita acara / memo: isi NO. BA / MEMO. Bila dikompensasi invoice lain: catat PINDAH BUKU. Bila direlakan: TUTUP MANUAL + alasan.']);
       if (res.status === 'KURANG BAYAR – DITAGIH VIA BA/MEMO' && /BELUM DIISI/i.test(S(inv.ba_no))) issues.push(['STATUS', REG.sheet, inv.nomor, 'Nomor BA / memo penagihan kekurangan belum diisi', 'Isi NO. BA / MEMO dan TGL BA / MEMO']);
@@ -920,9 +936,9 @@ var ENGINE = (function () {
           if (p._keN > 0) { kN++; sN -= p._keN; o({ kind: 'pay', uraian: 'Penerimaan Netto' + bk + (nN > 1 ? ' (cicilan ke-' + kN + ')' : ''), kredit: p._keN }); }
           if (p._keP > 0) { sP -= p._keP; o({ kind: 'pay', uraian: 'Penerimaan PPN' + bk, kredit: p._keP }); }
         }
-        if (p._pph) { sN -= p._pph; pphNanti = false; o({ kind: 'pot', uraian: 'Dipotong ' + pphLabel(i.npp, a.tarif) + (p.pph_bupot > 0 ? ' — sesuai bukti potong' : ''), ref: S(p.bupot) ? 'Bupot ' + S(p.bupot) : 'bukti potong', kredit: p._pph,
-          ket: p.pph_bupot > 0 && Math.abs(p._pph - a.pph) > 1 ? 'PPh hitungan sistem Rp ' + fmtRp(a.pph) + ' (selisih ' + fmtRp(p._pph - a.pph) + ')' : '' }); }
-        if (p._sel) { sN -= p._sel; pphNanti = false; o({ kind: 'pot', uraian: 'Selisih PPh (dasar potong pelanggan berbeda)', ref: S(p.bupot) ? 'Bupot ' + S(p.bupot) : 'bukti potong', kredit: p._sel }); }
+        if (p._pph) { sN -= p._pph; pphNanti = false; o({ kind: 'pot', uraian: 'Dipotong ' + pphLabel(i.npp, a.tarif) + (p.pph_bupot > 0 || p._pphBupot ? ' — sesuai bukti potong' : ''), ref: bupotOf(p) ? 'Bupot ' + bupotOf(p) : 'bukti potong', kredit: p._pph,
+          ket: (p.pph_bupot > 0 || p._pphBupot) && Math.abs(p._pph - a.pph) > 1 ? 'PPh hitungan sistem Rp ' + fmtRp(a.pph) + ' (selisih ' + fmtRp(p._pph - a.pph) + ')' : '' }); }
+        if (p._sel) { sN -= p._sel; pphNanti = false; o({ kind: 'pot', uraian: 'Selisih PPh (dasar potong pelanggan berbeda)', ref: bupotOf(p) ? 'Bupot ' + bupotOf(p) : 'bukti potong', kredit: p._sel }); }
         if (p._adm) { sN -= p._adm; o({ kind: 'pot', uraian: 'Biaya administrasi bank', kredit: p._adm }); }
       });
       if (i._closedManual && (!i._res.tgl_tutup || i._res.tgl_tutup <= C) && Math.abs(sN + sP) > 0) {
@@ -1949,7 +1965,7 @@ var ENGINE = (function () {
       var rows = [];
       L.forEach(function (q) {
         var i = q._inv, base = (q._pb ? 'PINDAH BUKU ' : q._kom ? 'KOMPENSASI ' : 'PENERIMAAN ') + lblMemo(i) + ' ' + produkOf(i) + ' ' + invShort(i.nomor) + ', ' + tglMemo(q.tgl);
-        var rr = memoRowsFromLines(ctx, jPayment(ctx, q).lines, base, function (k) { return k === 'PIUTANG_PPN' ? fpFmt(i.no_fp) : (k === 'PPH_FINAL' || k === 'PPH_23') && S(q.bupot) ? 'BUPOT ' + S(q.bupot) : ''; });
+        var rr = memoRowsFromLines(ctx, jPayment(ctx, q).lines, base, function (k) { return k === 'PIUTANG_PPN' ? fpFmt(i.no_fp) : (k === 'PPH_FINAL' || k === 'PPH_23') && bupotOf(q) ? 'BUPOT ' + bupotOf(q) : ''; });
         rr.forEach(function (r) { r.npp = i.npp; r.pelanggan = i.pelanggan; r.produk = produkOf(i); r.inv = i.nomor; });
         rows = rows.concat(rr);
       });
@@ -2907,7 +2923,7 @@ var ENGINE = (function () {
     var out = [];
     ctx.pays.forEach(function(p) {
       var i = p._inv, x = (p._pph || 0) + (p._sel || 0);
-      if (!i || i._batal || x <= 0 || S(p.bupot)) return;
+      if (!i || i._batal || x <= 0 || bupotOf(p)) return;
       out.push([i.pelanggan, i.npp, i.nomor, p.tgl, S(p.ref), pphLabel(i.npp, i._a.tarif), rnd(x), diffDays(ctx.today, p.tgl), p.idp || '']);
     });
     return out.sort(function(a, b) { return b[7] - a[7]; });
