@@ -302,3 +302,22 @@ test('TTD basah: jenis bawaan INV/PAY/KP/REK, TIDAK mematikan; status DISETUJUI 
   assert.strictEqual(d.autoBasah, true); assert.strictEqual(d.appr.basah, true);
   assert.strictEqual(d.appr.teks, '✓ DISETUJUI 2026-10-13 · TTD basah Section Head');
 });
+
+test('Serah terima Akuntansi: dokumen disahkan muncul di daftar belum diserahkan, hilang setelah dicatat; disahkan ulang → serahkan lagi', () => {
+  const input = fixture({ submit: '2026-09-21' }), k = ENGINE.normInv(NOMOR);
+  let ctx = ENGINE.compute(input).ctx; assert.strictEqual(ENGINE.handoverData(ctx).pending.length, 0, 'belum disahkan → tidak didaftar');
+  const fp = ENGINE.packageFor(ctx, 'INV', NOMOR).fp;
+  input.approvals = [row(ENGINE.APPR, { id: 'APV-00001', waktu: '2026-10-08 09:00', jenis: 'PAKET INVOICE', ref: k, sidik: fp, oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_waktu: '2026-10-08 09:00', kode: 'AAAAA-BBBBB', catatan: ENGINE.TTD_BASAH_TAG })];
+  let res = ENGINE.compute(input), h = ENGINE.handoverData(res.ctx);
+  assert.strictEqual(h.pending.length, 1); assert.strictEqual(h.pending[0].apv, 'APV-00001'); assert.strictEqual(h.pending[0].umur, 5);
+  assert.strictEqual(res.regOut[0].serah, 'BELUM DISERAHKAN');
+  assert.ok(res.issues.some(x => x[0] === 'SERAH TERIMA'));
+  assert.strictEqual(ENGINE.hoNextNo(res.ctx), 'STD-2026-10-001');
+  input.handover = [row(ENGINE.HO, { no: 'STD-2026-10-001', tgl: '2026-10-09', jenis: 'INV', ref: k, apv: 'APV-00001', status: 'DISERAHKAN' })];
+  res = ENGINE.compute(input); h = ENGINE.handoverData(res.ctx);
+  assert.strictEqual(h.pending.length, 0); assert.strictEqual(res.regOut[0].serah, '✓ DISERAHKAN 09-10-2026 · STD-2026-10-001');
+  assert.strictEqual(h.history[0].n, 1); assert.strictEqual(ENGINE.hoNextNo(res.ctx), 'STD-2026-10-002');
+  input.approvals.push(row(ENGINE.APPR, { id: 'APV-00002', waktu: '2026-10-10 09:00', jenis: 'PAKET INVOICE', ref: k, sidik: fp, oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_waktu: '2026-10-10 09:00', catatan: ENGINE.TTD_BASAH_TAG }));
+  res = ENGINE.compute(input); h = ENGINE.handoverData(res.ctx);
+  assert.strictEqual(h.pending.length, 1); assert.strictEqual(h.pending[0].ulang, 'STD-2026-10-001'); assert.match(res.regOut[0].serah, /DISAHKAN ULANG APV-00002/);
+});

@@ -207,6 +207,7 @@ function readAll_() {
     tagbrut: readSchema_(it, ENGINE.TAG), notes: readSchema_(it, ENGINE.NOTE),
     approvals: readSchema_(ss.getSheetByName('Log Persetujuan'), ENGINE.APPR),
     surat: readSchema_(ss.getSheetByName(ENGINE.SURAT.sheet), ENGINE.SURAT),
+    handover: readSchema_(ss.getSheetByName(ENGINE.HO.sheet), ENGINE.HO),
     lk: readLK_(), selectors: sel,
     memo: ss.getSheetByName(ENGINE.MEMO.sheet) ? readSchema_(ss.getSheetByName(ENGINE.MEMO.sheet), ENGINE.MEMO) : undefined,
     peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF),
@@ -247,7 +248,7 @@ function rebuildAll_(opt) {
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)
-    try { if (arProps_().getProperty('REG_ADJ_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); arProps_().setProperty('REG_ADJ_V287', '1'); } } catch (err) { }
+    try { if (arProps_().getProperty('REG_HO_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'), lp7 = ss.getSheetByName('Log Penerimaan'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); if (lp7) ensureSchema_(lp7, ENGINE.LOG, null, 4); arProps_().setProperty('REG_HO_V287', '1'); } } catch (err) { }
     var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
     var stamp = 'Diperbarui otomatis: ' + Utilities.formatDate(new Date(), TZ, 'dd MMM yyyy HH:mm') + ' · Sistem AR CSU v' + ENGINE.VERSION + ' · dirancang & dikembangkan oleh ' + PENGEMBANG +
       (aktif ? '' : '   ⚠ OTOMATISASI BELUM AKTIF — jalankan menu AR CSU ▸ Aktifkan otomatisasi agar pilihan bulan/NPP langsung memperbarui laporan');
@@ -2100,4 +2101,45 @@ function moveValPdfs_(P, ref) {
   take(folder);
   var rl = folder.getFoldersByName('Revisi lama'); if (rl.hasNext()) take(rl.next());
   return n;
+}
+
+// =====================================================================  v2.8.7: SERAH TERIMA DOKUMEN KE AKUNTANSI
+function apiHandoverData() { arRequireAccess_();
+  var res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), R = ENGINE.roles(res.params);
+  d.penerima = R.PENERIMA ? R.PENERIMA.nama : ''; d.nextNo = ENGINE.hoNextNo(res.ctx);
+  return plain_(d);
+}
+/** catat satu lembar tanda terima untuk dokumen terpilih (hanya yang sudah disahkan & belum diserahkan) */
+function apiHandoverCreate(items, opt) { var acc = arRequireMaker_(); opt = opt || {};
+  if (!items || !items.length) throw new Error('Select at least one document.');
+  var lock = arLock_(), out; lock.waitLock(28000);
+  try {
+    var ss = arSpreadsheet_(), res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), want = {};
+    items.forEach(function (x) { want[String(x.jenis) + '|' + String(x.ref)] = 1; });
+    var L = d.pending.filter(function (x) { return want[x.jenis + '|' + x.ref]; });
+    if (!L.length) throw new Error('The selected documents were already handed over or are no longer approved. Reload the list.');
+    var sh = ss.getSheetByName(ENGINE.HO.sheet);
+    if (!sh) sh = setupDataSheet_(ss, ENGINE.HO, 'SERAH TERIMA DOKUMEN KE AKUNTANSI', 'Dibuat aplikasi (Month-End Close ▸ Handover to Accounting). Satu baris per dokumen; satu NO. SERAH TERIMA per lembar tanda terima yang ditandatangani Akuntansi. Jangan diubah manual — batalkan lewat aplikasi.', 'Log Persetujuan', '#137C8B').sh || ss.getSheetByName(ENGINE.HO.sheet);
+    var map = colMap_(sh, ENGINE.HO), no = ENGINE.hoNextNo(res.ctx), tgl = res.ctx.today, R = ENGINE.roles(res.params), pen = String(opt.penerima || (R.PENERIMA ? R.PENERIMA.nama : '')).trim().slice(0, 80);
+    var lc = Math.max(sh.getLastColumn(), ENGINE.HO.cols.length), row = lastDataRow_(sh, ENGINE.HO.firstRow, [map.no, map.ref]) + 1; roomFor_(sh, row + L.length - 1);
+    var vals = L.map(function (x) { var o = { no: no, tgl: tgl, jenis: x.jenis, ref: x.ref, label: x.label, pelanggan: x.pelanggan, nilai: x.nilai, apv: x.apv, kode: x.kode, oleh: acc.email, penerima: pen, status: 'DISERAHKAN', catatan: x.ulang ? 'Disahkan ulang — menggantikan ' + x.ulang : '' };
+      var a = []; for (var k = 0; k < lc; k++) a.push(''); ENGINE.HO.cols.forEach(function (c) { var j = map[c[0]]; if (j) a[j - 1] = arSafeCell_(toCell_(o[c[0]], colFmt_(c))); }); return a; });
+    sh.getRange(row, 1, vals.length, lc).setValues(vals);
+    out = { ok: true, no: no, tgl: tgl, penerima: pen, oleh: acc.email, rows: L };
+  } finally { lock.releaseLock(); }
+  out.background = arQueueAfterSave_().background; // kolom SERAH TERIMA AKUNTANSI di Monitoring Invoice & Log Penerimaan
+  return plain_(out);
+}
+/** batalkan satu lembar serah terima (salah cetak / belum jadi diserahkan) — baris tidak dihapus, STATUS = BATAL */
+function apiHandoverCancel(no, alasan) { arRequireMaker_();
+  alasan = String(alasan || '').trim(); if (alasan.length < 5) throw new Error('Enter a reason (at least 5 characters).');
+  var lock = arLock_(), n = 0; lock.waitLock(28000);
+  try {
+    var sh = sheet_(ENGINE.HO.sheet); if (!sh) throw new Error('No handover records yet.');
+    var map = colMap_(sh, ENGINE.HO), last = sh.getLastRow(); if (last < ENGINE.HO.firstRow) throw new Error('Handover ' + no + ' not found.');
+    var nos = sh.getRange(ENGINE.HO.firstRow, map.no, last - ENGINE.HO.firstRow + 1, 1).getValues();
+    nos.forEach(function (r, i) { if (String(r[0]).trim() === String(no)) { var rr = ENGINE.HO.firstRow + i; sh.getRange(rr, map.status).setValue('BATAL'); sh.getRange(rr, map.catatan).setNumberFormat('@').setValue(('BATAL ' + arNow_() + ': ' + alasan).slice(0, 300)); n++; } });
+    if (!n) throw new Error('Handover ' + no + ' not found.');
+  } finally { lock.releaseLock(); }
+  var q = arQueueAfterSave_(); return { ok: true, n: n, background: q.background };
 }

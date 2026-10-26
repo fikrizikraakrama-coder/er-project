@@ -59,6 +59,12 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Serah terima dokumen ke Akuntansi** (Month-End Close ▸ *Handover to Accounting*): daftar invoice & penerimaan yang sudah **disahkan** tetapi belum diserahkan
+  (dengan penanda No. Dok SAP & verifikasi memorial). Pilih → *Create handover sheet* → cetak **Tanda Terima Dokumen ke Akuntansi** (STD-yyyy-mm-###), Akuntansi
+  menandatangani & mencentang setiap dokumen. Tercatat di sheet **Serah Terima Akuntansi** (dibuat otomatis) dan kolom **SERAH TERIMA AKUNTANSI** di Monitoring Invoice &
+  Log Penerimaan. Dokumen yang disahkan ulang setelah diserahkan muncul lagi ("serahkan lagi"). Belum diserahkan > 3 hari → Cek Data. Salah cetak: *Cancel* (baris tetap, STATUS BATAL).
+  Alur pemeriksaan per dokumen: Disahkan → Diserahkan → VERIF memorial Akuntansi → No. Dok SAP → Rekonsiliasi Saldo.
+
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
 - **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.
 - **Document filing** (Invoice Register ▸ *Document filing…* atau tombol di lembar invoice): unggah **Signed billing pack** (invoice, kwitansi, BAP, sertifikat pembayaran ber-TTD; PDF/JPG/PNG maks. 10 MB) dan **Tax invoice (e-Faktur)** (PDF Coretax).

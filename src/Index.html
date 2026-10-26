@@ -226,6 +226,10 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .apTabs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.apTab{border:1px solid #C9D3DF;background:#fff;border-radius:16px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#33475B}.apTab b{margin-left:3px;color:#0F6E78}.apTab.on{background:#E3F1F2;border-color:#0F6E78;color:#0B4F56;font-weight:600}
 .pg-flow .ajx{font-size:6.4pt;color:#5B6B80;font-style:italic;margin:0 0 .6mm}
 .pg-flow .ajx.wt{color:#9C6500}
+.hoall{margin:8px 0 4px;font-size:12px}.holist{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.hoit{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-bottom:1px solid #EEF1F5;font-size:12px;margin:0;cursor:pointer}.hoit:last-child{border-bottom:0}.hoit .m{color:var(--steel);font-size:11px}
+.hof{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin:2px 4px 0 0}.hof.y{background:#E6F4EA;color:#1E7B45}.hof.n{background:#F1F3F6;color:#6B7A90}
+.hoh{margin:12px 0 4px;font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:.04em}.hob{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px dashed #E3E8EF;flex-wrap:wrap}
 .pg-flow .ajx.bs{font-style:normal;color:#6B7A90;margin-top:.6mm;line-height:1.3}
 .pg-flow .stamp.bad{border-color:#B42318;color:#B42318;background:#FDECEA}
 .pg-flow .stamp.wait{border-color:#9C6500;color:#5C3D00;background:#FFF4D6}
@@ -751,6 +755,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div class="scroll" id="mode-dok" hidden>
       <label for="mSel">Month</label><select id="mSel"></select>
       <fieldset><legend>Documents this month</legend><div id="dokList"></div></fieldset>
+      <fieldset><legend>Handover to Accounting</legend><div id="hoBox"><div class="note">Loading…</div></div></fieldset>
       <fieldset><legend>Project ledger (signed by AR Officer &amp; Section Head)</legend>
         <label for="kNpp">Project</label><input id="kNpp" list="dlNpp" placeholder="type NPP or project name"><datalist id="dlNpp"></datalist>
         <div class="row" style="margin-top:2px"><div><label for="kTgl">As of</label><input id="kTgl" type="date"></div><div style="display:flex;align-items:flex-end"><button class="btn" type="button" id="btnKp" style="width:100%">Open project ledger</button></div></div>
@@ -3094,7 +3099,7 @@ function navOpen() { }
 function navBadges() {
   if (!B || !$('tbNav')) return;
   var maker = !!(B.access && B.access.maker), A = apModel(), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
-  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() : 0;
+  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0;
   [['apBadge', ap], ['dokBadge', dk], ['penBadge', sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
   $('tbBellDot').hidden = !ap;
   $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
@@ -3126,7 +3131,62 @@ function renderDok(quiet) {
     card('Collection Plan Validation Sheet', 'planned cash receipts for the month', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="openPackage(\'VAL\',$(\'mSel\').value)">Open</button>') +
     card('Monthly Accounting Summary', 'invoices issued, cash receipts, CKPN', dokStatus(B.DOC.REK, m), '<button class="btn sm" type="button" onclick="openPackage(\'REK\',$(\'mSel\').value)">Open</button>') +
     card('Monthly AR Analysis', 'for the monthly meeting · created after month-end close', anSt, anBtn);
+  if (!quiet) hoLoad();
   if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'failed to load' }; renderDok(true); });
+}
+/* ====================================================== v2.8.7: serah terima dokumen ke Akuntansi */
+var HO = { d: null, sel: {}, last: null };
+function hoKey(x) { return x.jenis + '|' + x.ref; }
+function hoLoad() {
+  call('apiHandoverData', [], function (d) { HO.d = d; HO.sel = {}; d.pending.forEach(function (x) { HO.sel[hoKey(x)] = true; }); B.hoPending = d.pending.length; navBadges(); hoRender(); },
+    function (e) { $('hoBox').innerHTML = '<div class="note err">Failed to load: ' + esc(e.message || e) + '</div>'; });
+}
+function hoRender() {
+  var d = HO.d, maker = !!(B.access && B.access.maker); if (!d || !$('hoBox')) return;
+  var P = d.pending, nSel = P.filter(function (x) { return HO.sel[hoKey(x)]; }), tot = nSel.reduce(function (t, x) { return t + x.nilai; }, 0);
+  var flag = function (ok, t) { return '<span class="hof ' + (ok ? 'y' : 'n') + '">' + t + ' ' + (ok ? '✓' : '–') + '</span>'; };
+  var h = '<div class="note' + (P.length ? ' warn' : ' ok') + '">' + (P.length ? '<b>' + plural(P.length, 'approved document') + ' not yet handed over</b>' + (P.some(function (x) { return x.umur > 3; }) ? ' · ' + P.filter(function (x) { return x.umur > 3; }).length + ' older than 3 days' : '') : 'All approved invoices &amp; receipts have been handed over to Accounting.') + '</div>';
+  if (P.length) {
+    h += '<label class="inline hoall"><input type="checkbox" id="hoAll"' + (nSel.length === P.length ? ' checked' : '') + ' style="width:auto"> Select all</label><div class="holist">' + P.map(function (x) {
+      return '<label class="hoit"><input type="checkbox" data-ho="' + esc(hoKey(x)) + '"' + (HO.sel[hoKey(x)] ? ' checked' : '') + ' style="width:auto"><span><b>' + (x.jenis === 'INV' ? 'Invoice' : 'Receipt') + '</b> ' + esc(x.label.replace(/^KU\.02\.02\/WB-4C\./, '')) +
+        '<br><span class="m">' + esc(titleCaseS(x.pelanggan)) + ' · Rp ' + nfDot(x.nilai) + ' · approved ' + esc(tg(x.disahkan)) + ' (' + (x.umur ? x.umur + ' d' : 'today') + ') · ' + esc(x.apv) + (x.ulang ? ' · <b style="color:var(--red)">re-approved, replaces ' + esc(x.ulang) + '</b>' : '') + '</span>' +
+        '<br>' + flag(!!x.sap, 'SAP doc') + (x.memo === null ? '' : flag(/^✓/.test(x.memo || ''), 'memorial verified')) + '</span></label>'; }).join('') + '</div>';
+    if (maker) h += '<div class="row" style="margin-top:8px"><div><label for="hoPen">Received by (Accounting)</label><input id="hoPen" value="' + esc(d.penerima || '') + '"></div><div style="display:flex;align-items:flex-end"><button class="btn primary" type="button" id="hoMake" style="width:100%"' + (nSel.length ? '' : ' disabled') + '>Create handover sheet (' + nSel.length + ' · ' + rpShort(tot) + ')</button></div></div>';
+  }
+  if (d.history.length) h += '<div class="hoh">Recent handover sheets</div>' + d.history.slice(0, 8).map(function (b) {
+    return '<div class="hob"><span><b>' + esc(b.no) + '</b> · ' + esc(tg(b.tgl)) + ' · ' + plural(b.n, 'doc') + ' · ' + rpShort(b.nilai) + (b.batal ? ' · <span style="color:var(--red)">' + b.batal + ' cancelled</span>' : '') + '</span><span><button class="linkbtn" type="button" data-hov="' + esc(b.no) + '">View / print</button>' +
+      (maker && b.n ? ' · <button class="linkbtn" type="button" data-hox="' + esc(b.no) + '" style="color:var(--red)">Cancel</button>' : '') + '</span></div>'; }).join('');
+  $('hoBox').innerHTML = h;
+  $('hoBox').querySelectorAll('[data-ho]').forEach(function (c) { c.onchange = function () { HO.sel[c.dataset.ho] = c.checked; hoRender(); }; });
+  if ($('hoAll')) $('hoAll').onchange = function () { var on = this.checked; P.forEach(function (x) { HO.sel[hoKey(x)] = on; }); hoRender(); };
+  if ($('hoMake')) $('hoMake').onclick = hoCreate;
+  $('hoBox').querySelectorAll('[data-hov]').forEach(function (b) { b.onclick = function () { var x = d.history.filter(function (y) { return y.no === b.dataset.hov; })[0]; if (x) hoShow({ no: x.no, tgl: x.tgl, penerima: x.penerima, oleh: x.oleh, rows: x.rows.filter(function (r) { return r.status !== 'BATAL'; }) }); }; });
+  $('hoBox').querySelectorAll('[data-hox]').forEach(function (b) { b.onclick = function () {
+    confirmDlg('Cancel handover ' + esc(b.dataset.hox), 'The sheet is not deleted; its documents return to "not yet handed over". Use this only if the sheet was not given to Accounting or was printed by mistake.<textarea id="dlgNote" placeholder="reason"></textarea>', 'Cancel handover', function () {
+      call('apiHandoverCancel', [b.dataset.hox, (($('dlgNote') || {}).value || '').trim()], function (r) { toast('Handover ' + b.dataset.hox + ' cancelled.'); bgReports(); hoLoad(); }, function (e) { toast(e.message || e); });
+    }); }; });
+}
+function hoCreate() {
+  var P = HO.d.pending.filter(function (x) { return HO.sel[hoKey(x)]; }); if (!P.length) return;
+  var b = $('hoMake'); b.disabled = true; b.innerHTML = '<span class="bgspin"></span>Recording…';
+  call('apiHandoverCreate', [P.map(function (x) { return { jenis: x.jenis, ref: x.ref }; }), { penerima: ($('hoPen') || {}).value || '' }], function (r) {
+    toast('Handover ' + r.no + ' recorded (' + r.rows.length + ' documents). Print it and ask Accounting to sign.'); bgReports(); hoShow(r); hoLoad();
+  }, function (e) { toast(e.message || e); hoRender(); });
+}
+function hoShow(b) { HO.last = b; document.body.classList.add('m-view'); var w = $('sheetwrap'); w.style.transform = '';
+  w.innerHTML = '<div style="display:flex;justify-content:flex-end;gap:8px;margin:0 0 8px"><button class="btn" type="button" id="hoPrint">' + ico('print') + 'Print</button></div><div class="stackwrap">' + pgHandover(b) + '</div>';
+  $('hoPrint').onclick = function () { printHtml(pgHandover(b)); }; if (typeof fitZoom === 'function') fitZoom(); }
+/** lembar tanda terima (dicetak, bahasa Indonesia) */
+function pgHandover(b) {
+  var R = (B && B.roles) || {}, mk = R.PEMBUAT || { nama: '', jabatan: 'AR Officer' }, ak = R.PENERIMA || { nama: '', jabatan: 'Akuntansi' }, tot = 0;
+  var h = '<div class="page pg-flow">' + docHead('TANDA TERIMA DOKUMEN KE AKUNTANSI', 'Lembar pengesahan invoice dan penerimaan yang sudah disahkan, diserahkan ke Akuntansi untuk dicatat dan diposting di SAP. Akuntansi memeriksa fisik setiap dokumen lalu mencentang kolom Diterima.', 'No. ' + esc(b.no) + '<br>' + esc(tglIndo(b.tgl)));
+  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:16mm">Jenis</th><th>Dokumen</th><th style="width:40mm">Pelanggan</th><th style="width:24mm">Nilai (Rp)</th><th style="width:28mm">Pengesahan</th><th style="width:15mm">Diterima</th></tr></thead><tbody>' +
+    b.rows.map(function (x, i) { tot += x.nilai || 0; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + (x.jenis === 'INV' ? 'Invoice' : 'Penerimaan') + '</td><td>' + esc(x.label) + '</td><td>' + esc(x.pelanggan) + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + esc(x.apv) + (x.kode ? '<br><span style="color:#5B6B80">kode ' + esc(x.kode) + '</span>' : '') + '</td><td style="text-align:center;font-size:11pt">☐</td></tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td></td><td></td><td>TOTAL ' + b.rows.length + ' DOKUMEN</td><td></td><td class="n">' + nd(tot) + '</td><td></td><td></td></tr></tbody></table>';
+  h += '<div class="knote">Dokumen yang tidak diterima / kurang lengkap: coret centangnya dan beri catatan. Nomor tanda terima ini tercatat di kolom SERAH TERIMA AKUNTANSI (Monitoring Invoice &amp; Log Penerimaan).</div>';
+  var cell = function (role, who, tgl) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + tgl + '</div></div>'; };
+  h += '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Diterima oleh (Akuntansi),', { nama: b.penerima || ak.nama, jabatan: ak.jabatan }, '..................') + cell('Diserahkan oleh,', mk, esc(tglIndo(b.tgl))) + '</div>';
+  return h + '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B ? B.today : '')) + ' · ' + esc(b.no) + '</div></div>';
 }
 function openAnalisis(buat) {
   document.body.classList.add('m-view');
