@@ -250,8 +250,9 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.t tr.sisa td{font-style:italic;font-weight:700;border-bottom:.8pt solid #8EA0BC}
 .pg-flow .ksign{margin-top:3mm;break-inside:avoid;page-break-inside:avoid;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 24mm;font-size:8pt}
 .pg-flow .ksign .kt{grid-column:2;text-align:left}
-.pg-flow .ksign .col{display:flex;flex-direction:column;min-height:25mm}
-.pg-flow .ksign .sp{flex:1;min-height:14mm;display:flex;align-items:center}
+.pg-flow .ksign .col{display:flex;flex-direction:column;min-height:22mm}
+.pg-flow .ksign .sp{flex:1;min-height:12mm;display:flex;align-items:center}
+.pg-flow table.t tr.ktail td{border:0!important;padding:0;background:#fff;font-style:normal;font-weight:400}
 /* v2.8.7: kartu piutang ringkas — huruf & jarak baris lebih kecil, kolom Keterangan lebih lebar agar tidak terlipat 3 baris */
 .pg-flow table.t.km{font-size:7.2pt;line-height:1.22}
 .pg-flow table.t.km th{padding:.9mm 1mm}
@@ -2371,21 +2372,26 @@ function pgPengesahan(pkg, hasBap, migr) {
   h += signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
   return h;
 }
-function kartuTable(k) {
-  var body = '', z = function (x) { return x ? nd(x) : ''; };
-  k.groups.forEach(function (g) {
+function kartuHead() { return '<thead><tr><th style="width:16mm">Tanggal</th><th>Uraian</th><th style="width:31mm">Ref / Bukti</th><th style="width:16mm">No. Dok SAP</th><th style="width:21mm">Debit</th><th style="width:21mm">Kredit</th><th style="width:21mm">Saldo</th><th style="width:68mm">Keterangan</th></tr></thead>'; }
+/** tail: catatan + tanda tangan — v2.8.7: ikut di dalam tabel bersama kelompok invoice terakhir & TOTAL (satu blok tak terpecah),
+ *  sehingga tanda tangan tidak pernah tercetak sendirian di halaman baru */
+function kartuTable(k, tail) {
+  var body = '', z = function (x) { return x ? nd(x) : ''; }, T = k.T, ng = k.groups.length;
+  var tot = '<tr class="tot"><td></td><td>TOTAL PROYEK</td><td></td><td></td><td class="n">' + nd(T.debit) + '</td><td class="n">' + nd(T.kredit) + '</td><td class="n">' + nd(T.saldo) + '</td><td>Sisa Netto ' + nd(T.sN) + ' · Sisa PPN ' + nd(T.sP) + '</td></tr>';
+  var note = '<div class="knote">Debit = tagihan (dan kelebihan bayar yang dialihkan ke invoice lain). Kredit = penerimaan Netto &amp; PPN, PPh dipotong pelanggan, biaya adm bank, pindah buku masuk. Saldo = sisa tagihan tiap invoice. Ref = nomor mutasi bank / faktur pajak / bukti potong / pindah buku.</div>';
+  k.groups.forEach(function (g, gi) {
     var rows = '';
     g.rows.forEach(function (r) {
       var cls = r.kind === 'inv' ? ' class="band"' : r.kind === 'sisa' ? ' class="sisa"' : r.baru ? ' class="baru"' : r.kind === 'pb' || r.kind === 'adj' ? ' class="pb"' : '';
       rows += '<tr' + cls + '><td>' + tg(r.tgl) + '</td><td>' + esc(r.uraian) + '</td><td>' + esc(r.ref) + '</td><td>' + esc(r.sap) + '</td>' +
         '<td class="n">' + z(r.debit) + '</td><td class="n">' + z(r.kredit) + '</td><td class="n">' + (r.kind === 'sisa' ? nd(r.saldo) : '') + '</td><td>' + esc(r.ket) + '</td></tr>';
     });
+    if (tail !== undefined && gi === ng - 1) rows += tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr>';
     body += '<tbody class="grp">' + rows + '</tbody>';
   });
-  var T = k.T;
-  return '<table class="t km kmb"><thead><tr><th style="width:16mm">Tanggal</th><th>Uraian</th><th style="width:31mm">Ref / Bukti</th><th style="width:16mm">No. Dok SAP</th><th style="width:21mm">Debit</th><th style="width:21mm">Kredit</th><th style="width:21mm">Saldo</th><th style="width:68mm">Keterangan</th></tr></thead>' + body +
-    '<tbody><tr class="tot"><td></td><td>TOTAL PROYEK</td><td></td><td></td><td class="n">' + nd(T.debit) + '</td><td class="n">' + nd(T.kredit) + '</td><td class="n">' + nd(T.saldo) + '</td><td>Sisa Netto ' + nd(T.sN) + ' · Sisa PPN ' + nd(T.sP) + '</td></tr></tbody></table>' +
-    '<div class="knote">Debit = tagihan (dan kelebihan bayar yang dialihkan ke invoice lain). Kredit = penerimaan Netto &amp; PPN, PPh dipotong pelanggan, biaya adm bank, pindah buku masuk. Saldo = sisa tagihan tiap invoice. Ref = nomor mutasi bank / faktur pajak / bukti potong / pindah buku.</div>';
+  if (tail !== undefined && !ng) body = '<tbody class="grp">' + tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr></tbody>';
+  if (tail !== undefined) return '<table class="t km kmb">' + kartuHead() + body + '</table>';
+  return '<table class="t km kmb">' + kartuHead() + body + '<tbody>' + tot + '</tbody></table>' + note;
 }
 /** bagian A: rincian tagihan per invoice — nilai progres asli, potongan UM & retensi, DPP, PPN */
 function kartuPartA(k) {
@@ -2409,9 +2415,9 @@ function kartuSign(pkg) {
   var tgl = ok ? tglIndo(String(a.putus_waktu).substring(0, 10)) : a && a.waktu ? tglIndo(String(a.waktu).substring(0, 10)) : '..................................';
   var mk = R.PEMBUAT || { nama: 'Fikri Zikra Akrama', jabatan: 'AR Officer' }, sh = R.PENYETUJU || { nama: 'Anas Afifudin', jabatan: 'Section Head of Finance & HR' };
   var sub = a && (a.status === 'DISETUJUI' || a.status === 'MENUNGGU') ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '';
-  return '<div class="ksign"><div class="kt">' + esc(kota) + ', ' + esc(tgl) + '</div>' +
-    '<div class="col"><div>Disetujui oleh,</div>' + basahLine(a) + '<div class="sp">' + (a && a.status !== 'MENUNGGU' ? stampHtml(a) : '') + '</div>' + (a && a.status === 'MENUNGGU' ? waitLine(a) : '') + '<div class="nm">' + esc(sh.nama) + '</div><div>' + esc(sh.jabatan) + '</div></div>' +
-    '<div class="col"><div>Dibuat oleh,</div><div class="sp"></div>' + sub + '<div class="nm">' + esc(mk.nama) + '</div><div>' + esc(mk.jabatan) + '</div></div></div>';
+  return '<div class="ksign">' +
+    '<div class="col"><div>&nbsp;</div><div>Disetujui oleh,</div>' + basahLine(a) + '<div class="sp">' + (a && a.status !== 'MENUNGGU' ? stampHtml(a) : '') + '</div>' + (a && a.status === 'MENUNGGU' ? waitLine(a) : '') + '<div class="nm">' + esc(sh.nama) + '</div><div>' + esc(sh.jabatan) + '</div></div>' +
+    '<div class="col"><div>' + esc(kota) + ', ' + esc(tgl) + '</div><div>Dibuat oleh,</div><div class="sp"></div>' + sub + '<div class="nm">' + esc(mk.nama) + '</div><div>' + esc(mk.jabatan) + '</div></div></div>';
 }
 function pgKartu(k, pkg, preview) {
   if (!k) return '';
@@ -2426,7 +2432,7 @@ function pgKartu(k, pkg, preview) {
     kv(kanan) + '</div>';
   h += '<div class="kpis"><div><span>Ditagih (bruto)</span><b>' + nd(T.brutoProg) + '</b>' + (k.pctTagih * 100).toFixed(2).replace('.', ',') + '% kontrak</div><div><span>Diterima (kas)</span><b>' + nd(T.kas) + '</b></div><div><span>PPh &amp; adm dipotong</span><b>' + nd(T.pot) + '</b></div>' +
     '<div><span>Sisa tagihan</span><b>' + nd(T.saldo) + '</b>Netto ' + nd(T.sN) + ' · PPN ' + nd(T.sP) + '</div><div><span>Retensi ditahan · sisa kontrak</span><b>' + nd(T.ret) + '</b>sisa ' + nd(k.sisaKontrak) + '</div></div>';
-  h += '<h3>A. Rincian tagihan per invoice</h3>' + kartuPartA(k) + '<h3>B. Mutasi piutang</h3>' + kartuTable(k) + (preview ? '<div class="warn">Pratinjau — baris kuning belum tersimpan.</div>' : kartuSign(pkg)) + docFoot(pkg) + '</div>';
+  h += '<h3>A. Rincian tagihan per invoice</h3>' + kartuPartA(k) + '<h3>B. Mutasi piutang</h3>' + (preview ? kartuTable(k) + '<div class="warn">Pratinjau — baris kuning belum tersimpan.</div>' : kartuTable(k, kartuSign(pkg))) + docFoot(pkg) + '</div>';
   return h;
 }
 function pgTutup(pkg) {
