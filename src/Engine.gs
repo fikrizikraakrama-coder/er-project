@@ -1570,7 +1570,7 @@ var ENGINE = (function () {
     var wr = posisiWarning(ctx, npp, asOf, 'kosongkan POSISI PER (E5) untuk kembali ke hari ini');
     var kb = kartuBlocks(ctx, npp, wr ? 8 : 7, asOf), last = kb.blocks[kb.blocks.length - 1], r = last.r + last.rows.length + 2;
     kb.blocks.push(kartuSignBlock(ctx, npp, asOf, r));
-    if (wr) kb.blocks.unshift({ r: 7, c: 1, rows: [[wr]], styles: [{ r: 0, s: 'alert' }] });
+    if (wr) kb.blocks.unshift(block(7, 1, [[wr]], { styles: [sty(0, 'alert')], noWidth: true }));
     kb.from = 7; // baris peringatan ikut dibersihkan saat posisi kembali ke hari ini
     return kb;
   }

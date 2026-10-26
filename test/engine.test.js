@@ -338,4 +338,6 @@ test('Kartu Piutang per tanggal lampau: peringatan merah berisi penerimaan setel
   input.selectors = { 'Kartu Piutang': NPP, 'Kartu Piutang|asof': '2026-10-01' };
   const rep = ENGINE.compute(input).reports['Kartu Piutang'];
   assert.strictEqual(rep.blocks[0].styles[0].s, 'alert'); assert.strictEqual(rep.from, 7);
+  // setiap blok laporan harus lengkap untuk writeReport_ (rows, fmt, styles) — blok tanpa fmt membuat "Perbarui semua laporan" gagal
+  rep.blocks.forEach(b => { assert.ok(Array.isArray(b.rows) && b.fmt && typeof b.fmt === 'object' && Array.isArray(b.styles) && Array.isArray(b.merge), 'blok r=' + b.r + ' tidak lengkap'); });
 });
