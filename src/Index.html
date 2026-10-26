@@ -416,6 +416,7 @@ aside .brand,#accessBadge{display:none!important}
 @keyframes skm{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skel .pg{display:flex;align-items:center;gap:10px;font-size:12.5px;color:#0B5A62;font-weight:600;margin-bottom:16px}.skel .spin{width:15px;height:15px;border-radius:50%;border:2.5px solid #BFE3E5;border-top-color:#19A0A8;animation:spn .8s linear infinite}
 @keyframes spn{to{transform:rotate(360deg)}}
+button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;animation:spn .8s linear infinite;display:inline-block;margin-right:7px;vertical-align:-2px}
 #bgChip .bgspin{width:13px;height:13px;border-radius:50%;border:2px solid #4D6E95;border-top-color:#3CC6CE;animation:spn .8s linear infinite;display:inline-block}
 #bgChip{position:fixed;right:16px;bottom:16px;background:#12294A;color:#fff;border-radius:20px;padding:8px 14px;font-size:12px;box-shadow:0 6px 18px rgba(0,0,0,.2);z-index:40;display:flex;gap:8px;align-items:center}
 @media print{#topbar,#kpiBar,#bgChip{display:none!important}}
@@ -2264,7 +2265,10 @@ function bind() {
   $('btnPkgSubmit').onclick = submitPkg; $('btnPkgOk').onclick = function () { decidePkg(true); }; $('btnPkgNo').onclick = function () { decidePkg(false); };
   $('mSel').onchange = function () { renderDok(); };
   // tombol [data-open] ada di Otorisasi, Penerimaan Pembayaran (penerimaan termin terakhir) & Register Invoice (penutupan manual)
-  var openFrom = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'); openPackage(x[0], x.slice(1).join('|')); };
+  // v2.8.7: tombol Submit / Resubmit di daftar langsung mengajukan (lembar dibuka, lalu dialog konfirmasi), bukan hanya membuka lembar
+  var openFrom = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'), sb = e.target.closest('[data-sub]');
+    if (sb) { if (submitPkg._busy) { toast('Still submitting the previous document…'); return; } sb.disabled = true; sb.textContent = 'Opening…'; AP_NEXT = false; openPackage(x[0], x.slice(1).join('|'), false, function () { if (MODE === 'setuju') apRender(); submitPkg(); }); return; }
+    openPackage(x[0], x.slice(1).join('|')); };
   ['mode-setuju', 'mode-bayar', 'mode-buka'].forEach(function (id) { $(id).addEventListener('click', openFrom); });
 }
 
@@ -2696,12 +2700,13 @@ function openPackage(kind, ref, quiet, after) {
   if (isPhone() && !STACK) document.body.classList.add('m-view');
   AP_SEL = kind + '|' + ref; document.querySelectorAll('.ap-row').forEach(function (x) { x.classList.toggle('sel', x.dataset.open === AP_SEL); });
   if (!quiet) { var w0 = $('sheetwrap'); w0.style.transform = ''; w0.style.width = ''; w0.style.height = ''; w0.innerHTML = skelHtml(kind, ref); }
+  var my = openPackage.seq = (openPackage.seq || 0) + 1; // klik beruntun: hanya lembar terakhir yang ditampilkan
   call('apiPackage', [kind, ref], function (pkg) {
-    var show = function (invDocs) { PKG = pkg; VDEC = null; PKG._pages = buildPages(pkg, invDocs); showPackage(); if (after) setTimeout(after, 300); };
+    var show = function (invDocs) { if (my !== openPackage.seq) return; PKG = pkg; VDEC = null; PKG._pages = buildPages(pkg, invDocs); showPackage(); if (after) setTimeout(after, 300); };
     if (kind !== 'INV') return show('');
     if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
     call('apiGetInvoice', [pkg.inv.nomor], function (o) { show(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { show(''); });
-  }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Failed to load document: ' + esc(e.message || e) + '</div>'; });
+  }, function (e) { if (my !== openPackage.seq) return; $('sheetwrap').innerHTML = '<div class="empty">Failed to load document: ' + esc(e.message || e) + '</div>'; if (MODE === 'setuju') apRender(); });
 }
 function showPackage() {
   if (!PKG) return;
@@ -2892,6 +2897,8 @@ function archivePkg(auto) {
   });
 }
 function submitPkg() {
+  if (!PKG) return;
+  if (submitPkg._busy) { toast('Still submitting… please wait.'); return; }
   if (PKG.kind === 'VAL' && PKG.v === 2) {
     if (PKG._mode === 'usul') return vusSubmit();
     vusInit(); PKG._mode = 'usul'; PKG._view = 'usul'; vRender(false); pkgActions(); return;
@@ -2918,10 +2925,12 @@ function submitPkg() {
     return;
   }
   var vtxt = PKG.kind === 'VAL' ? 'Submit <b>Collection Plan Validation sheet ' + esc(lblEn(PKG.label)) + ' Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + '</b> (' + (PKG.items || []).length + ' invoices)? The Section Head decides per invoice: ✓ CAIR / ◇ CADANGAN / → BULAN DEPAN / ⏸ HOLD. Initial choice = AR proposal' + (PKG.revNext ? ' or the decision in force' : '') + '.' + (PKG.revNext ? ' The decision in force stays in use until this revision is approved.' : '') : '';
+  var dlg = $('dlg'); if (dlg.open) dlg.close(); // dialog lama yang masih terbuka membuat showModal gagal (tombol terasa mati)
   confirmDlg('Submit to Section Head', vtxt || ('Submit <b>' + esc(lblEn(PKG.label)) + '</b> for review and approval? The submitted data is locked with fingerprint <code>' + esc(PKG.fp || '') + '</code>; if the data changes, it must be resubmitted.'), 'Submit', function () {
-    $('pkgStatus').textContent = 'Submitting…';
-    call('apiSubmit', [PKG.kind, PKG.ref], function (r) { toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '.'; refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(PKG.kind, PKG.ref, true); }); },
-      function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
+    var kind = PKG.kind, ref = PKG.ref, busy = function (on) { submitPkg._busy = on; ['pbSub', 'btnPkgSubmit'].forEach(function (id) { var b = $(id); if (b) { b.disabled = on; if (on) b.dataset.t = b.innerHTML, b.innerHTML = '<span class="bgspin"></span>Submitting…'; else if (b.dataset.t) b.innerHTML = b.dataset.t; } }); };
+    busy(true); $('pkgStatus').textContent = 'Submitting… (may take up to a minute while reports are updating)';
+    call('apiSubmit', [kind, ref], function (r) { busy(false); toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '.'; refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(kind, ref, true); }); },
+      function (e) { busy(false); AP_NEXT = false; $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
   });
 }
 function decidePkg(setuju) {
@@ -3171,7 +3180,7 @@ function lblEn(s) {
 }
 function apAge(t) { var d = dayDiff(t, B.today); return '<span class="age ' + (d > 2 ? 'o' : 'n') + '">' + (d <= 0 ? 'today' : d === 1 ? '1 day' : d + ' days') + '</span>'; }
 function apRow(it, mode) {
-  var btn = mode === 'belum' ? '<button type="button" class="mini">Submit</button>' : mode === 'ulang' ? '<button type="button" class="mini r">Resubmit</button>' :
+  var btn = mode === 'belum' ? '<button type="button" class="mini" data-sub="1">Submit</button>' : mode === 'ulang' ? '<button type="button" class="mini r" data-sub="1">Resubmit</button>' :
     mode === 'tunggu' ? (B.access && B.access.maker ? '<button type="button" class="mini g">View</button>' : '<button type="button" class="mini">Review</button>') : '<button type="button" class="mini g">View</button>';
   var tag = mode === 'tunggu' ? apAge(it.t) + (it.berubah ? '<span class="age r">data changed</span>' : '') : mode === 'hist' ? '<span class="age ' + (it.a.status === 'DISETUJUI' ? 'n' : 'r') + '">' + esc(it.a.status.toLowerCase()) + '</span>' : '';
   var key = it.kind + '|' + it.ref;
