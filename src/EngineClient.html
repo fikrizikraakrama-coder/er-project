@@ -513,9 +513,15 @@ var ENGINE = (function () {
       return [p.idp, p.tgl, normInv(p.inv), rnd(p.nominal), p._keP || 0, p._keN || 0, p._pph || 0, p._adm || 0].concat(p._kom ? ['KOM', S(p.ref)] : []).join(',');
     }).join(';'));
   }
+  /** v2.8.7: persetujuan Section Head lewat tanda tangan basah — pengajuan langsung tercatat DISETUJUI (tanpa keputusan di aplikasi) */
+  var TTD_BASAH_TAG = '[TTD BASAH]';
+  function isBasah(r) { return S(r && r.catatan).indexOf(TTD_BASAH_TAG) === 0; }
+  /** jenis pengajuan yang disahkan lewat TTD basah (Parameter PERSETUJUAN_TTD_BASAH; TIDAK = semua lewat aplikasi) */
+  function basahKinds(params) { var v = U(params && params.PERSETUJUAN_TTD_BASAH); if (v === 'TIDAK') return []; return (v || 'INV,PAY,KP,REK').split(/[\s,;]+/).filter(function (k) { return ['INV', 'PAY', 'KP', 'REK', 'TUTUP', 'BATAL'].indexOf(k) >= 0; }); }
   function apprStatusText(rec, fpNow) {
     if (!rec) return '';
     var st = U(rec.status), same = !fpNow || S(rec.sidik) === fpNow, tg = S(rec.putus_waktu).substring(0, 10);
+    if (st === 'DISETUJUI' && isBasah(rec)) return same ? '✓ DISETUJUI ' + tg + ' · TTD basah Section Head' : '⚠ DATA BERUBAH SETELAH DISETUJUI — AJUKAN ULANG';
     if (st === 'DISETUJUI') return same ? '✓ DISETUJUI ' + tg + (isDelegasi(rec) ? ' · a.n. Section Head oleh ' + (rec.putus_nama || rec.putus_oleh) + ' (delegasi)' : (rec.putus_nama ? ' · ' + rec.putus_nama : '')) : '⚠ DATA BERUBAH SETELAH DISETUJUI — AJUKAN ULANG';
     if (st === 'MENUNGGU') return same ? '⏳ MENUNGGU PERSETUJUAN' : '⚠ DATA BERUBAH — AJUKAN ULANG';
     if (st === 'DITOLAK') return '✗ DITOLAK' + (S(rec.catatan) ? ': ' + S(rec.catatan) : '');
@@ -1194,7 +1200,7 @@ var ENGINE = (function () {
   function jPlain(j) { return { kejadian: j.kejadian, tgl: j.tgl, ref: j.ref, tcode: j.tcode, doctype: j.doctype, sap: j.sap || '', header: j.header || '', lines: j.lines.map(function (l) { return { pk: l.pk, gl: l.gl, nama: l.nama, bp: l.cust ? l.bp : '', npp: l.npp || '', debit: l.debit, kredit: l.kredit, teks: l.teks }; }) }; }
   function apprPlain(r, fpNow) {
     return { id: S(r.id), waktu: r.waktu, jenis: r.jenis, ref: r.ref, status: r.status, oleh: S(r.oleh), oleh_nama: r.oleh_nama, putus_oleh: S(r.putus_oleh), putus_nama: r.putus_nama,
-      putus_waktu: r.putus_waktu, catatan: S(r.catatan), kode: S(r.kode), sidik: S(r.sidik), berubah: !!(fpNow && S(r.sidik) !== fpNow), teks: apprStatusText(r, fpNow) };
+      putus_waktu: r.putus_waktu, catatan: S(r.catatan), kode: S(r.kode), sidik: S(r.sidik), berubah: !!(fpNow && S(r.sidik) !== fpNow), basah: isBasah(r), teks: apprStatusText(r, fpNow) };
   }
   function approvalsPlain(ctx) {
     return ctx.appr.map(function (r) {
@@ -2591,7 +2597,7 @@ var ENGINE = (function () {
   function packageFor(ctx, kind, ref, opt) {
     var d = kind === 'INV' ? invPackage(ctx, ref) : kind === 'PAY' ? payPackage(ctx, ref) : kind === 'VAL' ? validasiData(ctx, ref, opt) : kind === 'REK' ? rekapData(ctx, ref) :
       kind === 'KP' ? kpPackage(ctx, ref) : kind === 'TUTUP' ? tutupPackage(ctx, ref) : kind === 'BATAL' ? batalPackage(ctx, ref) : kind === 'VALX' ? valxPackage(ctx, ref) : null;
-    if (d) { d.kind = kind; d.roles = roles(ctx.params); d.today = ctx.today; d.params = { TTD_MODE: S(ctx.params.TTD_MODE) || 'KEDUANYA', KOTA: S(ctx.params.KOTA) || 'Jakarta', SAP_COMPANY_CODE: ctx.params.SAP_COMPANY_CODE, SAP_KODE_UNIT: ctx.params.SAP_KODE_UNIT }; }
+    if (d) { d.kind = kind; d.roles = roles(ctx.params); d.today = ctx.today; d.autoBasah = basahKinds(ctx.params).indexOf(kind) >= 0; d.params = { TTD_MODE: S(ctx.params.TTD_MODE) || 'KEDUANYA', KOTA: S(ctx.params.KOTA) || 'Jakarta', SAP_COMPANY_CODE: ctx.params.SAP_COMPANY_CODE, SAP_KODE_UNIT: ctx.params.SAP_KODE_UNIT }; }
     return d;
   }
   // ------------------------------------------------------------------ PERHITUNGAN FORM INVOICE (dipakai aplikasi)
@@ -2917,7 +2923,7 @@ var ENGINE = (function () {
   }
 
   return {
-    computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,

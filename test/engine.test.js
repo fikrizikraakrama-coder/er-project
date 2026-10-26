@@ -291,3 +291,14 @@ test('ADJUSTMENT DPP (dasar PPN saja): DPP faktur tetap, piutang & PPh dari DPP 
   assert.match(k.groups[0].rows[0].uraian, /adjustment DPP 365\.569\.857 hanya dasar PPN/);
   assert.strictEqual(k.T.kas, 5766264127);
 });
+
+test('TTD basah: jenis bawaan INV/PAY/KP/REK, TIDAK mematikan; status DISETUJUI tanpa nama Section Head', () => {
+  assert.deepStrictEqual(ENGINE.basahKinds({}), ['INV', 'PAY', 'KP', 'REK']);
+  assert.deepStrictEqual(ENGINE.basahKinds({ PERSETUJUAN_TTD_BASAH: 'TIDAK' }), []);
+  assert.deepStrictEqual(ENGINE.basahKinds({ PERSETUJUAN_TTD_BASAH: 'inv, pay; tutup' }), ['INV', 'PAY', 'TUTUP']);
+  const input = fixture({ submit: '2026-09-21' }), d0 = ENGINE.packageFor(ENGINE.compute(input).ctx, 'INV', NOMOR);
+  input.approvals = [row(ENGINE.APPR, { id: 'APV-00001', waktu: '2026-10-13 09:00', jenis: 'PAKET INVOICE', ref: ENGINE.normInv(NOMOR), sidik: d0.fp, oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_waktu: '2026-10-13 09:00', catatan: ENGINE.TTD_BASAH_TAG + ' Persetujuan Section Head melalui tanda tangan basah' })];
+  const d = ENGINE.packageFor(ENGINE.compute(input).ctx, 'INV', NOMOR);
+  assert.strictEqual(d.autoBasah, true); assert.strictEqual(d.appr.basah, true);
+  assert.strictEqual(d.appr.teks, '✓ DISETUJUI 2026-10-13 · TTD basah Section Head');
+});

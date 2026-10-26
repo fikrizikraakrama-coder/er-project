@@ -1630,7 +1630,7 @@ var SUBMIT_AFTER = false;
 function submitAfterSave(kind, ref, statusId, after) {
   var st = $(statusId); st.insertAdjacentHTML('beforeend', '<br><span style="color:var(--steel)">Submitting for approval…</span>');
   call('apiSubmit', [kind, ref], function (r) {
-    toast('Saved and submitted for approval: ' + r.id); st.innerHTML += '<br><span style="color:var(--green)">✓ Submitted for approval · ' + esc(r.id) + ' · pending approval</span>';
+    toast(r.basah ? 'Saved and approved (wet signature): ' + r.id : 'Saved and submitted for approval: ' + r.id); st.innerHTML += '<br><span style="color:var(--green)">' + (r.basah ? '✓ Approved · ' + esc(r.id) + ' · Section Head signs the printed sheet (wet signature)' : '✓ Submitted for approval · ' + esc(r.id) + ' · pending approval') + '</span>';
     call('apiBootstrap', [], function (b) { B = b; OV = {}; navBadges(); renderSetuju(); if (after) after(); });
   }, function (e) { bgReports(); st.innerHTML += '<br><span style="color:var(--red)">Saved, but not yet submitted: ' + esc(e.message || e) + ' — open the approval sheet to submit.</span>'; call('apiBootstrap', [], function (b) { B = b; navBadges(); if (after) after(); }); });
 }
@@ -1684,7 +1684,7 @@ function askPeriodReason(e, retry) {
 function statusPill(s) { var c = /CLOSE MANUAL –|PPN BELUM/.test(s) ? 'c' : /^LUNAS|^CLOSE/.test(s) ? 'l' : /OVERDUE|KURANG|LEBIH/.test(s) ? 'o' : /CICILAN|WAITING|TANDA/.test(s) ? 'c' : ''; return '<span class="pill ' + c + '">' + esc(s || '-') + '</span>'; }
 var REG_M = 'CUR', REG_F = 'all', PAY_M = 'CUR';
 /** teks status persetujuan dari server → bahasa aplikasi */
-function apprEn(t) { t = String(t || ''); if (!t) return 'Not submitted'; if (/BERUBAH|AJUKAN ULANG/.test(t)) return '⚠ Data changed — resubmit'; if (/^✓ DISETUJUI/.test(t)) return t.replace(/^✓ DISETUJUI/, '✓ Approved').replace(/a\.n\. Section Head oleh (.*) \(delegasi\)/, 'on behalf of Section Head by $1 (delegation)'); if (/MENUNGGU/.test(t)) return '⏳ Pending approval'; if (/^✗ DITOLAK/.test(t)) return t.replace(/^✗ DITOLAK/, '✗ Rejected'); return t; }
+function apprEn(t) { t = String(t || ''); if (!t) return 'Not submitted'; if (/BERUBAH|AJUKAN ULANG/.test(t)) return '⚠ Data changed — resubmit'; if (/^✓ DISETUJUI/.test(t)) return t.replace(/^✓ DISETUJUI/, '✓ Approved').replace(' · TTD basah Section Head', ' · wet signature').replace(/a\.n\. Section Head oleh (.*) \(delegasi\)/, 'on behalf of Section Head by $1 (delegation)'); if (/MENUNGGU/.test(t)) return '⏳ Pending approval'; if (/^✗ DITOLAK/.test(t)) return t.replace(/^✗ DITOLAK/, '✗ Rejected'); return t; }
 /** pilihan bulan: bulan berjalan (otomatis berganti) + 12 bulan sebelumnya · semua invoice terbuka · semua */
 function monthOpts(cur, extra) {
   var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = '<option value="CUR"' + (cur === 'CUR' ? ' selected' : '') + '>' + monEn(B.today.substring(0, 7)) + ' (current month)</option>';
@@ -2315,6 +2315,7 @@ function docFoot(pkg) { return '<div class="foot">Dicetak dari Sistem AR CSU v' 
 function waitLine(a) { return '<div class="ajx wt">menunggu persetujuan · diajukan ' + esc(tgJam(a.waktu)) + '</div>'; }
 function stampHtml(a) {
   if (!a) return '';
+  if (a.basah && a.status === 'DISETUJUI') return a.berubah ? '<div class="stamp bad"><b>PERSETUJUAN TIDAK BERLAKU</b>data berubah setelah disahkan</div>' : ''; // v2.8.7: TTD basah — tanpa cap elektronik
   var dlg = /^\[DELEGASI/.test(a.catatan || '');
   if (a.status === 'DISETUJUI') return '<div class="stamp' + (a.berubah || a.valid === false ? ' bad' : '') + '"><b>' + (a.berubah ? 'PERSETUJUAN TIDAK BERLAKU' : a.valid === false ? 'KODE TIDAK VALID' : dlg ? 'DISETUJUI a.n. SECTION HEAD' : 'DISETUJUI SECARA ELEKTRONIK') + '</b>' +
     (dlg ? 'oleh ' : '') + esc(a.putus_nama || a.putus_oleh) + (dlg ? ' (delegasi)' : '') + '<br>' + esc(a.putus_waktu) + ' WIB<br>Kode ' + esc(a.kode || '-') + (a.berubah ? '<br>data berubah setelah disetujui' : '') + '</div>';
@@ -2336,8 +2337,10 @@ function signBlock(pkg, withManager, withReceiver) {
   // menunggu: cukup satu baris kecil agar ruang tanda tangan basah tetap lega; cap DISETUJUI tetap sebagai bukti
   var wait = dig && a && a.status === 'MENUNGGU';
   box.push(cell('Diperiksa &amp; disetujui oleh,', R.PENYETUJU, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : '', ok ? tglOf(a.putus_waktu) : ''));
-  if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>'));
-  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '', '<div class="ajx">tanda tangan basah · input ke SAP</div>', '<span class="prd">' + DOTS + '</span>'));
+  // v2.8.7: tanggal kotak tanda tangan lain diisi tanggal pengajuan (tidak dibiarkan titik-titik)
+  var tAju = a ? tglOf(a.putus_waktu || a.waktu) : '';
+  if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>', '', tAju));
+  if (withReceiver) box.push(cell('Diterima oleh (Akuntansi),', R.PENERIMA, '', '<div class="ajx">tanda tangan basah · input ke SAP</div>', tAju || '<span class="prd">' + DOTS + '</span>'));
   // v2.5: dokumen internal — yang menyetujui di kiri, pembuat di kanan
   box.reverse();
   return '<div class="sign" style="grid-template-columns:repeat(' + box.length + ',1fr)">' + box.join('') + '</div>';
@@ -2392,7 +2395,7 @@ function kartuPartA(k) {
 function kartuSign(pkg) {
   var R = (pkg && pkg.roles) || (B && B.roles) || {}, a = pkg && pkg.appr, kota = (pkg && pkg.params && pkg.params.KOTA) || (B && B.params.KOTA) || 'Jakarta';
   var ok = a && a.status === 'DISETUJUI' && !a.berubah && a.valid !== false;
-  var tgl = ok ? tglIndo(String(a.putus_waktu).substring(0, 10)) : '..................................';
+  var tgl = ok ? tglIndo(String(a.putus_waktu).substring(0, 10)) : a && a.waktu ? tglIndo(String(a.waktu).substring(0, 10)) : '..................................';
   var mk = R.PEMBUAT || { nama: 'Fikri Zikra Akrama', jabatan: 'AR Officer' }, sh = R.PENYETUJU || { nama: 'Anas Afifudin', jabatan: 'Section Head of Finance & HR' };
   var sub = a && (a.status === 'DISETUJUI' || a.status === 'MENUNGGU') ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '';
   return '<div class="ksign"><div class="kt">' + esc(kota) + ', ' + esc(tgl) + '</div>' +
@@ -2772,7 +2775,7 @@ function pkgChrome(canSubmit, canDecide) {
   var pill = { BELUM: ['o', 'not submitted'], MENUNGGU: ['t', 'pending Section Head'], DISETUJUI: ['g', 'approved'], DITOLAK: ['r', 'rejected'], BERUBAH: ['r', 'data changed'] }[st] || ['t', String(st).toLowerCase()];
   var lbl = lblEn(E.labelTampil(PKG.label || '')), parts = lbl.split(' — '), pel = parts[1] || (PKG.inv && PKG.inv.pelanggan) || '';
   var age = a && a.status === 'MENUNGGU' ? ' ' + apAge(a.waktu) : '';
-  var sub = a ? 'submitted by ' + esc(a.oleh_nama || a.oleh) + ', ' + esc(tgJam(a.waktu)) + (a.status !== 'MENUNGGU' && a.putus_waktu ? ' · decided by ' + esc(a.putus_nama || '') + ', ' + esc(tgJam(a.putus_waktu)) : '') : 'not yet submitted to Section Head';
+  var sub = a ? 'submitted by ' + esc(a.oleh_nama || a.oleh) + ', ' + esc(tgJam(a.waktu)) + (a.basah && a.status === 'DISETUJUI' ? ' · approved by Section Head wet signature' : a.status !== 'MENUNGGU' && a.putus_waktu ? ' · decided by ' + esc(a.putus_nama || '') + ', ' + esc(tgJam(a.putus_waktu)) : '') : 'not yet submitted to Section Head';
   var canEdit = maker && (PKG.kind === 'INV' || PKG.kind === 'PAY') && st !== 'DISETUJUI';
   $('pkgHead').innerHTML = (pel ? paHtml(pel) : '<div class="pa" style="background:#E8EEF8;color:#2F5597">' + ico('doc') + '</div>') + '<div style="min-width:0"><div class="ht">' + esc(parts[0]) + (PKG.nilai || (a && a.nilai) ? ' · Rp ' + nfDot(PKG.nilai || a.nilai) : '') + '</div><div class="hs">' + (pel ? esc(titleCaseS(pel)) + ' · ' : '') + sub + '</div></div>' +
     '<span class="php ' + pill[0] + '">' + pill[1] + '</span>' + age +
@@ -2798,7 +2801,7 @@ function pkgChrome(canSubmit, canDecide) {
   var act = '';
   if (canDecide) act = '<button type="button" class="b-no" id="pbNo">' + ico('x') + 'Reject</button><button type="button" class="b-ok" id="pbOk"' + (a && a.berubah ? ' disabled' : '') + '>' + ico('chk') + (more ? 'Approve &amp; next' : 'Approve') + '</button>';
   else if (canSubmit) act = '<button type="button" class="b-ok t" id="pbSub">' + ico('send') + esc($('btnPkgSubmit').textContent.replace(/ to Section Head$/, '')) + (more && (PKG.kind === 'INV' || PKG.kind === 'PAY') ? ' &amp; next' : '') + '</button>';
-  else if (a && a.status === 'DISETUJUI' && !a.berubah) act = '<span class="bar-st">✓ Approved by ' + esc(a.putus_nama || '') + ' · ' + esc(tgJam(a.putus_waktu)) + (a.kode ? ' · code ' + esc(a.kode) : '') + '</span>';
+  else if (a && a.status === 'DISETUJUI' && !a.berubah) act = '<span class="bar-st">✓ Approved ' + (a.basah ? '· Section Head wet signature on the printed sheet' : 'by ' + esc(a.putus_nama || '')) + ' · ' + esc(tgJam(a.putus_waktu)) + (a.kode ? ' · code ' + esc(a.kode) : '') + '</span>';
   else if (a && a.status === 'MENUNGGU') act = '<span class="bar-st">⏳ Awaiting Section Head decision</span>';
   $('pkgBar').innerHTML = '<div class="tl">' + tl + '</div><div class="chks">' + ck + '</div><div class="bar-act">' + act + '</div>';
   $('pkgBar').hidden = vmode;
@@ -2933,10 +2936,11 @@ function submitPkg() {
   }
   var vtxt = PKG.kind === 'VAL' ? 'Submit <b>Collection Plan Validation sheet ' + esc(lblEn(PKG.label)) + ' Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + '</b> (' + (PKG.items || []).length + ' invoices)? The Section Head decides per invoice: ✓ CAIR / ◇ CADANGAN / → BULAN DEPAN / ⏸ HOLD. Initial choice = AR proposal' + (PKG.revNext ? ' or the decision in force' : '') + '.' + (PKG.revNext ? ' The decision in force stays in use until this revision is approved.' : '') : '';
   var dlg = $('dlg'); if (dlg.open) dlg.close(); // dialog lama yang masih terbuka membuat showModal gagal (tombol terasa mati)
-  confirmDlg('Submit to Section Head', vtxt || ('Submit <b>' + esc(lblEn(PKG.label)) + '</b> for review and approval? The submitted data is locked with fingerprint <code>' + esc(PKG.fp || '') + '</code>; if the data changes, it must be resubmitted.'), 'Submit', function () {
+  confirmDlg('Submit to Section Head', vtxt || (PKG.autoBasah ? 'Submit <b>' + esc(lblEn(PKG.label)) + '</b>? It is recorded as <b>approved immediately</b> — the Section Head approves by <b>wet signature</b> on the printed sheet (no approval step in the app). Data is locked with fingerprint <code>' + esc(PKG.fp || '') + '</code>; if it changes, submit again.'
+    : 'Submit <b>' + esc(lblEn(PKG.label)) + '</b> for review and approval? The submitted data is locked with fingerprint <code>' + esc(PKG.fp || '') + '</code>; if the data changes, it must be resubmitted.'), 'Submit', function () {
     var kind = PKG.kind, ref = PKG.ref, busy = function (on) { submitPkg._busy = on; ['pbSub', 'btnPkgSubmit'].forEach(function (id) { var b = $(id); if (b) { b.disabled = on; if (on) b.dataset.t = b.innerHTML, b.innerHTML = '<span class="bgspin"></span>Submitting…'; else if (b.dataset.t) b.innerHTML = b.dataset.t; } }); };
     busy(true); $('pkgStatus').textContent = 'Submitting… (may take up to a minute while reports are updating)';
-    call('apiSubmit', [kind, ref], function (r) { busy(false); toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '.'; refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(kind, ref, true); }); },
+    call('apiSubmit', [kind, ref], function (r) { busy(false); toast((r.basah ? 'Approved (wet signature): ' : 'Submitted: ') + r.id); $('pkgStatus').textContent = (r.basah ? 'Recorded as approved with ID ' + r.id + ' — print the sheet for the Section Head\'s wet signature.' : 'Submitted with ID ' + r.id + '.'); refreshAll(function () { if (AP_NEXT && apGoNext()) return; AP_NEXT = false; openPackage(kind, ref, true); }); },
       function (e) { busy(false); AP_NEXT = false; $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
   });
 }
@@ -3213,6 +3217,9 @@ function apRender() {
   if (maker) {
     h += sec('o', 'Not submitted', X.belum, 'belum', AP_TAB === 'PAY' || AP_TAB === 'INV' ? 'All submitted.' : '');
     h += sec('r', 'Resubmit required', X.ulang, 'ulang', '');
+    // v2.8.7: pengajuan lama yang masih menunggu (jenis TTD basah) bisa disahkan sekaligus
+    var bk = E.basahKinds(B.params || {}), nb = 0; AP_TABS.forEach(function (t) { nb += T[t[0]].tunggu.filter(function (it) { return bk.indexOf(it.kind) >= 0; }).length; });
+    if (nb) h += '<button type="button" class="mini g" id="apBasah" style="margin:2px 0 8px">Mark ' + nb + ' pending as approved (wet signature)</button>';
     h += sec('t', 'Pending approval', X.tunggu, 'tunggu', 'Nothing pending.');
   } else h += sec('t', 'Pending approval', X.tunggu, 'tunggu', 'No requests awaiting your decision.');
   h += '<button type="button" class="ap-more" id="apHistBtn">' + (AP_HIST ? 'Hide history ‹' : 'History · ' + AP_TABS.filter(function (t) { return t[0] === AP_TAB; })[0][1] + ' (' + X.hist.length + ') ›') + '</button>';
@@ -3220,6 +3227,13 @@ function apRender() {
   $('histList').hidden = !AP_HIST;
   $('histList').innerHTML = AP_HIST ? (X.hist.length ? X.hist.slice(-20).reverse().map(function (it) { return apRow(it, 'hist'); }).join('') : '<div class="ap-empty">No history yet.</div>') : '';
   $('apHistBtn').onclick = function () { AP_HIST = !AP_HIST; apRender(); };
+  if ($('apBasah')) $('apBasah').onclick = function () {
+    confirmDlg('Approve pending by wet signature', 'Pending invoices, receipts and ledgers will be recorded as <b>approved</b>; the Section Head signs the printed sheets (wet signature). Requests whose data changed since submission are skipped.', 'Mark approved', function () {
+      var b = $('apBasah'); if (b) { b.disabled = true; b.textContent = 'Processing…'; }
+      call('apiSahkanTtdBasah', [], function (r) { toast(r.n + ' approved (wet signature)' + (r.ubah ? ' · ' + r.ubah + ' skipped (data changed — resubmit)' : '')); bgReports(); refreshAll(function () { apRender(); }); },
+        function (e) { toast(e.message || e); apRender(); });
+    });
+  };
   apKpi(M);
 }
 function apKpi(M) {

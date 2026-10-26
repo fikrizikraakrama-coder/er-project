@@ -45,6 +45,7 @@ function onOpen() {
       .addItem('Aktifkan otomatisasi (sekali saja)', 'setupTriggers')
       .addItem('Kunci struktur & periksa hak akses', 'lockSystem')
       .addItem('Delegasi persetujuan (sementara)…', 'aturDelegasi')
+      .addItem('Sahkan pengajuan menunggu (TTD basah)…', 'arSahkanTtdBasah')
       .addItem('Tutup periode (kunci transaksi s.d. tanggal)…', 'arTutupPeriodeMenu')
       .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
       .addItem('Aktifkan pilihan tanggal P&E', 'arEnablePE')
@@ -1120,17 +1121,51 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
     var maxId = 0; A.rows.forEach(function (r) { var m = String(r.id).match(/(\d+)$/); if (m) maxId = Math.max(maxId, +m[1]); });
     var rec = { id: 'APV-' + ('0000' + (maxId + 1)).slice(-5), waktu: now, jenis: jenis, ref: String(d.ref), label: d.label + (kind === 'VAL' ? ' · Rev.' + ('0' + snap.rev).slice(-2) + ' (' + snap.items.length + ' invoice)' : ''),
       nilai: Math.round(snap.nilai || 0), sidik: d.fp, oleh: me, status: 'MENUNGGU', putus_oleh: '', putus_waktu: '', catatan: '', kode: '', data: JSON.stringify(snap) };
+    // v2.8.7: jenis yang disahkan lewat tanda tangan basah Section Head (Parameter PERSETUJUAN_TTD_BASAH) langsung tercatat DISETUJUI;
+    // tidak atas nama Section Head secara elektronik (PUTUS OLEH kosong, tanpa cap elektronik) — bukti persetujuan = tanda tangan basah di lembar cetak
+    if (ENGINE.basahKinds(P).indexOf(kind) >= 0) arBasah_(rec, now);
     var lc = Math.max(A.sh.getLastColumn(), ENGINE.APPR.cols.length), arr = []; for (var k = 0; k < lc; k++) arr.push('');
     ENGINE.APPR.cols.forEach(function (c) { var j = A.map[c[0]]; if (j) arr[j - 1] = rec[c[0]]; });
     var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1; roomFor_(A.sh, row);
     A.sh.getRange(row, 1, 1, lc).setNumberFormat('@').setValues([arr]);
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
-    out = { ok: true, id: rec.id, label: rec.label };
+    out = { ok: true, id: rec.id, label: rec.label, status: rec.status, basah: rec.status === 'DISETUJUI' };
   } finally { lock.releaseLock(); }
   // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
   out.background = arQueueAfterSave_().background;
   return out;
 }
+function arBasah_(rec, now) {
+  rec.status = 'DISETUJUI'; rec.putus_oleh = ''; rec.putus_waktu = now;
+  rec.catatan = ENGINE.TTD_BASAH_TAG + ' Persetujuan Section Head melalui tanda tangan basah pada lembar cetak — dicatat otomatis saat diajukan';
+  rec.kode = sign_({ id: rec.id, jenis: rec.jenis, ref: rec.ref, sidik: rec.sidik, putus_oleh: '', putus_waktu: now, status: 'DISETUJUI' });
+  return rec;
+}
+/** pengajuan lama yang masih MENUNGGU (jenis TTD basah) disahkan sekaligus — hanya bila datanya tidak berubah sejak diajukan */
+function arSahkanCore_(hitungSaja) {
+  var lock = arLock_(), n = 0, ubah = 0, K; lock.waitLock(28000);
+  try {
+    var res = computeLight_('memo'), A = apprRows_(), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'); K = ENGINE.basahKinds(res.params);
+    var L = A.rows.filter(function (r) { var k = Object.keys(ENGINE.DOC).filter(function (x) { return ENGINE.DOC[x] === String(r.jenis).toUpperCase(); })[0]; r._k = k; return String(r.status).toUpperCase() === 'MENUNGGU' && K.indexOf(k) >= 0; });
+    if (hitungSaja) return { n: L.length, kinds: K };
+    L.forEach(function (r) {
+      var d = ENGINE.packageFor(res.ctx, r._k, r.ref); if (!d || d.fp !== String(r.sidik)) { ubah++; return; }
+      r.jenis = String(r.jenis).toUpperCase(); arBasah_(r, now);
+      ['status', 'putus_oleh', 'putus_waktu', 'catatan', 'kode'].forEach(function (k) { if (A.map[k]) A.sh.getRange(r._row, A.map[k]).setNumberFormat('@').setValue(r[k]); });
+      n++;
+    });
+  } finally { lock.releaseLock(); }
+  if (n) arQueueAfterSave_();
+  return { n: n, ubah: ubah, kinds: K };
+}
+function arSahkanTtdBasah() { arRequireMaker_();
+  var ui = SpreadsheetApp.getUi(), c = arSahkanCore_(true);
+  if (!c.n) { ui.alert('Tidak ada pengajuan menunggu untuk jenis: ' + (c.kinds.join(', ') || '-') + '.'); return; }
+  if (ui.alert('Sahkan dengan TTD basah', c.n + ' pengajuan menunggu (' + c.kinds.join(', ') + ') akan dicatat DISETUJUI melalui tanda tangan basah Section Head. Pengajuan yang datanya berubah sejak diajukan dilewati. Lanjutkan?', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
+  var r = arSahkanCore_(false);
+  ui.alert('Selesai', r.n + ' pengajuan disahkan (TTD basah).' + (r.ubah ? '\n' + r.ubah + ' dilewati karena datanya berubah — ajukan ulang dari aplikasi.' : ''), ui.ButtonSet.OK);
+}
+function apiSahkanTtdBasah() { arRequireMaker_(); var r = arSahkanCore_(false); r.background = true; return r; }
 function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   if (['SETUJU','TOLAK'].indexOf(String(keputusan).toUpperCase()) < 0) throw new Error('Invalid decision.');
   var lock = arLock_(); lock.waitLock(28000);

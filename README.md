@@ -50,6 +50,15 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Contoh 4C.0141/2026 (WRK, progres 12): ADJUSTMENT DPP 365.569.857 (8.069.185.245 − 7.703.615.388) → piutang Netto 7.258.953.518 (= LK Sep-26), PPh 192.362.268 (= BAPP).
   Setor tunai 5.766.264.127 (transfer) + kompensasi klaim solar 2.187.937.500 → **LUNAS**, tanpa tutup manual.
 
+- **Persetujuan lewat tanda tangan basah** (Parameter `PERSETUJUAN_TTD_BASAH`, bawaan `INV,PAY,KP,REK`; isi `TIDAK` untuk kembali ke persetujuan di aplikasi):
+  pengajuan invoice, penerimaan, kartu piutang & rekap bulanan langsung tercatat **DISETUJUI** saat Submit. Log Persetujuan: PUTUS OLEH kosong,
+  CATATAN `[TTD BASAH] …` — tidak ada cap elektronik atas nama Section Head; bukti persetujuan = tanda tangan basah pada lembar cetak.
+  Validasi rencana cair, pembatalan invoice, penutupan manual & pembatalan lembar validasi tetap diputuskan Section Head di aplikasi
+  (bisa ditambahkan: `TUTUP`, `BATAL`). Pengajuan lama yang masih menunggu: tombol *Mark … pending as approved (wet signature)* di Approvals
+  atau menu *Pengaturan ▸ Sahkan pengajuan menunggu (TTD basah)* (yang datanya berubah dilewati).
+- Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
+- Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
+
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
 - **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.
 - **Document filing** (Invoice Register ▸ *Document filing…* atau tombol di lembar invoice): unggah **Signed billing pack** (invoice, kwitansi, BAP, sertifikat pembayaran ber-TTD; PDF/JPG/PNG maks. 10 MB) dan **Tax invoice (e-Faktur)** (PDF Coretax).
