@@ -1752,7 +1752,10 @@ function fillOpenList() {
     .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.invke) + ' · outstanding Rp ' + nfDot(i.sisa) + '</option>'; }).join('');
   $('dlAll').innerHTML = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL'; })
     .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.status) + '</option>'; }).join('');
+  // v2.8.7: pilihan rekening dipertahankan saat data dimuat ulang di latar belakang (sebelumnya ter-reset → tombol simpan mati tanpa pesan)
+  var rk = $('pRek').value;
   $('pRek').innerHTML = '<option value="">— select bank account —</option>' + (B.rek || []).map(function (r) { return '<option value="' + esc(r.label) + '">' + esc(r.bank) + ' — ' + esc(r.no) + '</option>'; }).join('');
+  if (rk && (B.rek || []).some(function (r) { return r.label === rk; })) $('pRek').value = rk;
   $('dlNpp').innerHTML = B.proyek.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(p.pelanggan) + ' · ' + esc(p.singkat) + '</option>'; }).join('');
 }
 function setPj(m) {
@@ -1811,8 +1814,8 @@ function payBalance() {
   else if (PAY.rows.length > 1 && !$('pRef').value.trim()) { el.className = 'note err'; el.innerHTML = 'One transfer for ' + PAY.rows.length + ' invoices: enter the <b>bank reference</b> (journal no. on the bank statement). The reference prevents the same transfer being recorded twice, so it is not generated automatically.'; ok = false; }
   else if (PAY.rows.length > 1 && !T) { el.className = 'note err'; el.innerHTML = 'One transfer for ' + PAY.rows.length + ' invoices: enter the <b>transfer amount</b> as shown on the bank statement.'; ok = false; }
   else if (T && Math.abs(T - S0) > 0) { el.className = 'note err'; el.innerHTML = 'Sum of invoice amounts Rp ' + nfDot(S0) + ' ≠ transfer amount Rp ' + nfDot(T) + ' (difference ' + nfDot(T - S0) + ').'; ok = false; }
+  else if (!$('pRek').value) { el.className = 'note err'; el.innerHTML = 'Select the <b>receiving account</b> to enable saving.'; ok = false; }
   else { el.className = 'note ok'; el.innerHTML = PAY.rows.length + ' invoice(s) · total Rp ' + nfDot(S0) + (T ? ' = transfer ✓' : '') + (PAY.splitNote ? '<br>' + esc(PAY.splitNote) : ''); }
-  if (!$('pRek').value) ok = false;
   $('btnPay').disabled = !!savePay._busy || !ok || !$('pTgl').value; $('btnPaySub').disabled = $('btnPay').disabled;
   var rec = T || S0, un = rec - S0;
   $('pRau').innerHTML = '<div><small>Received</small><b>' + nfDot(rec) + '</b></div><div><small>Applied</small><b>' + nfDot(S0) + '</b></div><div class="' + (!PAY.rows.length ? '' : un === 0 ? 'ok' : 'bad') + '"><small>Unapplied</small><b>' + nfDot(un) + (PAY.rows.length && un === 0 ? ' ✓' : '') + '</b></div>';
@@ -1897,12 +1900,15 @@ function savePay() {
     toast(PAY.mode === 'pb' ? 'Offset saved.' : PAY.mode === 'kom' ? 'Compensation saved (not counted as cash).' : 'Payment of Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' recorded.');
     var keep = rows.map(function (x) { return x.inv; });
     PAY.rows = []; PAY.splitNote = ''; $('pTrf').value = ''; $('pRef').value = ''; $('pKet').value = ''; $('bFrom').value = ''; $('bTo').value = ''; $('bNom').value = ''; $('bKet').value = ''; ['cInv', 'cNom', 'cRef', 'cKet', 'cPph', 'cBupot'].forEach(function (id) { $(id).value = ''; }); $('cLunas').checked = false;
-    call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB; renderPayRows();
+    var seq0 = PAY.seq, fresh = function () { return PAY.seq === seq0 && !PAY.rows.length; }; // v2.8.7: entri baru sudah dimulai → jangan ditimpa
+    call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB;
+      if (!fresh()) { payChanged(); return; } // saldo invoice diperbarui → pratinjau entri baru dihitung ulang
+      renderPayRows();
       // tampilkan kartu sesudah tersimpan
       PAY.prev = null;
       var npps = {}; keep.forEach(function (n) { var i = invBy(n); if (i) npps[i.npp] = 1; });
       var L = Object.keys(npps), out = [];
-      L.forEach(function (n) { call('apiKartu', [n], function (k) { out.push(k); if (out.length === L.length) { PAY.prev = { rows: [], kartu: out }; renderPayView(); } }); });
+      L.forEach(function (n) { call('apiKartu', [n], function (k) { out.push(k); if (out.length === L.length && fresh()) { PAY.prev = { rows: [], kartu: out }; renderPayView(); } }); });
     });
   }, function (e) { savePay._busy = false; SUBMIT_AFTER = false; $('btnPay').disabled = false;
     // penolakan periode terjadi sebelum apa pun ditulis: kirim ulang dengan ID permintaan yang sama aman
