@@ -18,7 +18,8 @@ function arSpreadsheet_() {
 function arLock_() {
   var held = false;
   return {
-    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); AR28_NATIVE_LOCK_.waitLock(ms); } AR28_LOCK_DEPTH_++; held = true; },
+    // v2.8.7: tunggu sampai 90 detik — pembaruan laporan (pengguna lain / jadwal 5 menit) bisa memegang kunci lebih dari 28 detik
+    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); } catch (e) { AR28_NATIVE_LOCK_ = null; throw new Error('The system is busy updating reports. Nothing was saved by this step — try again in a minute.'); } } AR28_LOCK_DEPTH_++; held = true; },
     tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
     releaseLock: function() { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; arBootBust_(); } } }
   };
@@ -174,7 +175,8 @@ function arSavePayments_(rows, requestId, opt) {
 }
 function arAfterSave_(npps,months,noDerived) {
   var out={reportPending:false,warnings:[]};
-  try { rebuildAll(); } catch(e) { out.reportPending=true;out.warnings.push('Main reports: '+e.message); }
+  // v2.8.7: tanpa merapikan format sheet sumber (berat; dikerjakan jadwal harian 06.00 & menu) → kunci dilepas lebih cepat
+  try { rebuildAll_({ format: false }); } catch(e) { out.reportPending=true;out.warnings.push('Main reports: '+e.message); }
   if (!noDerived) try {
     var a=paramKV_('FILE_AKUNTANSI_ID'),b=paramKV_('FILE_PE_ID'),c=paramKV_('FILE_PAJAK_ID');
     if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}); if(r.err.length) {out.reportPending=true;out.warnings=out.warnings.concat(r.err);} }

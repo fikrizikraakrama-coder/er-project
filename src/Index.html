@@ -1624,7 +1624,7 @@ function submitAfterSave(kind, ref, statusId, after) {
   call('apiSubmit', [kind, ref], function (r) {
     toast('Saved and submitted for approval: ' + r.id); st.innerHTML += '<br><span style="color:var(--green)">✓ Submitted for approval · ' + esc(r.id) + ' · pending approval</span>';
     call('apiBootstrap', [], function (b) { B = b; OV = {}; navBadges(); renderSetuju(); if (after) after(); });
-  }, function (e) { st.innerHTML += '<br><span style="color:var(--red)">Saved, but not yet submitted: ' + esc(e.message || e) + ' — open the approval sheet to submit.</span>'; call('apiBootstrap', [], function (b) { B = b; navBadges(); if (after) after(); }); });
+  }, function (e) { bgReports(); st.innerHTML += '<br><span style="color:var(--red)">Saved, but not yet submitted: ' + esc(e.message || e) + ' — open the approval sheet to submit.</span>'; call('apiBootstrap', [], function (b) { B = b; navBadges(); if (after) after(); }); });
 }
 function save(revisi) {
   if (save._busy) return;
@@ -1642,7 +1642,7 @@ function save(revisi) {
   if (revisi && !String(S.alasan || '').trim()) { $('revBox').hidden = false; $('fAlasan').focus(); $('saveStatus').innerHTML = '<span style="color:var(--red)">Enter the revision reason first.</span>'; return; }
   save._busy = true; $('btnSave').disabled = true; $('btnSaveSub').disabled = true; $('saveStatus').textContent = 'Saving…';
   call('apiSaveInvoice', [payload(), { revisi: !!revisi, alasan: S.alasan, expectedRev: S._loadedRev, periodeAlasan: save._periode || '' }], function (r) {
-    save._busy = false; save._periode = ''; showSavedNotice(r); if (r.rev !== undefined) S._loadedRev = r.rev;
+    save._busy = false; save._periode = ''; showSavedNotice(r, SUBMIT_AFTER && r.jenis !== 'BAP'); if (r.rev !== undefined) S._loadedRev = r.rev;
     if (r && r.needConfirm) {
       confirmDlg('Number already exists', 'Number <b>' + esc(r.existing.nomor) + '</b> is already recorded. Save as revision ' + ((+r.existing.rev || 0) + 1) + '?', 'Save as revision', function () { save(true); });
       $('btnSave').disabled = false; $('saveStatus').textContent = ''; return;
@@ -1875,7 +1875,7 @@ function savePay() {
   var request; try { request = paymentRequest(rows); } catch(e) { $('payStatus').textContent = e.message; showRecovery(); return; }
   savePay._busy = true; $('btnPay').disabled = true; $('btnPaySub').disabled = true; $('payStatus').textContent = 'Saving…';
   call('apiSavePayments', [rows, request.id, { periodeAlasan: savePay._periode || '' }], function (r) {
-    savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r);
+    savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r, SUBMIT_AFTER && !!r.key);
     $('payStatus').innerHTML = '<span style="color:var(--green)">Saved: ' + rows.length + ' row(s). ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
     LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY; steps('stPay', [true, true, true]);
     var subNow = SUBMIT_AFTER && LASTPAY; SUBMIT_AFTER = false; if (subNow) submitAfterSave('PAY', LASTPAY, 'payStatus');
@@ -3434,8 +3434,10 @@ function bgReports() {
     done();
   }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); done(); });
 }
-function showSavedNotice(r) {
-  if (r && r.background) bgReports();
+/** deferBg: "Save & submit" — pembaruan laporan menunggu sampai pengajuan selesai (apiSubmit memicunya),
+ *  agar pengajuan tidak antre di belakang pembaruan laporan yang memegang kunci (v2.8.7) */
+function showSavedNotice(r, deferBg) {
+  if (r && r.background && !deferBg) bgReports();
   var el=$('arNotice');if(!r||!r.reportPending){el.hidden=true;return;}
   el.hidden=false;el.innerHTML='<b>Transaction saved.</b> Reports are not fully updated yet. No need to re-enter.<br>'+esc((r.warnings||[]).join(' · '))+'<br><button class="btn" id="retryReports" type="button">Update reports</button>';$('retryReports').onclick=refreshReports;
 }
