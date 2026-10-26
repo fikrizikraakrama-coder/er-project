@@ -65,7 +65,11 @@ function setupTriggers() {
   SpreadsheetApp.getUi().alert('Otomatisasi aktif.\n\n• Setiap perubahan di sheet input memperbarui laporan (langsung bila sistem tidak sibuk, paling lambat 5 menit).\n• Setiap pagi pukul 06.00 status jatuh tempo diperbarui.\n• Setiap jam file Akuntansi (memorial) & P&E diperbarui, dan centang verifikasi Akuntansi ditarik ke sistem.');
 }
 // Fungsi pemicu juga bisa dipanggil lewat google.script.run, jadi tanpa event trigger yang sah tetap diperlakukan sebagai panggilan pengguna.
-function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_(); rebuildAll_({ format: true }); arMonthlyAuto_(); try { arPropsCleanup_(); } catch (x) { } }
+function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_();
+  // v2.8.7: tanggal posisi pilihan manual hanya sementara — setiap pagi kembali ke HARI INI (sumber & file P&E)
+  try { var kp0 = sheet_('Kartu Piutang'); if (kp0 && String(kp0.getRange('E5').getValue()).trim()) kp0.getRange('E5').clearContent(); } catch (x0) { }
+  try { arPEResetCutoff_(); } catch (x1) { }
+  rebuildAll_({ format: true }); arMonthlyAuto_(); try { arPropsCleanup_(); } catch (x) { } }
 /** jadwal 5 menit: menyelesaikan pembaruan yang ditandai saat sistem sibuk */
 function rebuildIfDirty(e) { if (!arFromTrigger_(e)) arRequireMaker_(); arRebuildIfDirty_(25000); }
 
@@ -401,6 +405,7 @@ function writeReport_(sh, rep, name, opt) {
       else if (s.s === 'lbl') { sh.getRange(b.r + s.r, b.c, s.n || 1, 1).setFontColor('#4A5A72'); sh.getRange(b.r + s.r, b.c + 3, s.n || 1, 1).setFontColor('#4A5A72'); sh.getRange(b.r + s.r, b.c + 7, s.n || 1, 1).setFontColor('#4A5A72'); sh.getRange(b.r + s.r, b.c + 1, s.n || 1, 1).setFontWeight('bold'); sh.getRange(b.r + s.r, b.c + 5, s.n || 1, 1).setFontWeight('bold'); sh.getRange(b.r + s.r, b.c + 8, s.n || 1, 1).setFontWeight('bold'); }
       else if (s.s === 'note') sh.getRange(b.r + s.r, b.c).setFontStyle('italic').setFontColor('#4A5A72');
       else if (s.s === 'warn') x.setFontColor('#9C6500').setFontWeight('bold');
+      else if (s.s === 'alert') sh.getRange(b.r + s.r, b.c, 1, Math.max(pw, 8)).setBackground('#FDECEA').setFontColor('#B42318').setFontWeight('bold');
       else if (s.s === 'sisa') x.setFontStyle('italic').setFontWeight('bold').setBorder(null, null, true, null, null, null, '#8EA0BC', SpreadsheetApp.BorderStyle.SOLID);
       else if (s.s === 'stamp') x.setFontColor('#2F7D4F').setFontWeight('bold').setFontSize(8);
       else if (s.s === 'signname') x.setFontWeight('bold').setFontLine('underline');
@@ -674,7 +679,7 @@ function applyV22() { arRequireMaker_();
   um.getRange('A2').setValue('Sisa uang muka yang masih boleh dipotong per proyek (aplikasi membatasi potongan UM sampai sisa ini) dan retensi yang ditahan vs sudah ditagih.').setFontSize(10);
   var kp = ss.getSheetByName('Kartu Piutang');
   if (kp) { kp.getRange('D5').setValue('POSISI PER ▸').setFontWeight('bold').setHorizontalAlignment('right'); kp.getRange('E5').setBackground('#FFE699').setFontWeight('bold').setNumberFormat(NUMF.date)
-    .setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(true).setHelpText('Kosong = hari ini. Isi tanggal posisi kartu yang sudah disetujui untuk menampilkan cap persetujuannya.').build()); }
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(true).setHelpText('Kosong = hari ini (bawaan). Tanggal lain hanya sementara: setiap pagi pukul 06.00 dikosongkan lagi.').build()); }
   // pilihan (dropdown)
   var lp = ss.getSheetByName('Log Penerimaan'), lm = colMap_(lp, ENGINE.LOG), nR = Math.max(lp.getMaxRows() - ENGINE.LOG.firstRow + 1, 1);
   if (lm.rekening) lp.getRange(ENGINE.LOG.firstRow, lm.rekening, nR, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(V22_REK.map(function (r) { return r[0] + ' ' + r[1]; }), true).setAllowInvalid(true).build());

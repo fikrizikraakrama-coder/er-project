@@ -342,6 +342,19 @@ function arPECutoff_(sh,fallback,today) {
   if(date>today)throw new Error('Cutoff belum terjadi. Pilih tanggal sampai '+today+' atau mode HARI INI.');
   return date;
 }
+/** baris status A3 file P&E: merah bila posisi bukan hari ini */
+function arPEStatus_(sh,text,alert){var r=sh.getRange('A3:H3');r.setBackground(alert?'#FDECEA':null).setFontColor(alert?'#B42318':'#4A5A72').setFontWeight(alert?'bold':'normal');sh.getRange('A3').setValue(text);}
+/** pagi hari: semua tab P&E kembali ke HARI INI / IKUT RINGKASAN (tanggal pilihan manual hanya sementara) */
+function arPEResetCutoff_() {
+  var id=paramKV_('FILE_PE_ID');if(!id||!id.val)return 0;
+  var ss=SpreadsheetApp.openById(id.val),today=Utilities.formatDate(new Date(),TZ,'yyyy-MM-dd'),n=0;
+  ss.getSheets().forEach(function(sh){var nm=sh.getName();if(nm!=='RINGKASAN'&&!/^\d{3}C \d{4} [A-Z]{2}/.test(nm))return;
+    var m=String(sh.getRange('E4').getValue()||''),want=nm==='RINGKASAN'?'HARI INI':'IKUT RINGKASAN';
+    if(m===want&&!/^⚠/.test(String(sh.getRange('A3').getValue())))return;
+    sh.getRange('E4').setValue(want);sh.getRange('C4').setValue(toCell_(today,'date'));
+    arPEStatus_(sh,'MENUNGGU PEMBARUAN — posisi dikembalikan ke HARI INI ('+today+'); isi kartu diperbarui pada sinkron berikutnya (paling lambat 1 jam).',false);n++;});
+  return n;
+}
 function arPESelectors_(sh,isSummary,today) {
   if(sh.getMaxColumns()<24)sh.insertColumnsAfter(sh.getMaxColumns(),24-sh.getMaxColumns());
   var c=sh.getRange('C4'),mode=sh.getRange('E4');
@@ -369,7 +382,7 @@ function arPushPE_(res,npps,onlyName) {
     var sr=at(cutoff),sum=ENGINE.peSummaryBlocks(sr.ctx,6);
     rs.getRange('A1').setValue('KARTU PIUTANG PROYEK — CONCRETE SERVICES UNIT').setFontSize(14).setFontWeight('bold').setFontColor(C.navy);
     rs.getRange('A2').setValue('P&E · ubah sel kuning untuk memilih cutoff. Pilihan pada file ini digunakan bersama.');
-    rs.getRange('A3').setValue('Posisi '+cutoff+' · diperbarui '+stamp+' WIB · berdasarkan data sumber terkini; bukan arsip master historis.');
+    arPEStatus_(rs,cutoff<today?'⚠ POSISI PER '+cutoff+' — BUKAN HARI INI ('+today+'). Pilih HARI INI di E4 untuk posisi terbaru; setiap pagi pilihan tanggal kembali ke HARI INI.':'Posisi '+cutoff+' (hari ini) · diperbarui '+stamp+' WIB · berdasarkan data sumber terkini; bukan arsip master historis.',cutoff<today);
     writeReport_(rs,sum,'RINGKASAN',{key:'PE28_'+ss.getId()+'_RINGKASAN'});rs.setFrozenRows(7); rs.setHiddenGridlines(true);
   }
   var all=ss.getSheets(),list=ENGINE.proyekAR(res.ctx).sort(),names=['RINGKASAN'],count=0,start=Date.now();
@@ -386,10 +399,11 @@ function arPushPE_(res,npps,onlyName) {
     var date;
     try {date=arPECutoff_(sh,cutoff,today);}catch(e){sh.getRange('A3').setValue('PILIHAN TANGGAL TIDAK VALID — '+e.message);return;}
     var hctx=at(date).ctx,kb=ENGINE.kartuBlocks(hctx,n,6,date),key='PE28_'+ss.getId()+'_'+n,digest=ENGINE.hash(JSON.stringify(kb.blocks.map(function(b){return b.rows;}))+'|'+date+'|'+ENGINE.VERSION+'|FORMAT-20261013-04');
-    if(arProps_().getProperty(key)===digest){sh.getRange('A3').setValue('Posisi '+date+' · data diperiksa '+stamp+' WIB · berdasarkan data sumber terkini.');return;}
+    var wr=ENGINE.posisiWarning(res.ctx,n,date,'pilih HARI INI atau IKUT RINGKASAN di E4 untuk posisi terbaru; setiap pagi pilihan tanggal kembali otomatis');
+    if(arProps_().getProperty(key)===digest){arPEStatus_(sh,wr||'Posisi '+date+' (hari ini) · data diperiksa '+stamp+' WIB · berdasarkan data sumber terkini.',!!wr);return;}
     sh.getRange('A1').setValue('KARTU PIUTANG PROYEK · '+n).setFontSize(13).setFontWeight('bold').setFontColor(C.navy);
     sh.getRange('A2').setValue(p.pelanggan+' · '+(p.nama_pe||p.singkat)+(p.selesai?' · PROYEK SELESAI':''));
-    sh.getRange('A3').setValue('Posisi '+date+' · diperbarui '+stamp+' WIB · berdasarkan data sumber terkini.');
+    arPEStatus_(sh,wr||'Posisi '+date+' (hari ini) · diperbarui '+stamp+' WIB · berdasarkan data sumber terkini.',!!wr);
     writeReport_(sh,kb,'PE_'+n,{key:key});sh.setHiddenGridlines(true); sh.setFrozenRows(4);
     arProps_().setProperty(key,digest);count++;
   });
@@ -424,7 +438,7 @@ function onPEEditV28(e) {
   var lock=arLock_();if(!lock.tryLock(25000)){sh.getRange('A3').setValue('MENUNGGU PEMBARUAN — sistem sibuk; akan dicoba pada sinkron berikutnya.');return;}
   try {
     if(r.getColumn()<=3&&r.getLastColumn()>=3)sh.getRange('E4').setValue('PILIH TANGGAL');
-    sh.getRange('A3').setValue('MEMPERBARUI — pilihan cutoff baru sedang dihitung…');
+    sh.getRange('A3').setValue('MEMPERBARUI — pilihan cutoff baru sedang dihitung… (dimulai '+arNow_()+'; bila belum berubah, sinkron otomatis per jam melanjutkan)');
     arPushPE_(compute_(),null,name);
   }catch(err){sh.getRange('A3').setValue('BELUM DIPERBARUI — '+err.message);}finally{lock.releaseLock();}
 }

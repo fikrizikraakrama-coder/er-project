@@ -1567,11 +1567,24 @@ var ENGINE = (function () {
     if (!npp || !ctx.M.pro[npp]) npp = Object.keys(ctx.M.pro)[0] || '';
     if (!npp) return { from: 7, blocks: [block(7, 1, [['Belum ada proyek di Master Proyek']])] };
     var asOf = D(ctx.sel['Kartu Piutang|asof']) || ctx.today; if (asOf > ctx.today) asOf = ctx.today;
-    var kb = kartuBlocks(ctx, npp, 7, asOf), last = kb.blocks[kb.blocks.length - 1], r = last.r + last.rows.length + 2;
+    var wr = posisiWarning(ctx, npp, asOf, 'kosongkan POSISI PER (E5) untuk kembali ke hari ini');
+    var kb = kartuBlocks(ctx, npp, wr ? 8 : 7, asOf), last = kb.blocks[kb.blocks.length - 1], r = last.r + last.rows.length + 2;
     kb.blocks.push(kartuSignBlock(ctx, npp, asOf, r));
+    if (wr) kb.blocks.unshift({ r: 7, c: 1, rows: [[wr]], styles: [{ r: 0, s: 'alert' }] });
+    kb.from = 7; // baris peringatan ikut dibersihkan saat posisi kembali ke hari ini
     return kb;
   }
   /** tempat, tanggal persetujuan, tanda tangan AR Officer & Section Head (tanpa NIP) */
+  /** v2.8.7: peringatan bila kartu ditampilkan per tanggal lampau — penerimaan / invoice sesudah tanggal itu tidak terlihat */
+  function posisiWarning(ctx, npp, asOf, cara) {
+    if (!asOf || asOf >= ctx.today) return '';
+    var nset = {}; nset[npp] = 1; Object.keys(ctx.M.pro).forEach(function (k) { var p = ctx.M.pro[k]; if (p._produkOf === npp || p._adendumOf === npp) nset[k] = 1; });
+    var P = ctx.pays.filter(function (p) { return p._inv && nset[p._inv.npp] && p.tgl > asOf && p.tgl <= ctx.today && p.nominal > 0; });
+    var I = ctx.invs.filter(function (i) { return nset[i.npp] && !i._batal && i.tgl > asOf && i.tgl <= ctx.today; });
+    return '⚠ POSISI PER ' + tglPanjang(asOf).toUpperCase() + ' — BUKAN HARI INI (' + tglPanjang(ctx.today) + '). ' +
+      (P.length || I.length ? 'Setelah tanggal ini ada ' + [P.length ? P.length + ' penerimaan Rp ' + fmtRp(sumBy(P, function (p) { return p.nominal; })) : '', I.length ? I.length + ' invoice baru' : ''].filter(String).join(' dan ') + ' yang tidak tampil di kartu ini. ' : 'Tidak ada transaksi baru setelah tanggal ini. ') +
+      (cara ? cara.charAt(0).toUpperCase() + cara.slice(1) + '.' : '');
+  }
   function kartuSignBlock(ctx, npp, asOf, r) {
     var P = ctx.params, mk = userByRole(P, 'PEMBUAT') || {}, sh = userByRole(P, 'PENYETUJU') || {}, ref = npp + '|' + asOf;
     var rec = ctx.latest(DOC.KP, ref), fp = kpFp(ctx, npp, asOf), ok = rec && rec.status === 'DISETUJUI' && S(rec.sidik) === fp;
@@ -2992,7 +3005,7 @@ var ENGINE = (function () {
   }
 
   return {
-    HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,

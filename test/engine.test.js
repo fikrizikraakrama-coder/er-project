@@ -327,3 +327,15 @@ test('Serah terima Akuntansi: dokumen disahkan muncul di daftar belum diserahkan
   res = ENGINE.compute(input); h = ENGINE.handoverData(res.ctx);
   assert.strictEqual(h.pending.length, 1); assert.strictEqual(h.pending[0].ulang, 'STD-2026-10-001'); assert.match(res.regOut[0].serah, /DISAHKAN ULANG APV-00002/);
 });
+
+test('Kartu Piutang per tanggal lampau: peringatan merah berisi penerimaan setelah tanggal itu; hari ini tanpa peringatan', () => {
+  const input = fixture({ submit: '2026-09-21' });
+  input.log = [row(ENGINE.LOG, { tgl: '2026-10-05', inv: NOMOR, nominal: 50000000, ref: 'T1', rekening: 'BNI 149394879' })];
+  const ctx = ENGINE.compute(input).ctx;
+  assert.strictEqual(ENGINE.posisiWarning(ctx, NPP, ctx.today, ''), '');
+  const w = ENGINE.posisiWarning(ctx, NPP, '2026-10-01', 'kosongkan E5');
+  assert.match(w, /^⚠ POSISI PER 1 OKTOBER 2026 — BUKAN HARI INI \(13 Oktober 2026\)\. Setelah tanggal ini ada 1 penerimaan Rp 50\.000\.000/);
+  input.selectors = { 'Kartu Piutang': NPP, 'Kartu Piutang|asof': '2026-10-01' };
+  const rep = ENGINE.compute(input).reports['Kartu Piutang'];
+  assert.strictEqual(rep.blocks[0].styles[0].s, 'alert'); assert.strictEqual(rep.from, 7);
+});
