@@ -1722,16 +1722,27 @@ function pushPE_(res, npps) { return arPushPE_(res, npps); }
 /** sinkron file turunan: tarik centang Akuntansi → hitung ulang → kirim memorial & kartu P&E */
 function syncTurunan_(opt) {
   opt = opt || {};
-  var out = { verif: 0, memo: 0, pe: 0, pajak: 0, err: [] }, res, sl = arLock_();
-  if (!sl.tryLock(opt.noPull ? 2000 : 30000)) { out.err.push('another sync is running — it will retry on the next schedule'); return out; }
-  try { return syncRun_(opt, out); } finally { sl.releaseLock(); }
+  var out = { verif: 0, memo: 0, pe: 0, pajak: 0, err: [] };
+  // v2.8.7: kunci utama hanya dipegang saat menarik centang Akuntansi & membangun ulang laporan; pengiriman ke file Akuntansi/P&E/Pajak
+  // (file lain, bisa beberapa menit) memakai penanda sinkron sendiri — simpan/ajukan di aplikasi tidak lagi antre di belakangnya
+  if (!arSyncClaim_()) { out.err.push('another sync is running — it will retry on the next schedule'); return out; }
+  try { return syncRun_(opt, out); } finally { arSyncRelease_(); }
 }
+function arSyncClaim_() {
+  var l = arLock_(); if (!l.tryLock(10000)) return false;
+  try { var p = PropertiesService.getScriptProperties(), t = +(p.getProperty('SYNC_BUSY') || 0); if (t && Date.now() - t < 7 * 60000) return false; p.setProperty('SYNC_BUSY', String(Date.now())); return true; } finally { l.releaseLock(); }
+}
+function arSyncRelease_() { try { PropertiesService.getScriptProperties().deleteProperty('SYNC_BUSY'); } catch (e) { } }
 function syncRun_(opt, out) {
   var res;
-  if (opt.noPull) res = compute_();
+  if (opt.noPull) res = LAST_RES_ || compute_(); // setelah simpan: hasil pembaruan laporan barusan (eksekusi yang sama) dipakai ulang
   else {
-    try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
-    rebuildAll_(); res = LAST_RES_ || compute_();
+    var sl = arLock_();
+    if (!sl.tryLock(30000)) { out.err.push('system busy — it will retry on the next schedule'); return out; }
+    try {
+      try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
+      rebuildAll_(); res = LAST_RES_ || compute_();
+    } finally { sl.releaseLock(); }
   }
   try { out.memo = pushMemorial_(res, opt.months); } catch (e) { out.err.push('Accounting file: ' + e.message); }
   try { out.pe = pushPE_(res, opt.npps); } catch (e) { out.err.push('P&E file: ' + e.message); }

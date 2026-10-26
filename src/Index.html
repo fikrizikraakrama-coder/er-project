@@ -260,8 +260,10 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 @page flowP{size:A4 portrait;margin:12mm 12mm 14mm;@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:7pt Arial,sans-serif;color:#7A889C}@bottom-left{content:"Sistem AR CSU · Concrete Services Unit · PT Wijaya Karya Beton Tbk";font:7pt Arial,sans-serif;color:#7A889C}}
 @media print{
   #print-root .pg-flow{break-inside:auto;page-break-inside:auto;height:auto!important;min-height:0;padding:0!important;width:auto!important}
-  #print-root .pg-flow.land{page:flowL}
-  #print-root .pg-flow:not(.land){page:flowP}
+  /* v2.8.7: lebar isi ditetapkan per orientasi — Chrome menata seluruh dokumen dengan lebar halaman pertama,
+     sehingga kartu/jurnal landscape setelah lembar portrait tercetak selebar portrait (tabel terlipat) */
+  #print-root .pg-flow.land{page:flowL;width:275mm!important}
+  #print-root .pg-flow:not(.land){page:flowP;width:186mm!important}
 }
 /* v2.7: usulan AR */
 .vtot.vtot5{grid-template-columns:repeat(5,minmax(0,1fr))}.vtot .vX b{color:var(--red)}
