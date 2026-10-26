@@ -451,6 +451,16 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 .ov-t td.w{white-space:normal}.ov-t tr.ck{cursor:pointer}.ov-t tr.ck:hover td{background:#F6F9FC}
 .chp{font-size:10.8px;font-weight:700;border-radius:9px;padding:2px 8px;white-space:nowrap}.chp.ok{background:#E5F5EB;color:#1E6B3E}.chp.wt{background:#E3F3F4;color:#0B5A62}.chp.no{background:#FFF3DA;color:#8A5A00}.chp.bad{background:#FDECEA;color:#A3241A}.chp.na{background:#EEF2F6;color:#5F6F86}
 .ov-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 7px}.ov-big b{font-size:30px;letter-spacing:-.6px}.ov-big span{font-size:13px;color:#33475B}.ov-big em{margin-left:auto;font-style:normal;font-size:12px;color:#5F6F86}.ov-big em b{font-size:13px;letter-spacing:0;color:#16263D}
+.ovr-p{font-weight:700;color:#0F6E78;font-style:normal}.ovr-tag{font-style:normal;display:inline-block;background:#EEF3FA;color:#2F4A6E;border-radius:5px;padding:0 6px;font-size:11px;font-weight:600}
+.ovr-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:2px 0 6px}.ovr-tiles.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ovr-t{border:1px solid #E3E8EF;border-radius:9px;padding:8px 10px}.ovr-t b{font-size:22px;letter-spacing:-.4px}.ovr-t .l{font-size:12px;font-weight:700;margin-top:1px}.ovr-t .f{font-size:11px;color:#5F6F86;margin-top:3px;line-height:1.35}
+.ovr-ch{margin:4px 0 2px}.ovr-r{display:grid;grid-template-columns:104px 1fr;align-items:center;margin:20px 0 22px}.ovr-r .n{font-size:12px;font-weight:700}.ovr-r .n small{display:block;font-weight:400;color:#5F6F86}
+.ovr-r .br{position:relative;height:24px;margin-right:78px}.ovr-r .bg,.ovr-r .sg{position:absolute;top:0;height:24px;border-radius:5px}.ovr-r .bg{left:0;background:#EDF0F4}
+.ovr-r .sg{color:#fff;font-size:11px;font-weight:700;font-style:normal;padding-left:7px;line-height:24px;white-space:nowrap;overflow:hidden;box-sizing:border-box}
+.ovr-r .mk{position:absolute;top:-6px;height:36px;border-left:2px dashed #16263D}.ovr-r .mk span{position:absolute;top:-17px;left:-1px;transform:translateX(-50%);font-size:11px;font-weight:700;font-style:normal;background:#fff;padding:0 3px;white-space:nowrap}
+.ovr-r .mk.lo span{top:36px}.ovr-r em{position:absolute;top:5px;font-size:11px;font-style:normal;color:#5F6F86;white-space:nowrap}
+.ovr-note{background:#F6F8FB;border-radius:8px;padding:8px 11px;font-size:11.8px;color:#33475B;margin:10px 0 10px;line-height:1.5}
+@media (max-width:700px){.ovr-tiles{grid-template-columns:1fr}.ovr-r .sg.sm{font-size:0;padding:0}.ovr-t{padding:6px 10px}.ovr-t b{font-size:19px}.ovr-r{grid-template-columns:84px 1fr}.ovr-r .br{margin-right:64px}}
 .ov-bar{height:11px;border-radius:6px;background:#E9EEF3;display:flex;overflow:hidden}.ov-bar i{display:block;height:100%}
 .ov-lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:#4A5A72;margin:7px 0 10px}.ov-lg span{display:flex;align-items:center;gap:5px}.ov-lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
 .ov-ag{display:grid;grid-template-columns:82px 1fr 74px;gap:9px 10px;align-items:center;font-size:12.5px}.ov-ag .bg{height:10px;border-radius:5px;background:#EDF1F5;overflow:hidden}.ov-ag .bg i{display:block;height:100%;border-radius:5px}.ov-ag b{text-align:right;font-variant-numeric:tabular-nums}
@@ -3341,6 +3351,29 @@ var OV = {}, OV_M = '', MON_EN = ['January', 'February', 'March', 'April', 'May'
 function monEn(ref, short3) { var p = String(ref).split('-'), n = MON_EN[+p[1] - 1] || ''; return (short3 ? n.substring(0, 3) : n) + (short3 ? '' : ' ' + p[0]); }
 function dateEn(s) { if (!s) return ''; var p = String(s).substring(0, 10).split('-'); return +p[2] + ' ' + MON_EN[+p[1] - 1].substring(0, 3) + ' ' + p[0]; }
 function pctId(x, d) { return (x * 100).toFixed(d === undefined ? 1 : d).replace('.', ',') + '%'; }
+/** v2.8.7: tiga persen dengan pembaginya + diagram (RA final vs target inkaso) — uang masuk sama, hanya 100%-nya yang berbeda */
+function ovRaRi(R, d, lain) {
+  var pRA = R.riRA / R.raFinal, pTot = R.totalRI / R.raFinal, pT = d.target ? d.receipts / d.target : null, mx = Math.max(R.raFinal, d.target || 0, R.totalRI, d.receipts) * 1.06;
+  var x = function (v) { return Math.max(0, v / mx * 100); }, f = function (v) { return rpShort(v).replace('Rp ', '').replace(' Miliar', ' M').replace(' juta', ' jt'); };
+  var tile = function (p, t, f1, f2) { return '<div class="ovr-t"><b>' + pctId(p) + '</b><div class="l">' + t + '</div><div class="f">' + f1 + (f2 ? '<br>' + f2 : '') + '</div></div>'; };
+  var seg = function (a, b, c, lb) { return b - a <= 0 ? '' : '<i class="sg' + (x(b - a) < 14 ? ' sm' : '') + '" style="left:' + x(a) + '%;width:calc(' + x(b - a) + '% - 2px);background:' + c + '">' + (x(b - a) > 7 ? lb : '') + '</i>'; };
+  // dua penanda berdekatan: label pertama rata kanan di garisnya, label kedua rata kiri — tidak bertumpuk
+  var mk = function (v, t, low, al) { return '<i class="mk' + (low ? ' lo' : '') + '" style="left:' + x(v) + '%"><span' + (al === 'L' ? ' style="transform:translateX(-100%)"' : al === 'R' ? ' style="transform:none;left:3px"' : '') + '>' + t + '</span></i>'; };
+  var h = '<div class="ovr-tiles' + (pT === null ? ' two' : '') + '">' +
+    tile(pRA, 'RI against RA', f(R.riRA) + ' ÷ final RA ' + f(R.raFinal), '= RA-RI Termin, RA subtotal') +
+    tile(pTot, 'Total RI against RA', '(' + f(R.riRA) + ' + ' + f(lain) + ' outside RA) ÷ final RA', '= RA-RI Termin, grand total') +
+    (pT === null ? '' : tile(pT, 'Total RI against collection target', f(d.receipts) + ' ÷ target ' + f(d.target), '(Parameter · monthly target)')) + '</div>';
+  var close = Math.abs(x(R.totalRI) - x(R.riRA)) < 16;
+  h += '<div class="ovr-ch"><div class="ovr-r"><div class="n">Final RA<small>' + rpShort(R.raFinal) + '</small></div><div class="br"><i class="bg" style="width:' + x(R.raFinal) + '%"></i>' +
+    seg(0, Math.min(R.riRA, mx), '#1E7B45', f(R.riRA)) + seg(R.riRA, R.totalRI, '#2AA3B0', f(lain)) + mk(R.riRA, pctId(pRA), false, close && lain > 0 ? 'L' : '') + (lain > 0 ? mk(R.totalRI, pctId(pTot), false, close ? 'R' : '') : '') +
+    '<em style="left:calc(' + x(R.raFinal) + '% + 6px)">100% = RA</em></div></div>';
+  if (pT !== null) h += '<div class="ovr-r"><div class="n">Collection target<small>' + rpShort(d.target) + '</small></div><div class="br"><i class="bg" style="width:' + x(d.target) + '%"></i>' +
+    seg(0, d.receipts, '#2F5D9E', f(d.receipts)) + mk(d.receipts, pctId(pT), true) + '<em style="left:calc(' + x(d.target) + '% + 6px)">100% = target</em></div></div>';
+  h += '</div><div class="ov-lg"><span><i style="background:#1E7B45"></i>RI against RA ' + rpShort(R.riRA) + '</span><span><i style="background:#2AA3B0"></i>RI reserve / outside RA ' + rpShort(lain) + '</span>' +
+    (pT === null ? '' : '<span><i style="background:#2F5D9E"></i>Total cash received ' + rpShort(d.receipts) + '</span>') + '<span><i style="background:#EDF0F4;border:1px solid #CBD5E1"></i>not yet reached</span>' + (d.cur ? '<span style="margin-left:auto">working days left <b>' + R.hariKerja + '</b></span>' : '') + '</div>' +
+    '<div class="ovr-note">Same cash received: <b>Rp ' + nfDot(R.totalRI) + '</b>. The percentages differ only by the base — <b>final RA</b> (collection plan validated by the Section Head) or the <b>collection target</b> (monthly target in Parameter).</div>';
+  return h;
+}
 function renderDashboard() {
   var cur = B.today.substring(0, 7), m = OV_M || cur, d = OV[m];
   if (d && d._today === B.today) return ovRender(d);
@@ -3362,8 +3395,9 @@ function ovRender(d) {
     kp('Open receivables', rpShort(d.open), plural(d.nOpen, 'invoice') + ' · incl. VAT') +
     kp('Overdue', rpShort(d.overdue), d.open ? '<span class="' + (d.overdue / d.open > .3 ? 'up' : '') + '">' + pctId(d.overdue / d.open) + ' of open AR</span>' : '–') +
     kp('Invoices issued · ' + mon3, rpShort(iss.total), plural(iss.n, 'invoice') + (chg === null ? '' : ' · <span class="' + (chg >= 0 ? 'gd' : 'up') + '">' + (chg >= 0 ? '▲ ' : '▼ ') + pctId(Math.abs(chg), 0) + ' vs ' + monEn(prevRef(d.ref), true) + '</span>')) +
-    kp('Cash received · ' + mon3, rpShort(d.receipts), d.target ? 'collection target ' + rpShort(d.target) + ' · ' + pctId(pT) : 'no collection target set') +
-    kp('Collection plan (RA) · ' + mon3, pRA === null ? '–' : pctId(pRA), R.raFinal ? '<span class="' + (pRA < .5 && d.cur ? 'up' : 'gd') + '">RI ' + rpShort(R.riRA) + ' of RA ' + rpShort(R.raFinal) + '</span>' : 'no collection plan this month') +
+    kp('Cash received · ' + mon3, rpShort(d.receipts), (d.target ? 'collection target ' + rpShort(d.target) + '<br><em class="ovr-p">' + pctId(pT) + '</em> <i class="ovr-tag">÷ collection target</i>' : 'no collection target set') +
+      (R.raFinal ? '<br><em class="ovr-p">' + pctId(R.totalRI / R.raFinal) + '</em> <i class="ovr-tag">÷ final RA</i>' : '')) +
+    kp('Collection plan (RA) · ' + mon3, pRA === null ? '–' : pctId(pRA), R.raFinal ? '<span class="' + (pRA < .5 && d.cur ? 'up' : 'gd') + '">RI ' + rpShort(R.riRA) + ' of RA ' + rpShort(R.raFinal) + '</span><br><i class="ovr-tag">÷ final RA</i> · total RI ' + pctId(R.totalRI / R.raFinal) : 'no collection plan this month') +
     kp('DSO · 12 months', d.dso12 === null ? '–' : d.dso12 + ' days', d.dso3 === null ? 'rolling, position today' : '3-month DSO ' + d.dso3 + ' days' + (d.dso12 !== null && d.dso3 > d.dso12 ? ' · <span class="up">▲ worsening</span>' : '')) + '</div>';
   if (maker) h += '<label class="m-only ov-srch">' + ico('srch') + '<input id="ovQ" placeholder="Search customer / invoice no.…" enterkeyhint="search"></label>';
   // invoice keluar bulan ini
@@ -3376,9 +3410,7 @@ function ovRender(d) {
   // RA-RI
   var w = function (v) { return R.raFinal ? Math.min(100, v / R.raFinal * 100) : 0; }, belumV = R.belum.reduce(function (t, x) { return t + x.nilai; }, 0), lain = R.riCad + R.riLuar;
   h += '<div class="ov-p"><h3>' + ico('bank') + 'Collection plan vs actual (RA–RI) · ' + monEn(d.ref) + (R.valId ? '<span class="r">final plan ' + esc(R.valId) + '</span>' : '<span class="r">plan not yet validated</span>') + '</h3><div class="s">Validated planned collections (RA) vs actual receipts (RI)</div>' +
-    (R.raFinal ? '<div class="ov-big"><b>' + pctId(pRA) + '</b><span>RI against final RA</span>' + (d.cur ? '<em>working days left <b>' + R.hariKerja + '</b></em>' : '') + '</div>' +
-      '<div class="ov-bar"><i style="width:' + w(R.riRA) + '%;background:#1E8E4E"></i><i style="width:' + Math.min(100 - w(R.riRA), w(lain)) + '%;background:#19A0A8"></i></div>' +
-      '<div class="ov-lg"><span><i style="background:#1E8E4E"></i>RI against RA ' + rpShort(R.riRA) + '</span><span><i style="background:#19A0A8"></i>RI reserve / outside RA ' + rpShort(lain) + '</span><span><i style="background:#E9EEF3;border:1px solid #CBD5E1"></i>not yet collected ' + rpShort(belumV) + '</span></div>' :
+    (R.raFinal ? ovRaRi(R, d, lain) :
       '<div class="ov-empty" style="margin-bottom:10px">No collection plan (RA) for ' + monEn(d.ref) + '. Total receipts (RI): ' + rpShort(R.totalRI) + '.</div>') +
     (R.belum.length ? '<table class="ov-t"><tr><th>Not yet collected (RA ✓)</th><th>Planned</th><th class="n">Amount</th></tr>' + R.belum.slice(0, 5).map(function (x) { return '<tr><td class="w">' + esc(titleCaseS(x.pelanggan).replace(/^PT\s+/, '')) + ' · ' + esc(short(x.nomor).replace(/^(\d{4}).*$/, '4C.$1')) + (x.sebagian ? ' <span class="chp wt">partial</span>' : '') + '</td><td>' + (x.rencana ? tg(x.rencana).substring(0, 5) : '–') + '</td><td class="n">' + rpShort(x.nilai).replace('Rp ', '') + '</td></tr>'; }).join('') + '</table>' + (R.belum.length > 5 ? '<button class="more" type="button" data-ovgo="dok">+ ' + (R.belum.length - 5) + ' more · see RA–RI report</button>' : '') :
       R.raFinal ? '<div class="ov-empty">All planned collections (RA ✓) have been received.</div>' : '') + '</div></div>';
