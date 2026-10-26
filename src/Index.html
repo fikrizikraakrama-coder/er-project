@@ -243,10 +243,15 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.t tr.baru td{background:#FFF4D6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pg-flow table.t tr.pb td{font-style:italic}
 .pg-flow table.t tr.sisa td{font-style:italic;font-weight:700;border-bottom:.8pt solid #8EA0BC}
-.pg-flow .ksign{margin-top:6mm;break-inside:avoid;page-break-inside:avoid;display:grid;grid-template-columns:1fr 1fr;gap:4mm 24mm;font-size:8.6pt}
+.pg-flow .ksign{margin-top:3mm;break-inside:avoid;page-break-inside:avoid;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 24mm;font-size:8pt}
 .pg-flow .ksign .kt{grid-column:2;text-align:left}
-.pg-flow .ksign .col{display:flex;flex-direction:column;min-height:34mm}
-.pg-flow .ksign .sp{flex:1;min-height:20mm;display:flex;align-items:center}
+.pg-flow .ksign .col{display:flex;flex-direction:column;min-height:25mm}
+.pg-flow .ksign .sp{flex:1;min-height:14mm;display:flex;align-items:center}
+/* v2.8.7: kartu piutang ringkas — huruf & jarak baris lebih kecil, kolom Keterangan lebih lebar agar tidak terlipat 3 baris */
+.pg-flow table.t.km{font-size:7.2pt;line-height:1.22}
+.pg-flow table.t.km th{padding:.9mm 1mm}
+.pg-flow table.t.km td{padding:.55mm 1mm}
+.pg-flow table.t.kmb td:nth-child(3){word-break:break-all}.pg-flow table.t.km td:first-child{white-space:nowrap}
 .pg-flow .ksign .nm{font-weight:700;text-decoration:underline}
 .pg-flow .ksign .stamp{max-width:62mm}
 .paywrap{display:grid;gap:10px}
@@ -2364,7 +2369,7 @@ function kartuTable(k) {
     body += '<tbody class="grp">' + rows + '</tbody>';
   });
   var T = k.T;
-  return '<table class="t"><thead><tr><th style="width:19mm">Tanggal</th><th>Uraian</th><th style="width:22mm">Ref / Bukti</th><th style="width:18mm">No. Dok SAP</th><th style="width:23mm">Debit</th><th style="width:23mm">Kredit</th><th style="width:23mm">Saldo</th><th style="width:58mm">Keterangan</th></tr></thead>' + body +
+  return '<table class="t km kmb"><thead><tr><th style="width:16mm">Tanggal</th><th>Uraian</th><th style="width:31mm">Ref / Bukti</th><th style="width:16mm">No. Dok SAP</th><th style="width:21mm">Debit</th><th style="width:21mm">Kredit</th><th style="width:21mm">Saldo</th><th style="width:68mm">Keterangan</th></tr></thead>' + body +
     '<tbody><tr class="tot"><td></td><td>TOTAL PROYEK</td><td></td><td></td><td class="n">' + nd(T.debit) + '</td><td class="n">' + nd(T.kredit) + '</td><td class="n">' + nd(T.saldo) + '</td><td>Sisa Netto ' + nd(T.sN) + ' · Sisa PPN ' + nd(T.sP) + '</td></tr></tbody></table>' +
     '<div class="knote">Debit = tagihan (dan kelebihan bayar yang dialihkan ke invoice lain). Kredit = penerimaan Netto &amp; PPN, PPh dipotong pelanggan, biaya adm bank, pindah buku masuk. Saldo = sisa tagihan tiap invoice. Ref = nomor mutasi bank / faktur pajak / bukti potong / pindah buku.</div>';
 }
@@ -2380,7 +2385,7 @@ function kartuPartA(k) {
   }).join('');
   var note = 'Nilai progres − pot. uang muka − retensi (bila dipotong sebelum DPP) = DPP. Piutang dicatat = DPP + PPN − retensi yang ditahan dari pembayaran.' + (akhir ? ' <b>**</b> retensi ditahan dari pembayaran (ditagih di akhir).' : '') +
     (lama ? ' <b>*</b> invoice lama: nilai progres / pot. UM belum dilengkapi di Monitoring Invoice.' : '');
-  return '<table class="t"><thead><tr><th style="width:19mm">Tgl invoice</th><th style="width:45mm">No. invoice</th><th>Tagihan</th><th>Nilai progres</th><th>Pot. uang muka</th><th>Retensi</th><th>DPP</th><th>PPN</th><th>Total invoice</th><th>Piutang dicatat</th></tr></thead><tbody>' +
+  return '<table class="t km"><thead><tr><th style="width:16mm">Tgl invoice</th><th style="width:42mm">No. invoice</th><th>Tagihan</th><th>Nilai progres</th><th>Pot. uang muka</th><th>Retensi</th><th>DPP</th><th>PPN</th><th>Total invoice</th><th>Piutang dicatat</th></tr></thead><tbody>' +
     (rows || '<tr><td colspan="10">Belum ada invoice</td></tr>') + '</tbody><tbody><tr class="tot"><td></td><td>TOTAL</td><td></td>' + t.map(function (x) { return '<td class="n">' + nd(x) + '</td>'; }).join('') + '</tr></tbody></table><div class="knote">' + note + '</div>';
 }
 /** tempat & tanggal persetujuan + tanda tangan AR Officer dan Section Head (tanpa NIP) — cap elektronik + ruang tanda tangan basah */
