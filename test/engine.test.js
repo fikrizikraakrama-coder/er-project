@@ -341,3 +341,13 @@ test('Kartu Piutang per tanggal lampau: peringatan merah berisi penerimaan setel
   // setiap blok laporan harus lengkap untuk writeReport_ (rows, fmt, styles) — blok tanpa fmt membuat "Perbarui semua laporan" gagal
   rep.blocks.forEach(b => { assert.ok(Array.isArray(b.rows) && b.fmt && typeof b.fmt === 'object' && Array.isArray(b.styles) && Array.isArray(b.merge), 'blok r=' + b.r + ' tidak lengkap'); });
 });
+
+test('Rekap Tagihan Proyek: kontrak, sudah ditagih, %, belum ditagih + blok lengkap & diagram', () => {
+  const input = fixture({ submit: '2026-09-21', bruto: 100e6 });
+  const res = ENGINE.compute(input), L = ENGINE.tagihanProyekRows(res.ctx);
+  assert.strictEqual(L.length, 1); assert.strictEqual(L[0].kontrak, 1e9); assert.strictEqual(L[0].ditagih, 100e6);
+  assert.strictEqual(L[0].belum, 900e6); assert.ok(Math.abs(L[0].pct - 0.1) < 1e-9); assert.strictEqual(L[0].status, 'Berjalan');
+  const rep = res.reports['Rekap Tagihan Proyek'];
+  rep.blocks.forEach(b => assert.ok(Array.isArray(b.rows) && b.fmt && Array.isArray(b.styles) && Array.isArray(b.merge)));
+  assert.strictEqual(rep.charts[0].type, 'BAR'); assert.strictEqual(rep.charts[0].range[2], 2);
+});

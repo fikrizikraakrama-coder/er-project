@@ -71,6 +71,10 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
   Tanggal pilihan manual hanya sementara — setiap pagi 06.00 dikembalikan ke hari ini. Selama posisi bukan hari ini, muncul baris merah
   "⚠ POSISI PER … — BUKAN HARI INI" beserta jumlah penerimaan / invoice setelah tanggal itu. Status P&E tidak lagi tertahan di "MEMPERBARUI…".
 
+- **Sheet baru Rekap Tagihan Proyek** (dibuat otomatis saat pembaruan laporan): per proyek nilai kontrak setelah adendum, sudah ditagih (nilai progres),
+  % tertagih, belum ditagih & status; ringkasan total; diagram *sudah vs belum ditagih (Rp miliar)* dan *% tertagih per proyek*.
+- Pembaruan laporan: satu laporan yang gagal tidak lagi menghentikan laporan lain; pesan "Reports not fully updated" di aplikasi menampilkan penyebabnya.
+
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi
 - **Perbaikan Surat Penagihan**: tampilan surat kembali normal (nama gaya layar aplikasi v2.8.4 bertabrakan dengan gaya surat). Garis putus-putus yang ikut muncul di tabel hitungan invoice cetak juga hilang.
 - **Document filing** (Invoice Register ▸ *Document filing…* atau tombol di lembar invoice): unggah **Signed billing pack** (invoice, kwitansi, BAP, sertifikat pembayaran ber-TTD; PDF/JPG/PNG maks. 10 MB) dan **Tax invoice (e-Faktur)** (PDF Coretax).

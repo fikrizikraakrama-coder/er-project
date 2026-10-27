@@ -9,7 +9,7 @@
  * File lain: Engine.gs (perhitungan), EngineClient.html (salinan Engine untuk aplikasi), Index.html (aplikasi), appsscript.json.
  */
 
-var REPORT_SHEETS = ['Dashboard Summary', 'Kartu Piutang', 'Pareto', 'RA-RI Termin', 'INKASO', 'Aging Piutang', 'Monitoring UM & Retensi', 'Monitoring Tagbrut',
+var REPORT_SHEETS = ['Dashboard Summary', 'Kartu Piutang', 'Rekap Tagihan Proyek', 'Pareto', 'RA-RI Termin', 'INKASO', 'Aging Piutang', 'Monitoring UM & Retensi', 'Monitoring Tagbrut',
   'Rekap Invoice Keluar', 'Usulan Jurnal SAP', 'CKPN', 'Rekon SAP', 'Cek Data', 'Kinerja & Peringatan Dini'];
 var SELECTOR_SHEETS = ['Pareto', 'Rekap Invoice Keluar', 'Kartu Piutang', 'INKASO', 'RA-RI Termin', 'Monitoring Tagbrut', 'CKPN', 'Usulan Jurnal SAP'];
 var INPUT_SHEETS = ['Monitoring Invoice', 'Log Penerimaan', 'Master Pelanggan', 'Master Proyek', 'Riwayat Adendum', 'Parameter', 'Input Tagbrut', 'Data LK (Tempel)'];
@@ -244,7 +244,10 @@ function rebuildAll_(opt) {
     writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
     writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
     try { arHideArsip_(ss, {}); } catch (err) { } // versi sebelumnya menyembunyikan baris ARSIP: tampilkan kembali (kini dipindah lewat menu)
-    REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) writeReport_(sh, res.reports[n], n); });
+    // v2.8.7: satu laporan gagal tidak menghentikan laporan lain (sebelumnya error di Kartu Piutang membuat Rekap Invoice Keluar dst. tidak diperbarui)
+    var repErr = [];
+    if (!ss.getSheetByName('Rekap Tagihan Proyek')) { try { var kp1 = ss.getSheetByName('Kartu Piutang'); arSetupRekapTagihan_(ss, kp1 ? kp1.getIndex() : ss.getSheets().length); } catch (err) { } }
+    REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) { try { writeReport_(sh, res.reports[n], n); } catch (err) { repErr.push(n + ': ' + err.message); } } });
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
     ensureSelectors_(ss, res);
     arWriteReconciliation_(res);
@@ -263,6 +266,7 @@ function rebuildAll_(opt) {
     ss.getSheetByName('Log Penerimaan').getRange('A3').setValue(stamp);
     SpreadsheetApp.flush();
     LAST_RES_ = res;
+    if (repErr.length) throw new Error('Laporan gagal ditulis — ' + repErr.join(' · '));
     return { ok: true, issues: res.issues.length };
   } finally { lock.releaseLock(); }
 }
@@ -1996,6 +2000,12 @@ var V25_KV = [
   ['EWS_OVERDUE_PER_PELANGGAN', 2, 'Peringatan MERAH: pelanggan dengan ≥ n invoice overdue'],
   ['EWS_WAITING_SUBMIT_HARI', 14, 'Peringatan KUNING: invoice belum disubmit lebih dari n hari sejak tanggal invoice'],
   ['EWS_KONSENTRASI_PCT', 30, 'Peringatan MERAH: piutang satu pelanggan lebih dari n% seluruh piutang terbuka']];
+function arSetupRekapTagihan_(ss, idx) {
+  var sh = setupReport_(ss, 'Rekap Tagihan Proyek', 'REKAP TAGIHAN PROYEK — SUDAH DITAGIH vs NILAI KONTRAK',
+    'Per proyek: nilai kontrak setelah adendum, sudah ditagih (nilai progres / bruto), persentase tertagih, dan sisa yang belum ditagih. Diperbarui otomatis bersama laporan lain.', null, idx);
+  sh.setTabColor('#1E7B45');
+  return sh;
+}
 function setupKinerja_(ss, idx) {
   var sh = setupReport_(ss, 'Kinerja & Peringatan Dini', 'KINERJA PIUTANG & PERINGATAN DINI',
     'DSO, receivables turnover, status kinerja pembayaran per pelanggan, dan peringatan dini (EWS). Dihitung otomatis; ambang diatur di Parameter (KINERJA_… dan EWS_…).', null, idx);

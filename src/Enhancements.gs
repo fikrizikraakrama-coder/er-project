@@ -179,7 +179,8 @@ function arAfterSave_(npps,months,noDerived) {
   try { rebuildAll_({ format: false }); } catch(e) { out.reportPending=true;out.warnings.push('Main reports: '+e.message); }
   if (!noDerived) try {
     var a=paramKV_('FILE_AKUNTANSI_ID'),b=paramKV_('FILE_PE_ID'),c=paramKV_('FILE_PAJAK_ID');
-    if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}); if(r.err.length) {out.reportPending=true;out.warnings=out.warnings.concat(r.err);} }
+    // sinkron lain sedang berjalan bukan kegagalan: file Akuntansi/P&E/Pajak ikut diperbarui oleh sinkron itu / jadwal berikutnya
+    if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}),re=r.err.filter(function(x){return !/another sync is running|system busy/.test(x);}); if(re.length) {out.reportPending=true;out.warnings=out.warnings.concat(re);} }
   } catch(e) {out.reportPending=true;out.warnings.push('Derived files: '+e.message);}
   return out;
 }

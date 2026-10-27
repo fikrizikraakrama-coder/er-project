@@ -3569,7 +3569,9 @@ function bgReports() {
   var done = function () { BG_RUN = false; if (BG_AGAIN) { BG_AGAIN = false; bgReports(); } };
   call('apiAfterSave', [], function (r) {
     if (BG_AGAIN) return done(); // ada perubahan baru selama pembaruan: langsung jalankan sekali lagi
-    if (r && r.reportPending) { c.innerHTML = '⚠ Reports not fully updated · <a href="#" style="color:#9FE3E8" id="bgRetry">retry</a>'; $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(15000); }
+    if (r && r.reportPending) { var why = (r.warnings || []).join(' · ');
+      c.innerHTML = '⚠ Reports not fully updated · <a href="#" style="color:#9FE3E8" id="bgRetry">retry</a>' + (why ? '<div style="font-size:11px;opacity:.85;margin-top:3px;max-width:420px;white-space:normal">' + esc(why.slice(0, 300)) + '<br>The system retries automatically within 5 minutes.</div>' : '');
+      $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(25000); }
     else { c.innerHTML = '✓ Reports updated'; hide(3500); }
     done();
   }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); done(); });

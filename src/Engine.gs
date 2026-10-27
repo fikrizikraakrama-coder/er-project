@@ -843,6 +843,7 @@ var ENGINE = (function () {
       'Monitoring UM & Retensi': repUmRet(ctx), 'INKASO': repInkaso(ctx), 'RA-RI Termin': repRARI(ctx), 'Aging Piutang': repAging(ctx),
       'Monitoring Tagbrut': repTagbrut(ctx), 'CKPN': repCkpn(ctx), 'Usulan Jurnal SAP': repJurnal(ctx), 'Rekon SAP': repRekon(ctx)
     };
+    try { reports['Rekap Tagihan Proyek'] = repTagihanProyek(ctx); } catch (e) { issues.push(['REKAP TAGIHAN', 'Rekap Tagihan Proyek', '-', 'Gagal dihitung: ' + e.message, 'Laporkan ke pengembang']); }
     try { reports['Kinerja & Peringatan Dini'] = repKinerja(ctx); } catch (e) { issues.push(['KINERJA', 'Kinerja & Peringatan Dini', '-', 'Gagal dihitung: ' + e.message, 'Laporkan ke pengembang']); }
     reports['Dashboard Summary'] = repDashboard(ctx);
     reports['Cek Data'] = repCek(ctx);
@@ -2084,6 +2085,38 @@ var ENGINE = (function () {
   }
 
   // ------------------------------------------------------------------ RINGKASAN UNTUK P&E
+  /** v2.8.7: rekap per proyek — nilai kontrak (setelah adendum), sudah ditagih (nilai progres), % tertagih, belum ditagih + diagram */
+  function tagihanProyekRows(ctx) {
+    return peSummary(ctx).filter(function (x) { return x.kontrak > 0 || x.progres > 0; }).map(function (x) {
+      var p = ctx.M.pro[x.npp] || {}, belum = Math.max(0, x.kontrak - x.progres), pct = x.kontrak ? x.progres / x.kontrak : 0;
+      var st = !x.progres ? 'Belum ada tagihan' : pct >= 0.9995 ? (x.progres > x.kontrak * 1.0005 ? 'Melebihi kontrak — cek adendum' : 'Selesai ditagih') : p.selesai ? 'Proyek SELESAI — sisa belum ditagih' : 'Berjalan';
+      return { npp: x.npp, pelanggan: x.pelanggan, proyek: x.singkat || x.proyek, kontrak: x.kontrak, ditagih: x.progres, pct: pct, belum: belum, status: st };
+    }).sort(function (a, b) { return b.belum - a.belum || b.kontrak - a.kontrak; });
+  }
+  function repTagihanProyek(ctx) {
+    var L = tagihanProyekRows(ctx), tk = sumBy(L, function (x) { return x.kontrak; }), td = sumBy(L, function (x) { return x.ditagih; }), tb = sumBy(L, function (x) { return x.belum; });
+    var M = function (v) { return rnd(v / 1e7) / 100; }; // Rp miliar, 2 desimal (untuk diagram)
+    var tiles = [['NILAI KONTRAK (SETELAH ADENDUM)', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'PROYEK'], [tk, td, tk ? td / tk : 0, tb, L.length + ' proyek · ' + L.filter(function (x) { return x.status === 'Selesai ditagih'; }).length + ' selesai ditagih']];
+    var blocks = [block(6, 1, tiles, { styles: [sty(0, 'hdr'), sty(1, 'kpi')], fmt: { 0: 'money', 1: 'money', 2: 'pct', 3: 'money' }, noWidth: true })];
+    blocks.push(block(8, 1, [['Posisi ' + tglPanjang(ctx.today) + '. Sudah ditagih = nilai progres (bruto) seluruh invoice progres yang tidak batal, termasuk proyek produk & adendum yang ditagih lewat NPP induk. Belum ditagih = nilai kontrak setelah adendum − sudah ditagih. Urut dari sisa belum ditagih terbesar.']], { styles: [sty(0, 'note')] }));
+    var t = [['NO', 'PELANGGAN', 'NPP', 'PROYEK', 'NILAI KONTRAK', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'STATUS']];
+    L.forEach(function (x, i) { t.push([i + 1, x.pelanggan, x.npp, x.proyek, x.kontrak, x.ditagih, x.pct, x.belum, x.status]); });
+    t.push(['', 'TOTAL', '', L.length + ' proyek', tk, td, tk ? td / tk : 0, tb, '']);
+    blocks.push(block(10, 1, t, { styles: [sty(0, 'hdr'), sty(t.length - 1, 'total')], fmt: { 4: 'money', 5: 'money', 6: 'pct', 7: 'money' } }));
+    // data diagram (Rp miliar) di kolom kanan; diagram batang bertumpuk per proyek
+    var cd = [['PROYEK', 'Sudah ditagih (Rp M)', 'Belum ditagih (Rp M)']];
+    L.forEach(function (x) { cd.push([x.proyek + ' · ' + String(rnd(x.pct * 1000) / 10).replace('.', ',') + '%', M(x.ditagih), M(x.belum)]); });
+    var cr = 12 + t.length + 2;
+    blocks.push(block(cr, 1, [['DATA DIAGRAM (Rp miliar) — diisi otomatis']].concat(cd), { styles: [sty(0, 'title'), sty(1, 'hdr')], fmt: { 1: 'num2', 2: 'num2' }, noWidth: true }));
+    var cp = [['PROYEK', '% tertagih']]; L.forEach(function (x) { cp.push([x.proyek, rnd(x.pct * 1000) / 10]); });
+    var cr2 = cr + cd.length + 2, hh = Math.max(320, 70 + 26 * L.length);
+    blocks.push(block(cr2, 1, [['DATA DIAGRAM (% tertagih) — diisi otomatis']].concat(cp), { styles: [sty(0, 'title'), sty(1, 'hdr')], fmt: { 1: 'num2' }, noWidth: true }));
+    var charts = [{ key: 'tp1', type: 'BAR', stacked: true, title: 'Sudah ditagih vs belum ditagih per proyek (Rp miliar)', range: [cr + 1, 1, cd.length, 3], row: 10, col: 11,
+      w: 760, h: hh, colors: ['#1E7B45', '#C9D3DE'], legend: 'top' },
+      { key: 'tp2', type: 'BAR', title: '% tertagih per proyek (100% = nilai kontrak)', range: [cr2 + 1, 1, cp.length, 2], row: 10 + Math.ceil(hh / 21) + 1, col: 11,
+      w: 760, h: hh, colors: ['#2F5D9E'], labels: true }];
+    return { from: 6, blocks: blocks, charts: charts, wrapCols: [4, 9], minW: { 2: 30, 4: 34, 9: 26 } };
+  }
   function proyekAR(ctx) {
     return Object.keys(ctx.M.pro).filter(function (n) { var p = ctx.M.pro[n]; return !p._produkOf && !p._adendumOf; });
   }
@@ -3005,7 +3038,7 @@ var ENGINE = (function () {
   }
 
   return {
-    posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    tagihanProyekRows: tagihanProyekRows, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
