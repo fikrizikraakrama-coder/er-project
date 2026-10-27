@@ -73,6 +73,7 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 
 - **Sheet baru Rekap Tagihan Proyek** (dibuat otomatis saat pembaruan laporan): per proyek nilai kontrak setelah adendum, sudah ditagih (nilai progres),
   % tertagih, belum ditagih & status; ringkasan total; diagram *sudah vs belum ditagih (Rp miliar)* dan *% tertagih per proyek*.
+- Sinkron file Akuntansi / P&E / Pajak: tetap dikirim walau sistem sibuk atau ada laporan yang gagal; proyek dari simpan yang bertabrakan dengan sinkron lain dititipkan dan dikirim sinkron berikutnya.
 - Pembaruan laporan: satu laporan yang gagal tidak lagi menghentikan laporan lain; pesan "Reports not fully updated" di aplikasi menampilkan penyebabnya.
 
 ## v2.8.6: Document filing, file Pajak, Monitoring Invoice ringkas, menu rapi

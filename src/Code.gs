@@ -1770,8 +1770,19 @@ function syncTurunan_(opt) {
   var out = { verif: 0, memo: 0, pe: 0, pajak: 0, err: [] };
   // v2.8.7: kunci utama hanya dipegang saat menarik centang Akuntansi & membangun ulang laporan; pengiriman ke file Akuntansi/P&E/Pajak
   // (file lain, bisa beberapa menit) memakai penanda sinkron sendiri — simpan/ajukan di aplikasi tidak lagi antre di belakangnya
-  if (!arSyncClaim_()) { out.err.push('another sync is running — it will retry on the next schedule'); return out; }
-  try { return syncRun_(opt, out); } finally { arSyncRelease_(); }
+  if (!arSyncClaim_()) {
+    // proyek/bulan dari simpan ini dititipkan → dikirim oleh sinkron berikutnya (tidak hilang bila bertabrakan dengan sinkron per jam)
+    try { var pr = PropertiesService.getScriptProperties(), q = JSON.parse(pr.getProperty('SYNC_PENDING') || '{"npps":[],"months":[]}');
+      (opt.npps || []).forEach(function (n) { if (q.npps.indexOf(n) < 0) q.npps.push(n); }); (opt.months || []).forEach(function (m) { if (q.months.indexOf(m) < 0) q.months.push(m); });
+      pr.setProperty('SYNC_PENDING', JSON.stringify(q).slice(0, 8000)); } catch (e) { }
+    out.err.push('another sync is running — it will retry on the next schedule'); return out;
+  }
+  try {
+    // titipan sinkron sebelumnya ikut dikirim
+    var pr2 = PropertiesService.getScriptProperties(), qp = null; try { qp = JSON.parse(pr2.getProperty('SYNC_PENDING') || 'null'); } catch (e) { }
+    if (qp) { pr2.deleteProperty('SYNC_PENDING'); if (opt.npps) opt.npps = opt.npps.concat(qp.npps.filter(function (n) { return opt.npps.indexOf(n) < 0; })); if (opt.months) opt.months = opt.months.concat(qp.months.filter(function (m) { return opt.months.indexOf(m) < 0; })); }
+    return syncRun_(opt, out);
+  } finally { arSyncRelease_(); }
 }
 function arSyncClaim_() {
   var l = arLock_(); if (!l.tryLock(10000)) return false;
@@ -1783,11 +1794,14 @@ function syncRun_(opt, out) {
   if (opt.noPull) res = LAST_RES_ || compute_(); // setelah simpan: hasil pembaruan laporan barusan (eksekusi yang sama) dipakai ulang
   else {
     var sl = arLock_();
-    if (!sl.tryLock(30000)) { out.err.push('system busy — it will retry on the next schedule'); return out; }
-    try {
-      try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
-      rebuildAll_(); res = LAST_RES_ || compute_();
-    } finally { sl.releaseLock(); }
+    // v2.8.7: sistem sibuk atau satu laporan gagal tidak lagi membatalkan pengiriman ke file Akuntansi / P&E / Pajak
+    if (sl.tryLock(30000)) {
+      try {
+        try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
+        try { rebuildAll_(); } catch (e) { out.err.push('reports: ' + e.message); }
+        res = LAST_RES_ || compute_();
+      } finally { sl.releaseLock(); }
+    } else { out.err.push('system busy — verification pull postponed to the next schedule'); res = compute_(); }
   }
   try { out.memo = pushMemorial_(res, opt.months); } catch (e) { out.err.push('Accounting file: ' + e.message); }
   try { out.pe = pushPE_(res, opt.npps); } catch (e) { out.err.push('P&E file: ' + e.message); }

@@ -2095,27 +2095,30 @@ var ENGINE = (function () {
   }
   function repTagihanProyek(ctx) {
     var L = tagihanProyekRows(ctx), tk = sumBy(L, function (x) { return x.kontrak; }), td = sumBy(L, function (x) { return x.ditagih; }), tb = sumBy(L, function (x) { return x.belum; });
-    var M = function (v) { return rnd(v / 1e7) / 100; }; // Rp miliar, 2 desimal (untuk diagram)
-    var tiles = [['NILAI KONTRAK (SETELAH ADENDUM)', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'PROYEK'], [tk, td, tk ? td / tk : 0, tb, L.length + ' proyek · ' + L.filter(function (x) { return x.status === 'Selesai ditagih'; }).length + ' selesai ditagih']];
-    var blocks = [block(6, 1, tiles, { styles: [sty(0, 'hdr'), sty(1, 'kpi')], fmt: { 0: 'money', 1: 'money', 2: 'pct', 3: 'money' }, noWidth: true })];
-    blocks.push(block(8, 1, [['Posisi ' + tglPanjang(ctx.today) + '. Sudah ditagih = nilai progres (bruto) seluruh invoice progres yang tidak batal, termasuk proyek produk & adendum yang ditagih lewat NPP induk. Belum ditagih = nilai kontrak setelah adendum − sudah ditagih. Urut dari sisa belum ditagih terbesar.']], { styles: [sty(0, 'note')] }));
-    var t = [['NO', 'PELANGGAN', 'NPP', 'PROYEK', 'NILAI KONTRAK', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'STATUS']];
+    var M = function (v) { return rnd(v / 1e7) / 100; }, pc = function (v) { return String(rnd(v * 1000) / 10).replace('.', ',') + '%'; };
+    // ringkasan mulai kolom B (kolom A = NO, sempit) — kolom B..F: PELANGGAN, NPP, PROYEK, NILAI KONTRAK, SUDAH DITAGIH
+    var tiles = [['NILAI KONTRAK (SETELAH ADENDUM)', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'JUMLAH PROYEK'],
+      [tk, td, tk ? td / tk : 0, tb, L.length + ' proyek · ' + L.filter(function (x) { return x.status === 'Selesai ditagih'; }).length + ' selesai ditagih']];
+    var blocks = [block(6, 2, tiles, { styles: [sty(0, 'hdr'), sty(1, 'kpi')], fmt: { 0: 'money', 1: 'money', 2: 'pct', 3: 'money' }, noWidth: true })];
+    var top = L.slice(0, 15), hh = 70 + 24 * top.length, chartRows = Math.ceil(hh / 21) + 1;
+    blocks.push(block(8, 1, [['Posisi ' + tglPanjang(ctx.today) + '. Sudah ditagih = nilai progres (bruto) invoice yang tidak batal, termasuk produk & adendum yang ditagih lewat NPP induk. Belum ditagih = nilai kontrak setelah adendum − sudah ditagih. ' +
+      (L.length > top.length ? 'Diagram: ' + top.length + ' proyek dengan sisa belum ditagih terbesar; daftar lengkap di tabel.' : 'Urut dari sisa belum ditagih terbesar.')]], { styles: [sty(0, 'note')] }));
+    // diagram di bawah ringkasan (baris 10), tabel di bawah diagram, data diagram paling bawah
+    var tr = 10 + chartRows + 1, t = [['NO', 'PELANGGAN', 'NPP', 'PROYEK', 'NILAI KONTRAK', 'SUDAH DITAGIH', '% TERTAGIH', 'BELUM DITAGIH', 'STATUS']];
     L.forEach(function (x, i) { t.push([i + 1, x.pelanggan, x.npp, x.proyek, x.kontrak, x.ditagih, x.pct, x.belum, x.status]); });
     t.push(['', 'TOTAL', '', L.length + ' proyek', tk, td, tk ? td / tk : 0, tb, '']);
-    blocks.push(block(10, 1, t, { styles: [sty(0, 'hdr'), sty(t.length - 1, 'total')], fmt: { 4: 'money', 5: 'money', 6: 'pct', 7: 'money' } }));
-    // data diagram (Rp miliar) di kolom kanan; diagram batang bertumpuk per proyek
-    var cd = [['PROYEK', 'Sudah ditagih (Rp M)', 'Belum ditagih (Rp M)']];
-    L.forEach(function (x) { cd.push([x.proyek + ' · ' + String(rnd(x.pct * 1000) / 10).replace('.', ',') + '%', M(x.ditagih), M(x.belum)]); });
-    var cr = 12 + t.length + 2;
-    blocks.push(block(cr, 1, [['DATA DIAGRAM (Rp miliar) — diisi otomatis']].concat(cd), { styles: [sty(0, 'title'), sty(1, 'hdr')], fmt: { 1: 'num2', 2: 'num2' }, noWidth: true }));
-    var cp = [['PROYEK', '% tertagih']]; L.forEach(function (x) { cp.push([x.proyek, rnd(x.pct * 1000) / 10]); });
-    var cr2 = cr + cd.length + 2, hh = Math.max(320, 70 + 26 * L.length);
-    blocks.push(block(cr2, 1, [['DATA DIAGRAM (% tertagih) — diisi otomatis']].concat(cp), { styles: [sty(0, 'title'), sty(1, 'hdr')], fmt: { 1: 'num2' }, noWidth: true }));
-    var charts = [{ key: 'tp1', type: 'BAR', stacked: true, title: 'Sudah ditagih vs belum ditagih per proyek (Rp miliar)', range: [cr + 1, 1, cd.length, 3], row: 10, col: 11,
-      w: 760, h: hh, colors: ['#1E7B45', '#C9D3DE'], legend: 'top' },
-      { key: 'tp2', type: 'BAR', title: '% tertagih per proyek (100% = nilai kontrak)', range: [cr2 + 1, 1, cp.length, 2], row: 10 + Math.ceil(hh / 21) + 1, col: 11,
-      w: 760, h: hh, colors: ['#2F5D9E'], labels: true }];
-    return { from: 6, blocks: blocks, charts: charts, wrapCols: [4, 9], minW: { 2: 30, 4: 34, 9: 26 } };
+    blocks.push(block(tr - 1, 1, [['DAFTAR PROYEK']], { styles: [sty(0, 'title')] }));
+    blocks.push(block(tr, 1, t, { styles: [sty(0, 'hdr'), sty(t.length - 1, 'total')], fmt: { 4: 'money', 5: 'money', 6: 'pct', 7: 'money' } }));
+    // data diagram: label di kolom D (PROYEK, lebar)
+    var cr = tr + t.length + 3, cd = [['PROYEK', 'Sudah ditagih (Rp M)', 'Belum ditagih (Rp M)']], cp = [['PROYEK', '% tertagih']];
+    top.forEach(function (x) { cd.push([x.proyek + ' · ' + pc(x.pct), M(x.ditagih), M(x.belum)]); cp.push([x.proyek, rnd(x.pct * 1000) / 10]); });
+    var cr2 = cr + cd.length + 2;
+    blocks.push(block(cr - 1, 4, [['DATA DIAGRAM (diisi otomatis — jangan diubah)']], { styles: [sty(0, 'note')] }));
+    blocks.push(block(cr, 4, cd, { styles: [sty(0, 'hdr')], fmt: { 1: 'num2', 2: 'num2' }, noWidth: true }));
+    blocks.push(block(cr2, 4, cp, { styles: [sty(0, 'hdr')], fmt: { 1: 'num2' }, noWidth: true }));
+    var charts = [{ key: 'tp1', type: 'BAR', stacked: true, title: 'Sudah ditagih vs belum ditagih per proyek (Rp miliar)', range: [cr, 4, cd.length, 3], row: 10, col: 2, w: 700, h: hh, colors: ['#1E7B45', '#C9D3DE'], legend: 'top' },
+      { key: 'tp2', type: 'BAR', title: '% tertagih per proyek (100% = nilai kontrak)', range: [cr2, 4, cp.length, 2], row: 10, col: 6, w: 620, h: hh, colors: ['#2F5D9E'], labels: true }];
+    return { from: 6, blocks: blocks, charts: charts, wrapCols: [9], minW: { 2: 34, 3: 14, 4: 44, 5: 18, 6: 18, 7: 12, 8: 18, 9: 24 } };
   }
   function proyekAR(ctx) {
     return Object.keys(ctx.M.pro).filter(function (n) { var p = ctx.M.pro[n]; return !p._produkOf && !p._adendumOf; });
