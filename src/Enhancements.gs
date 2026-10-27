@@ -166,6 +166,9 @@ function arSavePayments_(rows, requestId, opt) {
     var keys=rows.map(function(r){return r.inv;});
     var ctx=ENGINE.compute(Object.assign({},input,{light:true})).ctx;
     npps=ctx.invs.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}).map(function(i){return i.npp;});
+    // v2.8.7: NAMA PELANGGAN & NPP (kolom otomatis) langsung diisi — baris baru tidak tersembunyi oleh filter yang menyembunyikan sel kosong
+    if (!saved.duplicate && typeof target==='number') try { var byN={}; ctx.invs.forEach(function(i){byN[ENGINE.normInv(i.nomor)]=i;});
+      rows.forEach(function(r,k){var i=byN[ENGINE.normInv(r.inv)];if(!i)return;if(map.pelanggan)sh.getRange(target+k,map.pelanggan).setValue(i.pelanggan);if(map.npp)sh.getRange(target+k,map.npp).setNumberFormat('@').setValue(i.npp);}); } catch(e) {}
   } finally { lock.releaseLock(); }
   var post=arQueueAfterSave_(npps,months); saved.reportPending=post.reportPending;saved.background=post.background;saved.warnings=post.warnings;
   if (koreksi && !saved.duplicate) { var rf=arRefreshClosedMonths_(rows.map(function(r){return r.tgl;}),koreksi); saved.warnings=saved.warnings.concat(rf.warnings); saved.snapshots=rf.ids;

@@ -252,6 +252,7 @@ function rebuildAll_(opt) {
     ensureSelectors_(ss, res);
     arWriteReconciliation_(res);
     try { arExtendFilters_(ss); } catch (err) { }
+    try { arRepairInvoiceDates_(ss); } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)
@@ -980,9 +981,14 @@ function apiSaveInvoice(p, opt) { arRequireMaker_();
       var target = lastDataRow_(sh, ENGINE.REG.firstRow, [map.nomor]) + 1, lc2 = sh.getLastColumn(), arr = []; roomFor_(sh, target);
       for (var k = 0; k < lc2; k++) arr.push('');
       cols.forEach(function (c) { var j = map[c[0]]; if (j && (colType_(c) === 'app' || c[0] === 'status_inv' || c[0] === 'top') && p[c[0]] !== undefined) arr[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
+      // v2.8.7: NAMA PROYEK (kolom otomatis) langsung diisi — baris baru tidak tersembunyi oleh filter yang menyembunyikan sel kosong
+      try { var mp = readSchema_(ss.getSheetByName('Master Proyek'), ENGINE.MPRO, ENGINE.MPRO_ALIAS), ix = ENGINE.colIndex(ENGINE.MPRO, 'npp'), is = ENGINE.colIndex(ENGINE.MPRO, 'singkat');
+        var pr0 = mp.filter(function (r) { return String(r[ix]).trim() === String(p.npp).trim(); })[0]; if (pr0 && map.proyek) arr[map.proyek - 1] = pr0[is]; } catch (e) { }
       var keep = sh.getRange(target, 1, 1, lc2).getFormulas()[0];
       arr = arr.map(function (v, i) { return keep[i] ? keep[i] : v; });
       sh.getRange(target, 1, 1, lc2).setValues([arr]);
+      // pastikan tanggal invoice benar-benar tersimpan
+      if (map.tgl && !sh.getRange(target, map.tgl).getValue()) sh.getRange(target, map.tgl).setValue(toCell_(p.tgl, 'date'));
       result = { ok: true, mode: 'baru', nomor: nomor, rev: 0, row: target };
     }
   } finally { lock.releaseLock(); }
@@ -2019,6 +2025,18 @@ function arSetupRekapTagihan_(ss, idx) {
     'Per proyek: nilai kontrak setelah adendum, sudah ditagih (nilai progres / bruto), persentase tertagih, dan sisa yang belum ditagih. Diperbarui otomatis bersama laporan lain.', null, idx);
   sh.setTabColor('#1E7B45');
   return sh;
+}
+/** v2.8.7: TANGGAL INVOICE kosong padahal invoice dibuat aplikasi → diisi lagi dari DATA FORM (tanggal yang diinput di aplikasi) */
+function arRepairInvoiceDates_(ss) {
+  var sh = ss.getSheetByName('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), f0 = ENGINE.REG.firstRow, last = sh.getLastRow();
+  if (!map.tgl || !map.json || last < f0) return 0;
+  var n = last - f0 + 1, tg = sh.getRange(f0, map.tgl, n, 1).getValues(), js = sh.getRange(f0, map.json, n, 1).getValues(), fixed = 0;
+  tg.forEach(function (r, i) {
+    if (String(r[0]).trim() || !String(js[i][0]).trim()) return;
+    var t = ''; try { t = String((JSON.parse(String(js[i][0])) || {}).tgl || ''); } catch (e) { }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(t)) { sh.getRange(f0 + i, map.tgl).setValue(toCell_(t, 'date')); fixed++; }
+  });
+  return fixed;
 }
 function setupKinerja_(ss, idx) {
   var sh = setupReport_(ss, 'Kinerja & Peringatan Dini', 'KINERJA PIUTANG & PERINGATAN DINI',
