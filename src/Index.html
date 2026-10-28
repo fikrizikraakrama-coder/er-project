@@ -573,6 +573,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .fsum{font-size:12px;color:#33475B;background:#F4F7FA;border-radius:8px;padding:6px 10px;margin-bottom:6px}.fsum:empty{display:none}
 #mode-buka table.list{table-layout:fixed}#mode-buka table.list th:nth-child(1){width:26%}#mode-buka table.list th:nth-child(3){width:34%}
 #mode-buka table.list td{overflow-wrap:anywhere}
+#mode-tbayar table.list{table-layout:fixed}#mode-tbayar table.list th:nth-child(1){width:30%}#mode-tbayar table.list th:nth-child(3){width:30%}#mode-tbayar table.list td{overflow-wrap:anywhere}#mode-tbayar tr[data-open]{cursor:pointer}#mode-tbayar td .num{white-space:nowrap}#mode-tbayar tr[data-open]:hover td{background:#F2F7FA}#mode-tbayar tr.sel td{background:#E3F1F2}
+.pho{display:inline-block;margin-top:2px;font-size:11px;font-weight:600}.pho.n{color:#B45309}.pho.y{color:#0F6E78}
 </style>
 </head>
 <body>
@@ -732,7 +734,16 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <div class="note" id="cRes"></div>
         </fieldset>
       </div>
-      <fieldset class="stp" style="margin-top:14px"><legend>Cash receipts · <select id="pMon" aria-label="Receipt month" style="width:auto;display:inline-block;padding:3px 6px;font-weight:700"></select></legend><div class="fsum" id="pSum"></div><div id="payList"></div></fieldset>
+      <div class="note" style="margin-top:14px">Receipts already recorded (per month, with approval sheets) are in <button class="linkbtn" type="button" data-mgo="tbayar">Cash Receipts ▸ Receipts Register</button>.</div>
+    </div>
+
+    <!-- ===================== MODE REGISTER PENERIMAAN (v2.8.7) -->
+    <div class="scroll" id="mode-tbayar" hidden>
+      <div class="m-only m-acts"><button type="button" class="btn" data-mgo="bayar">+ Record receipt</button></div>
+      <label for="pQ">Search receipt no., invoice, customer or bank reference</label><input id="pQ" placeholder="e.g. PNR-00355 or 0137/2026 or ASTAKONA">
+      <div style="display:flex;gap:8px;margin-top:8px"><select id="pMon" aria-label="Receipt month" style="font-weight:700"></select><button class="btn" type="button" id="pRegPrint" style="flex:0 0 auto"><svg class="ic"><use href="#i-print"/></svg>Print</button></div>
+      <div class="fchips" id="pChips"></div><div class="fsum" id="pSum"></div>
+      <table class="list" style="margin-top:10px"><thead><tr><th>Receipt</th><th>Customer / invoice</th><th>Amount</th></tr></thead><tbody id="payList"></tbody></table>
     </div>
 
     <!-- ===================== MODE SURAT PENAGIHAN -->
@@ -1601,6 +1612,7 @@ function renderBap(d) {
 }
 function renderDocs() {
   if (MODE === 'bayar') return renderPayView();
+  if (MODE === 'tbayar') { $('sheetwrap').innerHTML = '<div class="empty">Select a receipt in the list on the left to view its approval sheet.</div>'; renderPayReg(); return; }
   var w = $('sheetwrap');
   if (!CUR) { w.innerHTML = '<div class="empty">Select a customer and project to preview the document.</div>'; return; }
   var d = docData();
@@ -2201,17 +2213,18 @@ function setMode(m) {
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
   document.body.classList.toggle('full', m === 'dashboard'); $('ovWrap').hidden = m !== 'dashboard';
   $('kpiBar').hidden = m !== 'setuju';
-  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
+  $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
+  if (m === 'tbayar') { renderPayReg(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select a receipt in the list on the left to view its approval sheet.</div>'; }
   if (m === 'dok') { renderDok(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select a monthly document or customer ledger to preview.</div>'; }
 }
 
@@ -2220,7 +2233,9 @@ function bind() {
   buildNav(true); bindTop();
   $('dfClose').onclick = function () { $('dfDlg').close(); DF = null; };
   if ($('qMon')) $('qMon').onchange = function () { REG_M = this.value; renderList(); };
-  if ($('pMon')) $('pMon').onchange = function () { PAY_M = this.value; renderSetuju(); };
+  if ($('pMon')) $('pMon').onchange = function () { PAY_M = this.value; renderPayReg(); };
+  if ($('pQ')) $('pQ').oninput = function () { clearTimeout(renderPayReg.t); renderPayReg.t = setTimeout(renderPayReg, 200); };
+  if ($('pRegPrint')) $('pRegPrint').onclick = function () { printHtml(pgPayReg()); };
   $('mBack').onclick = function () { var bc = document.body.classList; if (bc.contains('m-view') && !STACK) { bc.remove('m-view'); AP_SEL = ''; return; } if (STACK && bc.contains('m-doc') && bc.contains('has-sum')) { bc.remove('m-doc'); $('mSum').scrollTop = 0; return; } if (STACK) closePackage(); };
   document.querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
   $('apQ').oninput = apRender; $('apSort').onchange = apRender;
@@ -2299,7 +2314,7 @@ function bind() {
   var openFrom = function (e) { var b = e.target.closest('[data-open]'); if (!b) return; var x = b.dataset.open.split('|'), sb = e.target.closest('[data-sub]');
     if (sb) { if (submitPkg._busy) { toast('Still submitting the previous document…'); return; } sb.disabled = true; sb.textContent = 'Opening…'; AP_NEXT = false; openPackage(x[0], x.slice(1).join('|'), false, function () { if (MODE === 'setuju') apRender(); submitPkg(); }); return; }
     openPackage(x[0], x.slice(1).join('|')); };
-  ['mode-setuju', 'mode-bayar', 'mode-buka'].forEach(function (id) { $(id).addEventListener('click', openFrom); });
+  ['mode-setuju', 'mode-bayar', 'mode-buka', 'mode-tbayar'].forEach(function (id) { $(id).addEventListener('click', openFrom); });
 }
 
 /* ====================================================== v2: faktur pajak (Coretax kode 04) */
@@ -2741,7 +2756,7 @@ function buildPages(pkg, invDocs) {
 }
 function openPackage(kind, ref, quiet, after) {
   if (isPhone() && !STACK) document.body.classList.add('m-view');
-  AP_SEL = kind + '|' + ref; document.querySelectorAll('.ap-row').forEach(function (x) { x.classList.toggle('sel', x.dataset.open === AP_SEL); });
+  AP_SEL = kind + '|' + ref; document.querySelectorAll('.ap-row,#payList tr[data-open]').forEach(function (x) { x.classList.toggle('sel', x.dataset.open === AP_SEL); });
   if (!quiet) { var w0 = $('sheetwrap'); w0.style.transform = ''; w0.style.width = ''; w0.style.height = ''; w0.innerHTML = skelHtml(kind, ref); }
   var my = openPackage.seq = (openPackage.seq || 0) + 1; // klik beruntun: hanya lembar terakhir yang ditampilkan
   call('apiPackage', [kind, ref], function (pkg) {
@@ -3039,23 +3054,53 @@ function renderSetuju() {
   var ms = $('mSel'); if (ms && !ms.options.length) { ms.innerHTML = B.months.map(function (m) { return '<option value="' + m.ref + '">' + esc(monEn(m.ref)) + '</option>'; }).join(''); ms.value = B.today.substring(0, 7); }
   $('tutupList').innerHTML = (B.pendTutup || []).length ? B.pendTutup.map(function (t) { return '<div class="card"><h4>' + esc(short(t.nomor)) + ' · outstanding Rp ' + nfDot(t.sisa) + '</h4><div class="meta">' + esc(t.pelanggan) + '<br>' + esc(t.status) + (t.alasan ? '<br>Reason: ' + esc(t.alasan) : '') + '</div><div class="row-btn"><button class="btn" data-open="TUTUP|' + esc(E.normInv(t.nomor)) + '">View &amp; submit</button></div></div>'; }).join('')
     : '<div class="note">None. To close an outstanding balance: set TUTUP MANUAL = CLOSE MANUAL and fill in ALASAN TUTUP MANUAL in the Monitoring Invoice sheet, then submit from here.</div>';
-  // daftar penerimaan per bulan uang diterima (value date); satu kartu per transfer / ID penerimaan
-  if ($('pMon') && !$('pMon').options.length) $('pMon').innerHTML = monthOpts(PAY_M);
-  var pm = PAY_M === 'CUR' ? B.today.substring(0, 7) : PAY_M, G = {}, order = [];
-  B.payments.forEach(function (p) { if (String(p.tgl || '').substring(0, 7) !== pm) return; var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ids: [] }; order.push(g); }
+  renderPayReg();
+}
+/* ====================================================== v2.8.7: Receipts Register (Cash Receipts ▸ Receipts Register) */
+var PAY_F = 'all';
+/** penerimaan dikelompokkan per transfer / ID penerimaan; month = bulan uang diterima (value date) */
+function payGroups(pm, q) {
+  var G = {}, order = [];
+  B.payments.forEach(function (p) {
+    if (q ? (p.idp + ' ' + p.ref + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + p.key).toUpperCase().indexOf(q) < 0 : String(p.tgl || '').substring(0, 7) !== pm) return;
+    var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ho: p.ho || '', rek: p.rekening, ref: p.ref, ids: [] }; order.push(g); }
     g.n += p.pb ? Math.max(0, p.nominal) : p.nominal; if (g.inv.indexOf(short(p.nomor)) < 0) g.inv.push(short(p.nomor)); if (p.idp && g.ids.indexOf(p.idp) < 0) g.ids.push(p.idp); if (p.tgl > g.tgl) g.tgl = p.tgl; });
-  order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
-  var cash = order.reduce(function (t, g) { return t + (g.pb || g.kom ? 0 : g.n); }, 0);
-  if ($('pSum')) $('pSum').innerHTML = '<b>' + monEn(pm) + '</b> · ' + plural(order.length, 'receipt') + ' · ' + rpShort(cash) + ' received' + (order.some(function (g) { return g.pb || g.kom; }) ? ' (offsets & compensations excluded)' : '');
-  $('payList').innerHTML = order.length ? order.map(function (g) {
-    return '<div class="card"><h4>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + ' · Rp ' + nfDot(g.n) + (g.pb ? ' <span class="pill">offset</span>' : g.kom ? ' <span class="pill">compensation</span>' : '') + '</h4><div class="meta">' + esc(tg(g.tgl)) + ' · ' + esc(titleCaseS(g.pel)) + ' · 4C.' + esc(g.inv.join(', 4C.')) + '<br>' + esc(apprEn(g.appr)) + '</div><div class="row-btn"><button class="btn" data-open="PAY|' + esc(g.key) + '">View approval sheet</button></div></div>';
-  }).join('') : '<div class="ap-empty">No cash receipts recorded in ' + monEn(pm) + '.</div>';
+  return order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : (a.ids[0] || '') < (b.ids[0] || '') ? 1 : -1; });
+}
+function payMatch(g, f) {
+  return f === 'all' ? true : f === 'trf' ? !g.pb && !g.kom : f === 'off' ? g.pb || g.kom : f === 'nosub' ? !/^✓/.test(g.appr) : f === 'noho' ? /BELUM DISERAHKAN|SERAHKAN LAGI/.test(g.ho) : true;
+}
+function renderPayReg() {
+  if (!B || !$('payList')) return;
+  if ($('pMon') && !$('pMon').options.length) $('pMon').innerHTML = monthOpts(PAY_M);
+  var q = ($('pQ') && $('pQ').value || '').toUpperCase().trim(), pm = PAY_M === 'CUR' ? B.today.substring(0, 7) : PAY_M, base = payGroups(pm, q);
+  var F = [['all', 'All'], ['trf', 'Bank transfer'], ['off', 'Offset / compensation'], ['nosub', 'Not approved'], ['noho', 'Not handed over']];
+  $('pChips').innerHTML = F.map(function (f) { return '<button type="button" data-pf="' + f[0] + '" class="' + (PAY_F === f[0] ? 'on' : '') + '">' + f[1] + '<em>' + base.filter(function (g) { return payMatch(g, f[0]); }).length + '</em></button>'; }).join('');
+  $('pChips').querySelectorAll('[data-pf]').forEach(function (b) { b.onclick = function () { PAY_F = b.dataset.pf; renderPayReg(); }; });
+  var L = base.filter(function (g) { return payMatch(g, PAY_F); }), cash = L.reduce(function (t, g) { return t + (g.pb || g.kom ? 0 : g.n); }, 0), off = L.reduce(function (t, g) { return t + (g.pb || g.kom ? g.n : 0); }, 0);
+  renderPayReg.last = { L: L, pm: pm, q: q, cash: cash, off: off };
+  $('pSum').innerHTML = '<b>' + (q ? 'Search “' + esc($('pQ').value.trim()) + '” · all months' : monEn(pm)) + '</b> · ' + plural(L.length, 'receipt') + ' · ' + rpShort(cash) + ' cash received' + (off ? ' · ' + rpShort(off) + ' offsets & compensations' : '') + (q ? '' : ' · typing searches all months');
+  $('payList').innerHTML = L.length ? L.map(function (g) {
+    var ho = /^✓/.test(g.ho) ? '<span class="pho y">✓ handed over</span>' : /BELUM|LAGI/.test(g.ho) ? '<span class="pho n">not handed over</span>' : '';
+    return '<tr data-open="PAY|' + esc(g.key) + '"' + (AP_SEL === 'PAY|' + g.key ? ' class="sel"' : '') + '><td><b>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + '</b><br><span style="color:var(--steel)">' + esc(tg(g.tgl)) + '</span>' + (g.pb ? '<br><span class="pill">offset</span>' : g.kom ? '<br><span class="pill">compensation</span>' : '') + '</td>' +
+      '<td>' + esc(titleCaseS(g.pel)) + '<br><span style="color:var(--steel)">4C.' + esc(g.inv.join(', 4C.')) + '</span></td>' +
+      '<td><span class="num"><b>Rp ' + nfDot(g.n) + '</b></span><br><span style="color:var(--steel);font-size:11.5px">' + esc(apprEn(g.appr) || 'not submitted') + '</span>' + (ho ? '<br>' + ho : '') + '</td></tr>';
+  }).join('') : '<tr><td colspan="3" class="empty">' + (q ? 'No matching receipts.' : 'No cash receipts recorded in ' + monEn(pm) + '.') + '</td></tr>';
+}
+/** cetak register penerimaan (bahasa Indonesia) */
+function pgPayReg() {
+  var d = renderPayReg.last || { L: [], pm: B.today.substring(0, 7), cash: 0, off: 0 };
+  var h = '<div class="page pg-flow">' + docHead('REGISTER PENERIMAAN PIUTANG', d.q ? 'Hasil pencarian “' + esc(d.q) + '”' : 'Penerimaan bulan ' + esc(tglIndo(d.pm + '-01').replace(/^\d+\s+/, '')) + ' (menurut tanggal uang diterima)', esc(tglIndo(B.today)));
+  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:24mm">No. Penerimaan</th><th style="width:18mm">Tanggal</th><th>Pelanggan</th><th>Invoice</th><th style="width:20mm">Jenis</th><th style="width:26mm">Nilai (Rp)</th><th style="width:30mm">Pengesahan</th></tr></thead><tbody>' +
+    d.L.map(function (g, i) { return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(g.ids.join(', ') || String(g.key).replace(/^REF\s+/, '')) + '</td><td>' + esc(tg(g.tgl)) + '</td><td>' + esc(g.pel) + '</td><td>4C.' + esc(g.inv.join(', 4C.')) + '</td><td>' + (g.kom ? 'Kompensasi' : g.pb ? 'Pindah buku' : 'Transfer') + '</td><td class="n">' + nd(g.n) + '</td><td>' + esc(String(g.appr || '').replace(/^✓\s*/, '')) + '</td></tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td></td><td colspan="5">TOTAL UANG MASUK ' + d.L.filter(function (g) { return !g.pb && !g.kom; }).length + ' PENERIMAAN' + (d.off ? ' · pindah buku / kompensasi Rp ' + nd(d.off) + ' tidak termasuk' : '') + '</td><td class="n">' + nd(d.cash) + '</td><td></td></tr></tbody></table>';
+  return h + docFoot(null) + '</div>';
 }
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
 var NAV_MAKER = [
   { id: 'dashboard', ic: 'home', t: 'Overview' },
   { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
-  { id: 'bayar', ic: 'bank', t: 'Cash Receipts' },
+  { g: 'pay', ic: 'bank', t: 'Cash Receipts', items: [['bayar', 'bank', 'Record Receipt', 'bank transfer, offset, compensation'], ['tbayar', 'book', 'Receipts Register', 'receipts per month, approval sheets, print']] },
   { id: 'dok', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1 },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
 var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
@@ -3086,9 +3131,9 @@ function navShow(m) {
     b.classList.toggle('on', !!on);
   });
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
-  var grp = { buat: 'buka', surat: 'buka' }[m] || m;
+  var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', dok: 'Month-End Close', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', dok: 'Month-End Close', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3165,18 +3210,18 @@ function hoLoad() {
 }
 function hoRender() {
   var d = HO.d, maker = !!(B.access && B.access.maker); if (!d || !$('hoBox')) return;
-  var P = d.pending, nSel = P.filter(function (x) { return HO.sel[hoKey(x)]; }), tot = nSel.reduce(function (t, x) { return t + x.nilai; }, 0);
+  var P = d.pending, nSel = P.filter(function (x) { return HO.sel[hoKey(x)]; });
   var flag = function (ok, t) { return '<span class="hof ' + (ok ? 'y' : 'n') + '">' + t + ' ' + (ok ? '✓' : '–') + '</span>'; };
   var h = '<div class="note' + (P.length ? ' warn' : ' ok') + '">' + (P.length ? '<b>' + plural(P.length, 'approved document') + ' not yet handed over</b>' + (P.some(function (x) { return x.umur > 3; }) ? ' · ' + P.filter(function (x) { return x.umur > 3; }).length + ' older than 3 days' : '') : 'All approved invoices &amp; receipts have been handed over to Accounting.') + '</div>';
   if (P.length) {
     h += '<label class="inline hoall"><input type="checkbox" id="hoAll"' + (nSel.length === P.length ? ' checked' : '') + ' style="width:auto"> Select all</label><div class="holist">' + P.map(function (x) {
       return '<label class="hoit"><input type="checkbox" data-ho="' + esc(hoKey(x)) + '"' + (HO.sel[hoKey(x)] ? ' checked' : '') + ' style="width:auto"><span><b>' + (x.jenis === 'INV' ? 'Invoice' : 'Receipt') + '</b> ' + esc(x.label.replace(/^KU\.02\.02\/WB-4C\./, '')) +
-        '<br><span class="m">' + esc(titleCaseS(x.pelanggan)) + ' · Rp ' + nfDot(x.nilai) + ' · approved ' + esc(tg(x.disahkan)) + ' (' + (x.umur ? x.umur + ' d' : 'today') + ') · ' + esc(x.apv) + (x.ulang ? ' · <b style="color:var(--red)">re-approved, replaces ' + esc(x.ulang) + '</b>' : '') + '</span>' +
+        '<br><span class="m">' + esc(titleCaseS(x.pelanggan)) + ' · ' + (x.jenis === 'INV' ? 'DPP ' : '') + 'Rp ' + nfDot(x.nilai) + ' · approved ' + esc(tg(x.disahkan)) + ' (' + (x.umur ? x.umur + ' d' : 'today') + ') · ' + esc(x.apv) + (x.ulang ? ' · <b style="color:var(--red)">re-approved, replaces ' + esc(x.ulang) + '</b>' : '') + '</span>' +
         '<br>' + flag(!!x.sap, 'SAP doc') + (x.memo === null ? '' : flag(/^✓/.test(x.memo || ''), 'memorial verified')) + '</span></label>'; }).join('') + '</div>';
-    if (maker) h += '<div class="row" style="margin-top:8px"><div><label for="hoPen">Received by (Accounting)</label><input id="hoPen" value="' + esc(d.penerima || '') + '"></div><div style="display:flex;align-items:flex-end"><button class="btn primary" type="button" id="hoMake" style="width:100%"' + (nSel.length ? '' : ' disabled') + '>Create handover sheet (' + nSel.length + ' · ' + rpShort(tot) + ')</button></div></div>';
+    if (maker) h += '<div class="row" style="margin-top:8px"><div><label for="hoPen">Received by (Accounting)</label><input id="hoPen" value="' + esc(d.penerima || '') + '"></div><div style="display:flex;align-items:flex-end"><button class="btn primary" type="button" id="hoMake" style="width:100%"' + (nSel.length ? '' : ' disabled') + '>Create handover sheet (' + plural(nSel.length, 'doc') + ')</button></div></div>';
   }
   if (d.history.length) h += '<div class="hoh">Recent handover sheets</div>' + d.history.slice(0, 8).map(function (b) {
-    return '<div class="hob"><span><b>' + esc(b.no) + '</b> · ' + esc(tg(b.tgl)) + ' · ' + plural(b.n, 'doc') + ' · ' + rpShort(b.nilai) + (b.batal ? ' · <span style="color:var(--red)">' + b.batal + ' cancelled</span>' : '') + '</span><span><button class="linkbtn" type="button" data-hov="' + esc(b.no) + '">View / print</button>' +
+    return '<div class="hob"><span><b>' + esc(b.no) + '</b> · ' + esc(tg(b.tgl)) + ' · ' + plural(b.n, 'doc') + (b.batal ? ' · <span style="color:var(--red)">' + b.batal + ' cancelled</span>' : '') + '</span><span><button class="linkbtn" type="button" data-hov="' + esc(b.no) + '">View / print</button>' +
       (maker && b.n ? ' · <button class="linkbtn" type="button" data-hox="' + esc(b.no) + '" style="color:var(--red)">Cancel</button>' : '') + '</span></div>'; }).join('');
   $('hoBox').innerHTML = h;
   $('hoBox').querySelectorAll('[data-ho]').forEach(function (c) { c.onchange = function () { HO.sel[c.dataset.ho] = c.checked; hoRender(); }; });
@@ -3200,11 +3245,12 @@ function hoShow(b) { HO.last = b; document.body.classList.add('m-view'); var w =
   $('hoPrint').onclick = function () { printHtml(pgHandover(b)); }; if (typeof fitZoom === 'function') fitZoom(); }
 /** lembar tanda terima (dicetak, bahasa Indonesia) */
 function pgHandover(b) {
-  var R = (B && B.roles) || {}, mk = R.PEMBUAT || { nama: '', jabatan: 'AR Officer' }, ak = R.PENERIMA || { nama: '', jabatan: 'Akuntansi' }, tot = 0;
-  var h = '<div class="page pg-flow">' + docHead('TANDA TERIMA DOKUMEN KE AKUNTANSI', 'Lembar pengesahan invoice dan penerimaan yang sudah disahkan, diserahkan ke Akuntansi untuk dicatat dan diposting di SAP. Akuntansi memeriksa fisik setiap dokumen lalu mencentang kolom Diterima.', 'No. ' + esc(b.no) + '<br>' + esc(tglIndo(b.tgl)));
-  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:16mm">Jenis</th><th>Dokumen</th><th style="width:40mm">Pelanggan</th><th style="width:24mm">Nilai (Rp)</th><th style="width:28mm">Pengesahan</th><th style="width:15mm">Diterima</th></tr></thead><tbody>' +
-    b.rows.map(function (x, i) { tot += x.nilai || 0; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + (x.jenis === 'INV' ? 'Invoice' : 'Penerimaan') + '</td><td>' + esc(x.label) + '</td><td>' + esc(x.pelanggan) + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + esc(x.apv) + (x.kode ? '<br><span style="color:#5B6B80">kode ' + esc(x.kode) + '</span>' : '') + '</td><td style="text-align:center;font-size:11pt">☐</td></tr>'; }).join('') +
-    '</tbody><tbody><tr class="tot"><td></td><td></td><td>TOTAL ' + b.rows.length + ' DOKUMEN</td><td></td><td class="n">' + nd(tot) + '</td><td></td><td></td></tr></tbody></table>';
+  var R = (B && B.roles) || {}, mk = R.PEMBUAT || { nama: '', jabatan: 'AR Officer' }, ak = R.PENERIMA || { nama: '', jabatan: 'Akuntansi' }, tInv = 0, tPay = 0;
+  var h = '<div class="page pg-flow">' + docHead('TANDA TERIMA DOKUMEN KE AKUNTANSI', 'Lembar pengesahan invoice dan penerimaan yang sudah disahkan, diserahkan ke Akuntansi untuk dicatat dan diposting di SAP. Nilai invoice = DPP (tanpa PPN). Akuntansi memeriksa fisik setiap dokumen lalu mencentang kolom Diterima.', 'No. ' + esc(b.no) + '<br>' + esc(tglIndo(b.tgl)));
+  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:16mm">Jenis</th><th>Dokumen</th><th style="width:38mm">Pelanggan</th><th style="width:23mm">DPP Invoice (Rp)</th><th style="width:23mm">Penerimaan (Rp)</th><th style="width:26mm">Pengesahan</th><th style="width:14mm">Diterima</th></tr></thead><tbody>' +
+    b.rows.map(function (x, i) { var inv = x.jenis === 'INV'; if (inv) tInv += x.nilai || 0; else tPay += x.nilai || 0;
+      return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + (inv ? 'Invoice' : 'Penerimaan') + '</td><td>' + esc(x.label) + '</td><td>' + esc(x.pelanggan) + '</td><td class="n">' + (inv ? nd(x.nilai) : '') + '</td><td class="n">' + (inv ? '' : nd(x.nilai)) + '</td><td>' + esc(x.apv) + (x.kode ? '<br><span style="color:#5B6B80">kode ' + esc(x.kode) + '</span>' : '') + '</td><td style="text-align:center;font-size:11pt">☐</td></tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td></td><td></td><td>TOTAL ' + b.rows.length + ' DOKUMEN</td><td></td><td class="n">' + nd(tInv) + '</td><td class="n">' + nd(tPay) + '</td><td></td><td></td></tr></tbody></table>';
   h += '<div class="knote">Dokumen yang tidak diterima / kurang lengkap: coret centangnya dan beri catatan. Nomor tanda terima ini tercatat di kolom SERAH TERIMA AKUNTANSI (Monitoring Invoice &amp; Log Penerimaan).</div>';
   var cell = function (role, who, tgl) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + tgl + '</div></div>'; };
   h += '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Diterima oleh (Akuntansi),', { nama: b.penerima || ak.nama, jabatan: ak.jabatan }, '..................') + cell('Diserahkan oleh,', mk, esc(tglIndo(b.tgl))) + '</div>';

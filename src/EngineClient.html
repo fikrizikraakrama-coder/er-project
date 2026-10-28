@@ -570,7 +570,7 @@ var ENGINE = (function () {
     ctx.invs.forEach(function (i) {
       if (i._batal) return; var k = normInv(i.nomor), rec = ctx.latest(DOC.INV, k);
       if (!rec || U(rec.status) !== 'DISETUJUI' || S(rec.sidik) !== i._fp) return;
-      add('INV', k, rec, { label: i.nomor + ' · ' + invLabel(i), pelanggan: i.pelanggan, npp: i.npp, nilai: i._a.total, tgl: i.tgl, sap: S(i.sap_doc), mref: 'INV|' + k });
+      add('INV', k, rec, { label: i.nomor + ' · ' + invLabel(i), pelanggan: i.pelanggan, npp: i.npp, nilai: i._a.dpp, /* Akuntansi minta DPP saja (tanpa PPN) */ tgl: i.tgl, sap: S(i.sap_doc), mref: 'INV|' + k });
     });
     Object.keys(ctx.payGroups).forEach(function (k) {
       var g = ctx.payGroups[k], rec = ctx.latest(DOC.PAY, k); if (!g || !g.length || !rec || U(rec.status) !== 'DISETUJUI' || S(rec.sidik) !== fpPayGroup(g)) return;
@@ -579,10 +579,11 @@ var ENGINE = (function () {
         nilai: sumBy(g, function (p) { return p._pb ? Math.max(0, p.nominal) : p.nominal; }), tgl: p0.tgl, sap: g.map(function (p) { return S(p.sap_doc); }).filter(String).join(', '), mref: p0._pb ? 'PB|' + S(p0.ref) : 'TRM|' + p0.idp });
     });
     pend.sort(function (a, b) { return a.disahkan < b.disahkan ? -1 : a.disahkan > b.disahkan ? 1 : a.ref < b.ref ? -1 : 1; });
-    var hist = {}, order = [];
-    ctx.hoRows.forEach(function (r) { var x = hist[r.no]; if (!x) { x = hist[r.no] = { no: S(r.no), tgl: r.tgl, oleh: S(r.oleh), penerima: S(r.penerima), n: 0, nilai: 0, batal: 0, rows: [] }; order.push(x); }
-      x.rows.push({ jenis: r.jenis, ref: S(r.ref), label: S(r.label), pelanggan: S(r.pelanggan), nilai: N(r.nilai), apv: S(r.apv), kode: S(r.kode), status: r.status });
-      if (r.status === 'BATAL') x.batal++; else { x.n++; x.nilai += N(r.nilai); } });
+    var hist = {}, order = [], dppOf = {};
+    ctx.invs.forEach(function (i) { dppOf[normInv(i.nomor)] = i._a.dpp; });
+    ctx.hoRows.forEach(function (r) { var nil = U(r.jenis) === 'INV' && dppOf[S(r.ref)] != null ? dppOf[S(r.ref)] : N(r.nilai); /* invoice: selalu DPP (juga lembar lama yang dulu mencatat DPP+PPN) */ var x = hist[r.no]; if (!x) { x = hist[r.no] = { no: S(r.no), tgl: r.tgl, oleh: S(r.oleh), penerima: S(r.penerima), n: 0, nilai: 0, batal: 0, rows: [] }; order.push(x); }
+      x.rows.push({ jenis: r.jenis, ref: S(r.ref), label: S(r.label), pelanggan: S(r.pelanggan), nilai: nil, apv: S(r.apv), kode: S(r.kode), status: r.status });
+      if (r.status === 'BATAL') x.batal++; else { x.n++; x.nilai += nil; } });
     return { pending: pend, history: order.reverse().slice(0, 30) };
   }
   /** nomor lembar serah terima berikutnya: STD-yyyy-mm-### (urut per bulan) */
@@ -2689,9 +2690,9 @@ var ENGINE = (function () {
         admMax: pel ? N(pel.adm) : N(P.ADM_DEFAULT), appr: i._batal ? '' : apprStatusText(ctx.latest(DOC.INV, normInv(i.nomor)), i._fp),
         jenis: a.jenis, umk: a.umk, ret: a.ret, dpp: a.dpp, pot_pph: r.pot_pph, closed: !!r.closed, tutup: U(i.tutup) === 'CLOSE MANUAL', alasan_tutup: S(i.alasan_tutup), ba_no: S(i.ba_no),
         migr: /^MIGRASI/.test(U(i.sumber)), link_inv: S(i.link_inv), link_fp: S(i.link_fp), tgl_fp: D(i.tgl_fp) || '' }; });
-    var payments = ctx.pays.filter(function (p) { return p._inv; }).slice(-300).map(function (p) { var i = p._inv, k = payKey(p), g = ctx.payGroups[k];
+    var payments = ctx.pays.filter(function (p) { return p._inv; }).slice(-900).map(function (p) { var i = p._inv, k = payKey(p), g = ctx.payGroups[k];
       return { key: k, idp: p.idp, tgl: p.tgl, ref: S(p.ref), nomor: i.nomor, pelanggan: i.pelanggan, nominal: p.nominal, keN: p._keN, keP: p._keP, aturan: p._rule, pb: !!p._pb, kom: !!p._kom, rekening: p._kom ? 'KOMPENSASI' : p._rek ? p._rek.label : S(p.rekening),
-        appr: g ? apprStatusText(ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', migr: !!p._migr, cek: p._cek.length ? p._cek.join('; ') : '', sap: S(p.sap_doc) }; });
+        appr: g ? apprStatusText(ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', ho: g ? hoText(ctx, 'PAY', k, ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', migr: !!p._migr, cek: p._cek.length ? p._cek.join('; ') : '', sap: S(p.sap_doc) }; });
     var retSisa = {}; retensiRows(ctx).forEach(function (r) { retSisa[r[1]] = r[9]; });
     var umr = {}; umRetRows(ctx).forEach(function (u) { umr[u.npp] = u; });
     var pbMax = 0; ctx.pays.forEach(function (p) { var m = U(p.ref).match(/^PB-(\d+)$/); if (m) pbMax = Math.max(pbMax, +m[1]); });

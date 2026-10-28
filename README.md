@@ -61,6 +61,11 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Cash Receipts ▸ Receipts Register** (menu baru): daftar penerimaan dipindah dari halaman input ke halaman sendiri — cari (no. PNR / invoice /
+  pelanggan / ref bank, semua bulan), filter bulan & jenis (transfer, pindah buku/kompensasi, belum disahkan, belum diserahkan ke Akuntansi), klik baris →
+  lembar pengesahan, tombol **Print** mencetak **Register Penerimaan Piutang** per bulan. Halaman *Record Receipt* kini hanya form input.
+- **Tanda terima ke Akuntansi: invoice dicatat sebesar DPP (tanpa PPN)** — kolom *DPP Invoice* dan *Penerimaan* dipisah, masing-masing dengan total;
+  lembar lama yang dicetak ulang juga menampilkan DPP.
 - **Serah terima dokumen ke Akuntansi** (Month-End Close ▸ *Handover to Accounting*): daftar invoice & penerimaan yang sudah **disahkan** tetapi belum diserahkan
   (dengan penanda No. Dok SAP & verifikasi memorial). Pilih → *Create handover sheet* → cetak **Tanda Terima Dokumen ke Akuntansi** (STD-yyyy-mm-###), Akuntansi
   menandatangani & mencentang setiap dokumen. Tercatat di sheet **Serah Terima Akuntansi** (dibuat otomatis) dan kolom **SERAH TERIMA AKUNTANSI** di Monitoring Invoice &
