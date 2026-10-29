@@ -319,11 +319,11 @@ test('Serah terima Akuntansi: dokumen disahkan muncul di daftar belum diserahkan
   const inv0 = res.ctx.invs[0]; assert.strictEqual(h.pending[0].nilai, inv0._a.dpp, 'Akuntansi: nilai invoice = DPP tanpa PPN'); assert.ok(inv0._a.ppn > 0);
   assert.strictEqual(res.regOut[0].serah, 'BELUM DISERAHKAN');
   assert.ok(res.issues.some(x => x[0] === 'SERAH TERIMA'));
-  assert.strictEqual(ENGINE.hoNextNo(res.ctx), 'STD-2026-10-001');
+  assert.strictEqual(ENGINE.hoNextNo(res.ctx, 'INV'), 'STD-INV-2026-10-001'); assert.strictEqual(ENGINE.hoNextNo(res.ctx, 'PAY'), 'STD-PNR-2026-10-001'); assert.strictEqual(h.pending[0].info.dpp, res.ctx.invs[0]._a.dpp);
   input.handover = [row(ENGINE.HO, { no: 'STD-2026-10-001', tgl: '2026-10-09', jenis: 'INV', ref: k, apv: 'APV-00001', status: 'DISERAHKAN' })];
   res = ENGINE.compute(input); h = ENGINE.handoverData(res.ctx);
   assert.strictEqual(h.pending.length, 0); assert.strictEqual(res.regOut[0].serah, '✓ DISERAHKAN 09-10-2026 · STD-2026-10-001');
-  assert.strictEqual(h.history[0].n, 1); assert.strictEqual(ENGINE.hoNextNo(res.ctx), 'STD-2026-10-002');
+  assert.strictEqual(h.history[0].n, 1); assert.strictEqual(h.history[0].jenis, 'INV'); assert.strictEqual(ENGINE.hoNextNo(res.ctx, 'INV'), 'STD-INV-2026-10-001', 'lembar lama STD-yyyy-mm tidak memengaruhi nomor per jenis');
   assert.strictEqual(h.history[0].rows[0].nilai, inv0._a.dpp, 'lembar lama (nilai kosong / DPP+PPN) dicetak ulang dengan DPP');
   input.approvals.push(row(ENGINE.APPR, { id: 'APV-00002', waktu: '2026-10-10 09:00', jenis: 'PAKET INVOICE', ref: k, sidik: fp, oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_waktu: '2026-10-10 09:00', catatan: ENGINE.TTD_BASAH_TAG }));
   res = ENGINE.compute(input); h = ENGINE.handoverData(res.ctx);

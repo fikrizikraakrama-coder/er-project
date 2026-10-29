@@ -147,7 +147,7 @@ var ENGINE = (function () {
     ret_pos: ['AWAL', 'AKHIR', 'TIDAK ADA'], dasar_pph: ['SETELAH RETENSI', 'SEBELUM RETENSI'], yatidak: ['YA', 'TIDAK'],
     jenis_pel: ['WIKA', 'BUMN', 'SWASTA', 'JO'], kelompok: ['PIHAK BERELASI', 'PIHAK KETIGA'], dasar_jt: ['TGL SUBMIT', 'TGL TANDA TERIMA'],
     akun_peng: ['TAGBRUT', 'HAD'], sumber_tag: ['P&E MINGGUAN', 'LK BULANAN', 'SALDO AWAL LK', 'KOREKSI'],
-    peran: ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI (TTD BASAH)', 'PENERIMA', 'P&E (LIHAT)', 'PAJAK (LIHAT)']
+    peran: ['PEMBUAT', 'PENYETUJU', 'MENGETAHUI (TTD BASAH)', 'PENERIMA', 'P&E (LIHAT)', 'PAJAK (LIHAT)', 'MANAJEMEN (LIHAT)']
   };
   // jenis dokumen persetujuan
   // judul kolom lama (sebelum v2.8.2) tetap dikenali; kunci: <sheet>|<kolom>
@@ -571,30 +571,41 @@ var ENGINE = (function () {
       var h = ctx.ho[jenis + '|' + ref]; if (h && S(h.apv) === S(rec.id)) return;
       var tg = D(rec.putus_waktu) || D(rec.waktu);
       pend.push({ jenis: jenis, ref: ref, label: o.label, pelanggan: o.pelanggan, npp: o.npp, nilai: rnd(o.nilai), tgl: o.tgl, apv: S(rec.id), kode: S(rec.kode), disahkan: tg, umur: tg ? Math.max(0, diffDays(today, tg)) : 0,
-        ulang: h ? S(h.no) : '', sap: o.sap || '', memo: mst ? (mst[o.mref] || '') : null, basah: isBasah(rec) });
+        ulang: h ? S(h.no) : '', sap: o.sap || '', info: o.info || {}, memo: mst ? (mst[o.mref] || '') : null, basah: isBasah(rec) });
     };
     ctx.invs.forEach(function (i) {
       if (i._batal) return; var k = normInv(i.nomor), rec = ctx.latest(DOC.INV, k);
       if (!rec || U(rec.status) !== 'DISETUJUI' || S(rec.sidik) !== i._fp) return;
-      add('INV', k, rec, { label: i.nomor + ' · ' + invLabel(i), pelanggan: i.pelanggan, npp: i.npp, nilai: i._a.dpp, /* Akuntansi minta DPP saja (tanpa PPN) */ tgl: i.tgl, sap: S(i.sap_doc), mref: 'INV|' + k });
+      add('INV', k, rec, { info: hoInfoInv(i), label: i.nomor + ' · ' + invLabel(i), pelanggan: i.pelanggan, npp: i.npp, nilai: i._a.dpp, /* Akuntansi minta DPP saja (tanpa PPN) */ tgl: i.tgl, sap: S(i.sap_doc), mref: 'INV|' + k });
     });
     Object.keys(ctx.payGroups).forEach(function (k) {
       var g = ctx.payGroups[k], rec = ctx.latest(DOC.PAY, k); if (!g || !g.length || !rec || U(rec.status) !== 'DISETUJUI' || S(rec.sidik) !== fpPayGroup(g)) return;
       var p0 = g[0], inv = {}; g.forEach(function (p) { inv[p._inv.nomor.replace(/^KU\.02\.02\/WB-4C\./, '')] = 1; });
-      add('PAY', k, rec, { label: (p0._kom ? 'Kompensasi ' : p0._pb ? 'Pindah buku ' : 'Penerimaan ') + g.map(function (p) { return p.idp; }).join(', ') + ' · inv ' + Object.keys(inv).join(', '), pelanggan: p0._inv.pelanggan, npp: p0._inv.npp,
+      add('PAY', k, rec, { info: hoInfoPay(g), label: (p0._kom ? 'Kompensasi ' : p0._pb ? 'Pindah buku ' : 'Penerimaan ') + g.map(function (p) { return p.idp; }).join(', ') + ' · inv ' + Object.keys(inv).join(', '), pelanggan: p0._inv.pelanggan, npp: p0._inv.npp,
         nilai: sumBy(g, function (p) { return p._pb ? Math.max(0, p.nominal) : p.nominal; }), tgl: p0.tgl, sap: g.map(function (p) { return S(p.sap_doc); }).filter(String).join(', '), mref: p0._pb ? 'PB|' + S(p0.ref) : 'TRM|' + p0.idp });
     });
     pend.sort(function (a, b) { return a.disahkan < b.disahkan ? -1 : a.disahkan > b.disahkan ? 1 : a.ref < b.ref ? -1 : 1; });
-    var hist = {}, order = [], dppOf = {};
-    ctx.invs.forEach(function (i) { dppOf[normInv(i.nomor)] = i._a.dpp; });
+    var hist = {}, order = [], dppOf = {}, invOf = {};
+    ctx.invs.forEach(function (i) { dppOf[normInv(i.nomor)] = i._a.dpp; invOf[normInv(i.nomor)] = i; });
     ctx.hoRows.forEach(function (r) { var nil = U(r.jenis) === 'INV' && dppOf[S(r.ref)] != null ? dppOf[S(r.ref)] : N(r.nilai); /* invoice: selalu DPP (juga lembar lama yang dulu mencatat DPP+PPN) */ var x = hist[r.no]; if (!x) { x = hist[r.no] = { no: S(r.no), tgl: r.tgl, oleh: S(r.oleh), penerima: S(r.penerima), n: 0, nilai: 0, batal: 0, rows: [] }; order.push(x); }
-      x.rows.push({ jenis: r.jenis, ref: S(r.ref), label: S(r.label), pelanggan: S(r.pelanggan), nilai: nil, apv: S(r.apv), kode: S(r.kode), status: r.status });
+      var inf = U(r.jenis) === 'INV' ? (invOf[S(r.ref)] ? hoInfoInv(invOf[S(r.ref)]) : {}) : (ctx.payGroups[S(r.ref)] ? hoInfoPay(ctx.payGroups[S(r.ref)]) : {});
+      x.rows.push({ info: inf, jenis: r.jenis, ref: S(r.ref), label: S(r.label), pelanggan: S(r.pelanggan), nilai: nil, apv: S(r.apv), kode: S(r.kode), status: r.status });
       if (r.status === 'BATAL') x.batal++; else { x.n++; x.nilai += nil; } });
-    return { pending: pend, history: order.reverse().slice(0, 30) };
+    order.forEach(function (x) { var J = {}; x.rows.forEach(function (r) { J[U(r.jenis)] = 1; }); var k = Object.keys(J); x.jenis = k.length === 1 ? k[0] : 'MIX'; });
+    return { pending: pend, history: order.reverse().slice(0, 40) };
   }
   /** nomor lembar serah terima berikutnya: STD-yyyy-mm-### (urut per bulan) */
-  function hoNextNo(ctx) {
-    var pre = 'STD-' + ctx.today.substring(0, 7) + '-', mx = 0;
+  /** v2.8.7: rincian untuk lembar cetak (invoice keluar / penerimaan) */
+  function hoInfoInv(i) { return { nomor: i.nomor, tgl: i.tgl, npp: i.npp, uraian: invLabel(i), dpp: rnd(i._a.dpp), ppn: rnd(i._a.ppn), fp: S(i.no_fp) }; }
+  function hoInfoPay(g) {
+    var p0 = g[0], inv = {}, ids = [], tg = '';
+    g.forEach(function (p) { inv[p._inv.nomor.replace(/^KU\.02\.02\/WB-4C\./, '')] = 1; if (p.idp && ids.indexOf(p.idp) < 0) ids.push(p.idp); if (p.tgl > tg) tg = p.tgl; });
+    return { ids: ids, tgl: tg, inv: Object.keys(inv), jenis: p0._kom ? 'Kompensasi' : p0._pb ? 'Pindah buku' : 'Transfer', rek: p0._kom ? S(p0.ref) : p0._pb ? S(p0.ref) : ((p0._rek ? p0._rek.label : S(p0.rekening)) + (S(p0.ref) ? ' · ' + S(p0.ref) : '')),
+      kas: rnd(sumBy(g, function (p) { return p._nk ? 0 : p.nominal; })), off: rnd(sumBy(g, function (p) { return p._nk ? (p._pb ? Math.max(0, p.nominal) : p.nominal) : 0; })) };
+  }
+  /** nomor lembar serah terima berikutnya — per jenis: STD-INV-yyyy-mm-### / STD-PNR-yyyy-mm-### (lembar lama STD-yyyy-mm-### tetap berlaku) */
+  function hoNextNo(ctx, jenis) {
+    var pre = 'STD-' + (jenis === 'PAY' ? 'PNR' : jenis === 'INV' ? 'INV' : '') + (jenis === 'PAY' || jenis === 'INV' ? '-' : '') + ctx.today.substring(0, 7) + '-', mx = 0;
     ctx.hoRows.forEach(function (r) { var s = S(r.no); if (s.indexOf(pre) === 0) mx = Math.max(mx, N(s.substring(pre.length))); });
     return pre + pad(mx + 1, 3);
   }
@@ -2768,7 +2779,7 @@ var ENGINE = (function () {
     for (var k2 = -12; k2 <= 2; k2++) { var yy = y + Math.floor((m - 1 + k2) / 12), mm = ((m - 1 + k2) % 12 + 12) % 12 + 1; months.push({ ref: yy + '-' + pad(mm, 2), label: monthLabel(yy, mm) }); }
     var dl = delegasiFor(P, me.email, null, ctx.today);
     return { version: VERSION, today: ctx.today, user: me, roles: roles(P), delegasi: dl, suratAlerts: suratAlerts(ctx), pelanggan: pel, proyek: pro, params: params, signers: P.signers, invoices: invoices, payments: payments,
-      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, raManual: ctx.raManual || {}, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup };
+      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, targets: P.targets || {}, raManual: ctx.raManual || {}, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup };
   }
   function packageFor(ctx, kind, ref, opt) {
     var d = kind === 'INV' ? invPackage(ctx, ref) : kind === 'PAY' ? payPackage(ctx, ref) : kind === 'VAL' ? validasiData(ctx, ref, opt) : kind === 'REK' ? rekapData(ctx, ref) :
@@ -3047,12 +3058,14 @@ var ENGINE = (function () {
       var paid = 0; i._pays.forEach(function (p) { if (p.tgl && p.tgl <= d) paid += p.nominal; });
       return Math.max(0, i._a.kas - paid);
     };
-    var open = 0, nOpen = 0, od = 0, aging = [0, 0, 0, 0, 0, 0], od90 = {};
+    var open = 0, nOpen = 0, od = 0, aging = [0, 0, 0, 0, 0, 0], od90 = {}, byPel = {}, rel = 0, old365 = { n: 0, v: 0 };
     act.forEach(function (i) {
       var b = balAt(i, C); if (b <= 0.5) return; open += b; nOpen++;
       var jt = i._res.jt, d = jt ? diffDays(C, jt) : null; if (d > 0) od += b;
       aging[d === null ? 0 : d <= 0 ? 1 : d <= 30 ? 2 : d <= 90 ? 3 : d <= 180 ? 4 : 5] += b;
       if (d > 90) od90[i.pelanggan] = (od90[i.pelanggan] || 0) + b;
+      var bp = byPel[i.pelanggan] || (byPel[i.pelanggan] = { pelanggan: i.pelanggan, open: 0, od: 0, n: 0 }); bp.open += b; bp.n++; if (d > 0) bp.od += b;
+      if (i._pel && i._pel.berelasi) rel += b; if (d > 365) { old365.n++; old365.v += b; }
     });
     var issuedIn = function (s, e) { var L = act.filter(function (i) { return i.tgl >= s && i.tgl <= e; }); return { n: L.length, kas: sumBy(L, function (i) { return i._a.kas; }), total: sumBy(L, function (i) { return i._a.total; }), dpp: sumBy(L, function (i) { return i._a.dpp; }), ppn: sumBy(L, function (i) { return i._a.ppn; }), L: L }; };
     var recIn = function (s, e) { return sumBy(ctx.pays, function (p) { return p._inv && !p._inv._batal && !p._nk && p.nominal > 0 && p.tgl >= s && p.tgl <= e ? p.nominal : 0; }); };
@@ -3082,7 +3095,11 @@ var ENGINE = (function () {
       rari: { valId: vd ? vd.rec.id + (vd.v2 && N(vd.rec._data.rev) ? ' Rev.' + pad(N(vd.rec._data.rev), 2) : '') : '', raAwal: N(sm[1][1]), raFinal: N(sm[4][1]), riRA: N(sm[5][1]), riCad: N(sm[6][1]), riLuar: N(sm[7][1]), totalRI: N(sm[8][1]), belum: belum, hariKerja: hk },
       trend: trend, dso12: K.d12 ? rnd(K.d12.dso) : null, dso3: K.d3 ? rnd(K.d3.dso) : null,
       attn: { od90n: od90L.length, od90v: rnd(sumBy(od90L, function (n) { return od90[n]; })), janji: ews('JANJI BAYAR TERLEWAT') + ews('TENGGAT SURAT TERLEWAT'), eskalasi: ews('ESKALASI PENAGIHAN'), merah: K.merah, kuning: K.kuning },
-      issues: (ctx.issues || []).length };
+      issues: (ctx.issues || []).length,
+      top: Object.keys(byPel).map(function (k) { var x = byPel[k]; return { pelanggan: x.pelanggan, open: rnd(x.open), od: rnd(x.od), n: x.n }; }).sort(function (a, b) { return b.open - a.open; }).slice(0, 6),
+      rel: rnd(rel), old365: { n: old365.n, v: rnd(old365.v) },
+      proj: (function () { try { return tagihanProyekRows(ctx).slice(0, 6).map(function (x) { return { proyek: x.proyek, pelanggan: x.pelanggan, pct: x.pct, belum: rnd(x.belum), kontrak: rnd(x.kontrak) }; }); } catch (e) { return []; } })(),
+      raManual: !!(vd && vd.manual) };
   }
   function monthlyMetrics(input, cutoff) {
     var res = computeAt(input, cutoff), ctx = res.ctx, start = cutoff.slice(0,7) + '-01', prev = computeAt(input, prevMonthEnd(cutoff)), customers = {}, saldo = 0, opening = 0, overdue = 0, cash = 0, receipt = 0, buckets = [0,0,0,0,0,0];

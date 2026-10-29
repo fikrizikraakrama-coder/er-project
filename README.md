@@ -61,6 +61,17 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Menu Collection Plan** (Rencana Inkaso, layar penuh): pilih bulan, alur status (Draft → Submitted → Rejected/Approved), banner penolakan
+  beserta alasannya, ringkasan ✓/◇/⏸/→ dengan bar terhadap target inkaso, cari & saring per kelompok (tunggakan, jatuh tempo bulan ini, …),
+  centang beberapa invoice → *Set selected to*, Quick fill, bar bawah berisi total & tombol Save draft / Submit. Data & pengajuan sama dengan
+  Lembar Validasi sebelumnya; keputusan Section Head tetap di Approvals. Bulan yang memakai RA Manual menampilkan keterangannya.
+- **Serah terima ke Akuntansi dipisah per jenis**: tab *Invoices issued* / *Cash receipts*, nomor **STD-INV-yyyy-mm-###** dan **STD-PNR-yyyy-mm-###**,
+  lembar cetak berbeda (invoice: No. invoice, uraian, DPP, No. faktur pajak · penerimaan: No. PNR, tgl uang masuk, jenis, rekening/ref, nilai) dengan
+  pratinjau langsung saat mencentang. Lembar lama STD-yyyy-mm-### tetap bisa dicetak ulang.
+- **Peran MANAJEMEN (LIHAT)** (Parameter ▸ Pengguna & Peran): link aplikasi sama, akses dicek dari email; menu Executive Summary · Overview ·
+  Collection Plan · Reports, semua hanya baca (server menolak setiap simpan/ajukan/setujui dari akun ini). Executive Summary: 6 angka utama, tren
+  tagihan vs uang masuk 12 bulan, umur piutang, top pelanggan, progres tagihan proyek, peringatan otomatis, tata kelola; bisa dicetak/PDF dan nyaman
+  di HP. Link pintas `…/exec?v=manajemen` membuka Executive Summary (juga tersedia di menu Section Head).
 - **Sheet RA Manual** (dibuat otomatis saat *Perbarui semua laporan*, terisi 20 baris RA TERMIN OKTOBER 2026): bila suatu bulan ada di sheet ini, daftar
   itulah RA resmi bulan itu — **RA-RI Termin, Pareto, Overview & Kinerja** mengikuti; Lembar Validasi aplikasi bulan itu diabaikan. NILAI RA = DPP − PPh
   (cicilan: isi nilai cicilan yang direncanakan), NO INVOICE boleh singkat (0085/2026). RI tetap dari Log Penerimaan (penerimaan yang sudah dicatat langsung

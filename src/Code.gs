@@ -883,7 +883,7 @@ function doGet() {
 }
 function include(name) { if (['Index','EngineClient','PdfLib'].indexOf(name) < 0) throw new Error('Template not allowed.'); return HtmlService.createHtmlOutputFromFile(name).getContent(); }
 /** pustaka pembuat PDF (html2canvas + jsPDF) untuk arsip — dimuat aplikasi hanya saat dibutuhkan */
-function apiPdfLib() { arRequireAccess_(); return HtmlService.createHtmlOutputFromFile('PdfLib').getContent(); }
+function apiPdfLib() { arRequireAccess_(true); return HtmlService.createHtmlOutputFromFile('PdfLib').getContent(); }
 function openAppDialog() {
   var html = HtmlService.createTemplateFromFile('Index').evaluate().setWidth(1400).setHeight(900);
   SpreadsheetApp.getUi().showModalDialog(html, 'AR CSU — Penagihan, Penerimaan & Otorisasi Dokumen');
@@ -920,7 +920,7 @@ function email_() { var e = ''; try { e = Session.getActiveUser().getEmail(); } 
 
 /** data aplikasi: hitungan ringan (tanpa laporan) + cache 5 menit per pengguna; cache otomatis gugur setiap ada penyimpanan (arBootBust_) */
 function apiBootstrap() {
-  var access = arRequireAccess_(), em = email_(), key = arBootKey_(em), hit = arCacheGet_(key);
+  var access = arRequireAccess_(true), em = email_(), key = arBootKey_(em), hit = arCacheGet_(key);
   if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; return b0; }
   var input = readAll_(); input.light = true;
   var res = ENGINE.compute(input), b = ENGINE.bootstrap(res, em);
@@ -1066,7 +1066,7 @@ function apiPayPreview(rows) { arRequireMaker_();
   });
   return plain_({ rows: out, kartu: Object.keys(npps).map(function (n) { return ENGINE.kartuPlain(ctx, n, ctx.today); }) });
 }
-function apiKartu(npp, asOf) { arRequireAccess_(); var res = computeLight_(); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
+function apiKartu(npp, asOf) { arRequireAccess_(true); var res = computeLight_(); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
 
 // =====================================================================  PERSETUJUAN DIGITAL
 function secret_() {
@@ -1093,7 +1093,7 @@ function verifyAppr_(a) {
   try { var A = apprRows_().rows.filter(function (r) { return String(r.id) === String(a.id); })[0]; a.valid = !!A && sign_(A) === String(A.kode); } catch (e) { a.valid = false; }
   return a;
 }
-function apiPackage(kind, ref) { arRequireAccess_();
+function apiPackage(kind, ref) { arRequireAccess_(true);
   var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
   if (!d) throw new Error('Data not found: ' + kind + ' ' + ref);
   if (kind === 'VAL') d.draft = valDraft_(d.ref);
@@ -2178,7 +2178,7 @@ function moveValPdfs_(P, ref) {
 // =====================================================================  v2.8.7: SERAH TERIMA DOKUMEN KE AKUNTANSI
 function apiHandoverData() { arRequireAccess_();
   var res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), R = ENGINE.roles(res.params);
-  d.penerima = R.PENERIMA ? R.PENERIMA.nama : ''; d.nextNo = ENGINE.hoNextNo(res.ctx);
+  d.penerima = R.PENERIMA ? R.PENERIMA.nama : ''; d.nextNo = { INV: ENGINE.hoNextNo(res.ctx, 'INV'), PAY: ENGINE.hoNextNo(res.ctx, 'PAY') };
   return plain_(d);
 }
 /** catat satu lembar tanda terima untuk dokumen terpilih (hanya yang sudah disahkan & belum diserahkan) */
@@ -2190,14 +2190,15 @@ function apiHandoverCreate(items, opt) { var acc = arRequireMaker_(); opt = opt 
     items.forEach(function (x) { want[String(x.jenis) + '|' + String(x.ref)] = 1; });
     var L = d.pending.filter(function (x) { return want[x.jenis + '|' + x.ref]; });
     if (!L.length) throw new Error('The selected documents were already handed over or are no longer approved. Reload the list.');
+    var J = {}; L.forEach(function (x) { J[x.jenis] = 1; }); if (Object.keys(J).length > 1) throw new Error('Invoices and receipts are handed over on separate sheets. Select one type only.');
     var sh = ss.getSheetByName(ENGINE.HO.sheet);
     if (!sh) sh = setupDataSheet_(ss, ENGINE.HO, 'SERAH TERIMA DOKUMEN KE AKUNTANSI', 'Dibuat aplikasi (Month-End Close ▸ Handover to Accounting). Satu baris per dokumen; satu NO. SERAH TERIMA per lembar tanda terima yang ditandatangani Akuntansi. Jangan diubah manual — batalkan lewat aplikasi.', 'Log Persetujuan', '#137C8B').sh || ss.getSheetByName(ENGINE.HO.sheet);
-    var map = colMap_(sh, ENGINE.HO), no = ENGINE.hoNextNo(res.ctx), tgl = res.ctx.today, R = ENGINE.roles(res.params), pen = String(opt.penerima || (R.PENERIMA ? R.PENERIMA.nama : '')).trim().slice(0, 80);
+    var map = colMap_(sh, ENGINE.HO), no = ENGINE.hoNextNo(res.ctx, L[0].jenis), tgl = res.ctx.today, R = ENGINE.roles(res.params), pen = String(opt.penerima || (R.PENERIMA ? R.PENERIMA.nama : '')).trim().slice(0, 80);
     var lc = Math.max(sh.getLastColumn(), ENGINE.HO.cols.length), row = lastDataRow_(sh, ENGINE.HO.firstRow, [map.no, map.ref]) + 1; roomFor_(sh, row + L.length - 1);
     var vals = L.map(function (x) { var o = { no: no, tgl: tgl, jenis: x.jenis, ref: x.ref, label: x.label, pelanggan: x.pelanggan, nilai: x.nilai, apv: x.apv, kode: x.kode, oleh: acc.email, penerima: pen, status: 'DISERAHKAN', catatan: x.ulang ? 'Disahkan ulang — menggantikan ' + x.ulang : '' };
       var a = []; for (var k = 0; k < lc; k++) a.push(''); ENGINE.HO.cols.forEach(function (c) { var j = map[c[0]]; if (j) a[j - 1] = arSafeCell_(toCell_(o[c[0]], colFmt_(c))); }); return a; });
     sh.getRange(row, 1, vals.length, lc).setValues(vals);
-    out = { ok: true, no: no, tgl: tgl, penerima: pen, oleh: acc.email, rows: L };
+    out = { ok: true, no: no, tgl: tgl, penerima: pen, oleh: acc.email, rows: L, jenis: L[0].jenis };
   } finally { lock.releaseLock(); }
   out.background = arQueueAfterSave_().background; // kolom SERAH TERIMA AKUNTANSI di Monitoring Invoice & Log Penerimaan
   return plain_(out);

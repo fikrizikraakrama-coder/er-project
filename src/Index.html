@@ -226,6 +226,17 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .apTabs{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}.apTab{border:1px solid #C9D3DF;background:#fff;border-radius:16px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:#33475B}.apTab b{margin-left:3px;color:#0F6E78}.apTab.on{background:#E3F1F2;border-color:#0F6E78;color:#0B4F56;font-weight:600}
 .pg-flow .ajx{font-size:6.4pt;color:#5B6B80;font-style:italic;margin:0 0 .6mm}
 .pg-flow .ajx.wt{color:#9C6500}
+.ho-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:2px 0 8px}.ho-tiles div{border:1px solid #E1E7EE;border-radius:9px;padding:6px 10px}.ho-tiles small{color:var(--steel);font-size:11px}.ho-tiles b{display:block;font-size:17px}.ho-tiles .w{background:#FFF7E8;border-color:#F6D79B}.ho-tiles .w b{color:#B45309}
+.ho-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #E1E7EE;margin-bottom:6px}.ho-tabs button{border:0;background:none;padding:8px 6px;font:inherit;font-weight:700;color:var(--steel);cursor:pointer;font-size:13px}.ho-tabs button.on{color:#0F6E78;border-bottom:3px solid #0F6E78;margin-bottom:-2px}.ho-tabs em{font-style:normal;background:#EEF2F6;border-radius:10px;padding:1px 7px;margin-left:5px;font-size:11px}.ho-tabs .on em{background:#E3F1F2;color:#0B4F56}
+.ho-tb{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.ho-tb input{flex:1;min-width:150px;padding:6px 9px}
+.ho-wrap{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:8px}.ho-t{width:100%;border-collapse:collapse}.ho-t th{position:sticky;top:0;background:#F7F9FB;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);text-align:left;padding:6px;border-bottom:1px solid #DCE3EB}.ho-t th.n,.ho-t td.n{text-align:right}
+.ho-t td{padding:6px;border-bottom:1px solid #EEF2F6;font-size:12px;vertical-align:top}.ho-t td small{display:block;color:var(--steel);font-size:10.5px}.ho-t tr.s td{background:#F2FAFA}.ho-t input[type=checkbox]{width:auto;margin:0}
+.ho-age{display:inline-block;border-radius:9px;padding:0 6px;font-size:10.5px;font-weight:700;background:#E8F5E9;color:#2E7D32}.ho-age.o{background:#FDECEC;color:#C62828}
+.ho-ft{display:flex;gap:8px;align-items:flex-end;margin-top:8px}.ho-ft>div{flex:1}.ho-ft label{font-size:11.5px}.ho-ft .btn{white-space:nowrap;line-height:1.25}.ho-ft .btn small{display:block;font-weight:500;font-size:10.5px;opacity:.9}
+.ho-ty{display:inline-block;font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 5px;margin-right:6px;background:#EEF2F6;color:#5B6B80}.ho-ty.i{background:#E8EEF9;color:#24478F}.ho-ty.p{background:#E6F4EA;color:#1E6B3A}
+.ho-band{border-radius:5px;padding:5px 9px;margin:0 0 3mm;display:flex;gap:22px;font-size:8.5pt;background:#F1F4F9;border-left:4px solid #5B6B80}.ho-band b{display:block;font-size:11pt}
+.ho-pg.hi .ho-band{background:#EEF2FB;border-left-color:#24478F}.ho-pg.hp .ho-band{background:#ECF7EF;border-left-color:#1E7B45}
+.ho-pg.hi table.t th{background:#24478F!important;border-color:#24478F!important}.ho-pg.hp table.t th{background:#1E6B3A!important;border-color:#1E6B3A!important}.ho-pg.hi tr.tot td{background:#DCE3F2!important}.ho-pg.hp tr.tot td{background:#D8EEDD!important}
 .hoall{margin:8px 0 4px;font-size:12px}.holist{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:8px}
 .hoit{display:flex;gap:8px;align-items:flex-start;padding:7px 9px;border-bottom:1px solid #EEF1F5;font-size:12px;margin:0;cursor:pointer}.hoit:last-child{border-bottom:0}.hoit .m{color:var(--steel);font-size:11px}
 .hof{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin:2px 4px 0 0}.hof.y{background:#E6F4EA;color:#1E7B45}.hof.n{background:#F1F3F6;color:#6B7A90}
@@ -436,6 +447,46 @@ button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(25
 /* ====================== v2.8.5: Overview (layar penuh) */
 body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body.full #stage{display:none!important}
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
+/* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
+#planWrap,#execWrap{flex:1;overflow:auto;background:#EEF2F6}
+.ex-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.ex-k{background:#fff;border:1px solid #DCE3EB;border-radius:10px;padding:11px 13px}.ex-k small{display:block;color:#5B6B80;font-size:11.5px;font-weight:600}.ex-k b{display:block;font-size:20px;margin:3px 0 2px}.ex-k span{font-size:11px;color:#5B6B80}.ex-k .dn{color:#C62828;font-weight:700}.ex-k .up{color:#2E7D32;font-weight:700}
+.ex-g{display:grid;gap:12px;margin-top:12px}.ex-g.g2{grid-template-columns:1.3fr 1fr}.ex-g.g3{grid-template-columns:1fr 1fr .9fr}.ex-c{background:#fff;border:1px solid #DCE3EB;border-radius:12px;padding:13px 15px}.ex-c h3{margin:0;font-size:13.5px}.ex-c>p{margin:2px 0 8px;font-size:11px;color:#5B6B80}
+.ex-lg{display:flex;gap:14px;font-size:11px;color:#5B6B80}.ex-lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.ex-ag{display:grid;grid-template-columns:110px 1fr 90px;gap:8px;align-items:center;font-size:11.5px;margin:7px 0}.ex-ag i{height:14px;background:#F1F4F8;border-radius:3px;overflow:hidden;display:block}.ex-ag i b{display:block;height:100%;border-radius:3px}.ex-ag em{font-style:normal;font-weight:600}.ex-note{font-size:11px;color:#5B6B80;margin-top:8px}
+table.ex-t{width:100%;border-collapse:collapse}.ex-t th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#5B6B80;text-align:left;padding:5px 6px;border-bottom:1px solid #DCE3EB}.ex-t th.n,.ex-t td.n{text-align:right}.ex-t td{padding:6px;border-bottom:1px solid #EEF2F6;font-size:12px}.ex-t td small{display:block;color:#5B6B80;font-size:10.5px}
+.ex-p{border-radius:9px;padding:1px 7px;font-size:10.5px;font-weight:700}.ex-p.r{background:#FDECEC;color:#C62828}.ex-p.y{background:#FFF4E0;color:#9A5B00}.ex-p.g{background:#E8F5E9;color:#2E7D32}
+.ex-pb{display:inline-block;width:90px;height:7px;background:#E6EBF1;border-radius:4px;overflow:hidden;vertical-align:middle}.ex-pb i{display:block;height:100%;background:#0F6E78}
+.ex-al{display:flex;gap:9px;padding:7px 0;border-bottom:1px dashed #E1E7EE;font-size:12px}.ex-al:last-child{border:0}.ex-al i{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 auto}.ex-al i.r{background:#C62828}.ex-al i.y{background:#F59E0B}.ex-al i.b{background:#3B6FD8}.ex-al i.g{background:#2E7D32}
+.ex-gv{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ex-gv div{border:1px solid #E1E7EE;border-radius:8px;padding:8px 10px}.ex-gv small{color:#5B6B80;font-size:11px}.ex-gv b{display:block;font-size:15px}.ex-gv b.w{color:#B45309}.ex-gv b.g{color:#2E7D32}.ex-links{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:900px){.ex-kpis{grid-template-columns:1fr 1fr}.ex-g.g2,.ex-g.g3{grid-template-columns:1fr}}
+.cp{padding:16px 22px 0;max-width:1560px;margin:0 auto;color:#16263D}
+.cp-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.cp-hd h2{margin:0;font-size:21px}.cp-hd select{width:auto;font-weight:700;padding:6px 10px}.cp-hd .sp{flex:1}
+.cp-st{display:flex;align-items:center;gap:6px;font-size:12px;color:#5B6B80;flex-wrap:wrap}.cp-st span{display:flex;align-items:center;gap:5px}.cp-st i{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:800;border:2px solid #C9D3DF;color:#8696A8;background:#fff}
+.cp-st .d i{background:#2E7D32;border-color:#2E7D32;color:#fff}.cp-st .x{color:#C62828;font-weight:700}.cp-st .x i{background:#C62828;border-color:#C62828;color:#fff}.cp-st .w{color:#B45309;font-weight:700}.cp-st .w i{background:#F59E0B;border-color:#F59E0B;color:#fff}.cp-st em{width:20px;height:2px;background:#C9D3DF}
+.cp-ban{margin-top:12px;border-radius:9px;padding:10px 14px;font-size:12.8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.cp-ban .sp{flex:1}
+.cp-ban.r{background:#FDF0F0;border:1px solid #F3C2C2;border-left:4px solid #C62828}.cp-ban.r b{color:#B71C1C}.cp-ban.y{background:#FFF8E8;border:1px solid #F6D79B;border-left:4px solid #F59E0B}.cp-ban.g{background:#EAF6EE;border:1px solid #BFE3CB;border-left:4px solid #2E7D32}.cp-ban.b{background:#EEF3FB;border:1px solid #C9D7F0;border-left:4px solid #3B6FD8}
+.cp-rv{margin-top:10px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12.5px}.cp-rv label{display:flex;gap:5px;align-items:center;margin:0}.cp-rv input[type=radio]{width:auto}.cp-rv input[type=date]{width:auto;padding:4px 6px}
+.cp-tiles{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:10px;margin-top:12px}.cp-t{background:#fff;border:1px solid #DCE3EB;border-radius:10px;padding:10px 13px}.cp-t small{color:#5B6B80;font-size:11.5px;font-weight:600;display:block}.cp-t b{display:block;font-size:19px;margin:3px 0 2px}.cp-t .s{font-size:11px;color:#5B6B80}
+.cp-t.C{border-top:4px solid #2E7D32}.cp-t.S{border-top:4px solid #F59E0B}.cp-t.H{border-top:4px solid #8696A8}.cp-t.N{border-top:4px solid #3B6FD8}.cp-t.E{border-top:4px solid #C62828}.cp-t.E.on b{color:#C62828}
+.cp-bar{height:8px;background:#E6EBF1;border-radius:4px;margin:6px 0 4px;overflow:hidden}.cp-bar i{display:block;height:100%;background:linear-gradient(90deg,#2E7D32,#43A047)}
+.cp-card{background:#fff;border:1px solid #DCE3EB;border-radius:12px;margin-top:12px}
+.cp-tb{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #E6EBF1;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:3;border-radius:12px 12px 0 0}.cp-tb input{width:220px;padding:7px 10px}.cp-tb .sp{flex:1}
+.cp-ch{border:1px solid #DCE3EB;border-radius:14px;padding:4px 11px;font-size:12px;font-weight:600;color:#56677D;background:#fff;cursor:pointer}.cp-ch.on{background:#0F6E78;color:#fff;border-color:#0F6E78}.cp-ch em{font-style:normal;opacity:.8;margin-left:3px}
+.cp-bulk{display:flex;align-items:center;gap:4px;background:#14284B;color:#fff;border-radius:8px;padding:4px 6px 4px 10px;font-size:12px;font-weight:600}.cp-bulk button{border:0;border-radius:6px;padding:4px 8px;font-weight:700;font-size:11.5px;cursor:pointer;background:#2A4775;color:#fff}.cp-bulk button:disabled{opacity:.45;cursor:default}
+.cp-qf{position:relative}.cp-qf summary{list-style:none;cursor:pointer}.cp-qf summary::-webkit-details-marker{display:none}.cp-qf .m{position:absolute;right:0;top:36px;background:#fff;border:1px solid #DCE3EB;border-radius:10px;box-shadow:0 8px 24px rgba(20,40,75,.16);padding:6px;z-index:6;display:flex;flex-direction:column;min-width:270px}.cp-qf .m button{text-align:left;border:0;background:none;padding:8px 10px;border-radius:7px;font:inherit;font-size:12.5px;cursor:pointer}.cp-qf .m button:hover{background:#EEF3F8}
+table.cpt{width:100%;border-collapse:collapse}.cpt th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#5B6B80;text-align:left;padding:8px 7px;background:#F7F9FB;border-bottom:1px solid #DCE3EB;white-space:nowrap}.cpt th.n,.cpt td.n{text-align:right}
+.cpt td{padding:7px;border-bottom:1px solid #EEF2F6;vertical-align:middle;font-size:12.5px}.cpt td small{color:#5B6B80;font-size:11px;display:block}.cpt tr.g td{background:#EEF3FA;font-weight:700;color:#24478F;font-size:12px;padding:6px 8px}.cpt tr.g td span{font-weight:500;color:#5B6B80}
+.cpt tr.bad td{background:#FFF6F6}.cpt tr.sel td{background:#F2FAFA}.cpt input[type=checkbox]{width:auto;margin:0}.cpt input.vdate{width:128px;padding:4px 6px;font-size:12px}.cpt input.vdate.bad{border-color:#C62828;background:#FFF5F5}.cpt input.vcat{padding:4px 7px;font-size:12px;min-width:150px}
+.cp-od{display:inline-block;border-radius:9px;padding:0 6px;font-size:10.5px;font-weight:700;background:#FDECEC;color:#C62828;margin-top:2px}.cp-od.g{background:#E8F5E9;color:#2E7D32}.cp-od.b{background:#E8EEF9;color:#24478F}.cp-od.n{background:#EEF2F6;color:#5B6B80}
+.cp-sx{display:inline-block;font-size:10.5px;border-radius:4px;padding:1px 5px;background:#FFF4E0;color:#9A5B00;font-weight:600}
+.cp-seg{display:inline-flex;border:1px solid #C9D3DF;border-radius:8px;overflow:hidden;white-space:nowrap}.cp-seg button{border:0;border-right:1px solid #C9D3DF;background:#fff;padding:4px 8px;font-size:11.5px;font-weight:700;color:#5B6B80;cursor:pointer}.cp-seg button:last-child{border-right:0}
+.cp-seg button.on.C{background:#2E7D32;color:#fff}.cp-seg button.on.S{background:#F59E0B;color:#fff}.cp-seg button.on.H{background:#6B7A8F;color:#fff}.cp-seg button.on.N{background:#3B6FD8;color:#fff}
+.cp-pill{display:inline-block;border-radius:7px;padding:3px 8px;font-size:11.5px;font-weight:700;color:#fff}.cp-pill.C{background:#2E7D32}.cp-pill.S{background:#F59E0B}.cp-pill.H{background:#6B7A8F}.cp-pill.N{background:#3B6FD8}
+.cp-paid{font-size:10.5px;color:#2E7D32;font-weight:600}
+.cp-ft{position:sticky;bottom:0;margin:12px 0 0;background:#14284B;color:#fff;display:flex;gap:24px;align-items:center;padding:10px 20px;border-radius:12px 12px 0 0;flex-wrap:wrap;z-index:4}.cp-ft small{opacity:.7;font-size:11px;display:block}.cp-ft b{font-size:15px}.cp-ft .sp{flex:1}
+.cp-ft .vmsg{font-size:12px;opacity:.9;max-width:420px}.cp-ft .vmsg.e{color:#FFB4B4;opacity:1}.cp-ft .btn{background:#fff}.cp-ft .btn.primary{background:#2EC4C4;border-color:#2EC4C4;color:#0B2D3A}
+.cp-empty{padding:40px;text-align:center;color:#5B6B80}
+@media (max-width:900px){.cp-tiles{grid-template-columns:1fr 1fr}.cp{padding:12px}.cpt th:nth-child(5),.cpt td:nth-child(5){display:none}}
 .ov{padding:18px 22px 28px;max-width:1500px;margin:0 auto;color:#16263D}
 .ov-hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px}.ov-hd h2{margin:0;font-size:22px;letter-spacing:-.2px}.ov-hd p{margin:3px 0 0;color:#5F6F86;font-size:12.5px}
 .ov-hd .sp{flex:1}.ov-sel{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #D6DEE8;border-radius:9px;padding:0 10px;color:#33475B}.ov-sel select{border:0;padding:8px 2px;font-weight:600;width:auto;background:none}
@@ -826,6 +877,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="mSum"></div>
     <div class="stage" id="stage"><div class="sheetwrap" id="sheetwrap"></div></div>
     <div id="ovWrap" hidden></div>
+    <div id="planWrap" hidden></div>
+    <div id="execWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
@@ -1211,7 +1264,8 @@ function nextDigit(year) { var mx = 0; B.invoices.forEach(function (i) { var m =
 function boot() {
   call('apiBootstrap', [], function (b) {
     B = b; checkEngineVersion(); srBadge(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
-    applyAccess(); setMode(B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
+    applyAccess(); setMode(B.access && B.access.viewer ? 'exec' : B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
+    if (RUN && google.script.url && (B.access.viewer || B.access.approver)) try { google.script.url.getLocation(function (l) { if (l && l.parameter && /^manaj|^exec/i.test(l.parameter.v || '')) setMode('exec'); }); } catch (e) { }
     $('pTgl').value = today(); $('kTgl').value = today();
   }, function (e) { $('sheetwrap').innerHTML = '<div class="empty">Access not available yet: ' + esc(e.message || e) + '</div>'; });
 }
@@ -2209,18 +2263,21 @@ function bindSurat() {
 
 /* ====================================================== mode */
 function setMode(m) {
-  if (B && B.access && !B.access.maker && ['setuju', 'dashboard', 'dok'].indexOf(m) < 0) m = 'setuju';
+  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok'].indexOf(m) < 0) m = 'exec';
+  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
-  document.body.classList.toggle('full', m === 'dashboard'); $('ovWrap').hidden = m !== 'dashboard';
+  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
+  if (m === 'plan') planLoad();
+  if (m === 'exec') execLoad();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
@@ -2653,7 +2710,7 @@ function vusSubmit() {
   var T = {}; DECO.forEach(function (d) { T[d] = 0; }); items.forEach(function (x) { T[VUS.items[x.nomor].u || 'N']++; });
   confirmDlg('Submit collection plan proposal ' + esc(lblEn(PKG.label)) + '?', 'Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ' · ' + DECO.map(function (d) { return DECL[d] + ' ' + T[d]; }).join(' · ') + ' invoice.' + (VUS.revisi ? '<br>Revision basis: <b>' + (VUS.dasar === 'PUSAT' ? 'head-office meeting ' + tg(VUS.tglRapat) : 'internal correction') + '</b>. The decision in force stays in use until this revision is approved.' : '') + '<br><span style="font-size:12px;color:var(--steel)">Proposal is locked until the Section Head decides.</span>', 'Submit', function () {
     vusMsg('Submitting…');
-    call('apiSubmit', ['VAL', PKG.ref, vusPayload()], function (r) { toast('Submitted: ' + r.id); refreshAll(function () { openPackage('VAL', PKG.ref, true); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '. Awaiting Section Head decision.'; }); }, function (e) { vusMsg(e.message || String(e), true); });
+    call('apiSubmit', ['VAL', PKG.ref, vusPayload()], function (r) { toast('Submitted: ' + r.id); if (MODE === 'plan') return refreshAll(planLoad); refreshAll(function () { openPackage('VAL', PKG.ref, true); $('pkgStatus').textContent = 'Submitted with ID ' + r.id + '. Awaiting Section Head decision.'; }); }, function (e) { vusMsg(e.message || String(e), true); });
   });
 }
 document.addEventListener('click', function (e) {
@@ -2693,6 +2750,7 @@ function pgValX(pkg) {
 }
 function vDecideMode() { return !!(PKG && PKG.kind === 'VAL' && PKG.v === 2 && PKG._canDecide && PKG.appr && PKG.appr.status === 'MENUNGGU'); }
 function vRender(keepScroll) {
+  if (MODE === 'plan') return planRender();
   var st = $('stage'), y = st ? st.scrollTop : 0;
   PKG._pages = buildPages(PKG, '');
   var w = $('sheetwrap');
@@ -2715,6 +2773,133 @@ document.addEventListener('click', function (e) {
 });
 document.addEventListener('input', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('vreason') && VDEC) { var n = t.getAttribute('data-vr'); (VDEC[n] || (VDEC[n] = { d: 'H', a: '' })).a = t.value; PKG._pages = buildPages(PKG, ''); } });
 function vInit() { VDEC = {}; (PKG.items || []).forEach(function (x) { VDEC[x.nomor] = { d: x.dec || x.def || 'N', a: x.alasan || '' }; }); }
+/* ====================================================== v2.8.7: Collection Plan (Rencana Inkaso) — menu sendiri, layar penuh
+   memakai data & logika lembar validasi yang sama (apiPackage VAL, VUS, vusSave/vusSubmit); keputusan Section Head tetap di Approvals */
+var PLAN = { ref: '', f: 'all', q: '', sel: {}, seq: 0 };
+function planMonths() {
+  var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = [];
+  for (var k = 1; k >= -4; k--) { var mm = m + k, yy = y; while (mm > 12) { mm -= 12; yy++; } while (mm < 1) { mm += 12; yy--; } o.push(yy + '-' + ('0' + mm).slice(-2)); }
+  return o;
+}
+function planLoad(ref) {
+  if (!B) return; PLAN.ref = ref || PLAN.ref || B.today.substring(0, 7); PLAN.sel = {};
+  var w = $('planWrap'), my = ++PLAN.seq;
+  w.innerHTML = '<div class="cp"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Loading collection plan ' + esc(monEn(PLAN.ref)) + '…</div><div class="sk" style="width:60%"></div><div class="sk" style="height:120px;margin-top:14px"></div></div></div>';
+  if (B.raManual && B.raManual[PLAN.ref]) { PKG = null; VUS = null; return planRender(); }
+  call('apiPackage', ['VAL', PLAN.ref], function (pkg) {
+    if (my !== PLAN.seq || MODE !== 'plan') return;
+    STACK = false; PKG = pkg; PKG.kind = 'VAL'; VDEC = null; VUS = null;
+    var a = pkg.appr, pend = a && a.status === 'MENUNGGU', ok = a && a.status === 'DISETUJUI' && !a.berubah && !pkg.legacy;
+    PKG._mode = !(B.access && B.access.maker) || pend || ok ? 'view' : 'usul';
+    if (PKG._mode === 'usul') vusInit();
+    planRender();
+  }, function (e) { if (my === PLAN.seq) w.innerHTML = '<div class="cp"><div class="note err" style="margin-top:20px">Collection plan could not be loaded: ' + esc(e.message || e) + '</div></div>'; });
+}
+function planRevise() { if (!PKG) return; PKG._mode = 'usul'; vusInit(); planRender(); }
+function planDec(x) { return PKG._mode === 'usul' ? (VUS.items[x.nomor] || {}).u || '' : (x.dec || 'N'); }
+function planDue(x) {
+  if (!x.jt) return '<span class="cp-od n">no due date</span>';
+  var d = Math.round((new Date(B.today + 'T00:00:00Z') - new Date(x.jt + 'T00:00:00Z')) / 864e5);
+  return d > 0 ? '<span class="cp-od">' + d + ' d overdue</span>' : d === 0 ? '<span class="cp-od g">due today</span>' : '<span class="cp-od b">in ' + (-d) + ' d</span>';
+}
+function planStatusTxt(s) {
+  s = String(s || ''); if (/NETTO LUNAS/.test(s) && /PPN BELUM/.test(s)) return '<span class="cp-sx">Net paid · VAT unpaid</span>';
+  if (/PPN LUNAS/.test(s) && /NETTO BELUM/.test(s)) return '<span class="cp-sx">VAT paid · net unpaid</span>';
+  if (/SEBAGIAN|CICIL/.test(s)) return '<span class="cp-sx">Partly paid</span>';
+  return '<span style="font-size:11.5px;color:var(--steel)">' + esc(titleCaseS(s.replace(/\s*\(.*\)$/, '')) || '—') + '</span>';
+}
+function planRender() {
+  var w = $('planWrap'); if (!w || !B) return;
+  var st = w.scrollTop, ref = PLAN.ref, rm = B.raManual && B.raManual[ref], maker = !!(B.access && B.access.maker);
+  var months = planMonths(), h = '<div class="cp"><div class="cp-hd"><h2>Collection Plan</h2><select id="cpMon" aria-label="Plan month">' + months.map(function (m) { return '<option value="' + m + '"' + (m === ref ? ' selected' : '') + '>' + esc(monEn(m)) + (m === B.today.substring(0, 7) ? ' (current)' : '') + '</option>'; }).join('') + '</select>';
+  if (rm) {
+    var nx = (function () { var y = +ref.substring(0, 4), m = +ref.substring(5, 7) + 1; if (m > 12) { m = 1; y++; } return y + '-' + ('0' + m).slice(-2); })();
+    h += '<span class="sp"></span></div><div class="cp-ban g"><b>✓ RA ' + esc(monEn(ref)) + ' follows the RA Manual sheet</b> · ' + plural(rm.n, 'row') + ' · Rp ' + nfDot(rm.total) + (rm.luar ? ' · ' + rm.luar + ' row(s) without a matching invoice number (see Cek Data)' : '') + '<span class="sp"></span></div>' +
+      '<div class="cp-card"><div class="cp-empty">This month\'s collection plan was prepared outside the app (meeting sheet) and is read from the sheet <b>RA Manual</b>.<br>RA-RI Termin, Pareto and Overview already use it; receipts recorded in the app count as RI automatically.<br><br>' +
+      (maker ? '<button class="btn primary" type="button" data-cpm="' + nx + '">Prepare ' + esc(monEn(nx)) + ' plan →</button>' : '') + '</div></div></div>';
+    w.innerHTML = h; planBind(); return;
+  }
+  if (!PKG || PKG.kind !== 'VAL') { w.innerHTML = h + '</div></div>'; planBind(); return; }
+  var P = PKG, a = P.appr, usul = P._mode === 'usul', rev = usul && VUS.revisi, pus = rev && VUS.dasar === 'PUSAT';
+  var items = (P.items || []).filter(function (x) { return !x.gone || !usul; });
+  // alur status
+  var stp = function (cls, ic, t) { return '<span class="' + cls + '"><i>' + ic + '</i>' + t + '</span>'; }, sts = a ? a.status : '';
+  var flow = [stp(usul && VUS.savedAt || sts ? 'd' : '', usul && VUS.savedAt || sts ? '✓' : '1', 'Draft'), stp(sts ? 'd' : '', sts ? '✓' : '2', 'Submitted')];
+  if (sts === 'DITOLAK') flow.push(stp('x', '✕', 'Rejected'), stp('', '3', 'Resubmit'));
+  flow.push(sts === 'DISETUJUI' && !a.berubah ? stp('d', '✓', 'Approved') : sts === 'MENUNGGU' ? stp('w', '⏳', 'Awaiting Section Head') : stp('', sts === 'DITOLAK' ? '4' : '3', 'Approved'));
+  h += '<div class="cp-st">' + flow.join('<em></em>') + '</div><span class="sp"></span>' +
+    (!usul && maker && sts === 'DISETUJUI' ? '<button class="btn" type="button" id="cpRev">Propose revision</button>' : '') + '<button class="btn" type="button" id="cpPrint">' + ico('print') + 'Print / PDF</button></div>';
+  // banner
+  if (sts === 'DITOLAK') h += '<div class="cp-ban r"><b>✕ Rejected ' + esc(tg(a.putus_waktu)) + '</b> by ' + esc(a.putus_nama || a.putus_oleh || 'Section Head') + ' — “' + esc(String(a.catatan || '').replace(/^\[DELEGASI[^\]]*\]\s*/, '')) + '”' + (/^\[DELEGASI/.test(a.catatan || '') ? ' <span style="color:var(--steel)">(delegation)</span>' : '') + '<span class="sp"></span><span style="color:var(--steel)">' + esc(a.id) + '</span></div>';
+  else if (sts === 'MENUNGGU') h += '<div class="cp-ban y"><b>⏳ Submitted ' + esc(a.waktu) + '</b> · ' + esc(a.id) + ' · awaiting the Section Head decision in Approvals. The proposal is locked until then.</div>';
+  else if (sts === 'DISETUJUI' && !a.berubah) h += '<div class="cp-ban g"><b>✓ Approved ' + esc(tg(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + (usul ? ' · you are preparing a revision; the approved plan stays in force until the revision is approved' : '') + '</div>';
+  else if (!a && !usul) h += '<div class="cp-ban b"><b>Not submitted yet</b> · the AR Officer has not submitted this month\'s plan; choices shown are preliminary (no proposal = next month).</div>';
+  else if (a && a.berubah) h += '<div class="cp-ban y"><b>Data changed since submission</b> (e.g. new invoices issued) · submit a revision if the plan must change.</div>';
+  if (rev) h += '<div class="cp-rv"><b>Revision basis:</b><label><input type="radio" name="vdasar" value="PUSAT"' + (pus ? ' checked' : '') + '> Central meeting result</label><label><input type="radio" name="vdasar" value="INTERNAL"' + (VUS.dasar === 'INTERNAL' ? ' checked' : '') + '> Internal correction</label>' +
+    (pus ? '<label>· meeting date <input type="date" id="vRapat" value="' + esc(VUS.tglRapat) + '"></label>' : '') + '<span style="color:var(--steel);font-size:11.5px">“Applies” = decision in force · ＋ added by central meeting · − moved to next month</span></div>';
+  // ringkasan
+  var T = { C: { n: 0, v: 0, k: 0 }, S: { n: 0, v: 0, k: 0 }, H: { n: 0, v: 0, k: 0 }, N: { n: 0, v: 0, k: 0 }, '': { n: 0, v: 0, k: 0 } }, nb = 0;
+  items.forEach(function (x) { var d = planDec(x), t = T[d] || T['']; t.n++; t.v += +x.nilai || 0; t.k += +x.sisa || 0; if (usul && vusBad(x)) nb++; });
+  var tgt = +((B.targets || {})[ref] || 0), pct = tgt ? T.C.k / tgt : 0;
+  h += '<div class="cp-tiles"><div class="cp-t C"><small>✓ CAIR · ' + plural(T.C.n, 'invoice') + '</small><b>' + rpShort(T.C.v) + '</b>' + (tgt ? '<div class="cp-bar"><i style="width:' + Math.min(100, Math.round(pct * 100)) + '%"></i></div><div class="s">expected cash ' + rpShort(T.C.k) + ' = ' + Math.round(pct * 100) + '% of collection target ' + rpShort(tgt) + '</div>' : '<div class="s">DPP − PPh · expected cash ' + rpShort(T.C.k) + '</div>') + '</div>' +
+    '<div class="cp-t S"><small>◇ CADANGAN</small><b>' + rpShort(T.S.v) + '</b><div class="s">' + plural(T.S.n, 'invoice') + '</div></div>' +
+    '<div class="cp-t H"><small>⏸ HOLD</small><b>' + rpShort(T.H.v) + '</b><div class="s">' + plural(T.H.n, 'invoice') + '</div></div>' +
+    '<div class="cp-t N"><small>→ NEXT MONTH</small><b>' + T.N.n + ' inv</b><div class="s">' + rpShort(T.N.v) + '</div></div>' +
+    '<div class="cp-t"><small>Not decided yet</small><b>' + T[''].n + ' inv</b><div class="s">' + (usul ? 'sent as → next month' : '—') + '</div></div>' +
+    '<div class="cp-t E' + (nb ? ' on' : '') + '"><small>Planned dates missing</small><b>' + plural(nb, 'row') + '</b><div class="s">required for ✓ / ◇</div></div></div>';
+  // saringan
+  var q = PLAN.q.toUpperCase(), F = [['all', 'All'], ['A', 'A · Arrears'], ['B', 'B · Due this month'], ['C', 'C · No due date'], ['D', 'D · Due next month+']].concat(usul ? [['und', 'Not decided'], ['bad', 'Date missing']] : []);
+  var fm = function (x, f) { return f === 'all' ? true : f === 'und' ? !planDec(x) : f === 'bad' ? usul && vusBad(x) : x.grp === f; };
+  var base = items.filter(function (x) { return !q || (x.pelanggan + ' ' + x.npp + ' ' + x.proyek + ' ' + x.nomor).toUpperCase().indexOf(q) >= 0; });
+  var L = base.filter(function (x) { return fm(x, PLAN.f); }), nSel = Object.keys(PLAN.sel).filter(function (k) { return PLAN.sel[k]; }).length;
+  h += '<div class="cp-card"><div class="cp-tb"><input id="cpQ" placeholder="Search customer, project or invoice" value="' + esc(PLAN.q) + '">' + F.map(function (f) { return '<button type="button" class="cp-ch' + (PLAN.f === f[0] ? ' on' : '') + '" data-cpf="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (x) { return fm(x, f[0]); }).length + '</em></button>'; }).join('') + '<span class="sp"></span>';
+  if (usul) h += '<span class="cp-bulk">' + nSel + ' selected · set to <button type="button" data-cpb="C"' + (nSel ? '' : ' disabled') + '>✓ CAIR</button><button type="button" data-cpb="S"' + (nSel ? '' : ' disabled') + '>◇</button><button type="button" data-cpb="H"' + (nSel ? '' : ' disabled') + '>⏸</button><button type="button" data-cpb="N"' + (nSel ? '' : ' disabled') + '>→</button></span>' +
+    '<details class="cp-qf"><summary class="btn">Quick fill ▾</summary><div class="m"><button type="button" data-uq="A:C">All arrears → ✓ CAIR</button><button type="button" data-uq="B:C">All due this month → ✓ CAIR</button><button type="button" data-uq="D:N">All due next month → → NEXT MONTH</button><button type="button" data-uq="tgl">Blank planned dates = month end</button><button type="button" data-uq="clear">Clear all proposals</button>' + (P.recs ? '<button type="button" data-uq="valx">Cancel this month’s sheets…</button>' : '') + '</div></details>';
+  h += '</div><table class="cpt"><thead><tr>' + (usul ? '<th style="width:28px"><input type="checkbox" id="cpAll"' + (L.length && L.every(function (x) { return PLAN.sel[x.nomor]; }) ? ' checked' : '') + '></th>' : '') + '<th>Customer / project</th><th>Invoice</th><th>Due date</th><th>Outstanding status</th><th class="n">Plan (DPP − PPh)</th>' + (rev ? '<th>Applies</th>' : '') + '<th>' + (usul ? 'Proposal' : 'Decision') + '</th><th>Planned date</th><th>' + (usul ? 'Note' : 'Note / reason') + '</th>' + (pus ? '<th>Meeting</th>' : '') + '</tr></thead><tbody>';
+  var cs = (usul ? 1 : 0) + 8 + (rev ? 1 : 0) + (pus ? 1 : 0);
+  ['A', 'B', 'C', 'D'].forEach(function (g) {
+    var G = L.filter(function (x) { return x.grp === g; }); if (!G.length) return;
+    h += '<tr class="g"><td colspan="' + cs + '">' + g + ' · ' + esc(VGRPL[g]) + ' <span>· ' + plural(G.length, 'invoice') + ' · ' + rpShort(G.reduce(function (t, x) { return t + (+x.nilai || 0); }, 0)) + '</span></td></tr>';
+    G.forEach(function (x) {
+      var d = planDec(x), nm = esc(x.nomor), v = usul ? VUS.items[x.nomor] : null, bad = usul && vusBad(x), need = d === 'C' || d === 'S';
+      h += '<tr class="' + (bad && VUS.tried ? 'bad' : PLAN.sel[x.nomor] ? 'sel' : '') + '">' + (usul ? '<td><input type="checkbox" data-cps="' + nm + '"' + (PLAN.sel[x.nomor] ? ' checked' : '') + '></td>' : '') +
+        '<td><b>' + esc(titleCaseS(x.pelanggan)) + '</b><small>' + esc(x.npp) + ' · ' + esc(x.proyek) + '</small></td>' +
+        '<td>' + esc(short(x.nomor)) + '<small>' + esc(x.invke) + '</small>' + (+x.paid > 0 ? '<span class="cp-paid">received ' + esc(tg(x.paidTgl)) + ' · Rp ' + nfDot(x.paid) + '</span>' : '') + (x.carry ? '<small>moved from ' + esc(x.carry) + '</small>' : '') + '</td>' +
+        '<td>' + (x.jt ? esc(tg(x.jt)) : '—') + '<br>' + planDue(x) + '</td><td>' + planStatusTxt(x.status) + '</td>' +
+        '<td class="n"><b>' + nfDot(x.nilai) + '</b><small>cash ' + nfDot(x.sisa) + '</small></td>' +
+        (rev ? '<td>' + (x.cur ? '<span class="cp-pill ' + x.cur + '">' + DECL[x.cur].split(' ')[0] + '</span>' : '—') + '</td>' : '') +
+        '<td>' + (usul ? '<span class="cp-seg">' + DECO.map(function (k) { return '<button type="button" data-un="' + nm + '" data-uk="' + k + '" class="' + k + (d === k ? ' on' : '') + '" title="' + DECL[k] + '">' + (d === k ? DECL[k] : DECL[k].split(' ')[0]) + '</button>'; }).join('') + '</span>' + (rev && pus && x.cur === 'C' && d !== 'C' ? '<small style="color:#B45309">− moved by central meeting</small>' : '')
+          : '<span class="cp-pill ' + d + '">' + DECL[d] + '</span>' + (x.usul && x.usul !== d ? '<small>AR proposed ' + DECL[x.usul] + '</small>' : '')) + '</td>' +
+        '<td>' + (usul ? (need ? '<input type="date" class="vdate' + (bad ? ' bad' : '') + '" data-ud="' + nm + '" value="' + esc(v.d) + '" min="' + P.start + '" max="' + P.end + '">' : '<span style="color:#8696A8;font-size:11.5px">not needed</span>') : esc(tg(x.rtgl)) || '—') + '</td>' +
+        '<td>' + (usul ? '<input class="vcat" data-uc="' + nm + '" value="' + esc(v.c) + '" placeholder="optional">' : esc(d === 'H' ? x.alasan || x.catatan || '' : x.catatan || '')) + '</td>' +
+        (pus ? '<td>' + (need ? '<label style="margin:0;font-size:11.5px;display:flex;gap:4px;align-items:center"><input type="checkbox" data-up="' + nm + '"' + (v.p === '+' ? ' checked' : '') + '> ＋</label>' : '') + '</td>' : '') + '</tr>';
+    });
+  });
+  if (!L.length) h += '<tr><td colspan="' + cs + '" class="cp-empty">' + (items.length ? 'No invoices match this filter.' : 'No open invoices for ' + esc(monEn(ref)) + '.') + '</td></tr>';
+  h += '</tbody></table></div>';
+  // bar bawah
+  h += '<div class="cp-ft"><div><small>✓ CAIR</small><b>' + rpShort(T.C.v) + '</b></div><div><small>◇ CADANGAN</small><b>' + rpShort(T.S.v) + '</b></div><div><small>⏸ HOLD</small><b>' + rpShort(T.H.v) + '</b></div>' + (tgt ? '<div><small>vs collection target</small><b>' + Math.round(pct * 100) + '%</b></div>' : '') + '<span class="sp"></span>' +
+    (usul ? '<span class="vmsg" id="vusMsg">' + (VUS.savedAt ? 'Draft saved ' + esc(VUS.savedAt) : 'Not saved yet') + '</span><button class="btn" type="button" data-uq="save">Save draft</button><button class="btn primary" type="button" data-uq="submit">' + ico('send') + (sts === 'DITOLAK' || rev ? 'Resubmit' : 'Submit') + ' to Section Head</button>'
+      : '<span class="vmsg">' + (sts === 'MENUNGGU' ? 'Awaiting Section Head decision' : sts === 'DISETUJUI' ? 'Plan in force' : maker ? '' : 'View only') + '</span>') + '</div></div>';
+  w.innerHTML = h; w.scrollTop = st; planBind();
+}
+function planBind() {
+  var w = $('planWrap');
+  if ($('cpMon')) $('cpMon').onchange = function () { planLoad(this.value); };
+  w.querySelectorAll('[data-cpm]').forEach(function (b) { b.onclick = function () { planLoad(b.dataset.cpm); }; });
+  if ($('cpRev')) $('cpRev').onclick = planRevise;
+  if ($('cpPrint')) $('cpPrint').onclick = function () { printHtml(pgValidasi(PKG)); };
+  if ($('cpQ')) $('cpQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(planBind.t); planBind.t = setTimeout(function () { PLAN.q = v; planRender(); var i = $('cpQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
+  w.querySelectorAll('[data-cpf]').forEach(function (b) { b.onclick = function () { PLAN.f = b.dataset.cpf; planRender(); }; });
+  w.querySelectorAll('[data-cps]').forEach(function (c) { c.onchange = function () { PLAN.sel[c.dataset.cps] = c.checked; planRender(); }; });
+  if ($('cpAll')) $('cpAll').onchange = function () { var on = this.checked; w.querySelectorAll('[data-cps]').forEach(function (c) { PLAN.sel[c.dataset.cps] = on; }); planRender(); };
+  w.querySelectorAll('[data-cpb]').forEach(function (b) { b.onclick = function () {
+    var k = b.dataset.cpb, n = 0;
+    (PKG.items || []).forEach(function (x) { if (!PLAN.sel[x.nomor] || x.gone) return; var v = VUS.items[x.nomor]; if (!v || (+x.paid > 0 && k !== 'C' && k !== 'S')) return;
+      v.u = k; n++; if ((k === 'C' || k === 'S') && +x.paid > 0 && !v.d) v.d = x.paidTgl; if (VUS.revisi && VUS.dasar === 'PUSAT' && k === 'C' && x.cur !== 'C' && !v.p) v.p = '+'; if (k !== 'C' && k !== 'S') v.p = ''; });
+    PLAN.sel = {}; toast(plural(n, 'invoice') + ' set to ' + DECL[k] + '.'); planRender(); }; });
+  w.querySelectorAll('.cp-qf .m button').forEach(function (b) { b.addEventListener('click', function () { var d = b.closest('details'); if (d) d.open = false; }); });
+}
 function pgRekap(pkg) {
   var A = { 'PIUTANG_USAHA': 'Piutang Usaha', 'PIUTANG_RETENSI': 'Piutang Retensi', 'TAGBRUT': 'Tagihan Bruto', 'HAD': 'Hasil Akan Diterima' };
   var h = '<div class="page pg-flow land">' + docHead('REKAP BULANAN UNTUK AKUNTANSI — ' + esc(pkg.label).toUpperCase(), 'Invoice keluar, penerimaan, CKPN, dan usulan jurnal SAP periode ' + tg(pkg.start) + ' s.d. ' + tg(pkg.end) + '.', 'Ref. ' + esc(pkg.ref));
@@ -3101,20 +3286,22 @@ var NAV_MAKER = [
   { id: 'dashboard', ic: 'home', t: 'Overview' },
   { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
   { g: 'pay', ic: 'bank', t: 'Cash Receipts', items: [['bayar', 'bank', 'Record Receipt', 'bank transfer, offset, compensation'], ['tbayar', 'book', 'Receipts Register', 'receipts per month, approval sheets, print']] },
+  { id: 'plan', ic: 'cal', t: 'Collection Plan', badge: 'planBadge', y: 1 },
   { id: 'dok', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1 },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
+var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
 var NAV = NAV_MAKER;
 function ico(n) { return '<svg class="ic"><use href="#i-' + n + '"/></svg>'; }
 function buildNav(maker) {
-  NAV = maker ? NAV_MAKER : NAV_APPR;
+  var viewer = !!(B && B.access && B.access.viewer); NAV = maker ? NAV_MAKER : viewer ? NAV_VIEW : NAV_APPR;
   $('tbNav').innerHTML = NAV.map(function (n) {
     if (n.items) return '<div style="position:relative"><button type="button" class="tb-it" data-g="' + n.g + '">' + ico(n.ic) + esc(n.t) + ' <span class="tb-b" id="' + n.badge + '" hidden></span><span class="car">▼</span></button>' +
       '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { return '<button type="button" data-mode="' + it[0] + '"><i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + '</button>'; }).join('') + '</div></div>';
     return '<button type="button" class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</button>';
   }).join('');
-  var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
-    : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
+  var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['plan', 'cal', 'Plan'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
+    : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
   $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
   document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (STACK) closePackage(); setMode(b.dataset.mode); }; });
   document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
@@ -3133,7 +3320,7 @@ function navShow(m) {
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
   var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', dok: 'Month-End Close', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', dok: 'Month-End Close', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3166,8 +3353,8 @@ function navOpen() { }
 function navBadges() {
   if (!B || !$('tbNav')) return;
   var maker = !!(B.access && B.access.maker), A = apModel(), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
-  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0;
-  [['apBadge', ap], ['dokBadge', dk], ['penBadge', sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
+  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0, pl = maker && dokStatus(B.DOC.VAL, B.today.substring(0, 7))[0] !== 'ok' ? 1 : 0;
+  [['apBadge', ap], ['dokBadge', dk], ['planBadge', pl], ['penBadge', sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
   $('tbBellDot').hidden = !ap;
   $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
 }
@@ -3185,7 +3372,6 @@ function dokStatus(jenis, ref) {
 /** dokumen yang belum disetujui: validasi rencana cair bulan berjalan + rekap akuntansi bulan lalu */
 function dokPending() {
   var cur = B.today.substring(0, 7), prev = E.prevMonthEnd(B.today).substring(0, 7), n = 0;
-  if (dokStatus(B.DOC.VAL, cur)[0] !== 'ok') n++;
   if (dokStatus(B.DOC.REK, prev)[0] !== 'ok') n++;
   return n;
 }
@@ -3196,66 +3382,108 @@ function renderDok(quiet) {
   var anSt = !an ? ['no', 'checking…'] : an.err ? ['bad', an.err] : an.ada ? ['ok', '✓ Available' + (an.rev ? ' · Rev.' + an.rev : '')] : ['no', an.tutup ? 'Not yet created' : 'Month not yet closed'];
   var anBtn = an && an.ada ? '<button class="btn sm" type="button" onclick="openAnalisis(false)">View</button>' : an && !an.ada && an.tutup && maker ? '<button class="btn sm" type="button" onclick="openAnalisis(true)">Create</button>' : '';
   $('dokList').innerHTML =
-    card('Collection Plan Validation Sheet', 'planned cash receipts for the month', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="openPackage(\'VAL\',$(\'mSel\').value)">Open</button>') +
+    card('Collection Plan Validation Sheet', 'planned cash receipts for the month', dokStatus(B.DOC.VAL, m), '<button class="btn sm" type="button" onclick="PLAN.ref=$(\'mSel\').value;setMode(\'plan\')">Open</button>') +
     card('Monthly Accounting Summary', 'invoices issued, cash receipts, CKPN', dokStatus(B.DOC.REK, m), '<button class="btn sm" type="button" onclick="openPackage(\'REK\',$(\'mSel\').value)">Open</button>') +
     card('Monthly AR Analysis', 'for the monthly meeting · created after month-end close', anSt, anBtn);
-  if (!quiet) hoLoad();
+  if (!quiet && !(B.access && B.access.viewer)) hoLoad(); else if (B.access && B.access.viewer && $('hoBox')) $('hoBox').innerHTML = '<div class="note">' + plural(B.hoPending || 0, 'approved document') + ' not yet handed over to Accounting.</div>';
   if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'failed to load' }; renderDok(true); });
 }
 /* ====================================================== v2.8.7: serah terima dokumen ke Akuntansi */
-var HO = { d: null, sel: {}, last: null };
+var HO = { d: null, sel: {}, last: null, tab: 'INV', f: 'all', q: '' };
 function hoKey(x) { return x.jenis + '|' + x.ref; }
 function hoLoad() {
-  call('apiHandoverData', [], function (d) { HO.d = d; HO.sel = {}; d.pending.forEach(function (x) { HO.sel[hoKey(x)] = true; }); B.hoPending = d.pending.length; navBadges(); hoRender(); },
+  call('apiHandoverData', [], function (d) { HO.d = d; HO.sel = {}; d.pending.forEach(function (x) { HO.sel[hoKey(x)] = true; }); if (!d.pending.some(function (x) { return x.jenis === HO.tab; }) && d.pending.length) HO.tab = d.pending[0].jenis; B.hoPending = d.pending.length; navBadges(); hoRender(); },
     function (e) { $('hoBox').innerHTML = '<div class="note err">Failed to load: ' + esc(e.message || e) + '</div>'; });
 }
-function hoRender() {
+/* v2.8.7: invoice keluar & penerimaan diserahkan dengan lembar terpisah (tab), pratinjau lembar langsung di kanan */
+function hoRender(preview) {
   var d = HO.d, maker = !!(B.access && B.access.maker); if (!d || !$('hoBox')) return;
-  var P = d.pending, nSel = P.filter(function (x) { return HO.sel[hoKey(x)]; });
-  var flag = function (ok, t) { return '<span class="hof ' + (ok ? 'y' : 'n') + '">' + t + ' ' + (ok ? '✓' : '–') + '</span>'; };
-  var h = '<div class="note' + (P.length ? ' warn' : ' ok') + '">' + (P.length ? '<b>' + plural(P.length, 'approved document') + ' not yet handed over</b>' + (P.some(function (x) { return x.umur > 3; }) ? ' · ' + P.filter(function (x) { return x.umur > 3; }).length + ' older than 3 days' : '') : 'All approved invoices &amp; receipts have been handed over to Accounting.') + '</div>';
-  if (P.length) {
-    h += '<label class="inline hoall"><input type="checkbox" id="hoAll"' + (nSel.length === P.length ? ' checked' : '') + ' style="width:auto"> Select all</label><div class="holist">' + P.map(function (x) {
-      return '<label class="hoit"><input type="checkbox" data-ho="' + esc(hoKey(x)) + '"' + (HO.sel[hoKey(x)] ? ' checked' : '') + ' style="width:auto"><span><b>' + (x.jenis === 'INV' ? 'Invoice' : 'Receipt') + '</b> ' + esc(x.label.replace(/^KU\.02\.02\/WB-4C\./, '')) +
-        '<br><span class="m">' + esc(titleCaseS(x.pelanggan)) + ' · ' + (x.jenis === 'INV' ? 'DPP ' : '') + 'Rp ' + nfDot(x.nilai) + ' · approved ' + esc(tg(x.disahkan)) + ' (' + (x.umur ? x.umur + ' d' : 'today') + ') · ' + esc(x.apv) + (x.ulang ? ' · <b style="color:var(--red)">re-approved, replaces ' + esc(x.ulang) + '</b>' : '') + '</span>' +
-        '<br>' + flag(!!x.sap, 'SAP doc') + (x.memo === null ? '' : flag(/^✓/.test(x.memo || ''), 'memorial verified')) + '</span></label>'; }).join('') + '</div>';
-    if (maker) h += '<div class="row" style="margin-top:8px"><div><label for="hoPen">Received by (Accounting)</label><input id="hoPen" value="' + esc(d.penerima || '') + '"></div><div style="display:flex;align-items:flex-end"><button class="btn primary" type="button" id="hoMake" style="width:100%"' + (nSel.length ? '' : ' disabled') + '>Create handover sheet (' + plural(nSel.length, 'doc') + ')</button></div></div>';
+  var P = d.pending, tab = HO.tab, inv = tab === 'INV', q = HO.q.toUpperCase();
+  var nI = P.filter(function (x) { return x.jenis === 'INV'; }).length, nP = P.length - nI, nOld = P.filter(function (x) { return x.umur > 3; }).length;
+  var T = P.filter(function (x) { return x.jenis === tab; }), fm = function (x, f) { return f === 'all' ? true : f === 'old' ? x.umur > 3 : !x.sap; };
+  var base = T.filter(function (x) { return !q || (x.label + ' ' + x.pelanggan).toUpperCase().indexOf(q) >= 0; }), L = base.filter(function (x) { return fm(x, HO.f); });
+  var nSel = T.filter(function (x) { return HO.sel[hoKey(x)]; }), tot = nSel.reduce(function (t, x) { return t + x.nilai; }, 0);
+  var h = '<div class="ho-tiles"><div><small>Invoices waiting</small><b>' + nI + '</b></div><div><small>Receipts waiting</small><b>' + nP + '</b></div><div class="' + (nOld ? 'w' : '') + '"><small>Older than 3 days</small><b>' + nOld + '</b></div></div>';
+  if (!P.length) h += '<div class="note ok">All approved invoices &amp; receipts have been handed over to Accounting.</div>';
+  else {
+    h += '<div class="ho-tabs"><button type="button" data-hot="INV" class="' + (inv ? 'on' : '') + '">Invoices issued <em>' + nI + '</em></button><button type="button" data-hot="PAY" class="' + (!inv ? 'on' : '') + '">Cash receipts <em>' + nP + '</em></button></div>';
+    h += '<div class="ho-tb"><input id="hoQ" placeholder="Search ' + (inv ? 'invoice no.' : 'receipt / invoice no.') + ' or customer" value="' + esc(HO.q) + '">' + [['all', 'All'], ['old', '> 3 days'], ['nosap', 'No SAP doc']].map(function (f) { return '<button type="button" class="cp-ch' + (HO.f === f[0] ? ' on' : '') + '" data-hof="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (x) { return fm(x, f[0]); }).length + '</em></button>'; }).join('') + '</div>';
+    h += '<div class="ho-wrap"><table class="ho-t"><thead><tr><th><input type="checkbox" id="hoAll"' + (L.length && L.every(function (x) { return HO.sel[hoKey(x)]; }) ? ' checked' : '') + '></th><th>' + (inv ? 'Invoice · customer' : 'Receipt · customer') + '</th><th class="n">' + (inv ? 'DPP (Rp)' : 'Amount (Rp)') + '</th><th>Approved</th></tr></thead><tbody>' +
+      (L.length ? L.map(function (x) {
+        var f = x.info || {}, k = hoKey(x), no = inv ? short(f.nomor || x.ref) : (f.ids || []).join(', ') || x.ref;
+        return '<tr class="' + (HO.sel[k] ? 's' : '') + '"><td><input type="checkbox" data-ho="' + esc(k) + '"' + (HO.sel[k] ? ' checked' : '') + '></td><td><b>' + esc(no) + '</b> <span style="color:var(--steel);font-size:11px">' + esc(tg(f.tgl || x.tgl)) + '</span><br>' + esc(titleCaseS(x.pelanggan)) + '<small>' + (inv ? esc((f.npp || x.npp || '') + ' · ' + (f.uraian || '')) : esc((f.jenis || '') + ' · inv ' + (f.inv || []).join(', '))) + '</small>' + (x.ulang ? '<small style="color:var(--red);font-weight:600">re-approved, replaces ' + esc(x.ulang) + '</small>' : '') + '</td>' +
+          '<td class="n"><b>' + nfDot(x.nilai) + '</b><small>' + (inv ? 'PPN ' + nfDot(f.ppn || 0) : esc(f.rek || '')) + '</small></td>' +
+          '<td><span class="ho-age' + (x.umur > 3 ? ' o' : '') + '">' + (x.umur ? x.umur + ' d' : 'today') + '</span><small><span class="hof ' + (x.sap ? 'y' : 'n') + '">SAP ' + (x.sap ? '✓' : '–') + '</span>' + (x.memo === null ? '' : '<span class="hof ' + (/^✓/.test(x.memo || '') ? 'y' : 'n') + '">memo ' + (/^✓/.test(x.memo || '') ? '✓' : '–') + '</span>') + '</small></td></tr>';
+      }).join('') : '<tr><td colspan="4" class="cp-empty" style="padding:18px">' + (T.length ? 'No documents match this filter.' : 'No ' + (inv ? 'invoices' : 'receipts') + ' waiting.') + '</td></tr>') + '</tbody></table></div>';
+    if (maker && T.length) h += '<div class="ho-ft"><div><label for="hoPen">Received by (Accounting)</label><input id="hoPen" value="' + esc(HO.pen != null ? HO.pen : d.penerima || '') + '"></div><button class="btn primary" type="button" id="hoMake"' + (nSel.length ? '' : ' disabled') + '>Create ' + (inv ? 'invoice' : 'receipt') + ' handover sheet<small>' + plural(nSel.length, inv ? 'invoice' : 'receipt') + ' · ' + (inv ? 'DPP ' : '') + rpShort(tot) + ' · ' + esc((d.nextNo || {})[tab] || '') + '</small></button></div>';
   }
-  if (d.history.length) h += '<div class="hoh">Recent handover sheets</div>' + d.history.slice(0, 8).map(function (b) {
-    return '<div class="hob"><span><b>' + esc(b.no) + '</b> · ' + esc(tg(b.tgl)) + ' · ' + plural(b.n, 'doc') + (b.batal ? ' · <span style="color:var(--red)">' + b.batal + ' cancelled</span>' : '') + '</span><span><button class="linkbtn" type="button" data-hov="' + esc(b.no) + '">View / print</button>' +
+  if (d.history.length) h += '<div class="hoh">Recent handover sheets</div>' + d.history.slice(0, 10).map(function (b) {
+    var ty = b.jenis === 'INV' ? '<span class="ho-ty i">INV</span>' : b.jenis === 'PAY' ? '<span class="ho-ty p">PNR</span>' : '<span class="ho-ty">MIX</span>';
+    return '<div class="hob"><span>' + ty + '<b>' + esc(b.no) + '</b> · ' + esc(tg(b.tgl)) + ' · ' + plural(b.n, 'doc') + (b.jenis === 'INV' ? ' · DPP ' + rpShort(b.nilai) : b.jenis === 'PAY' ? ' · ' + rpShort(b.nilai) : '') + (b.batal ? ' · <span style="color:var(--red)">' + b.batal + ' cancelled</span>' : '') + '</span><span><button class="linkbtn" type="button" data-hov="' + esc(b.no) + '">View / print</button>' +
       (maker && b.n ? ' · <button class="linkbtn" type="button" data-hox="' + esc(b.no) + '" style="color:var(--red)">Cancel</button>' : '') + '</span></div>'; }).join('');
   $('hoBox').innerHTML = h;
-  $('hoBox').querySelectorAll('[data-ho]').forEach(function (c) { c.onchange = function () { HO.sel[c.dataset.ho] = c.checked; hoRender(); }; });
-  if ($('hoAll')) $('hoAll').onchange = function () { var on = this.checked; P.forEach(function (x) { HO.sel[hoKey(x)] = on; }); hoRender(); };
+  var box = $('hoBox');
+  box.querySelectorAll('[data-hot]').forEach(function (b) { b.onclick = function () { HO.tab = b.dataset.hot; HO.f = 'all'; hoRender(true); }; });
+  box.querySelectorAll('[data-hof]').forEach(function (b) { b.onclick = function () { HO.f = b.dataset.hof; hoRender(); }; });
+  if ($('hoQ')) $('hoQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(hoRender.t); hoRender.t = setTimeout(function () { HO.q = v; hoRender(); var i = $('hoQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
+  box.querySelectorAll('[data-ho]').forEach(function (c) { c.onchange = function () { HO.sel[c.dataset.ho] = c.checked; hoRender(true); }; });
+  if ($('hoAll')) $('hoAll').onchange = function () { var on = this.checked; L.forEach(function (x) { HO.sel[hoKey(x)] = on; }); hoRender(true); };
+  if ($('hoPen')) $('hoPen').oninput = function () { HO.pen = this.value; };
   if ($('hoMake')) $('hoMake').onclick = hoCreate;
-  $('hoBox').querySelectorAll('[data-hov]').forEach(function (b) { b.onclick = function () { var x = d.history.filter(function (y) { return y.no === b.dataset.hov; })[0]; if (x) hoShow({ no: x.no, tgl: x.tgl, penerima: x.penerima, oleh: x.oleh, rows: x.rows.filter(function (r) { return r.status !== 'BATAL'; }) }); }; });
-  $('hoBox').querySelectorAll('[data-hox]').forEach(function (b) { b.onclick = function () {
+  box.querySelectorAll('[data-hov]').forEach(function (b) { b.onclick = function () { var x = d.history.filter(function (y) { return y.no === b.dataset.hov; })[0]; if (x) hoShow({ no: x.no, tgl: x.tgl, penerima: x.penerima, oleh: x.oleh, jenis: x.jenis, rows: x.rows.filter(function (r) { return r.status !== 'BATAL'; }) }); }; });
+  box.querySelectorAll('[data-hox]').forEach(function (b) { b.onclick = function () {
     confirmDlg('Cancel handover ' + esc(b.dataset.hox), 'The sheet is not deleted; its documents return to "not yet handed over". Use this only if the sheet was not given to Accounting or was printed by mistake.<textarea id="dlgNote" placeholder="reason"></textarea>', 'Cancel handover', function () {
       call('apiHandoverCancel', [b.dataset.hox, (($('dlgNote') || {}).value || '').trim()], function (r) { toast('Handover ' + b.dataset.hox + ' cancelled.'); bgReports(); hoLoad(); }, function (e) { toast(e.message || e); });
     }); }; });
+  // pratinjau lembar yang akan dibuat (hanya saat memilih di daftar)
+  if (preview && maker && nSel.length && MODE === 'dok' && !STACK) hoShow({ no: ((d.nextNo || {})[tab] || '') + ' (preview)', tgl: B.today, penerima: HO.pen != null ? HO.pen : d.penerima, jenis: tab, rows: nSel, preview: true });
 }
 function hoCreate() {
-  var P = HO.d.pending.filter(function (x) { return HO.sel[hoKey(x)]; }); if (!P.length) return;
+  var P = HO.d.pending.filter(function (x) { return x.jenis === HO.tab && HO.sel[hoKey(x)]; }); if (!P.length) return;
   var b = $('hoMake'); b.disabled = true; b.innerHTML = '<span class="bgspin"></span>Recording…';
   call('apiHandoverCreate', [P.map(function (x) { return { jenis: x.jenis, ref: x.ref }; }), { penerima: ($('hoPen') || {}).value || '' }], function (r) {
     toast('Handover ' + r.no + ' recorded (' + r.rows.length + ' documents). Print it and ask Accounting to sign.'); bgReports(); hoShow(r); hoLoad();
   }, function (e) { toast(e.message || e); hoRender(); });
 }
-function hoShow(b) { HO.last = b; document.body.classList.add('m-view'); var w = $('sheetwrap'); w.style.transform = '';
-  w.innerHTML = '<div style="display:flex;justify-content:flex-end;gap:8px;margin:0 0 8px"><button class="btn" type="button" id="hoPrint">' + ico('print') + 'Print</button></div><div class="stackwrap">' + pgHandover(b) + '</div>';
-  $('hoPrint').onclick = function () { printHtml(pgHandover(b)); }; if (typeof fitZoom === 'function') fitZoom(); }
-/** lembar tanda terima (dicetak, bahasa Indonesia) */
+function hoShow(b) { HO.last = b; if (!b.preview) document.body.classList.add('m-view'); var w = $('sheetwrap'); w.style.transform = '';
+  w.innerHTML = '<div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0 0 8px">' + (b.preview ? '<span style="font-size:12px;color:var(--steel);margin-right:auto">Live preview — updates as you tick documents. The number is assigned when the sheet is created.</span>' : '<button class="btn" type="button" id="hoPrint">' + ico('print') + 'Print</button>') + '</div><div class="stackwrap">' + pgHandover(b) + '</div>';
+  if ($('hoPrint')) $('hoPrint').onclick = function () { printHtml(pgHandover(b)); }; if (typeof fitZoom === 'function') fitZoom(); }
+/** lembar tanda terima (dicetak, bahasa Indonesia): satu jenis per lembar — invoice keluar (DPP) atau penerimaan */
 function pgHandover(b) {
-  var R = (B && B.roles) || {}, mk = R.PEMBUAT || { nama: '', jabatan: 'AR Officer' }, ak = R.PENERIMA || { nama: '', jabatan: 'Akuntansi' }, tInv = 0, tPay = 0;
-  var h = '<div class="page pg-flow">' + docHead('TANDA TERIMA DOKUMEN KE AKUNTANSI', 'Lembar pengesahan invoice dan penerimaan yang sudah disahkan, diserahkan ke Akuntansi untuk dicatat dan diposting di SAP. Nilai invoice = DPP (tanpa PPN). Akuntansi memeriksa fisik setiap dokumen lalu mencentang kolom Diterima.', 'No. ' + esc(b.no) + '<br>' + esc(tglIndo(b.tgl)));
-  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:16mm">Jenis</th><th>Dokumen</th><th style="width:38mm">Pelanggan</th><th style="width:23mm">DPP Invoice (Rp)</th><th style="width:23mm">Penerimaan (Rp)</th><th style="width:26mm">Pengesahan</th><th style="width:14mm">Diterima</th></tr></thead><tbody>' +
-    b.rows.map(function (x, i) { var inv = x.jenis === 'INV'; if (inv) tInv += x.nilai || 0; else tPay += x.nilai || 0;
-      return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + (inv ? 'Invoice' : 'Penerimaan') + '</td><td>' + esc(x.label) + '</td><td>' + esc(x.pelanggan) + '</td><td class="n">' + (inv ? nd(x.nilai) : '') + '</td><td class="n">' + (inv ? '' : nd(x.nilai)) + '</td><td>' + esc(x.apv) + (x.kode ? '<br><span style="color:#5B6B80">kode ' + esc(x.kode) + '</span>' : '') + '</td><td style="text-align:center;font-size:11pt">☐</td></tr>'; }).join('') +
-    '</tbody><tbody><tr class="tot"><td></td><td></td><td>TOTAL ' + b.rows.length + ' DOKUMEN</td><td></td><td class="n">' + nd(tInv) + '</td><td class="n">' + nd(tPay) + '</td><td></td><td></td></tr></tbody></table>';
-  h += '<div class="knote">Dokumen yang tidak diterima / kurang lengkap: coret centangnya dan beri catatan. Nomor tanda terima ini tercatat di kolom SERAH TERIMA AKUNTANSI (Monitoring Invoice &amp; Log Penerimaan).</div>';
-  var cell = function (role, who, tgl) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + tgl + '</div></div>'; };
-  h += '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Diterima oleh (Akuntansi),', { nama: b.penerima || ak.nama, jabatan: ak.jabatan }, '..................') + cell('Diserahkan oleh,', mk, esc(tglIndo(b.tgl))) + '</div>';
-  return h + '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B ? B.today : '')) + ' · ' + esc(b.no) + '</div></div>';
+  var R = (B && B.roles) || {}, mk = R.PEMBUAT || { nama: '', jabatan: 'AR Officer' }, ak = R.PENERIMA || { nama: '', jabatan: 'Akuntansi' }, rows = b.rows || [];
+  var J = b.jenis || (rows.every(function (x) { return x.jenis === 'INV'; }) ? 'INV' : rows.every(function (x) { return x.jenis === 'PAY'; }) ? 'PAY' : 'MIX');
+  var chk = '<td style="text-align:center;font-size:11pt">☐</td>', apv = function (x) { return esc(x.apv) + (x.kode ? '<br><span style="color:#5B6B80">kode ' + esc(x.kode) + '</span>' : ''); };
+  var sign = function () { var cell = function (role, who, tgl) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ' + tgl + '</div></div>'; };
+    return '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Diterima oleh (Akuntansi),', { nama: b.penerima || ak.nama, jabatan: ak.jabatan }, '..................') + cell('Diserahkan oleh,', mk, esc(tglIndo(b.tgl))) + '</div>'; };
+  var foot = '<div class="knote">Dokumen yang tidak diterima / kurang lengkap: coret centangnya dan beri catatan. Nomor tanda terima ini tercatat di kolom SERAH TERIMA AKUNTANSI (' + (J === 'INV' ? 'Monitoring Invoice' : J === 'PAY' ? 'Log Penerimaan' : 'Monitoring Invoice &amp; Log Penerimaan') + ').</div>' + sign() +
+    '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B ? B.today : '')) + ' · ' + esc(b.no) + '</div></div>';
+  var head = function (title, sub, cls) { return '<div class="page pg-flow ho-pg ' + cls + '">' + docHead(title, sub, '<b>No. ' + esc(b.no) + '</b><br>' + esc(tglIndo(b.tgl))); };
+  if (J === 'INV') {
+    var tD = 0, pel = {}; rows.forEach(function (x) { tD += x.nilai || 0; pel[x.pelanggan] = 1; });
+    var h = head('TANDA TERIMA INVOICE KELUAR', 'Invoice yang sudah disahkan, diserahkan ke Akuntansi untuk pencatatan piutang &amp; posting SAP. Nilai = DPP (tanpa PPN).', 'hi') +
+      '<div class="ho-band"><span>Jumlah invoice<b>' + rows.length + '</b></span><span>Total DPP<b>Rp ' + nd(tD) + '</b></span><span>Pelanggan<b>' + Object.keys(pel).length + '</b></span></div>' +
+      '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:24mm">No. Invoice</th><th style="width:17mm">Tgl</th><th>Pelanggan · NPP</th><th style="width:18mm">Uraian</th><th style="width:24mm">DPP (Rp)</th><th style="width:28mm">No. Faktur Pajak</th><th style="width:20mm">Pengesahan</th><th style="width:13mm">Diterima</th></tr></thead><tbody>' +
+      rows.map(function (x, i) { var f = x.info || {}; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(f.nomor ? '4C.' + short(f.nomor) : x.label) + '</td><td>' + esc(tg(f.tgl)) + '</td><td>' + esc(x.pelanggan) + (f.npp ? '<br>' + esc(f.npp) : '') + '</td><td>' + esc(f.uraian || '') + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + esc(f.fp || '—') + '</td><td>' + apv(x) + '</td>' + chk + '</tr>'; }).join('') +
+      '</tbody><tbody><tr class="tot"><td></td><td colspan="4">TOTAL ' + rows.length + ' INVOICE</td><td class="n">' + nd(tD) + '</td><td colspan="3"></td></tr></tbody></table>';
+    return h + foot;
+  }
+  if (J === 'PAY') {
+    var tK = 0, tO = 0, all = 0; rows.forEach(function (x) { var f = x.info || {}; all += x.nilai || 0; if (f.kas != null) { tK += f.kas; tO += f.off || 0; } else tK += x.nilai || 0; });
+    var h2 = head('TANDA TERIMA PENERIMAAN PIUTANG', 'Penerimaan (termin cair) yang sudah disahkan, diserahkan ke Akuntansi untuk jurnal pelunasan piutang di SAP.', 'hp') +
+      '<div class="ho-band"><span>Jumlah penerimaan<b>' + rows.length + '</b></span><span>Uang masuk (bank)<b>Rp ' + nd(tK) + '</b></span>' + (tO ? '<span>Kompensasi / pindah buku<b>Rp ' + nd(tO) + '</b></span>' : '') + '</div>' +
+      '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:22mm">No. Penerimaan</th><th style="width:17mm">Tgl Uang Masuk</th><th>Pelanggan</th><th style="width:20mm">Invoice</th><th style="width:16mm">Jenis</th><th style="width:30mm">Rekening / Ref</th><th style="width:23mm">Nilai (Rp)</th><th style="width:19mm">Pengesahan</th><th style="width:13mm">Diterima</th></tr></thead><tbody>' +
+      rows.map(function (x, i) { var f = x.info || {}; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc((f.ids || []).join(', ') || x.ref) + '</td><td>' + esc(tg(f.tgl)) + '</td><td>' + esc(x.pelanggan) + '</td><td>' + esc((f.inv || []).join(', ')) + '</td><td>' + esc(f.jenis || '') + '</td><td>' + esc(f.rek || '') + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + apv(x) + '</td>' + chk + '</tr>'; }).join('') +
+      '</tbody><tbody><tr class="tot"><td></td><td colspan="6">TOTAL ' + rows.length + ' PENERIMAAN' + (tO ? ' (uang masuk Rp ' + nd(tK) + ' + kompensasi / pindah buku Rp ' + nd(tO) + ')' : '') + '</td><td class="n">' + nd(all) + '</td><td colspan="2"></td></tr></tbody></table>';
+    return h2 + foot;
+  }
+  // lembar lama (sebelum dipisah): invoice & penerimaan dalam satu lembar
+  var tInv = 0, tPay = 0;
+  var h3 = head('TANDA TERIMA DOKUMEN KE AKUNTANSI', 'Lembar pengesahan invoice dan penerimaan yang sudah disahkan, diserahkan ke Akuntansi untuk dicatat dan diposting di SAP. Nilai invoice = DPP (tanpa PPN).', '') +
+    '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:16mm">Jenis</th><th>Dokumen</th><th style="width:38mm">Pelanggan</th><th style="width:23mm">DPP Invoice (Rp)</th><th style="width:23mm">Penerimaan (Rp)</th><th style="width:26mm">Pengesahan</th><th style="width:14mm">Diterima</th></tr></thead><tbody>' +
+    rows.map(function (x, i) { var iv = x.jenis === 'INV'; if (iv) tInv += x.nilai || 0; else tPay += x.nilai || 0;
+      return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + (iv ? 'Invoice' : 'Penerimaan') + '</td><td>' + esc(x.label) + '</td><td>' + esc(x.pelanggan) + '</td><td class="n">' + (iv ? nd(x.nilai) : '') + '</td><td class="n">' + (iv ? '' : nd(x.nilai)) + '</td><td>' + apv(x) + '</td>' + chk + '</tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td></td><td></td><td>TOTAL ' + rows.length + ' DOKUMEN</td><td></td><td class="n">' + nd(tInv) + '</td><td class="n">' + nd(tPay) + '</td><td></td><td></td></tr></tbody></table>';
+  return h3 + foot;
 }
 function openAnalisis(buat) {
   document.body.classList.add('m-view');
@@ -3388,10 +3616,69 @@ function applyAccess() {
   var maker = !!(B.access && B.access.maker); document.body.classList.toggle('ar-approver',!maker);
   buildNav(maker); navBadges();
   var me = B.user || {}, nm = me.nama || me.email || '';
-  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(maker ? (me.jabatan || 'AR Officer') + ' · Preparer' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegation' : '')) + '</small>';
+  var viewer = !!(B.access && B.access.viewer);
+  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(viewer ? (me.jabatan || 'Management') + ' · View only' : maker ? (me.jabatan || 'AR Officer') + ' · Preparer' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegation' : '')) + '</small>';
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
   $('tbVer').textContent = 'Receivables Management · v' + String(E.VERSION).split(' ')[0];
-  $('accessBadge').textContent = (maker ? 'Preparer · All menus' : 'Section Head · Document approvals') + ' · ' + ((B.user || {}).nama || '');
+  $('accessBadge').textContent = (viewer ? 'Management · View only' : maker ? 'Preparer · All menus' : 'Section Head · Document approvals') + ' · ' + ((B.user || {}).nama || '');
+}
+/* ====================================================== v2.8.7: Executive Summary — tampilan manajemen (peran MANAJEMEN (LIHAT), hanya membaca) */
+var EX_M = '';
+function execLoad() {
+  var cur = B.today.substring(0, 7), m = EX_M || cur, d = OV[m];
+  if (d && d._today === B.today) return execRender(d);
+  $('execWrap').innerHTML = '<div class="ov"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Loading executive summary…</div><div class="sk" style="width:60%"></div><div class="sk" style="height:140px;margin-top:14px"></div></div></div>';
+  call('apiOverview', [m === cur ? '' : m], function (r) { r._today = B.today; OV[m] = r; if (MODE === 'exec' && (EX_M || cur) === m) execRender(r); },
+    function (e) { $('execWrap').innerHTML = '<div class="ov"><div class="note err">Executive summary could not be loaded: ' + esc(e.message || e) + '</div></div>'; });
+}
+function exM(v) { return rpShort(v); }
+function execRender(d) {
+  var cur = B.today.substring(0, 7), R = d.rari || {}, viewer = !!(B.access && B.access.viewer);
+  var opts = ''; for (var k = 0; k < 13; k++) { var y = +cur.substring(0, 4), mm = +cur.substring(5, 7) - k; while (mm < 1) { mm += 12; y--; } var r = y + '-' + ('0' + mm).slice(-2); opts += '<option value="' + r + '"' + (r === d.ref ? ' selected' : '') + '>' + monEn(r) + (k === 0 ? ' (current)' : '') + '</option>'; }
+  var odPct = d.open ? d.overdue / d.open : 0, colPct = d.target ? d.receipts / d.target : 0, riPct = R.raFinal ? R.riRA / R.raFinal : 0;
+  var kpi = function (t, v, s, cls) { return '<div class="ex-k"><small>' + t + '</small><b>' + v + '</b><span class="' + (cls || '') + '">' + s + '</span></div>'; };
+  var h = '<div class="ov ex"><div class="ov-hd"><div><h2>Executive Summary</h2><p>' + (d.cur ? 'Position as of ' + dateEn(d.asOf) : 'Month-end position ' + dateEn(d.asOf)) + ' · data from Sistem AR CSU' + (viewer ? ' · view only' : '') + '</p></div><span class="sp"></span><label class="ov-sel">' + ico('cal') + '<select id="exMonth">' + opts + '</select></label><button class="ibtn" id="exPrint" type="button">' + ico('print') + 'Print / PDF</button></div>';
+  h += '<div class="ex-kpis">' + kpi('Total receivables', exM(d.open), d.nOpen + ' open invoices') + kpi('Overdue', exM(d.overdue), pctId(odPct, 0) + ' of total', odPct > 0.3 ? 'dn' : '') +
+    kpi('Collected ' + monEn(d.ref, true), exM(d.receipts), d.target ? pctId(colPct, 0) + ' of target ' + exM(d.target) : 'no target set', d.target && colPct < 0.7 ? 'dn' : 'up') +
+    kpi('Collection plan realised (RI ÷ RA)', R.raFinal ? pctId(riPct) : '—', 'RA ' + exM(R.raFinal) + ' · RI ' + exM(R.riRA) + (d.raManual ? ' · RA manual' : '')) +
+    kpi('DSO (3 months)', d.dso3 != null ? d.dso3 + ' days' : '—', d.dso12 != null ? '12-month ' + d.dso12 + ' days' : '') +
+    kpi('Invoices issued ' + monEn(d.ref, true), (d.issued || {}).n || 0, exM((d.issued || {}).total) + ' incl. VAT') + '</div>';
+  // tren 12 bulan: tagihan terbit vs uang masuk
+  var T = (d.trend || []).slice(-12), mx = Math.max.apply(null, T.map(function (t) { return Math.max(t.inv, t.rec); }).concat([1])), W = 760, H = 170, bw = (W - 50) / Math.max(T.length, 1);
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + (H + 26) + '" width="100%" height="200" role="img" aria-label="12-month trend"><g font-size="10" fill="#5B6B80">' +
+    [0, 0.5, 1].map(function (f) { var yy = H - f * (H - 10); return '<line x1="44" x2="' + W + '" y1="' + yy + '" y2="' + yy + '" stroke="#E6EBF1"/><text x="0" y="' + (yy + 3) + '">' + (mx * f / 1e9).toFixed(0) + ' M</text>'; }).join('') +
+    T.map(function (t, i) { var x = 50 + i * bw, h1 = (t.inv / mx) * (H - 10), h2 = (t.rec / mx) * (H - 10), cw = Math.max(4, bw / 2 - 5);
+      return '<rect x="' + x + '" y="' + (H - h1) + '" width="' + cw + '" height="' + h1 + '" fill="#C7D3E6"><title>' + monEn(t.ref) + ' issued ' + exM(t.inv) + '</title></rect><rect x="' + (x + cw + 2) + '" y="' + (H - h2) + '" width="' + cw + '" height="' + h2 + '" fill="#0F6E78"><title>' + monEn(t.ref) + ' collected ' + exM(t.rec) + '</title></rect><text x="' + (x + cw) + '" y="' + (H + 16) + '" text-anchor="middle">' + monEn(t.ref, true) + '</text>'; }).join('') + '</g></svg>';
+  var AG = [['No due date yet', '#8696A8'], ['Not yet due', '#43A047'], ['1–30 days', '#C0CA33'], ['31–90 days', '#F59E0B'], ['91–180 days', '#EF6C00'], ['> 180 days', '#C62828']], amx = Math.max.apply(null, (d.aging || []).concat([1]));
+  var ag = (d.aging || []).map(function (v, i) { return '<div class="ex-ag"><span>' + AG[i][0] + '</span><i><b style="width:' + Math.max(v ? 2 : 0, Math.round(v / amx * 100)) + '%;background:' + AG[i][1] + '"></b></i><em>' + exM(v) + '</em></div>'; }).join('');
+  h += '<div class="ex-g g2"><div class="ex-c"><h3>Billing vs collection, last 12 months</h3><p>Invoices issued (incl. VAT) against cash actually received each month</p>' + svg + '<div class="ex-lg"><span><i style="background:#C7D3E6"></i>Issued</span><span><i style="background:#0F6E78"></i>Collected</span></div></div>' +
+    '<div class="ex-c"><h3>Receivables ageing</h3><p>How long customers have owed us, by days past due</p>' + ag + '<div class="ex-note">Related parties (WIKA group & JO) ' + exM(d.rel) + ' · third parties ' + exM(d.open - (d.rel || 0)) + '</div></div></div>';
+  // pelanggan, proyek, perhatian
+  var top = (d.top || []).map(function (x) { return '<tr><td>' + esc(titleCaseS(x.pelanggan)) + '</td><td class="n">' + exM(x.open) + '</td><td class="n"><span class="ex-p ' + (x.od > 0.5 ? (x.od > x.open * 0.5 ? 'r' : 'y') : 'g') + '">' + (x.od > 0.5 ? exM(x.od) : '0') + '</span></td></tr>'; }).join('');
+  var pj = (d.proj || []).map(function (x) { var p = Math.round((+x.pct || 0) * 100); return '<tr><td>' + esc(x.proyek || '') + '<small>' + esc(titleCaseS(x.pelanggan || '')) + '</small></td><td><span class="ex-pb"><i style="width:' + Math.min(100, p) + '%"></i></span> ' + p + '%</td><td class="n">' + exM(x.belum) + '</td></tr>'; }).join('');
+  var at = [], A = d.attn || {}, vs = dokStatus(B.DOC.VAL, d.ref);
+  if (d.old365 && d.old365.n) at.push(['r', '<b>' + plural(d.old365.n, 'invoice') + ' overdue more than 1 year</b> · ' + exM(d.old365.v)]);
+  if (A.od90n) at.push(['r', '<b>' + plural(A.od90n, 'customer') + ' with invoices > 90 days overdue</b> · ' + exM(A.od90v)]);
+  if (A.janji) at.push(['r', '<b>' + plural(A.janji, 'payment promise / letter deadline') + ' missed</b>']);
+  if (A.eskalasi) at.push(['y', '<b>' + plural(A.eskalasi, 'customer') + '</b> due for collection escalation']);
+  if (d.cur && d.target && colPct < 0.8) at.push(['y', 'Collection ' + monEn(d.ref, true) + ' at <b>' + pctId(colPct, 0) + ' of target</b>' + (R.hariKerja ? ' with ' + plural(R.hariKerja, 'working day') + ' left' : '')]);
+  if (vs[0] === 'bad' || vs[0] === 'no') at.push(['y', 'Collection plan ' + monEn(d.ref, true) + ': <b>' + esc(vs[1]) + '</b>']);
+  if (B.hoPending) at.push(['b', plural(B.hoPending, 'approved document') + ' not yet handed over to Accounting']);
+  if (!at.length) at.push(['g', 'Nothing requires attention.']);
+  h += '<div class="ex-g g3"><div class="ex-c"><h3>Top customers by outstanding</h3><p>Who owes the most</p><table class="ex-t"><tr><th>Customer</th><th class="n">Outstanding</th><th class="n">Overdue</th></tr>' + (top || '<tr><td colspan="3">—</td></tr>') + '</table></div>' +
+    '<div class="ex-c"><h3>Project billing progress</h3><p>Share of contract value billed, and what is left to bill</p><table class="ex-t"><tr><th>Project</th><th>Billed</th><th class="n">Left to bill</th></tr>' + (pj || '<tr><td colspan="3">—</td></tr>') + '</table></div>' +
+    '<div class="ex-c"><h3>Needs attention</h3><p>Generated automatically from the data</p>' + at.map(function (a) { return '<div class="ex-al"><i class="' + a[0] + '"></i><span>' + a[1] + '</span></div>'; }).join('') + '</div></div>';
+  // tata kelola
+  var monApp = function (jenis) { var L = B.approvals.filter(function (a) { return a.jenis === jenis && String(a.waktu || '').substring(0, 7) === d.ref && a.status !== 'DIBATALKAN'; }); return { n: L.length, ok: L.filter(function (a) { return a.status === 'DISETUJUI' && !a.berubah; }).length }; };
+  var gi = monApp(B.DOC.INV), gp = monApp(B.DOC.PAY), rk = dokStatus(B.DOC.REK, d.ref);
+  h += '<div class="ex-g g2"><div class="ex-c"><h3>Governance &amp; control</h3><p>Are documents approved and passed to Accounting on time?</p><div class="ex-gv">' +
+    '<div><small>Invoice approvals ' + monEn(d.ref, true) + '</small><b>' + gi.ok + ' / ' + gi.n + ' approved</b></div><div><small>Receipt approvals ' + monEn(d.ref, true) + '</small><b>' + gp.ok + ' / ' + gp.n + ' approved</b></div>' +
+    '<div><small>Not yet handed over to Accounting</small><b class="' + (B.hoPending ? 'w' : '') + '">' + plural(B.hoPending || 0, 'document') + '</b></div><div><small>Monthly accounting summary</small><b class="' + (rk[0] === 'ok' ? 'g' : 'w') + '">' + esc(rk[1]) + '</b></div></div></div>' +
+    '<div class="ex-c"><h3>Detail</h3><p>' + (viewer ? 'View-only account — nothing can be entered or changed.' : 'More detail in the other menus.') + '</p><div class="ex-links"><button class="btn" type="button" data-mgo="dashboard">Detailed overview</button><button class="btn" type="button" data-mgo="plan">Collection plan</button><button class="btn" type="button" data-mgo="dok">Monthly documents &amp; project ledger</button></div></div></div></div>';
+  $('execWrap').innerHTML = h;
+  $('exMonth').onchange = function () { EX_M = this.value === cur ? '' : this.value; execLoad(); };
+  $('exPrint').onclick = function () { printHtml($('execWrap').innerHTML.replace('class="ov ex"', 'class="ov ex ovp"')); };
+  $('execWrap').querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
 }
 /* ====================================================== v2.8.5: Overview (layar penuh, AR Officer & Section Head) */
 var OV = {}, OV_M = '', MON_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -3476,7 +3763,7 @@ function ovRender(d) {
       ac('fold', '#E8EEF8', '#2F5597', 'Month-end close documents open', dokPending(), 'dok') + ac('doc', '#E3F4F5', '#0F7C86', 'Document filing incomplete (signed pack / e-Faktur)', dfMissingCount(), 'buka') + ac('warn', '#F3E8FA', '#6B3FA0', 'Data check findings', d.issues, 'sheet') + '</div>';
   } else {
     var T = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : ''; };
-    h += '<div class="ov-p"><h3>Awaiting your decision<span class="r">' + A.k.tunggu + ' requests</span></h3><div class="s">Oldest first · click to review</div>' +
+    h += '<div class="ov-p"><h3>' + (B.access && B.access.viewer ? 'Pending Section Head decisions' : 'Awaiting your decision') + '<span class="r">' + A.k.tunggu + ' requests</span></h3><div class="s">Oldest first · click to review</div>' +
       ac('bank', '#E3F4F5', '#0F7C86', 'Cash receipts', T.PAY.tunggu.length, 'ap:PAY', old(T.PAY)) + ac('doc', '#E8EEF8', '#2F5597', 'Invoices', T.INV.tunggu.length, 'ap:INV', old(T.INV)) +
       ac('cal', '#F3E8FA', '#6B3FA0', 'Collection plan validation', T.VAL.tunggu.length, 'ap:VAL', old(T.VAL)) + ac('warn', '#FDECEA', '#B42318', 'Other (cancellations, manual close)', T.LAIN.tunggu.length, 'ap:LAIN', old(T.LAIN)) +
       '<div class="ov-note"><b>Attention this month:</b> ' + (d.attn.od90n ? d.attn.od90n + ' customer' + (d.attn.od90n > 1 ? 's' : '') + ' &gt; 90 days past due totalling <b>' + rpShort(d.attn.od90v) + '</b>' : 'no customer &gt; 90 days past due') + ' · missed payment promises ' + d.attn.janji + ' · escalations (3rd letter) ' + d.attn.eskalasi + '</div></div>';
@@ -3487,6 +3774,7 @@ function ovRender(d) {
   $('ovMonth').onchange = function () { OV_M = this.value === cur ? '' : this.value; renderDashboard(); };
   if ($('ovRefresh')) $('ovRefresh').onclick = refreshReports;
   if ($('ovPrint')) $('ovPrint').onclick = function () { var x = $('ovWrap').innerHTML.replace('class="ov"', 'class="ov ovp"'); printHtml(x); };
+  if (B.access && B.access.viewer) $('ovWrap').querySelectorAll('[data-ovgo^="ap:"],[data-ovinv]').forEach(function (el) { el.removeAttribute('data-ovgo'); el.removeAttribute('data-ovinv'); el.style.cursor = 'default'; });
   $('ovWrap').querySelectorAll('[data-ovgo]').forEach(function (el) { el.onclick = function () { var g = el.dataset.ovgo; if (g === 'sheet') { window.open(B.sheetUrl || '#', '_blank'); return; } if (/^ap:/.test(g)) { AP_TAB = g.substring(3); g = 'setuju'; } if (!maker && ['setuju', 'dashboard', 'dok'].indexOf(g) < 0) g = 'setuju'; setMode(g); }; });
   $('ovWrap').querySelectorAll('[data-ovinv]').forEach(function (el) { el.onclick = function () { setMode('setuju'); openPackage('INV', E.normInv(el.dataset.ovinv)); }; });
 }

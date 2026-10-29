@@ -39,8 +39,10 @@ function arParameters_() {
   var p = sheet_('Parameter');
   return ENGINE.readParams(rangeVals_(p,'A4:C120'), [], [], [], rangeVals_(p,'U4:Y40'), [], []);
 }
-function arRequireAccess_() {
+/** view: true untuk API yang hanya membaca — peran MANAJEMEN (LIHAT) boleh, selain itu ditolak (tidak bisa mengubah apa pun) */
+function arRequireAccess_(view) {
   var email = email_(), p = arParameters_(), u = ENGINE.userBy(p,email);
+  if (email && u && /^MANAJEMEN/.test(u.peran)) { if (!view) throw new Error('This account is view-only (MANAJEMEN). Nothing can be entered or changed.'); return { email:email, maker:false, approver:false, viewer:true, role:u.peran }; }
   if (!email) throw new Error('Your Google identity could not be read. Sign in with a registered account; the deployment must run as the user accessing the web app.');
   // delegasi aktif (bukan PEMBUAT — dijaga ENGINE.delegasiFor) hanya membuka mode Otorisasi Dokumen
   if (u && !/^(PEMBUAT|PENYETUJU)/.test(u.peran) && ENGINE.delegasiFor(p,email,null,arToday_())) return { email:email, maker:false, approver:false, delegate:true, role:u.peran };
@@ -931,7 +933,7 @@ function arArsipKembalikanMenu() {
 
 /** Analisis Bulanan AR untuk menu Tutup Buku Bulanan di aplikasi: baca snapshot terakhir bulan itu; buat = hanya Pembuat & bulan sudah tutup buku */
 function apiAnalisis(month, buat) {
-  var acc = arRequireAccess_();
+  var acc = arRequireAccess_(!buat);
   month = String(month || '');
   if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
   var st = arPeriodState_(), tutup = !!st.tutup && st.tutup >= arMonthEnd_(month), rows;
@@ -950,7 +952,7 @@ function apiAnalisis(month, buat) {
 
 /** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
 function apiOverview(month) {
-  arRequireAccess_();
+  arRequireAccess_(true);
   month = String(month || '');
   if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
   var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key);
