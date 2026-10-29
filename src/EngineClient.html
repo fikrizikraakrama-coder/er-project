@@ -598,9 +598,9 @@ var ENGINE = (function () {
   /** v2.8.7: rincian untuk lembar cetak (invoice keluar / penerimaan) */
   function hoInfoInv(i) { return { nomor: i.nomor, tgl: i.tgl, npp: i.npp, uraian: invLabel(i), dpp: rnd(i._a.dpp), ppn: rnd(i._a.ppn), fp: S(i.no_fp) }; }
   function hoInfoPay(g) {
-    var p0 = g[0], inv = {}, ids = [], tg = '';
-    g.forEach(function (p) { inv[p._inv.nomor.replace(/^KU\.02\.02\/WB-4C\./, '')] = 1; if (p.idp && ids.indexOf(p.idp) < 0) ids.push(p.idp); if (p.tgl > tg) tg = p.tgl; });
-    return { ids: ids, tgl: tg, inv: Object.keys(inv), jenis: p0._kom ? 'Kompensasi' : p0._pb ? 'Pindah buku' : 'Transfer', rek: p0._kom ? S(p0.ref) : p0._pb ? S(p0.ref) : ((p0._rek ? p0._rek.label : S(p0.rekening)) + (S(p0.ref) ? ' · ' + S(p0.ref) : '')),
+    var p0 = g[0], inv = {}, ids = [], tg = '', npp = [];
+    g.forEach(function (p) { if (p._inv.npp && npp.indexOf(p._inv.npp) < 0) npp.push(p._inv.npp); inv[p._inv.nomor.replace(/^KU\.02\.02\/WB-4C\./, '')] = 1; if (p.idp && ids.indexOf(p.idp) < 0) ids.push(p.idp); if (p.tgl > tg) tg = p.tgl; });
+    return { ids: ids, tgl: tg, inv: Object.keys(inv), npp: npp, jenis: p0._kom ? 'Kompensasi' : p0._pb ? 'Pindah buku' : 'Transfer', rek: p0._kom ? S(p0.ref) : p0._pb ? S(p0.ref) : ((p0._rek ? p0._rek.label : S(p0.rekening)) + (S(p0.ref) ? ' · ' + S(p0.ref) : '')),
       kas: rnd(sumBy(g, function (p) { return p._nk ? 0 : p.nominal; })), off: rnd(sumBy(g, function (p) { return p._nk ? (p._pb ? Math.max(0, p.nominal) : p.nominal) : 0; })) };
   }
   /** nomor lembar serah terima berikutnya — per jenis: STD-INV-yyyy-mm-### / STD-PNR-yyyy-mm-### (lembar lama STD-yyyy-mm-### tetap berlaku) */
@@ -2758,7 +2758,7 @@ var ENGINE = (function () {
         jenis: a.jenis, umk: a.umk, ret: a.ret, dpp: a.dpp, pot_pph: r.pot_pph, closed: !!r.closed, tutup: U(i.tutup) === 'CLOSE MANUAL', alasan_tutup: S(i.alasan_tutup), ba_no: S(i.ba_no),
         migr: /^MIGRASI/.test(U(i.sumber)), link_inv: S(i.link_inv), link_fp: S(i.link_fp), tgl_fp: D(i.tgl_fp) || '' }; });
     var payments = ctx.pays.filter(function (p) { return p._inv; }).slice(-900).map(function (p) { var i = p._inv, k = payKey(p), g = ctx.payGroups[k];
-      return { key: k, idp: p.idp, tgl: p.tgl, ref: S(p.ref), nomor: i.nomor, pelanggan: i.pelanggan, nominal: p.nominal, keN: p._keN, keP: p._keP, aturan: p._rule, pb: !!p._pb, kom: !!p._kom, rekening: p._kom ? 'KOMPENSASI' : p._rek ? p._rek.label : S(p.rekening),
+      return { key: k, idp: p.idp, tgl: p.tgl, ref: S(p.ref), nomor: i.nomor, pelanggan: i.pelanggan, npp: i.npp, nominal: p.nominal, keN: p._keN, keP: p._keP, aturan: p._rule, pb: !!p._pb, kom: !!p._kom, rekening: p._kom ? 'KOMPENSASI' : p._rek ? p._rek.label : S(p.rekening),
         appr: g ? apprStatusText(ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', ho: g ? hoText(ctx, 'PAY', k, ctx.latest(DOC.PAY, k), fpPayGroup(g)) : '', migr: !!p._migr, cek: p._cek.length ? p._cek.join('; ') : '', sap: S(p.sap_doc) }; });
     var retSisa = {}; retensiRows(ctx).forEach(function (r) { retSisa[r[1]] = r[9]; });
     var umr = {}; umRetRows(ctx).forEach(function (u) { umr[u.npp] = u; });

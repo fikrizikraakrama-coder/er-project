@@ -625,7 +625,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 #mode-buka table.list{table-layout:fixed}#mode-buka table.list th:nth-child(1){width:26%}#mode-buka table.list th:nth-child(3){width:34%}
 #mode-buka table.list td{overflow-wrap:anywhere}
 #mode-tbayar table.list{table-layout:fixed}#mode-tbayar table.list th:nth-child(1){width:30%}#mode-tbayar table.list th:nth-child(3){width:30%}#mode-tbayar table.list td{overflow-wrap:anywhere}#mode-tbayar tr[data-open]{cursor:pointer}#mode-tbayar td .num{white-space:nowrap}#mode-tbayar tr[data-open]:hover td{background:#F2F7FA}#mode-tbayar tr.sel td{background:#E3F1F2}
-.pho{display:inline-block;margin-top:2px;font-size:11px;font-weight:600}.pho.n{color:#B45309}.pho.y{color:#0F6E78}
+.pnpp{font-size:11.5px;font-weight:600;color:#24478F}.pho{display:inline-block;margin-top:2px;font-size:11px;font-weight:600}.pho.n{color:#B45309}.pho.y{color:#0F6E78}
 </style>
 </head>
 <body>
@@ -791,7 +791,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <!-- ===================== MODE REGISTER PENERIMAAN (v2.8.7) -->
     <div class="scroll" id="mode-tbayar" hidden>
       <div class="m-only m-acts"><button type="button" class="btn" data-mgo="bayar">+ Record receipt</button></div>
-      <label for="pQ">Search receipt no., invoice, customer or bank reference</label><input id="pQ" placeholder="e.g. PNR-00355 or 0137/2026 or ASTAKONA">
+      <label for="pQ">Search receipt no., invoice, NPP, customer or bank reference</label><input id="pQ" placeholder="e.g. PNR-00355 or 0137/2026 or 264C 1235 or ASTAKONA">
       <div style="display:flex;gap:8px;margin-top:8px"><select id="pMon" aria-label="Receipt month" style="font-weight:700"></select><button class="btn" type="button" id="pRegPrint" style="flex:0 0 auto"><svg class="ic"><use href="#i-print"/></svg>Print</button></div>
       <div class="fchips" id="pChips"></div><div class="fsum" id="pSum"></div>
       <table class="list" style="margin-top:10px"><thead><tr><th>Receipt</th><th>Customer / invoice</th><th>Amount</th></tr></thead><tbody id="payList"></tbody></table>
@@ -3247,8 +3247,9 @@ var PAY_F = 'all';
 function payGroups(pm, q) {
   var G = {}, order = [];
   B.payments.forEach(function (p) {
-    if (q ? (p.idp + ' ' + p.ref + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + p.key).toUpperCase().indexOf(q) < 0 : String(p.tgl || '').substring(0, 7) !== pm) return;
-    var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ho: p.ho || '', rek: p.rekening, ref: p.ref, ids: [] }; order.push(g); }
+    if (q ? (p.idp + ' ' + p.ref + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + (p.npp || '') + ' ' + p.key).toUpperCase().indexOf(q) < 0 : String(p.tgl || '').substring(0, 7) !== pm) return;
+    var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ho: p.ho || '', rek: p.rekening, ref: p.ref, ids: [], npp: [] }; order.push(g); }
+    if (p.npp && g.npp.indexOf(p.npp) < 0) g.npp.push(p.npp);
     g.n += p.pb ? Math.max(0, p.nominal) : p.nominal; if (g.inv.indexOf(short(p.nomor)) < 0) g.inv.push(short(p.nomor)); if (p.idp && g.ids.indexOf(p.idp) < 0) g.ids.push(p.idp); if (p.tgl > g.tgl) g.tgl = p.tgl; });
   return order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : (a.ids[0] || '') < (b.ids[0] || '') ? 1 : -1; });
 }
@@ -3268,7 +3269,7 @@ function renderPayReg() {
   $('payList').innerHTML = L.length ? L.map(function (g) {
     var ho = /^✓/.test(g.ho) ? '<span class="pho y">✓ handed over</span>' : /BELUM|LAGI/.test(g.ho) ? '<span class="pho n">not handed over</span>' : '';
     return '<tr data-open="PAY|' + esc(g.key) + '"' + (AP_SEL === 'PAY|' + g.key ? ' class="sel"' : '') + '><td><b>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + '</b><br><span style="color:var(--steel)">' + esc(tg(g.tgl)) + '</span>' + (g.pb ? '<br><span class="pill">offset</span>' : g.kom ? '<br><span class="pill">compensation</span>' : '') + '</td>' +
-      '<td>' + esc(titleCaseS(g.pel)) + '<br><span style="color:var(--steel)">4C.' + esc(g.inv.join(', 4C.')) + '</span></td>' +
+      '<td>' + esc(titleCaseS(g.pel)) + '<br><span class="pnpp">NPP ' + esc(g.npp.join(', ')) + '</span><br><span style="color:var(--steel)">4C.' + esc(g.inv.join(', 4C.')) + '</span></td>' +
       '<td><span class="num"><b>Rp ' + nfDot(g.n) + '</b></span><br><span style="color:var(--steel);font-size:11.5px">' + esc(apprEn(g.appr) || 'not submitted') + '</span>' + (ho ? '<br>' + ho : '') + '</td></tr>';
   }).join('') : '<tr><td colspan="3" class="empty">' + (q ? 'No matching receipts.' : 'No cash receipts recorded in ' + monEn(pm) + '.') + '</td></tr>';
 }
@@ -3276,9 +3277,9 @@ function renderPayReg() {
 function pgPayReg() {
   var d = renderPayReg.last || { L: [], pm: B.today.substring(0, 7), cash: 0, off: 0 };
   var h = '<div class="page pg-flow">' + docHead('REGISTER PENERIMAAN PIUTANG', d.q ? 'Hasil pencarian “' + esc(d.q) + '”' : 'Penerimaan bulan ' + esc(tglIndo(d.pm + '-01').replace(/^\d+\s+/, '')) + ' (menurut tanggal uang diterima)', esc(tglIndo(B.today)));
-  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:24mm">No. Penerimaan</th><th style="width:18mm">Tanggal</th><th>Pelanggan</th><th>Invoice</th><th style="width:20mm">Jenis</th><th style="width:26mm">Nilai (Rp)</th><th style="width:30mm">Pengesahan</th></tr></thead><tbody>' +
-    d.L.map(function (g, i) { return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(g.ids.join(', ') || String(g.key).replace(/^REF\s+/, '')) + '</td><td>' + esc(tg(g.tgl)) + '</td><td>' + esc(g.pel) + '</td><td>4C.' + esc(g.inv.join(', 4C.')) + '</td><td>' + (g.kom ? 'Kompensasi' : g.pb ? 'Pindah buku' : 'Transfer') + '</td><td class="n">' + nd(g.n) + '</td><td>' + esc(String(g.appr || '').replace(/^✓\s*/, '')) + '</td></tr>'; }).join('') +
-    '</tbody><tbody><tr class="tot"><td></td><td colspan="5">TOTAL UANG MASUK ' + d.L.filter(function (g) { return !g.pb && !g.kom; }).length + ' PENERIMAAN' + (d.off ? ' · pindah buku / kompensasi Rp ' + nd(d.off) + ' tidak termasuk' : '') + '</td><td class="n">' + nd(d.cash) + '</td><td></td></tr></tbody></table>';
+  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:24mm">No. Penerimaan</th><th style="width:18mm">Tanggal</th><th>Pelanggan</th><th style="width:24mm">NPP</th><th>Invoice</th><th style="width:20mm">Jenis</th><th style="width:26mm">Nilai (Rp)</th><th style="width:30mm">Pengesahan</th></tr></thead><tbody>' +
+    d.L.map(function (g, i) { return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(g.ids.join(', ') || String(g.key).replace(/^REF\s+/, '')) + '</td><td>' + esc(tg(g.tgl)) + '</td><td>' + esc(g.pel) + '</td><td>' + esc(g.npp.join(', ')) + '</td><td>4C.' + esc(g.inv.join(', 4C.')) + '</td><td>' + (g.kom ? 'Kompensasi' : g.pb ? 'Pindah buku' : 'Transfer') + '</td><td class="n">' + nd(g.n) + '</td><td>' + esc(String(g.appr || '').replace(/^✓\s*/, '')) + '</td></tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td></td><td colspan="6">TOTAL UANG MASUK ' + d.L.filter(function (g) { return !g.pb && !g.kom; }).length + ' PENERIMAAN' + (d.off ? ' · pindah buku / kompensasi Rp ' + nd(d.off) + ' tidak termasuk' : '') + '</td><td class="n">' + nd(d.cash) + '</td><td></td></tr></tbody></table>';
   return h + docFoot(null) + '</div>';
 }
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
@@ -3411,7 +3412,7 @@ function hoRender(preview) {
     h += '<div class="ho-wrap"><table class="ho-t"><thead><tr><th><input type="checkbox" id="hoAll"' + (L.length && L.every(function (x) { return HO.sel[hoKey(x)]; }) ? ' checked' : '') + '></th><th>' + (inv ? 'Invoice · customer' : 'Receipt · customer') + '</th><th class="n">' + (inv ? 'DPP (Rp)' : 'Amount (Rp)') + '</th><th>Approved</th></tr></thead><tbody>' +
       (L.length ? L.map(function (x) {
         var f = x.info || {}, k = hoKey(x), no = inv ? short(f.nomor || x.ref) : (f.ids || []).join(', ') || x.ref;
-        return '<tr class="' + (HO.sel[k] ? 's' : '') + '"><td><input type="checkbox" data-ho="' + esc(k) + '"' + (HO.sel[k] ? ' checked' : '') + '></td><td><b>' + esc(no) + '</b> <span style="color:var(--steel);font-size:11px">' + esc(tg(f.tgl || x.tgl)) + '</span><br>' + esc(titleCaseS(x.pelanggan)) + '<small>' + (inv ? esc((f.npp || x.npp || '') + ' · ' + (f.uraian || '')) : esc((f.jenis || '') + ' · inv ' + (f.inv || []).join(', '))) + '</small>' + (x.ulang ? '<small style="color:var(--red);font-weight:600">re-approved, replaces ' + esc(x.ulang) + '</small>' : '') + '</td>' +
+        return '<tr class="' + (HO.sel[k] ? 's' : '') + '"><td><input type="checkbox" data-ho="' + esc(k) + '"' + (HO.sel[k] ? ' checked' : '') + '></td><td><b>' + esc(no) + '</b> <span style="color:var(--steel);font-size:11px">' + esc(tg(f.tgl || x.tgl)) + '</span><br>' + esc(titleCaseS(x.pelanggan)) + '<small>' + (inv ? esc((f.npp || x.npp || '') + ' · ' + (f.uraian || '')) : esc((f.jenis || '') + ' · NPP ' + (f.npp || []).join(', ') + ' · inv ' + (f.inv || []).join(', '))) + '</small>' + (x.ulang ? '<small style="color:var(--red);font-weight:600">re-approved, replaces ' + esc(x.ulang) + '</small>' : '') + '</td>' +
           '<td class="n"><b>' + nfDot(x.nilai) + '</b><small>' + (inv ? 'PPN ' + nfDot(f.ppn || 0) : esc(f.rek || '')) + '</small></td>' +
           '<td><span class="ho-age' + (x.umur > 3 ? ' o' : '') + '">' + (x.umur ? x.umur + ' d' : 'today') + '</span><small><span class="hof ' + (x.sap ? 'y' : 'n') + '">SAP ' + (x.sap ? '✓' : '–') + '</span>' + (x.memo === null ? '' : '<span class="hof ' + (/^✓/.test(x.memo || '') ? 'y' : 'n') + '">memo ' + (/^✓/.test(x.memo || '') ? '✓' : '–') + '</span>') + '</small></td></tr>';
       }).join('') : '<tr><td colspan="4" class="cp-empty" style="padding:18px">' + (T.length ? 'No documents match this filter.' : 'No ' + (inv ? 'invoices' : 'receipts') + ' waiting.') + '</td></tr>') + '</tbody></table></div>';
@@ -3471,8 +3472,8 @@ function pgHandover(b) {
     var tK = 0, tO = 0, all = 0; rows.forEach(function (x) { var f = x.info || {}; all += x.nilai || 0; if (f.kas != null) { tK += f.kas; tO += f.off || 0; } else tK += x.nilai || 0; });
     var h2 = head('TANDA TERIMA PENERIMAAN PIUTANG', 'Penerimaan (termin cair) yang sudah disahkan, diserahkan ke Akuntansi untuk jurnal pelunasan piutang di SAP.', 'hp') +
       '<div class="ho-band"><span>Jumlah penerimaan<b>' + rows.length + '</b></span><span>Uang masuk (bank)<b>Rp ' + nd(tK) + '</b></span>' + (tO ? '<span>Kompensasi / pindah buku<b>Rp ' + nd(tO) + '</b></span>' : '') + '</div>' +
-      '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:22mm">No. Penerimaan</th><th style="width:17mm">Tgl Uang Masuk</th><th>Pelanggan</th><th style="width:20mm">Invoice</th><th style="width:16mm">Jenis</th><th style="width:30mm">Rekening / Ref</th><th style="width:23mm">Nilai (Rp)</th><th style="width:19mm">Pengesahan</th><th style="width:13mm">Diterima</th></tr></thead><tbody>' +
-      rows.map(function (x, i) { var f = x.info || {}; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc((f.ids || []).join(', ') || x.ref) + '</td><td>' + esc(tg(f.tgl)) + '</td><td>' + esc(x.pelanggan) + '</td><td>' + esc((f.inv || []).join(', ')) + '</td><td>' + esc(f.jenis || '') + '</td><td>' + esc(f.rek || '') + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + apv(x) + '</td>' + chk + '</tr>'; }).join('') +
+      '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:22mm">No. Penerimaan</th><th style="width:17mm">Tgl Uang Masuk</th><th>Pelanggan · NPP</th><th style="width:20mm">Invoice</th><th style="width:16mm">Jenis</th><th style="width:30mm">Rekening / Ref</th><th style="width:23mm">Nilai (Rp)</th><th style="width:19mm">Pengesahan</th><th style="width:13mm">Diterima</th></tr></thead><tbody>' +
+      rows.map(function (x, i) { var f = x.info || {}; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc((f.ids || []).join(', ') || x.ref) + '</td><td>' + esc(tg(f.tgl)) + '</td><td>' + esc(x.pelanggan) + ((f.npp || []).length ? '<br>' + esc(f.npp.join(', ')) : '') + '</td><td>' + esc((f.inv || []).join(', ')) + '</td><td>' + esc(f.jenis || '') + '</td><td>' + esc(f.rek || '') + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + apv(x) + '</td>' + chk + '</tr>'; }).join('') +
       '</tbody><tbody><tr class="tot"><td></td><td colspan="6">TOTAL ' + rows.length + ' PENERIMAAN' + (tO ? ' (uang masuk Rp ' + nd(tK) + ' + kompensasi / pindah buku Rp ' + nd(tO) + ')' : '') + '</td><td class="n">' + nd(all) + '</td><td colspan="2"></td></tr></tbody></table>';
     return h2 + foot;
   }
