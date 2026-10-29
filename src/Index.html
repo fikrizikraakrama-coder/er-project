@@ -3174,6 +3174,7 @@ function navBadges() {
 /* ====================================================== Tutup Buku Bulanan */
 var DOK_AN = {};
 function dokStatus(jenis, ref) {
+  var rm = jenis === B.DOC.VAL && B.raManual && B.raManual[ref]; if (rm) return ['ok', '✓ RA Manual sheet · ' + rm.n + ' rows · Rp ' + rpShort(rm.total).replace(/^Rp\s*/, '')];
   var L = B.approvals.filter(function (a) { return a.jenis === jenis && a.ref === ref && a.status !== 'DIBATALKAN'; }), a = L[L.length - 1];
   if (!a) return ['no', 'Not submitted'];
   if (a.status === 'DISETUJUI') return a.berubah ? ['bad', 'Data changed — resubmit'] : ['ok', '✓ Approved ' + tg(a.putus_waktu)];

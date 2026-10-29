@@ -61,6 +61,10 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Sheet RA Manual** (dibuat otomatis saat *Perbarui semua laporan*, terisi 20 baris RA TERMIN OKTOBER 2026): bila suatu bulan ada di sheet ini, daftar
+  itulah RA resmi bulan itu — **RA-RI Termin, Pareto, Overview & Kinerja** mengikuti; Lembar Validasi aplikasi bulan itu diabaikan. NILAI RA = DPP − PPh
+  (cicilan: isi nilai cicilan yang direncanakan), NO INVOICE boleh singkat (0085/2026). RI tetap dari Log Penerimaan (penerimaan yang sudah dicatat langsung
+  terhitung); invoice yang cair tetapi tidak ada di daftar masuk **DI LUAR RA**. Mulai November 2026 RA kembali diajukan lewat aplikasi.
 - **Cash Receipts ▸ Receipts Register** (menu baru): daftar penerimaan dipindah dari halaman input ke halaman sendiri — cari (no. PNR / invoice /
   pelanggan / ref bank, semua bulan), filter bulan & jenis (transfer, pindah buku/kompensasi, belum disahkan, belum diserahkan ke Akuntansi), klik baris →
   lembar pengesahan, tombol **Print** mencetak **Register Penerimaan Piutang** per bulan. Halaman *Record Receipt* kini hanya form input.

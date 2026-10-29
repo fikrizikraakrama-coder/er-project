@@ -212,6 +212,7 @@ function readAll_() {
     approvals: readSchema_(ss.getSheetByName('Log Persetujuan'), ENGINE.APPR),
     surat: readSchema_(ss.getSheetByName(ENGINE.SURAT.sheet), ENGINE.SURAT),
     handover: readSchema_(ss.getSheetByName(ENGINE.HO.sheet), ENGINE.HO),
+    ramanual: readSchema_(ss.getSheetByName(ENGINE.RAM.sheet), ENGINE.RAM),
     lk: readLK_(), selectors: sel,
     memo: ss.getSheetByName(ENGINE.MEMO.sheet) ? readSchema_(ss.getSheetByName(ENGINE.MEMO.sheet), ENGINE.MEMO) : undefined,
     peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF),
@@ -246,6 +247,7 @@ function rebuildAll_(opt) {
     try { arHideArsip_(ss, {}); } catch (err) { } // versi sebelumnya menyembunyikan baris ARSIP: tampilkan kembali (kini dipindah lewat menu)
     // v2.8.7: satu laporan gagal tidak menghentikan laporan lain (sebelumnya error di Kartu Piutang membuat Rekap Invoice Keluar dst. tidak diperbarui)
     var repErr = [];
+    if (!ss.getSheetByName(ENGINE.RAM.sheet)) { try { arSetupRaManual_(ss); } catch (err) { } }
     if (!ss.getSheetByName('Rekap Tagihan Proyek')) { try { var kp1 = ss.getSheetByName('Kartu Piutang'); arSetupRekapTagihan_(ss, kp1 ? kp1.getIndex() : ss.getSheets().length); } catch (err) { } }
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) { try { writeReport_(sh, res.reports[n], n); } catch (err) { repErr.push(n + ': ' + err.message); } } });
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
@@ -1897,6 +1899,29 @@ var V24_PE = [
   ['264C 1284 JL', 'JASA', '', 'SEWA STEEL SHEET PILE TIPE III', '', 143640000]];
 var V24_SELESAI = ['254C 0569 JT', '244C 0660 JT', '244C 1975 JT'];
 
+/** v2.8.7: sheet RA Manual — RA resmi bulan yang belum diajukan lewat aplikasi (Oktober 2026 diisi dari lembar RA TERMIN OKTOBER) */
+var RA_OKT_2026_ = [['PT WIJAYA KARYA REKAYASA KONSTRUKSI', 'Jasa Pancang Spun Pile - Proyek Shoring Protection Area', '0004/2026', 269844108], ['KIDOH - WITON, KSO', 'Pekerjaan Jasa Pemasangan Pipa untuk Proyek Jakarta Sewerage', '0085/2026', 494714939],
+  ['PT FAJARPUTERA DINASTI', 'Repeat Price Pekerjaan Peninggian & Pelebaran Jalan', '0104/2026', 451128224], ['PT ASTAKONA MEGAHTAMA', 'Paket Pekerjaan Infrastruktur Mainroad Kawasan Proyek', '0105/2026', 407921145],
+  ['PT ASTAKONA MEGAHTAMA', 'Paket Pekerjaan Infrastruktur Mainroad Kawasan Proyek', '0112/2026', 149292925], ['PT HARAPAN INTI PERSADA INDAH', 'Pekerjaan Saluran Pembuangan Serpong Garden 2', '0117/2026', 270124279],
+  ['PT FAJARPUTERA DINASTI', 'Pekerjaan Pasangan Batu Kali, Tutup Saluran U-Ditch', '0124/2026', 172039337], ['PT FAJARPUTERA DINASTI', 'Pekerjaan Pasangan Batu Kali, Tutup Saluran U-Ditch', '0125/2026', 215049172],
+  ['PT ASTAKONA MEGAHTAMA', 'Paket Pekerjaan Infrastruktur Mainroad Kawasan Proyek', '0137/2026', 289296459], ['PT FAJARPUTERA DINASTI', 'Pekerjaan Stabilisasi Lereng & Penanganan Kelongsoran', '0138/2026', 4693786254],
+  ['PT WIJAYA KARYA REKAYASA KONSTRUKSI', 'Jasa Pancang Spun Pile - Proyek Shoring Protection Area', '0141/2026', 7433473509], ['PT ASTAKONA MEGAHTAMA', 'Paket Pekerjaan Infrastruktur Mainroad Kawasan Proyek', '0145/2026', 152106692],
+  ['PT WIJAYA KARYA (PERSERO) Tbk', 'Erection Jalan Tol Ancol Timur - Pluit/ Harbour', '0149/2026', 591888000], ['PT FAJARPUTERA DINASTI', 'Jembatan Penghubung Desa Wanajaya & Desa Sukajaya', '0151/2026', 5559139352],
+  ['PT INDAH KIAT PULP & PAPER', 'Pekerjaan Sipil Untuk Pembangunan Jembatan Utaman', '0153/2026', 739319163], ['PT FAJARPUTERA DINASTI', 'Pekerjaan Perbaikan Struktur Jembatan Irigasi 1', '0159/2026', 145466587],
+  ['PT FAJARPUTERA DINASTI', 'Perbaikan Proteksi Abutment A2 Proyek Metland', '0160/2026', 519333541], ['PT FAJARPUTERA DINASTI', 'Pekerjaan Pembuatan Platform Secant Pile Sisi Utara', '0161/2026', 136099130],
+  ['PT HUTAMA KARYA INFRASTRUKTUR', 'Pekerjaan Angkutan Stressing Girder', '', 270351600, 'isi NO INVOICE (sudah ada di Monitoring Invoice)'], ['PT MUSTIKA INDAH PERMAI', 'Pembangunan Underpass Desa Muara Maung, Lahat', '0194/2026', 9106105634]];
+function arSetupRaManual_(ss) {
+  var r = setupDataSheet_(ss, ENGINE.RAM, 'RA MANUAL (RENCANA INKASO DI LUAR APLIKASI)', 'Bila suatu bulan ada di sheet ini, daftar inilah RA resmi bulan itu (menggantikan Lembar Validasi aplikasi): laporan RA-RI Termin, Pareto & Overview mengikuti. NO INVOICE boleh singkat (0085/2026). NILAI RA = DPP − PPh (untuk cicilan: isi nilai cicilan yang direncanakan). Invoice yang cair tetapi tidak ada di daftar otomatis masuk "DI LUAR RA". Mulai November 2026 RA diajukan lewat aplikasi.', 'Log Persetujuan', '#8E44AD'), sh = r.sh;
+  if (r.dibuat) {
+    var map = colMap_(sh, ENGINE.RAM), lc = Math.max(sh.getLastColumn(), ENGINE.RAM.cols.length);
+    var vals = RA_OKT_2026_.map(function (x) { var o = { bulan: '2026-10', pelanggan: x[0], proyek: x[1], nomor: x[2], nilai: x[3], tgl: '', ket: x[4] || 'RA TERMIN OKTOBER (lembar 1 Okt 2026)' }, a = []; for (var k = 0; k < lc; k++) a.push('');
+      ENGINE.RAM.cols.forEach(function (c) { var j = map[c[0]]; if (j) a[j - 1] = o[c[0]]; }); return a; });
+    roomFor_(sh, ENGINE.RAM.firstRow + vals.length);
+    sh.getRange(ENGINE.RAM.firstRow, map.bulan, vals.length, 1).setNumberFormat('@'); sh.getRange(ENGINE.RAM.firstRow, map.nomor, vals.length, 1).setNumberFormat('@');
+    sh.getRange(ENGINE.RAM.firstRow, 1, vals.length, lc).setValues(vals);
+  }
+  return sh;
+}
 function setupDataSheet_(ss, schema, title, desc, after, tab) {
   var sh = ss.getSheetByName(schema.sheet), dibuat = false;
   if (!sh) { var af = ss.getSheetByName(after), ix = af ? af.getIndex() : ss.getSheets().length; sh = ss.insertSheet(schema.sheet, ix); dibuat = true; }

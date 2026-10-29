@@ -353,3 +353,18 @@ test('Rekap Tagihan Proyek: kontrak, sudah ditagih, %, belum ditagih + blok leng
   rep.blocks.forEach(b => assert.ok(Array.isArray(b.rows) && b.fmt && Array.isArray(b.styles) && Array.isArray(b.merge)));
   assert.strictEqual(rep.charts[0].type, 'BAR'); assert.strictEqual(rep.charts[0].range[2], 2);
 });
+
+test('RA Manual: daftar bulan itu menjadi RA resmi (nilai DPP − PPh), no. invoice singkat, baris tanpa invoice tetap dihitung; RI dari Log Penerimaan', () => {
+  const input = fixture({ submit: '2026-09-21' });
+  input.selectors = { 'RA-RI Termin': '2026-10' };
+  input.log = [row(ENGINE.LOG, { idp: 'PNR-00001', tgl: '2026-10-10', ref: 'TRF1', inv: NOMOR, nominal: 50e6 })];
+  input.ramanual = [row(ENGINE.RAM, { bulan: '2026-10', nomor: '0101/2026', pelanggan: 'PT CONTOH', nilai: 60e6 }), row(ENGINE.RAM, { bulan: 'Oktober 2026', nomor: '', pelanggan: 'PT LAIN', proyek: 'Angkutan', nilai: 40e6 })];
+  const res = ENGINE.compute(input), rep = res.reports['RA-RI Termin'], sm = rep.blocks[1].rows;
+  assert.ok(res.ctx.valDec['2026-10'].manual);
+  assert.strictEqual(sm[4][2], 100e6, 'RA final (DPP − PPh) = 60 jt + 40 jt sesuai sheet');
+  assert.strictEqual(sm[5][1], 50e6, 'RI atas RA = penerimaan 10-10');
+  assert.match(rep.blocks[0].rows[1][0], /sheet RA Manual/);
+  assert.deepStrictEqual(res.ctx.raManual['2026-10'], { label: 'RA Manual Oktober 2026', n: 2, total: 100e6, luar: 1 });
+  assert.ok(res.issues.some(x => x[0] === 'RA MANUAL' && /No invoice kosong/.test(x[3])));
+  assert.match(res.regOut[0].validasi_ok, /RA Manual Oktober 2026/);
+});

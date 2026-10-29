@@ -133,6 +133,12 @@ var ENGINE = (function () {
       ['label', 'URAIAN', 'auto', 40], ['pelanggan', 'PELANGGAN', 'auto', 28], ['nilai', 'NILAI (Rp)', 'auto', 16, 'money'], ['apv', 'ID PERSETUJUAN', 'auto', 11],
       ['kode', 'KODE PENGESAHAN', 'auto', 13], ['oleh', 'DISERAHKAN OLEH', 'auto', 24], ['penerima', 'DITERIMA OLEH (AKUNTANSI)', 'auto', 24], ['status', 'STATUS (DISERAHKAN / BATAL)', 'auto', 14], ['catatan', 'CATATAN', 'auto', 30]]
   };
+  /** v2.8.7: RA manual per bulan (lembar rapat di luar aplikasi) — bila ada, menjadi RA resmi bulan itu menggantikan Lembar Validasi */
+  var RAM = {
+    sheet: 'RA Manual', headerRow: 5, firstRow: 6,
+    cols: [['bulan', 'BULAN RA (yyyy-mm)', 'manual', 12], ['nomor', 'NO INVOICE', 'manual', 28], ['pelanggan', 'PELANGGAN', 'manual', 32], ['proyek', 'PROYEK / URAIAN', 'manual', 40],
+      ['nilai', 'NILAI RA (DPP − PPh)', 'manual', 18, 'money'], ['tgl', 'RENCANA TGL CAIR (OPSIONAL)', 'manual', 14, 'date'], ['ket', 'KETERANGAN', 'manual', 34]]
+  };
   var MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
   var OPT = {
     validasi: ['✓ CAIR', '◇ CADANGAN', '→ BULAN DEPAN', '⏸ HOLD'],
@@ -805,6 +811,7 @@ var ENGINE = (function () {
     ctx.ho = {}; ctx.hoRows = rowsToObjects(input.handover || [], HO.cols, HO.firstRow).filter(function (r) { return !r._empty && S(r.no) && S(r.ref); });
     ctx.hoRows.forEach(function (r) { r.jenis = U(r.jenis); r.tgl = D(r.tgl); r.status = U(r.status) || 'DISERAHKAN'; if (r.status !== 'BATAL') ctx.ho[r.jenis + '|' + S(r.ref)] = r; });
     invs.forEach(function (i) { if (i._arsip) ctx.arsipRefs['INV|' + normInv(i.nomor)] = 1; });
+    applyRaManual(ctx, input.ramanual, VI);
     pays.forEach(function (p) { if (p._arsip && p.idp) ctx.arsipRefs['TRM|' + p.idp] = 1; });
     var arsipRows = { reg: invs.filter(function (i) { return i._arsip; }).map(function (i) { return i._row; }), log: pays.filter(function (p) { return p._arsip; }).map(function (p) { return p._row; }),
       tag: tagArsip.map(function (r) { return r._row; }), npp: Object.keys(M.arsip) };
@@ -2267,6 +2274,11 @@ var ENGINE = (function () {
         var o = { rec: r, map: m, v2: v2 }; if (!first[r.ref]) first[r.ref] = o; byRef[r.ref] = o;
       } else if (r.status === 'MENUNGGU') pend[r.ref] = r;
     });
+    var VI = { byRef: byRef, first: first, pend: pend, valMap: valMap }; valMapBuild(VI); return VI;
+  }
+  function valMapBuild(VI) {
+    var byRef = VI.byRef, pend = VI.pend, valMap = VI.valMap;
+    Object.keys(valMap).forEach(function (k) { delete valMap[k]; });
     Object.keys(byRef).sort().forEach(function (ref) {
       var o = byRef[ref], lbl = o.rec._data.label || ref;
       Object.keys(o.map).forEach(function (k) { var x = o.map[k]; valMap[k] = DEC[x.d] + ' · ' + lbl + (x.d === 'H' && x.a ? ' — ' + x.a : ''); });
@@ -2274,7 +2286,47 @@ var ENGINE = (function () {
     Object.keys(pend).forEach(function (ref) {
       var r = pend[ref]; r._data.items.forEach(function (it) { var k = normInv(it.nomor); if (!valMap[k]) valMap[k] = '⏳ MENUNGGU · ' + (r._data.label || ref); });
     });
-    return { byRef: byRef, first: first, pend: pend, valMap: valMap };
+  }
+  /** nomor invoice di RA Manual boleh ditulis singkat ("0085/2026", "4C.0085/2026") */
+  function ramInv(s) {
+    var n = normInv(s); if (/^KU\.02\.02\/WB-4C\./.test(n)) return n;
+    var m = U(s).replace(/\s+/g, '').match(/(?:^|[^\d])(\d{1,4})([A-Z]?)\/(\d{4})$/); return m ? 'KU.02.02/WB-4C.' + pad(+m[1], 4) + m[2] + '/' + m[3] : '';
+  }
+  function ramMonth(v) {
+    var t = S(v).trim(), m = t.match(/^(\d{4})-(\d{1,2})/); if (m) return m[1] + '-' + pad(+m[2], 2);
+    var d = D(v); if (d) return d.substring(0, 7);
+    var u = U(t); for (var k = 0; k < 12; k++) if (u.indexOf(U(MONTHS[k])) === 0) { var y = t.match(/(\d{4})/); if (y) return y[1] + '-' + pad(k + 1, 2); }
+    return '';
+  }
+  /** RA Manual → dianggap lembar validasi yang berlaku untuk bulannya (semua baris ✓ CAIR); laporan RA-RI, Pareto, Overview ikut */
+  function applyRaManual(ctx, rows, VI) {
+    var byK = {}; ctx.invs.forEach(function (i) { if (!i._batal) byK[normInv(i.nomor)] = i; });
+    var per = {};
+    rowsToObjects(rows || [], RAM.cols, RAM.firstRow).forEach(function (r) {
+      if (r._empty || (!S(r.nomor) && !N(r.nilai))) return;
+      var ref = ramMonth(r.bulan); if (!ref) { ctx.issues.push(['RA MANUAL', RAM.sheet, 'baris ' + r._row, 'BULAN RA kosong / tidak terbaca: "' + S(r.bulan) + '"', 'Isi dengan format yyyy-mm, mis. 2026-10']); return; }
+      var k = ramInv(r.nomor), o = per[ref] || (per[ref] = { items: [], luar: [], total: 0 });
+      o.total += N(r.nilai);
+      if (!k || !byK[k]) { o.luar.push({ pelanggan: S(r.pelanggan), proyek: S(r.proyek), nomor: S(r.nomor), nilai: N(r.nilai), _row: r._row });
+        ctx.issues.push(['RA MANUAL', RAM.sheet, 'baris ' + r._row, (S(r.nomor) ? 'No invoice ' + S(r.nomor) + ' tidak ditemukan di Monitoring Invoice' : 'No invoice kosong') + ' (' + S(r.pelanggan) + ') — nilai tetap dihitung di RA, tetapi RI tidak bisa dicocokkan', 'Isi / perbaiki NO INVOICE (boleh singkat, mis. 0085/2026)']); return; }
+      o.items.push({ nomor: byK[k].nomor, dec: 'C', rtgl: D(r.tgl) || '', cat: S(r.ket), nilaiM: N(r.nilai) > 0 ? N(r.nilai) : 0 });
+    });
+    var out = {};
+    Object.keys(per).forEach(function (ref) {
+      var o = per[ref], sel = parseMonthSel(ref, ctx.today, false), lbl = 'RA Manual ' + monthLabel(sel.y, sel.m), m = {};
+      o.items.forEach(function (it) { m[normInv(it.nomor)] = { d: 'C', a: '', it: it }; });
+      var rec = { id: 'RA MANUAL', jenis: DOC.VAL, ref: ref, status: 'DISETUJUI', putus_waktu: '', putus_oleh: '', catatan: '', _manual: true, _data: { v: 2, rev: 0, label: lbl, items: o.items, manual: true } };
+      var v = { rec: rec, map: m, v2: true, manual: true, luar: o.luar, total: o.total };
+      VI.byRef[ref] = v; VI.first[ref] = v; delete VI.pend[ref];
+      out[ref] = { label: lbl, n: o.items.length + o.luar.length, total: rnd(o.total), luar: o.luar.length };
+    });
+    if (Object.keys(per).length) valMapBuild(VI);
+    ctx.raManual = out;
+  }
+  /** nilai RA satu invoice: sisa per awal bulan, atau nilai di RA Manual (DPP − PPh; kas diskalakan sebanding) */
+  function raVal(i, it, start) {
+    var aw = awalBulan(i, start); if (!it || !(it.nilaiM > 0)) return aw;
+    return { kas: aw.net > 0.5 ? rnd(aw.kas * it.nilaiM / aw.net) : it.nilaiM, net: it.nilaiM };
   }
   function valPrev(ctx, ref) { var refs = Object.keys(ctx.valDec || {}).filter(function (r) { return r < ref; }).sort(); return refs.length ? ctx.valDec[refs[refs.length - 1]] : null; }
   /** posisi invoice per awal bulan (sebelum pembayaran apa pun di bulan itu) */
@@ -2386,12 +2438,13 @@ var ENGINE = (function () {
     var byK = {}; ctx.invs.forEach(function (i) { if (!i._batal) byK[normInv(i.nomor)] = i; });
     var cand = valCandidates(ctx, sel), ra = [], cad = [], keluar = [], note;
     var awalC = {}; if (v0) Object.keys(v0.map).forEach(function (k) { if (v0.map[k].d === 'C') awalC[k] = 1; });
-    var rv = function (o) { return o && o.v2 ? ' Rev.' + pad(N(o.rec._data.rev), 2) : ''; };
+    var rv = function (o) { return o && o.v2 && !o.manual ? ' Rev.' + pad(N(o.rec._data.rev), 2) : ''; };
     var dasar = vd && vd.v2 ? U(vd.rec._data.dasar) : '', tRapat = vd && vd.v2 ? D(vd.rec._data.tglRapat) : '';
     if (vd) {
       Object.keys(vd.map).forEach(function (k) { var i = byK[k]; if (!i) return; if (vd.map[k].d === 'C') ra.push(i); else if (vd.map[k].d === 'S') cad.push(i); });
       Object.keys(awalC).forEach(function (k) { if (byK[k] && !(vd.map[k] && vd.map[k].d === 'C')) keluar.push(byK[k]); });
-      note = 'RA AWAL = ' + v0.rec.id + rv(v0) + ' (disetujui ' + v0.rec.putus_waktu + ', dasar laporan ke pusat) · RA FINAL = ' + vd.rec.id + rv(vd) + ' (disetujui ' + vd.rec.putus_waktu + (isDelegasi(vd.rec) ? ', a.n. Section Head (delegasi)' : '') + ')' +
+      if (vd.manual) note = 'RA ' + monthLabel(sel.y, sel.m) + ' = sheet RA Manual (lembar rapat di luar aplikasi, ' + (vd.map ? Object.keys(vd.map).length : 0) + ' invoice' + (vd.luar.length ? ' + ' + vd.luar.length + ' baris tanpa no. invoice' : '') + '). Nilai RA = NILAI RA di sheet (DPP − PPh); kolom KAS diskalakan sebanding. RI = penerimaan tercatat di Log Penerimaan.';
+      else note = 'RA AWAL = ' + v0.rec.id + rv(v0) + ' (disetujui ' + v0.rec.putus_waktu + ', dasar laporan ke pusat) · RA FINAL = ' + vd.rec.id + rv(vd) + ' (disetujui ' + vd.rec.putus_waktu + (isDelegasi(vd.rec) ? ', a.n. Section Head (delegasi)' : '') + ')' +
         (dasar === 'PUSAT' ? ' · dasar revisi: rapat pusat ' + (tRapat ? tglPanjang(tRapat) : '') : dasar === 'INTERNAL' ? ' · dasar revisi: koreksi internal' : '') + (vd.v2 ? '' : ' · lembar format lama: semua invoice di lembar dianggap ✓ CAIR') + '. Nilai RA = sisa per awal bulan.';
     } else {
       ra = cand.filter(function (i) { var d = planDate(i); return d && d <= sel.end; });
@@ -2406,6 +2459,7 @@ var ENGINE = (function () {
     var tglTxt = function (s) { return s ? s.split('-').reverse().join('-') : ''; };
     var sumber = function (i) {
       var k = normInv(i.nomor), it = vd && vd.map[k] ? vd.map[k].it : null, p = it ? S(it.p) : '';
+      if (vd && vd.manual) return 'RA manual';
       if (!vd || !v0 || v0 === vd) return 'usulan unit';
       if (awalC[k]) return 'usulan unit';
       return p === '+' || dasar === 'PUSAT' ? '➕ rapat pusat' + (tRapat ? ' ' + tglTxt(tRapat).substring(0, 5) : '') : '➕ revisi internal';
@@ -2414,7 +2468,7 @@ var ENGINE = (function () {
       st.push(sty(rows.length, 'band')); rows.push([title + ' · ' + list.length + ' invoice']);
       var A0 = 0, A = 0, B = 0, Cc = 0;
       list.forEach(function (i) {
-        no++; var k = normInv(i.nomor), pd = paidInMonth(i, sel), aw = awalBulan(i, sel.start), x = vd && vd.map[k], it = x ? x.it : null, cat = [];
+        no++; var k = normInv(i.nomor), pd = paidInMonth(i, sel), x = vd && vd.map[k], it = x ? x.it : null, aw = raVal(i, it, sel.start), cat = [];
         var inFinal = code === 'C', inAwal = !!awalC[k] || (!v0 && code === 'C');
         var ra0 = inAwal && code !== 'S' && code !== 'X' ? aw.kas : 0, raK = inFinal ? aw.kas : 0, raN = inFinal ? aw.net : 0;
         if (code === 'X') cat.push('bukan RA' + (x ? ' · validasi Section Head F&HR: ' + DEC[x.d] + (x.a ? ' (' + x.a + ')' : '') : ''));
@@ -2427,6 +2481,7 @@ var ENGINE = (function () {
         rows.push([no, i.pelanggan, i._pro ? i._pro.singkat : '', i.npp, i.nomor, invLabel(i), DEC_KAT[code], src, inAwal && code !== 'S' && code !== 'X' ? ra0 : '', inFinal ? raK : '', inFinal ? raN : '', code === 'C' ? rt : '', pd.n || '', pd.tgl, inFinal && raK ? pd.n / raK : '', cat.join(' · ')]);
         A0 += ra0; A += raK; B += raN; Cc += pd.n;
       });
+      if (code === 'C' && vd && vd.manual) vd.luar.forEach(function (l) { no++; rows.push([no, l.pelanggan, l.proyek, '', l.nomor || '-', '', DEC_KAT.C, 'RA manual', l.nilai, l.nilai, l.nilai, '', '', '', '', 'tidak ada no. invoice yang cocok di Monitoring Invoice — RI tidak bisa dicocokkan otomatis']); A0 += l.nilai; A += l.nilai; B += l.nilai; });
       st.push(sty(rows.length, 'total')); rows.push(['', 'Subtotal ' + DEC_KAT[code], '', '', '', '', '', '', A0 || (code === 'C' || code === 'K' ? 0 : ''), code === 'C' ? A : '', code === 'C' ? B : '', '', Cc, '', code === 'C' && A ? Cc / A : '', '']);
       T[code] = { a0: A0, ra: A, ran: B, ri: Cc };
     };
@@ -2438,7 +2493,8 @@ var ENGINE = (function () {
     st.push(sty(rows.length, 'total')); rows.push(['', 'TOTAL RA / RI ' + monthLabel(sel.y, sel.m).toUpperCase(), '', '', '', '', '', '', a0, T.C.ra, T.C.ran, '', tri, '', T.C.ra ? tri / T.C.ra : '', '']);
     // RA awal dalam DPP − PPh, tambahan & dikeluarkan
     var a0n = 0, tamK = 0, tamN = 0, kelK = 0, kelN = 0, riAwal = 0;
-    ra.forEach(function (i) { var k = normInv(i.nomor), aw = awalBulan(i, sel.start); if (awalC[k] || !v0) a0n += aw.net; else { tamK += aw.kas; tamN += aw.net; } });
+    ra.forEach(function (i) { var k = normInv(i.nomor), aw = raVal(i, vd && vd.map[k] ? vd.map[k].it : null, sel.start); if (awalC[k] || !v0) a0n += aw.net; else { tamK += aw.kas; tamN += aw.net; } });
+    if (vd && vd.manual) vd.luar.forEach(function (l) { a0n += l.nilai; });
     keluar.forEach(function (i) { var aw = awalBulan(i, sel.start); a0n += aw.net; kelK += aw.kas; kelN += aw.net; });
     ra.concat(keluar).forEach(function (i) { if (awalC[normInv(i.nomor)] || !v0) riAwal += paidInMonth(i, sel).n; });
     var r2 = 8 + rows.length + 2, nT = ra.length - (v0 ? ra.filter(function (i) { return awalC[normInv(i.nomor)]; }).length : ra.length);
@@ -2570,7 +2626,7 @@ var ENGINE = (function () {
   function kinerjaTiles(ctx) {
     var K = ctx._kin || (ctx._kin = kinerjaData(ctx)), sel = parseMonthSel('', ctx.today, false), ref = sel.y + '-' + pad(sel.m, 2), vd = (ctx.valDec || {})[ref];
     var raK = 0, ri = 0;
-    if (vd) Object.keys(vd.map).forEach(function (k) { if (vd.map[k].d !== 'C') return; var i = ctx.invs.filter(function (x) { return normInv(x.nomor) === k; })[0]; if (!i) return; raK += awalBulan(i, sel.start).kas; ri += paidInMonth(i, sel).n; });
+    if (vd) Object.keys(vd.map).forEach(function (k) { if (vd.map[k].d !== 'C') return; var i = ctx.invs.filter(function (x) { return normInv(x.nomor) === k; })[0]; if (!i) return; raK += raVal(i, vd.map[k].it, sel.start).kas; ri += paidInMonth(i, sel).n; });
     var pRA = vd && raK ? ri / raK : null, worse = K.d12 && K.d3 ? K.d3.dso > K.d12.dso : false;
     var t = [
       ['RECEIVABLES TURNOVER', '', '', 'DSO (ROLLING 12 BULAN)', '', '', 'TEPAT WAKTU (12 BULAN)', '', '', 'PENCAPAIAN RA ' + MONTHS[sel.m - 1].toUpperCase(), '', '', 'PERINGATAN DINI', '', ''],
@@ -2712,7 +2768,7 @@ var ENGINE = (function () {
     for (var k2 = -12; k2 <= 2; k2++) { var yy = y + Math.floor((m - 1 + k2) / 12), mm = ((m - 1 + k2) % 12 + 12) % 12 + 1; months.push({ ref: yy + '-' + pad(mm, 2), label: monthLabel(yy, mm) }); }
     var dl = delegasiFor(P, me.email, null, ctx.today);
     return { version: VERSION, today: ctx.today, user: me, roles: roles(P), delegasi: dl, suratAlerts: suratAlerts(ctx), pelanggan: pel, proyek: pro, params: params, signers: P.signers, invoices: invoices, payments: payments,
-      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup };
+      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, raManual: ctx.raManual || {}, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup };
   }
   function packageFor(ctx, kind, ref, opt) {
     var d = kind === 'INV' ? invPackage(ctx, ref) : kind === 'PAY' ? payPackage(ctx, ref) : kind === 'VAL' ? validasiData(ctx, ref, opt) : kind === 'REK' ? rekapData(ctx, ref) :
@@ -3011,7 +3067,7 @@ var ENGINE = (function () {
     if (vd) Object.keys(vd.map).forEach(function (k3) { if (vd.map[k3].d === 'C' && byK[k3]) raList.push({ i: byK[k3], it: vd.map[k3].it }); });
     else valCandidates(ctx, sel).forEach(function (i) { var d = planDate(i); if (d && d <= e0) raList.push({ i: i, it: null }); });
     raList.forEach(function (x) {
-      var i = x.i, aw = awalBulan(i, s0), pd = paidInMonth(i, sel), sisa = aw.kas - pd.n;
+      var i = x.i, aw = raVal(i, x.it, s0), pd = paidInMonth(i, sel), sisa = aw.kas - pd.n;
       if (sisa > 0.5) belum.push({ nomor: i.nomor, pelanggan: i.pelanggan, proyek: i._pro ? i._pro.singkat : i.npp, rencana: x.it && S(x.it.rtgl) ? D(x.it.rtgl) || S(x.it.rtgl) : planDate(i), nilai: rnd(sisa), sebagian: pd.n > 0.5 });
     });
     belum.sort(function (a, b) { return a.rencana < b.rencana ? -1 : a.rencana > b.rencana ? 1 : b.nilai - a.nilai; });
@@ -3043,7 +3099,7 @@ var ENGINE = (function () {
   }
 
   return {
-    tagihanProyekRows: tagihanProyekRows, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    tagihanProyekRows: tagihanProyekRows, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
