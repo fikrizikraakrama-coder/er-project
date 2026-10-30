@@ -1970,6 +1970,7 @@ function savePay() {
   savePay._busy = true; $('btnPay').disabled = true; $('btnPaySub').disabled = true; $('payStatus').textContent = 'Saving…';
   call('apiSavePayments', [rows, request.id, { periodeAlasan: savePay._periode || '' }], function (r) {
     savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r, SUBMIT_AFTER && !!r.key);
+    var tw = (r.warnings || []).filter(function (w) { return /Payment date/.test(w); }); if (tw.length) setTimeout(function () { toast(tw[0]); }, 2500);
     $('payStatus').innerHTML = '<span style="color:var(--green)">Saved: ' + rows.length + ' row(s). ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
     LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY; steps('stPay', [true, true, true]);
     var subNow = SUBMIT_AFTER && LASTPAY; SUBMIT_AFTER = false; if (subNow) submitAfterSave('PAY', LASTPAY, 'payStatus');

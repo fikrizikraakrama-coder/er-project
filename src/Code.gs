@@ -50,7 +50,8 @@ function onOpen() {
       .addItem('Siapkan folder arsip PDF', 'setupArsipFolder')
       .addItem('Aktifkan pilihan tanggal P&E', 'arEnablePE')
       .addItem('Aktifkan file Pajak (bagikan ke peran PAJAK)', 'arEnablePajak')
-      .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal'))
+      .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal')
+      .addItem('Catatan diagnosa (tanggal tidak tertulis, dll.)', 'arLihatDiagnosa'))
     .addSeparator()
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();
@@ -255,6 +256,7 @@ function rebuildAll_(opt) {
     arWriteReconciliation_(res);
     try { arExtendFilters_(ss); } catch (err) { }
     try { arRepairInvoiceDates_(ss); } catch (err) { }
+    try { arRepairPayDates_(ss); } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)

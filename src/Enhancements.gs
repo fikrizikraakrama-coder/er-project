@@ -160,7 +160,14 @@ function arSavePayments_(rows, requestId, opt) {
         r.idp='PNR-'+('00000'+(++maxId)).slice(-Math.max(5,String(maxId).length)); r.request_id=token;r.request_hash=hash;r.request_user=access.email;
         var a=Array(width).fill(''); cols.forEach(function(c) { var j=map[c[0]]; if(j && (colType_(c)==='manual' || ['idp','request_id','request_hash','request_user'].indexOf(c[0])>=0)) a[j-1]=arSafeCell_(toCell_(r[c[0]],colFmt_(c))); }); return a;
       });
+      if (map.ref) sh.getRange(target,map.ref,values.length,1).setNumberFormat('@'); // referensi bank tetap teks (nol di depan tidak hilang)
       sh.getRange(target,1,values.length,width).setValues(values);
+      // v2.8.7: tanggal bayar dibaca ulang — bila kosong / bukan tanggal ditulis lagi per sel (kasus: tanggal tidak muncul di sheet),
+      // dan dicadangkan agar pembaruan laporan bisa memulihkannya
+      if (map.tgl) try { SpreadsheetApp.flush(); var tg0=sh.getRange(target,map.tgl,rows.length,1).getValues(), bad=[];
+        rows.forEach(function(r,k){ if(!isDate_(tg0[k][0])) { bad.push((target+k)+':'+String(tg0[k][0])); sh.getRange(target+k,map.tgl).setNumberFormat(NUMF.date).setValue(toCell_(r.tgl,'date')); } });
+        arTglBackup_(rows.map(function(r){return [r.idp,r.tgl];}));
+        if (bad.length) { SpreadsheetApp.flush(); var tg1=sh.getRange(target,map.tgl,rows.length,1).getValues(); AR_TGL_NOTE_='Payment date was not written on the first attempt (row '+bad.join(', ')+'); it was rewritten — please check the TANGGAL BAYAR cell.'; arDiag_('TGL_BAYAR', bad.join(', ')+' → '+tg1.map(function(x){return isDate_(x[0])?'ok':'GAGAL:'+String(x[0]);}).join(',')); } } catch(e) { arDiag_('TGL_BAYAR', 'error '+e.message); }
       // Metadata and all allocations are in the same write; retries use those persisted rows.
       saved={ok:true,saved:true,duplicate:false,requestId:token,invoices:[],payments:[],key:ENGINE.payKey(rows[rows.length-1])};
     }
@@ -173,10 +180,33 @@ function arSavePayments_(rows, requestId, opt) {
       rows.forEach(function(r,k){var i=byN[ENGINE.normInv(r.inv)];if(!i)return;if(map.pelanggan)sh.getRange(target+k,map.pelanggan).setValue(i.pelanggan);if(map.npp)sh.getRange(target+k,map.npp).setNumberFormat('@').setValue(i.npp);}); } catch(e) {}
   } finally { lock.releaseLock(); }
   var post=arQueueAfterSave_(npps,months); saved.reportPending=post.reportPending;saved.background=post.background;saved.warnings=post.warnings;
+  if (AR_TGL_NOTE_) { saved.warnings=saved.warnings.concat([AR_TGL_NOTE_]); AR_TGL_NOTE_=''; }
   if (koreksi && !saved.duplicate) { var rf=arRefreshClosedMonths_(rows.map(function(r){return r.tgl;}),koreksi); saved.warnings=saved.warnings.concat(rf.warnings); saved.snapshots=rf.ids;
     var nw=arNotify_('Koreksi periode tertutup — penerimaan '+rows[0].tgl,['Pembuat: '+access.email,'Tanda: '+koreksi,'ID permintaan: '+token,'Snapshot direvisi: '+(rf.ids.join(', ')||'-'),''].concat(rows.map(function(r){return '• '+r.tgl+' · '+r.inv+' · Rp '+ENGINE.fmtRp(r.nominal)+(r.ref?' · ref '+r.ref:'');}))); if(nw) saved.warnings.push(nw); }
   try { var b=ENGINE.bootstrap(computeLight_(),access.email); saved.invoices=b.invoices.filter(function(i){return keys.indexOf(ENGINE.normInv(i.nomor))>=0;}); saved.payments=b.payments.filter(function(p){return (rows[0].ref && p.ref===rows[0].ref) || (!rows[0].ref && p.key===saved.key);}); } catch(e) { saved.reportPending=true;saved.warnings.push('Summary not loaded yet: '+e.message); }
   return plain_(saved);
+}
+/** cadangan tanggal bayar per ID penerimaan (maks. 400 terakhir) — dipakai arRepairPayDates_ bila sel tanggal kosong */
+var AR_TGL_NOTE_ = '';
+function arTglBackup_(pairs) {
+  var pr=arProps_(), m={}; try{m=JSON.parse(pr.getProperty('PAY_TGL')||'{}');}catch(e){m={};}
+  pairs.forEach(function(x){ if(x[0]&&x[1]) m[x[0]]=x[1]; });
+  var k=Object.keys(m).sort(); if(k.length>400) k.slice(0,k.length-400).forEach(function(x){delete m[x];});
+  try{pr.setProperty('PAY_TGL',JSON.stringify(m));}catch(e){}
+}
+/** catatan diagnosa singkat (Script Properties DIAG_LOG, 30 terakhir) */
+function arDiag_(tag,msg) { var pr=arProps_(),L=[]; try{L=JSON.parse(pr.getProperty('DIAG_LOG')||'[]');}catch(e){} L.push(arNow_()+' '+tag+' '+String(msg).slice(0,300)); try{pr.setProperty('DIAG_LOG',JSON.stringify(L.slice(-30)));}catch(e){} }
+function arLihatDiagnosa() { arRequireMaker_(); var L=[]; try{L=JSON.parse(arProps_().getProperty('DIAG_LOG')||'[]');}catch(e){}
+  SpreadsheetApp.getUi().alert('Catatan diagnosa', L.length ? L.slice().reverse().join('\n') : 'Belum ada catatan. Bila tanggal bayar sempat tidak tertulis, kejadiannya dicatat di sini.', SpreadsheetApp.getUi().ButtonSet.OK); }
+/** TANGGAL BAYAR kosong pada baris dari aplikasi → diisi dari cadangan (dipanggil rebuildAll_) */
+function arRepairPayDates_(ss) {
+  var sh=ss.getSheetByName('Log Penerimaan'); if(!sh) return 0; var map=colMap_(sh,ENGINE.LOG), f0=ENGINE.LOG.firstRow, last=sh.getLastRow();
+  if(!map.tgl||!map.idp||last<f0) return 0;
+  var m={}; try{m=JSON.parse(arProps_().getProperty('PAY_TGL')||'{}');}catch(e){return 0;}
+  var n=last-f0+1, tg=sh.getRange(f0,map.tgl,n,1).getValues(), id=sh.getRange(f0,map.idp,n,1).getValues(), fixed=0;
+  for(var i=0;i<n;i++){ var k=String(id[i][0]||'').trim(); if(k && m[k] && (tg[i][0]===''||tg[i][0]===null)) { sh.getRange(f0+i,map.tgl).setNumberFormat(NUMF.date).setValue(toCell_(m[k],'date')); fixed++; } }
+  if(fixed) arDiag_('TGL_BAYAR','dipulihkan saat pembaruan: '+fixed+' baris');
+  return fixed;
 }
 function arAfterSave_(npps,months,noDerived) {
   var out={reportPending:false,warnings:[]};
