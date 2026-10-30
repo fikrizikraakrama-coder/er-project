@@ -4243,7 +4243,7 @@ function closeRender(d) {
     '<div class="cl-hk"><div><small>Total AR</small><b>' + rpShort(R.total) + '</b></div><div><small>Overdue</small><b>' + rpShort(R.overdue) + '</b></div><div><small>Steps with issues</small><b>' + openN + '</b></div></div></div>';
   h += '<div class="cl-flow">' + d.steps.map(function (x) { return '<div class="' + x.st + '" data-clgo="' + x.k + '">' + esc(x.t.replace(/ \(SAP\)| \/ ECL| & short payments| & adjustments/, '')) + '</div>'; }).join('') + '</div>';
   h += '<div class="cl-grid"><div class="cl-steps">' + d.steps.map(function (x, k) {
-    return '<div class="cl-st ' + x.st + '" id="cl-' + x.k + '"><h4><span class="no">' + (k + 1) + '</span>' + esc(x.t) + '<span class="badge">' + CL_ST[x.st] + '</span></h4><div class="m">' + esc(x.m) + '</div><div class="s">' + esc(x.s) + '</div>' +
+    return '<div class="cl-st ' + x.st + '" style="text-align:left" id="cl-' + x.k + '"><h4><span class="no">' + (k + 1) + '</span>' + esc(x.t) + '<span class="badge">' + CL_ST[x.st] + '</span></h4><div class="m">' + esc(x.m) + '</div><div class="s">' + esc(x.s) + '</div>' +
       (x.items && x.items.length ? '<ul>' + x.items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') +
       ((x.st === 'y' || x.st === 'r') && x.go ? '<button type="button" class="act" data-mgo2="' + x.go + '">→ Open ' + esc({ setuju: 'Approvals', buka: 'Invoice List', tbayar: 'Payment List', dashboard: 'Overview', surat: 'Dunning Letters', dok: 'Monthly documents' }[x.go] || x.go) + '</button>' : '') + '<span class="auto">' + esc(x.auto || '') + '</span></div>';
   }).join('') + '</div><div>' +
