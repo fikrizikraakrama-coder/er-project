@@ -449,6 +449,29 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 /* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
 #planWrap,#execWrap,#closeWrap{flex:1;overflow:auto;background:#EEF2F6}
+#mdWrap{flex:1;overflow:hidden;background:#EEF2F6}
+.md{display:grid;grid-template-columns:390px 1fr;height:100%;color:#16263D}.md-left{background:#fff;border-right:1px solid #DCE3EB;display:flex;flex-direction:column;min-height:0}
+.md-lh{padding:14px 16px 6px}.md-lh h2{margin:0;font-size:17px}.md-lh p{margin:2px 0 0;color:#5B6B80;font-size:11.5px}
+.md-seg{display:grid;grid-template-columns:1fr 1fr;margin:6px 16px 0;border-bottom:2px solid #E1E7EE}.md-seg button{border:0;background:none;padding:8px;font:inherit;font-weight:700;color:#5B6B80;cursor:pointer}.md-seg button.on{color:#0F6E78;border-bottom:3px solid #0F6E78;margin-bottom:-2px}.md-seg em{font-style:normal;background:#EEF2F6;border-radius:10px;padding:1px 7px;margin-left:5px;font-size:11px}
+.md-tb{padding:10px 16px 4px}.md-tb input{width:100%}.md-chips{display:flex;gap:6px;flex-wrap:wrap;padding:4px 16px 8px}.cp-ch.w{border-color:#F6D79B;background:#FFF8E8;color:#9A5B00}.cp-ch.w.on{background:#B45309;color:#fff;border-color:#B45309}
+.md-list{flex:1;overflow:auto;border-top:1px solid #EEF2F6}.md-it{padding:10px 16px;border-bottom:1px solid #EEF2F6;display:flex;gap:10px;align-items:flex-start;cursor:pointer}.md-it:hover{background:#F7FAFC}.md-it.on{background:#EEF7F8;box-shadow:inset 3px 0 #0F6E78}.md-it b{display:block;font-size:12.8px}.md-it small{color:#5B6B80;font-size:11px;display:block;margin-top:1px}
+.md-av{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:12px;flex:0 0 auto}
+.md-tag{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:1px 5px;margin:3px 4px 0 0}.md-tag.r{background:#E8EEF9;color:#24478F}.md-tag.t{background:#EEF2F6;color:#5B6B80}.md-tag.w{background:#FFF4E0;color:#9A5B00}.md-tag.g{background:#E6F4EA;color:#1E6B3A}
+.md-lf{padding:10px 16px;border-top:1px solid #DCE3EB}.md-right{overflow:auto;padding:16px 22px 0;position:relative}
+.md-hd{display:flex;align-items:center;gap:12px}.md-hd .md-av{width:46px;height:46px;font-size:15px;border-radius:10px}.md-hd h1{margin:0;font-size:19px}.md-hd p{margin:2px 0 0;color:#5B6B80;font-size:12px}.md-hd .sp,.md-wh .sp{flex:1}
+.md-tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid #DCE3EB}.md-tabs button{border:0;background:none;padding:8px 13px;font:inherit;font-weight:600;color:#5B6B80;cursor:pointer}.md-tabs button.on{color:#0F6E78;border-bottom:3px solid #0F6E78;margin-bottom:-1px}.md-tabs em{font-style:normal;background:#EEF2F6;border-radius:9px;padding:0 6px;margin-left:4px;font-size:11px}
+.md-card{margin-top:12px}.md-card h3{display:flex;align-items:center;gap:8px}.md-card h3 small{font-weight:500;color:#5B6B80;font-size:11.5px}.md-card h3 .sp{flex:1}
+.md-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 14px}.md-f.wide{grid-column:1/-1}.md-f label{display:block;font-size:11px;color:#5B6B80;font-weight:600;margin:0 0 3px}.md-in{width:100%;min-height:33px;font-size:12.5px}.md-in.ro{border:1px solid #E1E7EE;border-radius:7px;padding:7px 9px;background:#F5F7FA;color:#33475B;overflow-wrap:anywhere}
+.md-chg{border-color:#F59E0B!important;background:#FFFBF0!important}.md-h{font-size:10.5px;color:#5B6B80;margin-top:2px}.md-sh{display:inline-block;font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 5px;background:#FDECEC;color:#B42318;vertical-align:1px}.md-lock{display:inline-block;font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 5px;background:#EEF2F6;color:#5B6B80}
+.md-f .msg{margin-top:3px;font-size:11px;border-radius:6px;padding:4px 7px}.md-f .msg.E{background:#FDECEC;color:#B42318}.md-f .msg.W{background:#FFF4DC;color:#8A5300}.md-f .msg.I{background:#EAF1FD;color:#24478F}
+.md-sens textarea{width:100%}.md-sens{border-color:#F6D79B;background:#FFFCF3}
+.md-bar{position:sticky;bottom:0;margin:14px -22px 0;background:#14284B;color:#fff;display:flex;gap:10px;align-items:center;padding:10px 22px;z-index:3}.md-bar .sp{flex:1}.md-bar .btn{background:#fff}.md-bar .btn.primary{background:#2EC4C4;border-color:#2EC4C4;color:#0B2D3A}.md-bar .btn:disabled{opacity:.5}
+table.md-t{width:100%;border-collapse:collapse}.md-t th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#5B6B80;text-align:left;padding:7px;background:#F7F9FB;border-bottom:1px solid #DCE3EB}.md-t th.n,.md-t td.n{text-align:right}.md-t td{padding:8px 7px;border-bottom:1px solid #EEF2F6;font-size:12.5px}.md-t td small{display:block;color:#5B6B80;font-size:11px}.md-t tr[data-mdgo]{cursor:pointer}.md-t tr[data-mdgo]:hover td{background:#F7FAFC}.md-t tr.tot td{background:#F3F6FA}
+.md-addf{margin-top:12px;border:1px solid #DCE3EB;border-radius:10px;padding:12px;background:#FAFBFC}.md-addf h4{margin:0 0 8px;font-size:13px}
+.md-tl div{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed #E1E7EE;font-size:12px}.md-tl div:last-child{border:0}.md-tl i{width:8px;height:8px;border-radius:50%;margin-top:5px;flex:0 0 auto;background:#0F6E78}.md-tl i.w{background:#F59E0B}.md-tl small{display:block;color:#5B6B80;font-size:11px}
+.md-wiz{display:block;overflow:auto;padding:16px 26px 0;height:100%}.md-wh{display:flex;align-items:center;gap:12px}.md-wh h1{margin:0;font-size:20px}.md-wh p{margin:2px 0 0;color:#5B6B80;font-size:12px}.md-steps{margin:14px 0 4px}
+.md-wgrid{display:grid;grid-template-columns:1fr 360px;gap:16px}.md-wbar{margin:14px -26px 0}.md-sum div{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed #E1E7EE;font-size:12.5px}.md-sum div:last-child{border:0}.md-sum small{color:#5B6B80}.md-sum b{text-align:right}.md-sum2{display:grid;grid-template-columns:1fr 1fr;column-gap:22px}
+@media (max-width:900px){.md{grid-template-columns:1fr}.md-left{max-height:45vh}.md-wgrid{grid-template-columns:1fr}}
 .cl{padding:16px 22px 0;max-width:1560px;margin:0 auto;color:#16263D}
 .cl-hero{background:linear-gradient(120deg,#14284B,#1D4E7A 60%,#0F6E78);color:#fff;border-radius:16px;padding:18px 22px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
 .cl-ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}.cl-ring div{width:76px;height:76px;border-radius:50%;background:#173a63;display:grid;place-items:center;text-align:center}.cl-ring b{font-size:22px;display:block;line-height:1}.cl-ring small{font-size:10px;opacity:.8}
@@ -903,6 +926,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="planWrap" hidden></div>
     <div id="execWrap" hidden></div>
     <div id="closeWrap" hidden></div>
+    <div id="mdWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
@@ -2346,19 +2370,20 @@ function setMode(m) {
   if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close'].indexOf(m) < 0) m = 'exec';
   if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec', 'close'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
-  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close';
+  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
   if (m === 'plan') planLoad();
   if (m === 'exec') execLoad();
   if (m === 'close') closeLoad();
+  if (m === 'md') { if (MD.d) mdRender(); mdLoad(); }
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
@@ -3372,6 +3397,7 @@ var NAV_MAKER = [
   { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
   { g: 'pay', ic: 'bank', t: 'Cash Receipts', items: [['bayar', 'bank', 'Record Receipt', 'bank transfer, offset, compensation'], ['tbayar', 'book', 'Receipts Register', 'receipts per month, approval sheets, print']] },
   { id: 'plan', ic: 'cal', t: 'Collection Plan', badge: 'planBadge', y: 1 },
+  { id: 'md', ic: 'book', t: 'Master Data' },
   { g: 'close', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
 var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
@@ -3405,7 +3431,7 @@ function navShow(m) {
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
   var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar', close: 'dok' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', dok: 'Month-End Close', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', md: 'Master Data', dok: 'Month-End Close', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3706,6 +3732,176 @@ function applyAccess() {
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
   $('tbVer').textContent = 'Receivables Management · v' + String(E.VERSION).split(' ')[0];
   $('accessBadge').textContent = (viewer ? 'Management · View only' : maker ? 'Preparer · All menus' : 'Section Head · Document approvals') + ' · ' + ((B.user || {}).nama || '');
+}
+/* ====================================================== v2.8.8: Master Data — pelanggan, proyek, adendum (padanan BP / FD01–03) */
+var MD = { d: null, tab: 'PEL', q: '', f: 'all', sel: '', sub: 'main', edit: false, form: null, orig: '', reason: '', wiz: null, add: null, busy: false };
+var MD_PEL = [['Identity & tax', 'used on invoices and e-Faktur (Coretax)', [['nama', 'Customer name (capitals)', 'text', null, 'lock'], ['inv', 'Name printed on invoice', 'text'], ['kode_bp', 'SAP BP code', 'text'], ['npwp', 'NPWP (16 digits)', 'text'], ['nitku', 'NITKU (22 digits)', 'text'], ['a1', 'Address line 1', 'text'], ['a2', 'Address line 2', 'text'], ['a3', 'Address line 3', 'text']]],
+  ['Classification & terms', 'drive GL accounts, CKPN and due dates', [['jenis', 'Customer type', 'sel', 'jenis_pel'], ['kelompok', 'Group', 'sel', 'kelompok'], ['dasar_jt', 'Due date basis', 'sel', 'dasar_jt'], ['top_ret', 'Retention TOP (days)', 'num'], ['adm', 'Max bank charge accepted (Rp)', 'money'], ['aktif', 'Active', 'sel', 'yatidak']]],
+  ['BAP representative & notes', 'printed on BAP (Fajarputera template)', [['wakil', 'Representative name', 'text'], ['jab', 'Representative title', 'text'], ['catatan', 'Notes', 'area']]]];
+var MD_PRO = [['Contract', '', [['npp', 'NPP', 'text', null, 'lock'], ['pelanggan', 'Customer', 'pel'], ['singkat', 'Short name (reports)', 'text'], ['kontrak', 'Contract / SPK no.', 'text'], ['tgl_kontrak', 'Contract date', 'date'], ['nilai', 'Original contract value (excl. VAT)', 'money'], ['nilai_ok', 'Value after addenda', 'ro']]],
+  ['Description', 'invoice wording, BAP and ledger', [['deskripsi', 'Invoice description ("Atas …")', 'area'], ['pekerjaan', 'Work name (BAP / ledger)', 'text'], ['nama_pe', 'Project name (P&E)', 'text'], ['lokasi', 'Location', 'text'], ['kode', 'Work type', 'text']]],
+  ['Billing terms', 'used automatically when issuing invoices', [['um', 'Down payment received (Rp)', 'money'], ['ret_pct', 'Retention (%)', 'pct'], ['ret_pos', 'Retention position', 'sel', 'ret_pos'], ['top', 'TOP (days)', 'num'], ['tarif', 'WHT rate (%) · empty = automatic', 'pct'], ['dasar_pph', 'WHT base', 'sel', 'dasar_pph'], ['tampil_pph', 'Print WHT on invoice', 'sel', 'yatidak'], ['template', 'Invoice template', 'sel', 'template'], ['ttd_manual', 'Signatory (manual, optional)', 'text'], ['kode_jasa', 'Service code (Coretax)', 'text'], ['akun_peng', 'Revenue recognition account', 'sel', 'akun_peng']]],
+  ['Other', '', [['pic', 'PIC', 'text'], ['aktif', 'Status', 'sel', 'aktif_pro'], ['npp_produk', 'Product NPP (shown on ledger)', 'text'], ['npp_adendum', 'Separate addendum NPP', 'text'], ['um_awal', 'DP already recovered before the system (Rp)', 'money'], ['catatan', 'Notes', 'area']]]];
+function mdLoad(cb) {
+  var w = $('mdWrap'); if (!MD.d) w.innerHTML = '<div class="md"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Loading master data…</div><div class="sk" style="width:60%"></div></div></div>';
+  call('apiMasterData', [], function (d) { MD.d = d; if (cb) cb(); mdRender(); }, function (e) { w.innerHTML = '<div class="md"><div class="note err" style="margin-top:20px">Master data could not be loaded: ' + esc(e.message || e) + '</div></div>'; });
+}
+function mdKey(r) { return MD.tab === 'PEL' ? r.nama : r.npp; }
+function mdOut() { // sisa piutang per pelanggan & NPP dari data aplikasi
+  var o = { pel: {}, npp: {}, n: {} }; (B.invoices || []).forEach(function (i) { if (i.status_inv === 'BATAL') return; var s = Math.max(0, +i.sisa || 0); o.pel[i.pelanggan] = (o.pel[i.pelanggan] || 0) + s; o.npp[i.npp] = (o.npp[i.npp] || 0) + s; o.n[i.npp] = (o.n[i.npp] || 0) + 1; }); return o;
+}
+function mdFlags(kind, r) { var f = []; if (kind === 'PEL') { if (!String(r.kode_bp || '').trim()) f.push('BP code missing'); var n = String(r.npwp || '').replace(/\D/g, ''); if (n.length !== 15 && n.length !== 16) f.push('NPWP not 16 digits'); if (!String(r.a1 || '').trim()) f.push('address missing'); }
+  else { if (!(+r.nilai > 0) && String(r.template).toUpperCase() !== 'WIKA-WITON') f.push('contract value missing'); if (!String(r.deskripsi || '').trim()) f.push('description missing'); if (!String(r.tgl_kontrak || '').trim()) f.push('contract date missing'); } return f; }
+function mdInitials(t) { return String(t || '').replace(/\b(PT|CV|TBK|PERSERO)\b/gi, '').trim().split(/[\s\-–,]+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·'; }
+var MD_COL = [['#E8EEF9', '#24478F'], ['#E6F4EA', '#1E6B3A'], ['#FDEFE4', '#A0521B'], ['#F3E8FA', '#6B3FA0'], ['#E3F4F5', '#0F6E78'], ['#EEF2F6', '#5B6B80']];
+function mdAv(t) { var h = 0; String(t).split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 997; }); var c = MD_COL[h % MD_COL.length]; return '<span class="md-av" style="background:' + c[0] + ';color:' + c[1] + '">' + esc(mdInitials(t)) + '</span>'; }
+function mdRender() {
+  var w = $('mdWrap'); if (!w || !MD.d) return;
+  if (MD.wiz) return mdWizRender();
+  var D = MD.d, O = mdOut(), pel = MD.tab === 'PEL', L0 = pel ? D.pel : D.pro, q = MD.q.toUpperCase();
+  var fm = function (r, f) { if (f === 'all') return true; if (f === 'inc') return mdFlags(MD.tab, r).length > 0; if (pel) return f === 'rel' ? /BERELASI/i.test(r.kelompok || '') || /WIKA|JO/i.test(r.jenis || '') : !(/BERELASI/i.test(r.kelompok || '') || /WIKA|JO/i.test(r.jenis || ''));
+    var a = String(r.aktif || 'YA').toUpperCase(); return f === 'act' ? (a === 'YA' || a === '') : f === 'done' ? a === 'SELESAI' : a === 'ARSIP' || a === 'TIDAK'; };
+  var base = L0.filter(function (r) { return !q || (pel ? r.nama + ' ' + r.npwp + ' ' + r.kode_bp + ' ' + r.inv : r.npp + ' ' + r.singkat + ' ' + r.pelanggan + ' ' + r.kontrak).toUpperCase().indexOf(q) >= 0; });
+  var F = pel ? [['all', 'All'], ['rel', 'Related parties'], ['thd', 'Third parties'], ['inc', 'Data incomplete']] : [['act', 'Active'], ['done', 'Completed'], ['arc', 'Archive / not AR'], ['inc', 'Data incomplete']];
+  if (!F.some(function (f) { return f[0] === MD.f; })) MD.f = F[0][0];
+  var L = base.filter(function (r) { return fm(r, MD.f); }).sort(function (a, b) { return String(mdKey(a)) < String(mdKey(b)) ? -1 : 1; });
+  if (!MD.sel && L.length) MD.sel = mdKey(L[0]);
+  var h = '<div class="md"><div class="md-left"><div class="md-lh"><h2>Master Data</h2><p>Customers &amp; projects used by invoices, receipts and reports</p></div>' +
+    '<div class="md-seg"><button type="button" data-mdt="PEL" class="' + (pel ? 'on' : '') + '">Customers <em>' + D.pel.length + '</em></button><button type="button" data-mdt="PRO" class="' + (!pel ? 'on' : '') + '">Projects <em>' + D.pro.length + '</em></button></div>' +
+    '<div class="md-tb"><input id="mdQ" placeholder="' + (pel ? 'Search name, NPWP, BP code…' : 'Search NPP, project or customer…') + '" value="' + esc(MD.q) + '"></div>' +
+    '<div class="md-chips">' + F.map(function (f) { return '<button type="button" class="cp-ch' + (MD.f === f[0] ? ' on' : '') + (f[0] === 'inc' ? ' w' : '') + '" data-mdf="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (r) { return fm(r, f[0]); }).length + '</em></button>'; }).join('') + '</div><div class="md-list">' +
+    (L.length ? L.map(function (r) { var k = mdKey(r), fl = mdFlags(MD.tab, r), on = k === MD.sel;
+      if (pel) { var np = D.pro.filter(function (p) { return p.pelanggan === r.nama && String(p.aktif || 'YA').toUpperCase() !== 'ARSIP'; }).length, rel = /BERELASI/i.test(r.kelompok || '') || /WIKA|JO/i.test(r.jenis || '');
+        return '<div class="md-it' + (on ? ' on' : '') + '" data-mds="' + esc(k) + '">' + mdAv(r.nama) + '<div><b>' + esc(titleCaseS(r.nama)) + '</b><small>BP ' + esc(r.kode_bp || '—') + ' · NPWP ' + esc(r.npwp || '—') + '</small><span class="md-tag ' + (rel ? 'r' : 't') + '">' + (rel ? 'RELATED' : 'THIRD PARTY') + (r.jenis ? ' · ' + esc(r.jenis) : '') + '</span><span class="md-tag g">' + plural(np, 'project') + '</span>' + fl.map(function (x) { return '<span class="md-tag w">' + esc(x) + '</span>'; }).join('') + '</div></div>'; }
+      return '<div class="md-it' + (on ? ' on' : '') + '" data-mds="' + esc(k) + '">' + mdAv(r.pelanggan) + '<div><b>' + esc(r.npp) + ' · ' + esc(r.singkat || '') + '</b><small>' + esc(titleCaseS(r.pelanggan)) + ' · ' + (+r.nilai_ok || +r.nilai ? rpShort(+r.nilai_ok || +r.nilai) : 'no contract value') + '</small><span class="md-tag ' + (String(r.aktif || 'YA').toUpperCase() === 'YA' || !r.aktif ? 'g' : 't') + '">' + esc(String(r.aktif || 'YA').toUpperCase()) + '</span>' + (O.npp[r.npp] ? '<span class="md-tag t">outstanding ' + rpShort(O.npp[r.npp]) + '</span>' : '') + fl.map(function (x) { return '<span class="md-tag w">' + esc(x) + '</span>'; }).join('') + '</div></div>'; }).join('') : '<div class="cp-empty">No ' + (pel ? 'customers' : 'projects') + ' match.</div>') +
+    '</div><div class="md-lf"><button class="btn primary" type="button" id="mdNew" style="width:100%">+ New ' + (pel ? 'customer' : 'project') + '</button></div></div><div class="md-right" id="mdRight">' + mdDetail() + '</div></div>';
+  w.innerHTML = h; mdBind();
+}
+function mdRec() { var D = MD.d, L = MD.tab === 'PEL' ? D.pel : D.pro; return L.filter(function (r) { return mdKey(r) === MD.sel; })[0] || null; }
+function mdOptList(o) { return o === 'yatidak' ? ['YA', 'TIDAK'] : (E.OPT[o] || []); }
+function mdVal(f, v) { if (v === null || v === undefined) return ''; if (f[2] === 'money') return v === '' ? '' : nfDot(v); if (f[2] === 'pct') return v === '' ? '' : String(Math.round(+v * 100000) / 1000).replace('.', ','); return String(v); }
+function mdField(f, rec, edit, sens) {
+  var k = f[0], v = edit ? MD.form[k] : rec ? rec[k] : '', lock = f[4] === 'lock' && MD.orig, sn = sens.indexOf(k) >= 0, chk = (MD.chk || []).filter(function (x) { return x.f === k; })[0];
+  var lab = '<label>' + esc(f[1]) + (sn ? ' <span class="md-sh" title="Change needs a basis / reason, recorded and emailed to the Section Head">SH</span>' : '') + (lock ? ' <span class="md-lock">LOCKED</span>' : '') + '</label>';
+  var cls = chk ? (chk.lvl === 'E' ? ' chkE' : chk.lvl === 'W' ? ' chkW' : '') : '', chg = edit && MD.orig && mdRec() && String(mdVal(f, mdRec()[k])) !== String(mdVal(f, v)) ? ' md-chg' : '';
+  var msg = chk ? '<div class="msg ' + chk.lvl + '">' + (chk.lvl === 'E' ? '⛔ ' : chk.lvl === 'W' ? '⚠ ' : 'ℹ ') + esc(chk.t) + (chk.m ? ' — ' + esc(chk.m) : '') + '</div>' : '';
+  if (f[2] === 'ro') { var p = rec || {}; return '<div class="md-f">' + lab + '<div class="md-in ro">' + (+p.nilai_ok ? nfDot(p.nilai_ok) : '—') + '</div><div class="md-h">original ' + nfDot(+p.nilai || 0) + (+p.add_tambah ? ' + ' + nfDot(p.add_tambah) : '') + (+p.add_kurang ? ' − ' + nfDot(p.add_kurang) : '') + ' (tab Addenda)</div></div>'; }
+  if (!edit || lock) return '<div class="md-f' + (f[2] === 'area' ? ' wide' : '') + '">' + lab + '<div class="md-in ro">' + (esc(f[2] === 'sel' || f[2] === 'pel' ? v : mdVal(f, v)) || '<span style="color:#9AA8B8">—</span>') + (f[2] === 'pct' && v !== '' && v !== null && v !== undefined ? '%' : '') + '</div>' + msg + '</div>';
+  var inp;
+  if (f[2] === 'sel') inp = '<select data-mdk="' + k + '" class="md-in' + cls + chg + '"><option value=""></option>' + mdOptList(f[3]).map(function (o) { return '<option' + (String(v).toUpperCase() === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+  else if (f[2] === 'pel') inp = '<select data-mdk="' + k + '" class="md-in' + cls + chg + '"><option value=""></option>' + MD.d.pel.map(function (p) { return '<option' + (p.nama === v ? ' selected' : '') + '>' + esc(p.nama) + '</option>'; }).join('') + '</select>';
+  else if (f[2] === 'area') inp = '<textarea data-mdk="' + k + '" class="md-in' + cls + chg + '" rows="2">' + esc(v || '') + '</textarea>';
+  else inp = '<input data-mdk="' + k + '" class="md-in' + cls + chg + (f[2] === 'money' || f[2] === 'num' || f[2] === 'pct' ? ' num' : '') + '"' + (f[2] === 'date' ? ' type="date"' : '') + (f[2] === 'money' || f[2] === 'num' || f[2] === 'pct' ? ' inputmode="decimal"' : '') + ' value="' + esc(mdVal(f, v)) + '">';
+  return '<div class="md-f' + (f[2] === 'area' ? ' wide' : '') + '">' + lab + inp + msg + '</div>';
+}
+function mdDetail() {
+  var D = MD.d, pel = MD.tab === 'PEL', rec = MD.orig === '' && MD.edit ? null : mdRec(), edit = MD.edit, sens = edit && MD.orig ? (D.sens[MD.tab] || []) : (D.sens[MD.tab] || []);
+  if (!rec && !edit) return '<div class="cp-empty" style="margin-top:60px">Select a ' + (pel ? 'customer' : 'project') + ' on the left.</div>';
+  var title = edit && !MD.orig ? 'New ' + (pel ? 'customer' : 'project') : pel ? titleCaseS(rec.nama) : rec.npp + ' · ' + (rec.singkat || ''), O = mdOut();
+  var subT = pel ? [['main', 'Profile'], ['pro', 'Projects'], ['hist', 'Change history']] : [['main', 'Contract & terms'], ['add', 'Addenda'], ['hist', 'Change history']];
+  var h = '<div class="md-hd">' + mdAv(pel ? (rec ? rec.nama : MD.form.nama) : (rec ? rec.pelanggan : MD.form.pelanggan)) + '<div><h1>' + esc(title) + '</h1><p>' + (edit ? (MD.orig ? 'editing — changes are not saved yet' : 'fill the fields, then save') : pel ? plural(D.pro.filter(function (p) { return p.pelanggan === rec.nama; }).length, 'project') + ' · outstanding ' + rpShort(O.pel[rec.nama] || 0) : esc(titleCaseS(rec.pelanggan)) + ' · outstanding ' + rpShort(O.npp[rec.npp] || 0)) + '</p></div><span class="sp"></span>' +
+    (!edit ? (pel ? '<button class="btn" type="button" data-mdnp="1">+ New project</button>' : '') + '<button class="btn primary" type="button" id="mdEdit">Edit</button>' : '') + '</div>';
+  if (!edit) h += '<div class="md-tabs">' + subT.map(function (t) { return '<button type="button" data-mdsub="' + t[0] + '" class="' + (MD.sub === t[0] ? 'on' : '') + '">' + t[1] + (t[0] === 'pro' ? ' <em>' + D.pro.filter(function (p) { return p.pelanggan === rec.nama; }).length + '</em>' : t[0] === 'add' ? ' <em>' + D.add.filter(function (a) { return a.npp === rec.npp; }).length + '</em>' : '') + '</button>'; }).join('') + '</div>';
+  var sub = edit ? 'main' : MD.sub;
+  if (sub === 'main') {
+    h += (pel ? MD_PEL : MD_PRO).map(function (sec) { return '<div class="card md-card"><h3>' + esc(sec[0]) + (sec[1] ? ' <small>' + esc(sec[1]) + '</small>' : '') + '</h3><div class="md-grid">' + sec[2].map(function (f) { return mdField(f, rec, edit, sens); }).join('') + '</div></div>'; }).join('');
+    if (edit) {
+      var C = MD.chk || [], nE = C.filter(function (x) { return x.lvl === 'E'; }).length, nW = C.filter(function (x) { return x.lvl === 'W'; }).length, diff = E.masterDiff(MD.tab, mdRec() && MD.orig ? mdRec() : null, MD.form), sd = diff.filter(function (x) { return x.sens; });
+      h += (sd.length ? '<div class="card md-card md-sens"><h3>Basis for the change <small>' + esc(sd.map(function (x) { return x.label; }).join(', ')) + ' — recorded and emailed to the Section Head</small></h3><textarea id="mdReason" rows="2" placeholder="e.g. Addendum AMD02 dated 24-07-2026 / contract correction per SPK …">' + esc(MD.reason) + '</textarea></div>' : '') +
+        '<div class="md-bar"><span>' + (diff.length ? plural(diff.length, 'field') + ' changed' + (sd.length ? ' · ' + sd.length + ' sensitive' : '') : MD.orig ? 'No changes yet' : 'New record') + (nE ? ' · <b style="color:#FFB4B4">⛔ ' + plural(nE, 'error') + '</b>' : '') + (nW ? ' · ⚠ ' + plural(nW, 'warning') : '') + '</span><span class="sp"></span><button class="btn" type="button" id="mdCancel">Cancel</button><button class="btn primary" type="button" id="mdSave"' + (nE || (MD.orig && !diff.length) || MD.busy ? ' disabled' : '') + '>' + (MD.busy ? 'Saving…' : 'Save') + '</button></div>';
+    }
+  } else if (sub === 'pro') {
+    var P = D.pro.filter(function (p) { return p.pelanggan === rec.nama; });
+    h += '<div class="card md-card"><h3>Projects of this customer<span class="sp"></span><button class="btn" type="button" data-mdnp="1" style="padding:5px 10px">+ New project</button></h3><table class="md-t"><tr><th>NPP</th><th>Project</th><th class="n">Contract after addenda</th><th class="n">Outstanding</th><th>Status</th></tr>' +
+      (P.length ? P.map(function (p) { return '<tr data-mdgo="' + esc(p.npp) + '"><td><b>' + esc(p.npp) + '</b></td><td>' + esc(p.singkat || '') + '<small>' + esc(p.kontrak || '') + '</small></td><td class="n">' + nfDot(+p.nilai_ok || +p.nilai || 0) + '</td><td class="n">' + nfDot(O.npp[p.npp] || 0) + '</td><td><span class="md-tag ' + (String(p.aktif || 'YA').toUpperCase() === 'YA' ? 'g' : 't') + '">' + esc(String(p.aktif || 'YA').toUpperCase()) + '</span></td></tr>'; }).join('') : '<tr><td colspan="5">No projects yet.</td></tr>') + '</table></div>';
+  } else if (sub === 'add') {
+    var A = D.add.filter(function (a) { return a.npp === rec.npp; }).sort(function (a, b) { return (+a.ke || 0) - (+b.ke || 0); }), x = MD.add;
+    h += '<div class="card md-card"><h3>Contract addenda <small>value after addenda = original ± addenda</small></h3><table class="md-t"><tr><th>No.</th><th>Document</th><th>Effective</th><th>Type</th><th class="n">Value (excl. VAT)</th><th>Notes</th></tr>' +
+      '<tr><td>—</td><td>Original contract ' + esc(rec.kontrak || '') + '</td><td>' + esc(tg(rec.tgl_kontrak)) + '</td><td></td><td class="n">' + nfDot(+rec.nilai || 0) + '</td><td></td></tr>' +
+      A.map(function (a) { return '<tr><td>' + esc(a.ke) + '</td><td>' + esc(a.nodok || '') + '</td><td>' + esc(tg(a.tgl)) + '</td><td>' + esc(a.jenis || '') + '</td><td class="n">' + (String(a.jenis).toUpperCase() === 'KURANG' ? '(' + nfDot(+a.nilai || 0) + ')' : nfDot(+a.nilai || 0)) + '</td><td>' + esc(a.catatan || '') + '</td></tr>'; }).join('') +
+      '<tr class="tot"><td></td><td colspan="3"><b>Value after addenda</b></td><td class="n"><b>' + nfDot(+rec.nilai_ok || +rec.nilai || 0) + '</b></td><td></td></tr></table>' +
+      (x ? '<div class="md-addf"><h4>New addendum</h4><div class="md-grid"><div class="md-f"><label>Document no.</label><input class="md-in" data-mda="nodok" value="' + esc(x.nodok) + '"></div><div class="md-f"><label>Effective date</label><input class="md-in" type="date" data-mda="tgl" value="' + esc(x.tgl) + '"></div><div class="md-f"><label>Type</label><select class="md-in" data-mda="jenis"><option' + (x.jenis === 'TAMBAH' ? ' selected' : '') + '>TAMBAH</option><option' + (x.jenis === 'KURANG' ? ' selected' : '') + '>KURANG</option></select></div><div class="md-f"><label>Value (excl. VAT)</label><input class="md-in num" inputmode="decimal" data-mda="nilai" value="' + esc(x.nilai ? nfDot(x.nilai) : '') + '"></div><div class="md-f wide"><label>Notes</label><input class="md-in" data-mda="catatan" value="' + esc(x.catatan) + '"></div><div class="md-f wide"><label>Basis (recorded &amp; emailed to the Section Head)</label><textarea class="md-in" rows="2" data-mda="reason">' + esc(x.reason) + '</textarea></div></div>' +
+        '<div class="md-h" style="margin:6px 0">New value after addenda: <b>' + nfDot((+rec.nilai_ok || +rec.nilai || 0) + (x.jenis === 'KURANG' ? -1 : 1) * (+x.nilai || 0)) + '</b>' + ((+x.nilai || 0) && x.jenis === 'KURANG' && (+rec.nilai_ok || +rec.nilai || 0) - (+x.nilai || 0) < (B.proyek.filter(function (p) { return p.npp === rec.npp; })[0] || { prog: [] }).prog.reduce(function (t, r) { return t + (+r[1] || 0); }, 0) ? ' <span style="color:#B42318;font-weight:700">⚠ below the progress already billed</span>' : '') + '</div>' +
+        '<div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="button" id="mdAddX">Cancel</button><button class="btn primary" type="button" id="mdAddS"' + (MD.busy ? ' disabled' : '') + '>Save addendum</button></div></div>' : '<button class="btn" type="button" id="mdAddN" style="margin-top:10px">+ New addendum</button>') + '</div>';
+  } else {
+    var key = pel ? rec.nama : rec.npp, Hh = (D.hist || []).filter(function (r) { return String(r[3]).toUpperCase() === String(key).toUpperCase(); });
+    h += '<div class="card md-card"><h3>Change history <small>' + plural(Hh.length, 'change') + ' made through the app</small></h3>' + (Hh.length ? '<div class="md-tl">' + Hh.slice(0, 60).map(function (r) { return '<div><i class="' + (r[7] === 'YA' ? 'w' : '') + '"></i><span><b>' + esc(r[4]) + '</b> ' + (r[5] ? esc(r[5]) + ' → ' : '') + esc(r[6]) + '<small>' + esc(r[0]) + ' · ' + esc(r[1]) + (r[8] ? ' · basis: ' + esc(r[8]) : '') + '</small></span></div>'; }).join('') + '</div>' : '<div class="md-h">No changes recorded through the app yet (direct sheet edits are logged in Jejak Edit Langsung).</div>') + '</div>';
+  }
+  return h;
+}
+function mdStartEdit(isNew, preset) {
+  var rec = isNew ? null : mdRec(); MD.edit = true; MD.orig = isNew ? '' : mdKey(rec); MD.reason = ''; MD.sub = 'main';
+  MD.form = {}; (MD.tab === 'PEL' ? MD_PEL : MD_PRO).forEach(function (s) { s[2].forEach(function (f) { if (f[2] !== 'ro') MD.form[f[0]] = rec ? (rec[f[0]] === undefined ? '' : rec[f[0]]) : ''; }); });
+  if (isNew) { if (MD.tab === 'PEL') { MD.form.aktif = 'YA'; MD.form.dasar_jt = 'TGL SUBMIT'; MD.form.jenis = 'SWASTA'; MD.form.kelompok = 'PIHAK KETIGA'; } else { MD.form.aktif = 'YA'; MD.form.template = 'UMUM'; MD.form.top = 30; MD.form.ret_pct = 0.05; MD.form.ret_pos = 'AKHIR'; MD.form.dasar_pph = 'SETELAH RETENSI'; MD.form.tampil_pph = 'YA'; } Object.assign(MD.form, preset || {}); }
+  mdCheck(); mdRender();
+}
+function mdLater(fn) { clearTimeout(mdLater.t); mdLater.t = setTimeout(fn, 0); }
+function mdCheck() { MD.chk = E.masterChecks(MD.tab, MD.form, { pel: MD.d.pel, pro: MD.d.pro }, MD.orig); }
+function mdParse(f, v) { if (f[2] === 'money' || f[2] === 'num') return v === '' ? '' : Math.round(num(v)); if (f[2] === 'pct') return v === '' ? '' : num(v) / 100; return v; }
+function mdFieldDef(k) { var o = null; (MD.tab === 'PEL' ? MD_PEL : MD_PRO).forEach(function (s) { s[2].forEach(function (f) { if (f[0] === k) o = f; }); }); return o; }
+function mdBind() {
+  var w = $('mdWrap');
+  w.querySelectorAll('[data-mdt]').forEach(function (b) { b.onclick = function () { if (MD.edit && !confirm('Discard unsaved changes?')) return; MD.tab = b.dataset.mdt; MD.sel = ''; MD.edit = false; MD.sub = 'main'; MD.add = null; mdRender(); }; });
+  w.querySelectorAll('[data-mdf]').forEach(function (b) { b.onclick = function () { MD.f = b.dataset.mdf; MD.sel = ''; mdRender(); }; });
+  w.querySelectorAll('[data-mds]').forEach(function (b) { b.onclick = function () { if (MD.edit && !confirm('Discard unsaved changes?')) return; MD.sel = b.dataset.mds; MD.edit = false; MD.add = null; MD.sub = 'main'; mdRender(); }; });
+  w.querySelectorAll('[data-mdsub]').forEach(function (b) { b.onclick = function () { MD.sub = b.dataset.mdsub; MD.add = null; mdRender(); }; });
+  w.querySelectorAll('[data-mdgo]').forEach(function (b) { b.onclick = function () { MD.tab = 'PRO'; MD.sel = b.dataset.mdgo; MD.f = 'act'; MD.sub = 'main'; mdRender(); }; });
+  w.querySelectorAll('[data-mdnp]').forEach(function (b) { b.onclick = function () { var r = mdRec(); MD.tab = 'PRO'; MD.sel = ''; mdStartEdit(true, { pelanggan: r ? r.nama : '' }); }; });
+  if ($('mdQ')) $('mdQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(mdBind.t); mdBind.t = setTimeout(function () { MD.q = v; mdRender(); var i = $('mdQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
+  if ($('mdNew')) $('mdNew').onclick = function () { if (MD.tab === 'PEL') { MD.wiz = { step: 1, pel: { aktif: 'YA', dasar_jt: 'TGL SUBMIT', jenis: 'SWASTA', kelompok: 'PIHAK KETIGA' }, pro: { aktif: 'YA', template: 'UMUM', top: 30, ret_pct: 0.05, ret_pos: 'AKHIR', dasar_pph: 'SETELAH RETENSI', tampil_pph: 'YA', um: '' } }; mdRender(); } else mdStartEdit(true, {}); };
+  if ($('mdEdit')) $('mdEdit').onclick = function () { mdStartEdit(false); };
+  if ($('mdCancel')) $('mdCancel').onclick = function () { MD.edit = false; MD.form = null; mdRender(); };
+  w.querySelectorAll('[data-mdk]').forEach(function (el) { el.onchange = function () { var f = mdFieldDef(el.dataset.mdk); MD.form[el.dataset.mdk] = mdParse(f, el.value); mdLater(function () { var y = $('mdRight').scrollTop; mdCheck(); $('mdRight').innerHTML = mdDetail(); $('mdRight').scrollTop = y; mdBind(); }); }; });
+  if ($('mdReason')) $('mdReason').oninput = function () { MD.reason = this.value; };
+  if ($('mdSave')) $('mdSave').onclick = mdSave;
+  if ($('mdAddN')) $('mdAddN').onclick = function () { MD.add = { nodok: '', tgl: B.today, jenis: 'TAMBAH', nilai: '', catatan: '', reason: '' }; mdRender(); };
+  if ($('mdAddX')) $('mdAddX').onclick = function () { MD.add = null; mdRender(); };
+  w.querySelectorAll('[data-mda]').forEach(function (el) { el.onchange = function () { var k = el.dataset.mda; MD.add[k] = k === 'nilai' ? Math.round(num(el.value)) : el.value; if (k === 'nilai' || k === 'jenis') mdLater(function () { $('mdRight').innerHTML = mdDetail(); mdBind(); }); }; });
+  if ($('mdAddS')) $('mdAddS').onclick = function () { var x = MD.add, r = mdRec(); if (!r) return; MD.busy = true; mdRender();
+    call('apiMasterAddendum', [r.npp, x, x.reason], function (o) { MD.busy = false; MD.add = null; toast('Addendum ' + o.ke + ' saved for ' + r.npp + '. Contract value updates after the report refresh.'); refreshAll(); mdLoad(); }, function (e) { MD.busy = false; toast(e.message || e); mdRender(); }); };
+}
+function mdSave() {
+  var C = MD.chk || [], W = C.filter(function (x) { return x.lvl === 'W'; }), diff = E.masterDiff(MD.tab, MD.orig ? mdRec() : null, MD.form);
+  if (C.some(function (x) { return x.lvl === 'E'; })) return;
+  if (diff.some(function (x) { return x.sens; }) && String(MD.reason || '').trim().length < 5) { toast('Enter the basis for the change (sensitive fields).'); var t = $('mdReason'); if (t) t.focus(); return; }
+  var go = function () { MD.busy = true; mdRender();
+    call('apiMasterSave', [MD.tab, MD.orig, MD.form, MD.reason], function (r) { MD.busy = false; MD.edit = false; MD.sel = r.key; toast((r.baru ? 'Saved: ' : 'Updated: ') + r.key + (r.diff.length ? ' (' + plural(r.diff.length, 'field') + ')' : '') + '.'); refreshAll(); mdLoad(); }, function (e) { MD.busy = false; toast(e.message || e); mdRender(); }); };
+  if (W.length && !mdSave._ok) { warnDlg(W, function (why) { if (!MD.reason) MD.reason = why; mdSave._ok = true; go(); mdSave._ok = false; }); return; }
+  go();
+}
+/* ---------- wizard pelanggan baru: 1 pelanggan · 2 proyek pertama · 3 uraian & cek ---------- */
+function mdWizRender() {
+  var w = $('mdWrap'), z = MD.wiz, st = z.step, pelF = MD_PEL, proF = MD_PRO;
+  var kind = st === 1 ? 'PEL' : 'PRO', all = { pel: MD.d.pel.concat(st > 1 ? [{ nama: String(z.pel.nama || '').toUpperCase(), npwp: z.pel.npwp }] : []), pro: MD.d.pro };
+  var C1 = E.masterChecks('PEL', z.pel, { pel: MD.d.pel, pro: MD.d.pro }, ''), C2 = E.masterChecks('PRO', Object.assign({}, z.pro, { pelanggan: String(z.pel.nama || '').toUpperCase() }), all, '');
+  var C = st === 1 ? C1 : st === 2 ? C2 : C1.concat(C2), nE = C.filter(function (x) { return x.lvl === 'E'; }).length;
+  MD.chk = C; var tab0 = MD.tab; MD.tab = kind; MD.form = st === 1 ? z.pel : z.pro; MD.orig = '';
+  var secs = st === 1 ? pelF : proF.filter(function (s, i) { return i !== 3; });
+  var body = st === 3 ? mdWizReview(z, C) : secs.map(function (s) { return '<div class="card md-card"><h3>' + esc(s[0]) + (s[1] ? ' <small>' + esc(s[1]) + '</small>' : '') + '</h3><div class="md-grid">' + s[2].filter(function (f) { return !(st === 2 && (f[0] === 'pelanggan' || f[0] === 'nilai_ok')); }).map(function (f) { return mdField(f, null, true, []); }).join('') + '</div></div>'; }).join('');
+  MD.tab = tab0;
+  var stp = function (n, t) { return '<span class="' + (st > n ? 'd' : st === n ? 'c' : '') + '"><i>' + (st > n ? '✓' : n) + '</i>' + t + '</span>'; };
+  var sum = st > 1 ? '<div class="card md-card"><h3>Step 1 · Customer<span class="sp"></span><button class="linkbtn" type="button" data-wz="1">Edit</button></h3><div class="md-sum"><div><small>Name</small><b>' + esc(String(z.pel.nama || '').toUpperCase()) + '</b></div><div><small>NPWP</small><b>' + esc(z.pel.npwp || '—') + '</b></div><div><small>Type · group</small><b>' + esc((z.pel.jenis || '') + ' · ' + (z.pel.kelompok || '')) + '</b></div><div><small>SAP BP code</small><b style="' + (z.pel.kode_bp ? '' : 'color:#B45309') + '">' + esc(z.pel.kode_bp || 'to be filled') + '</b></div></div></div>' : '';
+  var side = '<div class="card md-card"><h3>Checks</h3>' + (C.length ? C.map(function (x) { return '<div class="ck ' + x.lvl + '"><span class="ic">' + CHK_ICON[x.lvl] + '</span><div><b>' + esc(x.t) + '</b>' + (x.m ? '<span>' + esc(x.m) + '</span>' : '') + '</div></div>'; }).join('') : '<div class="ck ok"><span class="ic">✓</span><div><b>All checks passed</b></div></div>') + '</div>' +
+    '<div class="note" style="font-size:11.5px">After saving, the customer and project are added to <b>Master Pelanggan</b> &amp; <b>Master Proyek</b> and can be chosen at once in Billing ▸ Issue Invoice.</div>';
+  w.innerHTML = '<div class="md md-wiz"><div class="md-wh"><div><h1>New customer</h1><p>Three steps · nothing is saved until step 3</p></div><span class="sp"></span><button class="btn" type="button" id="wzX">✕ Cancel</button></div>' +
+    '<div class="cp-st md-steps">' + stp(1, 'Customer') + '<em></em>' + stp(2, 'First project') + '<em></em>' + stp(3, 'Invoice wording &amp; review') + '</div>' +
+    '<div class="md-wgrid"><div>' + body + '</div><div>' + sum + side + '</div></div>' +
+    '<div class="md-bar md-wbar"><span>Step ' + st + ' of 3' + (nE ? ' · <b style="color:#FFB4B4">⛔ ' + plural(nE, 'error') + '</b>' : '') + '</span><span class="sp"></span>' + (st > 1 ? '<button class="btn" type="button" data-wz="' + (st - 1) + '">← Back</button>' : '') +
+    (st < 3 ? '<button class="btn primary" type="button" data-wz="' + (st + 1) + '"' + (nE ? ' disabled' : '') + '>Next: ' + (st === 1 ? 'first project' : 'invoice wording') + ' →</button>' : '<button class="btn primary" type="button" id="wzSave"' + (nE || MD.busy ? ' disabled' : '') + '>' + (MD.busy ? 'Saving…' : 'Save customer &amp; project') + '</button>') + '</div></div>';
+  $('wzX').onclick = function () { if (!confirm('Discard the new customer?')) return; MD.wiz = null; mdRender(); };
+  w.querySelectorAll('[data-wz]').forEach(function (b) { b.onclick = function () { z.step = +b.dataset.wz; mdRender(); w.scrollTop = 0; }; });
+  w.querySelectorAll('[data-mdk]').forEach(function (el) { el.onchange = function () { var t0 = MD.tab; MD.tab = st === 1 ? 'PEL' : 'PRO'; var f = mdFieldDef(el.dataset.mdk); MD.tab = t0; var o = st === 1 ? z.pel : z.pro; o[el.dataset.mdk] = mdParse(f || [0, 0, 'text'], el.value); mdLater(function () { var y = $('mdWrap').querySelector('.md-wiz') ? $('mdWrap').querySelector('.md-wiz').scrollTop : 0; mdRender(); var z2 = $('mdWrap').querySelector('.md-wiz'); if (z2) z2.scrollTop = y; }); }; });
+  if ($('wzSave')) $('wzSave').onclick = function () { MD.busy = true; mdRender();
+    call('apiMasterWizard', [z.pel, z.pro], function (r) { MD.busy = false; MD.wiz = null; MD.tab = 'PEL'; MD.sel = r.pelanggan; toast('Customer ' + r.pelanggan + ' and project ' + r.npp + ' saved.'); refreshAll(); mdLoad(); }, function (e) { MD.busy = false; toast(e.message || e); mdRender(); }); };
+}
+function mdWizReview(z, C) {
+  var p = z.pro, desc = String(p.deskripsi || ''), ex = 'Tagihan Progres Ke-1 (Pembayaran ke-1/Termin 1) ' + desc;
+  var row = function (a, b) { return '<div><small>' + a + '</small><b>' + b + '</b></div>'; };
+  return '<div class="card md-card"><h3>Invoice wording <small>how invoices of this project will read</small></h3><div class="md-f wide"><label>Invoice description ("Atas …")</label><textarea data-mdk="deskripsi" class="md-in" rows="2">' + esc(desc) + '</textarea></div>' +
+    '<div class="md-f wide"><label>Example — first progress invoice (' + esc(p.template || 'UMUM') + ')</label><div class="res" style="border:1px solid #BFE3CB;background:#F3FBF5;border-radius:8px;padding:9px 11px;font-size:12.5px">' + esc(p.template === 'FAJARPUTERA' ? 'Tagihan Termin I ' + desc : p.template === 'WIKA-WITON' ? desc : ex) + '</div></div></div>' +
+    '<div class="card md-card"><h3>Review</h3><div class="md-sum md-sum2">' + row('Customer', esc(String(z.pel.nama || '').toUpperCase())) + row('NPWP · NITKU', esc((z.pel.npwp || '—') + ' · ' + (z.pel.nitku || '—'))) + row('Address', esc([z.pel.a1, z.pel.a2, z.pel.a3].filter(Boolean).join(', ') || '—')) + row('Type · group', esc((z.pel.jenis || '') + ' · ' + (z.pel.kelompok || ''))) +
+    row('NPP · project', esc((p.npp || '') + ' · ' + (p.singkat || ''))) + row('Contract', esc((p.kontrak || '—') + ' · ' + (p.tgl_kontrak ? tg(p.tgl_kontrak) : '—'))) + row('Contract value', 'Rp ' + nfDot(+p.nilai || 0) + ' <span style="color:#5B6B80;font-weight:500">+ VAT 11% = Rp ' + nfDot(Math.round((+p.nilai || 0) * 1.11)) + '</span>') +
+    row('DP · retention · TOP', 'Rp ' + nfDot(+p.um || 0) + ' · ' + mdVal([0, 0, 'pct'], p.ret_pct) + '% ' + esc(p.ret_pos || '') + ' · ' + esc(p.top || '') + ' days') + row('WHT', (p.tarif !== '' && p.tarif !== undefined ? mdVal([0, 0, 'pct'], p.tarif) + '%' : 'automatic') + ' · ' + esc(p.dasar_pph || '')) + row('Template · Coretax code', esc((p.template || '') + ' · ' + (p.kode_jasa || '—'))) + '</div></div>';
 }
 /* ====================================================== v2.8.8: Month-End AR Closing (checklist tutup buku, layar penuh) */
 var CL = { m: '', d: {}, seq: 0 };

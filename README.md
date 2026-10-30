@@ -61,6 +61,12 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Master Data (v2.8.8)**: pelanggan, proyek & adendum diisi lewat aplikasi (tersimpan di Master Pelanggan / Master Proyek / Riwayat Adendum).
+  Daftar dengan pencarian & saringan (berelasi / pihak ketiga / data belum lengkap), detail per pelanggan (profil, proyek, riwayat) dan per proyek (kontrak &
+  syarat penagihan, adendum, riwayat). Pemeriksaan otomatis (NPWP 16 digit & ganda, nama mirip, NPP ganda, retensi/UM/tarif PPh wajar…). Kolom **sensitif**
+  (nilai kontrak, UM, retensi, PPh, template, kelompok, jenis, NPWP) wajib diisi **dasar perubahan** — dicatat di sheet **Riwayat Master Data** dan diemailkan ke
+  Section Head; adendum selalu wajib dasar. NPP & nama pelanggan dikunci (ganti NPP lewat menu). **+ New customer** = wizard 3 langkah (pelanggan →
+  proyek pertama → uraian invoice & cek) yang menyimpan keduanya sekaligus.
 - **Month-End Close ▸ AR Closing Checklist (v2.8.8)**: 10 langkah tutup buku piutang diperiksa otomatis dari data — cut-off penagihan, nota kredit &
   penyesuaian, penerapan penerimaan (termasuk penerimaan tanpa tanggal), rekonsiliasi per pelanggan (invoice lebih bayar / PPN ≠ 11% × DPP = merah),
   umur piutang, sengketa & kurang bayar, CKPN, AR vs GL (Data LK), serah terima ke Akuntansi, laporan akhir & tutup buku. Cincin kesiapan, alur berwarna,

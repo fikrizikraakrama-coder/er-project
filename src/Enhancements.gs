@@ -1089,3 +1089,101 @@ function arExtendFilters_(ss) {
   } catch (e) {}
   return n;
 }
+
+// =====================================================================  v2.8.8: MASTER DATA (pelanggan, proyek, adendum) LEWAT APLIKASI
+var AR_MD_HIST_ = 'Riwayat Master Data';
+var AR_MD_TEXT_ = ['npwp', 'nitku', 'kode_bp', 'npp', 'kontrak', 'kode_jasa', 'npp_produk', 'npp_adendum'];
+function arMdRead_(ss) {
+  var obj = function (sheetName, schema, alias) { var sh = ss.getSheetByName(sheetName); if (!sh) return [];
+    return readSchema_(sh, schema, alias).map(function (r, i) { var o = { _row: schema.firstRow + i }; schema.cols.forEach(function (c, j) { o[c[0]] = r[j]; }); return o; })
+      .filter(function (o) { return String(o[schema.cols[0][0]] || '').trim(); }); };
+  return { pel: obj('Master Pelanggan', ENGINE.MPEL), pro: obj('Master Proyek', ENGINE.MPRO, ENGINE.MPRO_ALIAS), add: obj(ENGINE.ADD.sheet, ENGINE.ADD) };
+}
+function arMdHistSheet_(ss) {
+  var sh = ss.getSheetByName(AR_MD_HIST_); if (sh) return sh;
+  sh = ss.insertSheet(AR_MD_HIST_); var h = ['WAKTU', 'OLEH', 'JENIS', 'KUNCI', 'KOLOM', 'NILAI LAMA', 'NILAI BARU', 'SENSITIF', 'DASAR PERUBAHAN'];
+  sh.getRange(1, 1, 1, h.length).setValues([h]).setFontWeight('bold').setBackground('#14284B').setFontColor('#FFFFFF'); sh.setFrozenRows(1);
+  sh.getRange(2, 1, 999, h.length).setNumberFormat('@'); [20, 26, 10, 26, 30, 30, 30, 9, 50].forEach(function (w, i) { sh.setColumnWidth(i + 1, w * 7); });
+  return sh;
+}
+function arMdLog_(ss, rows) { if (!rows.length) return; var sh = arMdHistSheet_(ss), r = Math.max(sh.getLastRow() + 1, 2); roomFor_(sh, r + rows.length); sh.getRange(r, 1, rows.length, 9).setNumberFormat('@').setValues(rows.map(function (x) { return x.map(function (v) { return String(v === null || v === undefined ? '' : v).slice(0, 500); }); })); }
+function apiMasterData() {
+  arRequireMaker_();
+  var ss = arSpreadsheet_(), d = arMdRead_(ss), hs = ss.getSheetByName(AR_MD_HIST_), hist = [];
+  if (hs && hs.getLastRow() > 1) { var n = Math.min(hs.getLastRow() - 1, 400); hist = hs.getRange(hs.getLastRow() - n + 1, 1, n, 9).getDisplayValues().reverse(); }
+  return plain_({ pel: d.pel, pro: d.pro, add: d.add, hist: hist, sens: ENGINE.MD_SENS });
+}
+/** tulis satu baris master (baru = baris setelah data terakhir) */
+function arMdWrite_(sh, schema, alias, row, data) {
+  var map = colMap_(sh, schema, alias), auto = ['add_tambah', 'add_kurang', 'nilai_ok'];
+  if (!row) { row = lastDataRow_(sh, schema.firstRow, [map[schema.cols[0][0]]]) + 1; roomFor_(sh, row); }
+  schema.cols.forEach(function (c) { var k = c[0], j = map[k]; if (!j || !(k in data) || auto.indexOf(k) >= 0) return; var v = data[k], rg = sh.getRange(row, j);
+    if (AR_MD_TEXT_.indexOf(k) >= 0) { rg.setNumberFormat('@').setValue(arSafeCell_(String(v || ''))); }
+    else if (k === 'tgl_kontrak' || k === 'tgl') { rg.setNumberFormat(NUMF.date).setValue(v ? toCell_(String(v), 'date') : ''); }
+    else rg.setValue(typeof v === 'string' ? arSafeCell_(v) : v); });
+  return row;
+}
+function arMdSaveCore_(ss, all, kind, orig, data, reason, who, now, log) {
+  var schema = kind === 'PEL' ? ENGINE.MPEL : ENGINE.MPRO, alias = kind === 'PEL' ? null : ENGINE.MPRO_ALIAS, list = kind === 'PEL' ? all.pel : all.pro, key = kind === 'PEL' ? 'nama' : 'npp';
+  data = JSON.parse(JSON.stringify(data || {})); if (data[key] !== undefined) data[key] = kind === 'PEL' ? String(data[key]).toUpperCase().trim() : String(data[key]).toUpperCase().replace(/\s+/g, ' ').trim();
+  var ex = orig ? list.filter(function (r) { return String(r[key]).toUpperCase().trim() === String(orig).toUpperCase().trim(); })[0] : null;
+  if (orig && !ex) throw new Error((kind === 'PEL' ? 'Customer ' : 'Project ') + orig + ' not found — reload the list.');
+  if (ex) data[key] = ex[key]; // kunci tidak diganti lewat form (NPP: menu Ganti NPP proyek)
+  var errs = ENGINE.masterChecks(kind, Object.assign({}, ex || {}, data), all, orig).filter(function (x) { return x.lvl === 'E'; });
+  if (errs.length) throw new Error(errs.map(function (x) { return x.t + (x.m ? ' (' + x.m + ')' : ''); }).join('; '));
+  var diff = ENGINE.masterDiff(kind, ex, data), sens = diff.filter(function (x) { return x.sens; });
+  if (!diff.length) return { key: data[key], diff: [], sens: [] };
+  if (sens.length && String(reason || '').trim().length < 5) throw new Error('Sensitive fields changed (' + sens.map(function (x) { return x.label; }).join(', ') + ') — enter the basis for the change (document / reason).');
+  arMdWrite_(ss.getSheetByName(kind === 'PEL' ? 'Master Pelanggan' : 'Master Proyek'), schema, alias, ex ? ex._row : 0, data);
+  diff.forEach(function (x) { log.push([now, who, kind === 'PEL' ? 'PELANGGAN' : 'PROYEK', data[key], x.label, ex ? x.from : '(baru)', x.to, x.sens ? 'YA' : '', reason || '']); });
+  return { key: data[key], diff: diff, sens: sens, baru: !ex };
+}
+function arMdFinish_(ss, log, sensRows, subject) {
+  arMdLog_(ss, log); arBootBust_();
+  if (sensRows.length) try { arNotify_(subject, ['Perubahan Master Data (kolom sensitif) melalui aplikasi:', ''].concat(sensRows.map(function (r) { return '• ' + r[2] + ' ' + r[3] + ' · ' + r[4] + ': "' + r[5] + '" → "' + r[6] + '" · dasar: ' + r[8] + ' · oleh ' + r[1]; }))); } catch (e) { }
+  return arQueueAfterSave_().background;
+}
+/** simpan pelanggan / proyek. kind PEL | PRO · orig = kunci asal (kosong = baru) */
+function apiMasterSave(kind, orig, data, reason) {
+  var acc = arRequireMaker_(); if (['PEL', 'PRO'].indexOf(kind) < 0) throw new Error('Invalid master type.');
+  var lock = arLock_(), out, log = []; lock.waitLock(28000);
+  try { var ss = arSpreadsheet_(); out = arMdSaveCore_(ss, arMdRead_(ss), kind, orig, data, reason, acc.email, arNow_(), log); }
+  finally { lock.releaseLock(); }
+  out.background = arMdFinish_(arSpreadsheet_(), log, log.filter(function (r) { return r[7] === 'YA'; }), 'Perubahan Master Data — ' + (kind === 'PEL' ? 'pelanggan ' : 'proyek ') + out.key);
+  return plain_(out);
+}
+/** wizard: pelanggan baru + proyek pertama sekaligus */
+function apiMasterWizard(pel, pro) {
+  var acc = arRequireMaker_(), lock = arLock_(), a, b, log = []; lock.waitLock(28000);
+  try {
+    var ss = arSpreadsheet_(), all = arMdRead_(ss), now = arNow_();
+    // keduanya diperiksa dulu agar tidak tersimpan setengah
+    var e1 = ENGINE.masterChecks('PEL', pel, all, '').filter(function (x) { return x.lvl === 'E'; });
+    var all2 = { pel: all.pel.concat([{ nama: String(pel.nama || '').toUpperCase().trim(), npwp: pel.npwp }]), pro: all.pro };
+    var e2 = ENGINE.masterChecks('PRO', Object.assign({}, pro, { pelanggan: String(pel.nama || '').toUpperCase().trim() }), all2, '').filter(function (x) { return x.lvl === 'E'; });
+    if (e1.length || e2.length) throw new Error(e1.concat(e2).map(function (x) { return x.t + (x.m ? ' (' + x.m + ')' : ''); }).join('; '));
+    a = arMdSaveCore_(ss, all, 'PEL', '', pel, '', acc.email, now, log);
+    b = arMdSaveCore_(ss, all2, 'PRO', '', Object.assign({}, pro, { pelanggan: a.key }), '', acc.email, now, log);
+  } finally { lock.releaseLock(); }
+  var bg = arMdFinish_(arSpreadsheet_(), log, [], '');
+  return plain_({ ok: true, pelanggan: a.key, npp: b.key, background: bg });
+}
+/** adendum kontrak baru (selalu sensitif: wajib dasar, dicatat & diemailkan) */
+function apiMasterAddendum(npp, d, reason) {
+  var acc = arRequireMaker_(); d = d || {};
+  if (String(reason || '').trim().length < 5) throw new Error('Enter the basis for the addendum (document / reason).');
+  if (!arValidDate_(String(d.tgl || ''))) throw new Error('Addendum effective date is invalid.');
+  if (!(Number(d.nilai) > 0)) throw new Error('Addendum value must be greater than 0.');
+  if (['TAMBAH', 'KURANG'].indexOf(String(d.jenis || '').toUpperCase()) < 0) throw new Error('Type must be TAMBAH or KURANG.');
+  var lock = arLock_(), log = [], ke; lock.waitLock(28000);
+  try {
+    var ss = arSpreadsheet_(), all = arMdRead_(ss), np = String(npp || '').toUpperCase().trim();
+    if (!all.pro.some(function (r) { return String(r.npp).toUpperCase().trim() === np; })) throw new Error('Project ' + npp + ' not found.');
+    ke = all.add.filter(function (r) { return String(r.npp).toUpperCase().trim() === np; }).reduce(function (m, r) { return Math.max(m, Number(r.ke) || 0); }, 0) + 1;
+    var sh = ss.getSheetByName(ENGINE.ADD.sheet); if (!sh) throw new Error('Sheet ' + ENGINE.ADD.sheet + ' not found.');
+    arMdWrite_(sh, ENGINE.ADD, null, 0, { npp: np, ke: ke, nodok: String(d.nodok || ''), tgl: d.tgl, jenis: String(d.jenis).toUpperCase(), nilai: Math.round(Number(d.nilai)), catatan: String(d.catatan || '') });
+    log.push([arNow_(), acc.email, 'ADENDUM', np, 'ADENDUM KE-' + ke + ' (' + String(d.jenis).toUpperCase() + ')', '', (String(d.jenis).toUpperCase() === 'KURANG' ? '−' : '+') + ENGINE.fmtRp(d.nilai) + ' · ' + (d.nodok || '') + ' · berlaku ' + d.tgl, 'YA', reason]);
+  } finally { lock.releaseLock(); }
+  var bg = arMdFinish_(arSpreadsheet_(), log, log, 'Adendum kontrak ' + npp + ' ke-' + ke);
+  return plain_({ ok: true, ke: ke, background: bg });
+}

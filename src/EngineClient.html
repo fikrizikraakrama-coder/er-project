@@ -2840,6 +2840,52 @@ var ENGINE = (function () {
     else if (a.adj && Math.abs(miss - a.adj) <= Math.max(5, dppOk * 0.0005)) why = 'DPP tampaknya belum memuat ADJUSTMENT DPP';
     return { dppOk: dppOk, selisih: rnd(miss), why: why || 'PPN tidak sama dengan 11% × DPP' };
   }
+  /** v2.8.8: Master Data — kolom yang perubahannya sensitif (wajib dasar perubahan, dicatat & diemailkan ke Section Head) */
+  var MD_SENS = { PEL: ['kelompok', 'jenis', 'npwp'], PRO: ['nilai', 'um', 'ret_pct', 'ret_pos', 'tarif', 'dasar_pph', 'pelanggan', 'template'] };
+  function mdNorm(x) { return U(x).replace(/\b(PT|CV|TBK|PERSERO|\(PERSERO\))\b/g, '').replace(/[^A-Z0-9]/g, ''); }
+  /** pemeriksaan isian Master Data. kind PEL/PRO · d = isian · all = { pel: [...], pro: [...] } baris master saat ini · orig = kunci asal (kosong = baru) */
+  function masterChecks(kind, d, all, orig) {
+    var out = [], add = function (lvl, f, t, m) { out.push({ lvl: lvl, f: f, t: t, m: m || '' }); };
+    all = all || { pel: [], pro: [] };
+    if (kind === 'PEL') {
+      var nm = U(d.nama).trim(), others = all.pel.filter(function (r) { return U(r.nama) !== U(orig || ''); });
+      if (!nm) add('E', 'nama', 'Customer name is empty');
+      else if (!orig && others.some(function (r) { return U(r.nama) === nm; })) add('E', 'nama', 'Customer already exists', nm);
+      else if (!orig) { var sim = others.filter(function (r) { var a = mdNorm(r.nama), b = mdNorm(nm); return a && b && a !== b && (a.indexOf(b) >= 0 || b.indexOf(a) >= 0); }); if (sim.length) add('W', 'nama', 'Similar customer name exists', sim.slice(0, 3).map(function (r) { return r.nama; }).join(', ')); }
+      var dg = digits(d.npwp);
+      if (!dg) add('W', 'npwp', 'NPWP is empty', 'Needed for the tax invoice (e-Faktur).');
+      else if (dg.length !== 15 && dg.length !== 16) add('E', 'npwp', 'NPWP must be 16 digits', 'Entered: ' + dg.length + ' digits.');
+      else { var n16 = npwp16(dg), dup = others.filter(function (r) { return npwp16(r.npwp) === n16; }); if (dup.length) add('W', 'npwp', 'NPWP already used by another customer', dup.map(function (r) { return r.nama; }).join(', ')); }
+      var nk = digits(d.nitku); if (nk && nk.length !== 22) add('W', 'nitku', 'NITKU should be 22 digits', 'Entered: ' + nk.length + ' digits.');
+      if (!S(d.kode_bp)) add('I', 'kode_bp', 'SAP BP code empty', 'Allowed — the customer is flagged "data incomplete" until filled.');
+      if (!S(d.a1)) add('W', 'a1', 'Address is empty', 'Printed on the invoice and tax invoice.');
+      if (S(d.jenis) && OPT.jenis_pel.indexOf(U(d.jenis)) < 0) add('E', 'jenis', 'Unknown customer type');
+    } else {
+      var np = U(d.npp).replace(/\s+/g, ' ').trim(), oth = all.pro.filter(function (r) { return U(r.npp) !== U(orig || ''); });
+      if (!np) add('E', 'npp', 'NPP is empty');
+      else if (!orig && oth.some(function (r) { return U(r.npp).replace(/\s+/g, ' ') === np; })) add('E', 'npp', 'NPP already exists', np);
+      else if (!/^\d{3}[A-Z] \d{4} [A-Z]{2}$/.test(np)) add('W', 'npp', 'Unusual NPP format', 'Expected like 264C 0431 JT.');
+      if (!S(d.pelanggan)) add('E', 'pelanggan', 'Customer is empty');
+      else if (all.pel.length && !all.pel.some(function (r) { return U(r.nama) === U(d.pelanggan); })) add('E', 'pelanggan', 'Customer not found in Master Pelanggan', S(d.pelanggan));
+      if (!S(d.singkat)) add('E', 'singkat', 'Short project name is empty');
+      var tp = U(d.template) || 'UMUM'; if (OPT.template.indexOf(tp) < 0) add('E', 'template', 'Unknown invoice template');
+      if (!(N(d.nilai) > 0) && tp !== 'WIKA-WITON') add('W', 'nilai', 'Contract value is empty', 'Progress invoices need the contract value.');
+      var rp = N(d.ret_pct); if (rp < 0 || rp > 0.2) add('E', 'ret_pct', 'Retention must be between 0% and 20%');
+      if (rp > 0 && !S(d.ret_pos)) add('W', 'ret_pos', 'Retention position is empty');
+      var tr = S(d.tarif) === '' ? null : N(d.tarif); if (tr !== null && (tr < 0 || tr > 0.1)) add('E', 'tarif', 'WHT rate looks wrong', 'Enter as a fraction, e.g. 0,0265 for 2,65%.');
+      if (N(d.um) > 0 && N(d.nilai) > 0 && N(d.um) > N(d.nilai)) add('E', 'um', 'Down payment exceeds the contract value');
+      else if (N(d.um) > 0 && N(d.nilai) > 0 && Math.abs(N(d.um) / N(d.nilai) - 0.1) > 0.0005 && Math.abs(N(d.um) / N(d.nilai) - 0.2) > 0.0005) add('I', 'um', 'Down payment is ' + pctTxt(N(d.um) / N(d.nilai)) + ' of the contract');
+      if (!S(d.tgl_kontrak)) add('W', 'tgl_kontrak', 'Contract date is empty');
+      if (!S(d.deskripsi)) add('W', 'deskripsi', 'Invoice description is empty', 'Used in the invoice wording ("Atas …").');
+    }
+    return out;
+  }
+  function masterDiff(kind, before, after) {
+    var cols = kind === 'PEL' ? MPEL.cols : MPRO.cols, out = [];
+    cols.forEach(function (c) { var k = c[0]; if (!(k in after)) return; var a = S(before ? before[k] : ''), b = S(after[k]); if (typeof after[k] === 'number' || (before && typeof before[k] === 'number')) { if (rnd(N(a) * 1e6) === rnd(N(b) * 1e6) && (a === '') === (b === '')) return; } else if (a.trim() === b.trim()) return;
+      out.push({ k: k, label: c[1], from: a, to: b, sens: !!before && MD_SENS[kind].indexOf(k) >= 0 }); });
+    return out;
+  }
   function calcInvoice(f) {
     // Meniru rumus form Excel: angka mentah (desimal) dipakai berantai, dibulatkan saat ditampilkan / di sel ber-ROUND.
     var T = U(f.template) || 'UMUM', J = U(f.jenis) || 'PROGRES', K = N(f.nilaiKontrak), tarif = N(f.tarif) || 0.0265;
@@ -3211,7 +3257,7 @@ var ENGINE = (function () {
   }
 
   return {
-    tagihanProyekRows: tagihanProyekRows, closingData: closingData, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    tagihanProyekRows: tagihanProyekRows, masterChecks: masterChecks, masterDiff: masterDiff, MD_SENS: MD_SENS, closingData: closingData, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,

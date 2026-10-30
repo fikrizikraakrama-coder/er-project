@@ -395,3 +395,13 @@ test('Month-End AR Closing: 10 langkah, invoice lebih bayar menghambat (merah), 
   const rc = d.steps.find(x => x.k === 'recon'); assert.strictEqual(rc.st, 'r'); assert.ok(d.blocking.includes('Customer reconciliation'));
   assert.ok(d.ready < d.n); assert.ok(d.report.lebih > 0);
 });
+
+test('Master Data: pemeriksaan pelanggan & proyek, perubahan sensitif terdeteksi', () => {
+  const all = { pel: [{ nama: 'PT INDAH KIAT PULP & PAPER', npwp: '0010001420521000' }], pro: [{ npp: '254C 0824 JT' }] };
+  let L = ENGINE.masterChecks('PEL', { nama: 'PT INDAH KIAT', npwp: '12345', a1: 'x' }, all, '');
+  assert.ok(L.some(x => x.lvl === 'E' && /16 digits/.test(x.t))); assert.ok(L.some(x => x.lvl === 'W' && /Similar/.test(x.t)));
+  L = ENGINE.masterChecks('PRO', { npp: '254C 0824 JT', pelanggan: 'PT INDAH KIAT PULP & PAPER', singkat: 'X', nilai: 1e9, ret_pct: 0.3 }, all, '');
+  assert.ok(L.some(x => /already exists/.test(x.t))); assert.ok(L.some(x => /Retention must/.test(x.t)));
+  const d = ENGINE.masterDiff('PRO', { npp: 'A', nilai: 39993668000, lokasi: 'X' }, { npp: 'A', nilai: 39933668000, lokasi: 'X' });
+  assert.strictEqual(d.length, 1); assert.ok(d[0].sens);
+});
