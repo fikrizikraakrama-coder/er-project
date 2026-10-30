@@ -728,6 +728,7 @@ function arPropsCleanup_() {
     if ((m = k.match(/^AR28_VOID_/))) { var d = v.split('|')[1]; del = !d || d < voidLimit; } // token batal lama: RPC tertunda tidak mungkin masih berjalan
     else if (/^AR28_(?:W_)?PE28_/.test(k)) del = !!pe && k.indexOf('AR28_PE28_' + pe + '_') !== 0 && k.indexOf('AR28_W_PE28_' + pe + '_') !== 0; // digest / lebar kolom file P&E lama (ID Drive bisa memuat "_")
     else if ((m = k.match(/^AR28_VALDRAFT_(\d{4}-\d{2})/))) del = m[1] < draftLimit;           // draf usulan validasi > 6 bulan
+    else if ((m = k.match(/^AR28_RAPLAN_(\d{4}-\d{2})/))) del = m[1] < draftLimit;            // v2.9: draf Rencana Termin > 6 bulan
     if (del) { sp.deleteProperty(k); out.hapus++; } else out.bytes += k.length + v.length;
   });
   // salinan lama di Document Properties yang sudah ada di Script Properties

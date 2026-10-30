@@ -566,6 +566,63 @@ table.cpt{width:100%;border-collapse:collapse}.cpt th{font-size:10.5px;text-tran
 .ov-trend svg{width:100%;height:auto;display:block}
 .ov-empty{font-size:12.5px;color:#5F6F86;background:#F6F8FB;border-radius:8px;padding:12px;text-align:center}
 .ov .more{font-size:12px;color:#0F6E78;font-weight:600;background:none;border:0;padding:8px 0 0;cursor:pointer}
+/* ====================== v2.9: Rencana Termin (RA) — alur Section Head → AR → Section Head */
+.rp{padding:16px 22px 96px;max-width:1560px;margin:0 auto;color:#16263D}
+.rp-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.rp-hd h2{margin:0;font-size:22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rp-hd p{margin:2px 0 0;color:#5B6B80;font-size:12px}.rp-hd .sp{flex:1}
+.rp-who{font-size:12px;font-weight:700;border-radius:20px;padding:4px 11px;background:#EEF2F6;color:#4A5A6E}.rp-who.on{background:#E3F1F2;color:#0B4F56}
+.rp-mo{display:flex;gap:3px;background:#fff;border:1px solid #D3DCE6;border-radius:10px;padding:3px}.rp-mo button{border:0;background:none;padding:6px 10px;border-radius:7px;font:inherit;font-weight:600;font-size:12.5px;color:#6A7A8E;cursor:pointer}.rp-mo button.on{background:#14284B;color:#fff}
+.rp-flow{display:flex;align-items:center;margin-top:12px;background:#fff;border:1px solid #DCE3EB;border-radius:14px;padding:10px 14px}
+.rp-flow div{display:flex;align-items:center;gap:9px;flex:1;min-width:0}.rp-flow b{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#E6ECF2;color:#6A7A8E;font-size:12px;flex:none}
+.rp-flow span{font-size:11.8px;color:#6A7A8E;line-height:1.3}.rp-flow strong{display:block;color:#14284B;font-size:12.5px}
+.rp-flow .dn b{background:#1E9E5A;color:#fff}.rp-flow .on b{background:#0F6E78;color:#fff;box-shadow:0 0 0 4px #D5EEEF}.rp-flow .on strong{color:#0F6E78}.rp-flow>i{height:2px;background:#D3DCE6;flex:0 0 36px;margin:0 10px}.rp-flow>i.d{background:#1E9E5A}
+.rp-ban{margin-top:10px;border-radius:12px;padding:9px 14px;font-size:12.5px;display:flex;gap:10px;align-items:center}.rp-ban .sp{flex:1}
+.rp-ban.g{background:#E9F6EF;border:1px solid #BFE3CC;color:#1E6B3E}.rp-ban.y{background:#FFF8EC;border:1px solid #F3E1BD;color:#7A4E00}.rp-ban.r{background:#FDECEA;border:1px solid #F5C2BC;color:#8A1F17}.rp-ban.t{background:#EEF7F8;border:1px solid #BFE3E5;color:#0B4F56}
+.rp-lay{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;margin-top:12px}
+.rp-main,.rp-card{background:#fff;border:1px solid #DCE3EB;border-radius:16px;overflow:hidden}.rp-card{padding:20px;margin-top:12px}
+.rp-tb{display:flex;gap:7px;align-items:center;padding:11px 14px;border-bottom:1px solid #EEF2F6;flex-wrap:wrap}.rp-tb input{border:1px solid #D3DCE6;border-radius:9px;padding:7px 10px;width:230px;font:inherit;background:#F8FAFC}.rp-tb .sp{flex:1}
+.rp-ch{border:0;border-radius:18px;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;color:#4A5A6E;background:#F1F4F8;cursor:pointer}.rp-ch em{font-style:normal;opacity:.6;margin-left:4px}.rp-ch.on{background:#14284B!important;color:#fff!important}
+.rp-ch.g{background:#E2F4EA;color:#1E7A45}.rp-ch.a{background:#FFF1D6;color:#9A6200}.rp-ch.p{background:#F1E8FB;color:#6B3FA0}.rp-ch.b{background:#E4EEFA;color:#2F5597}.rp-ch.r{background:#FDE4E2;color:#B3261E}
+.rp-bulk{margin-left:auto;background:#14284B;color:#fff;border-radius:10px;padding:4px 8px;font-weight:700;font-size:11.5px;display:flex;gap:4px;align-items:center}.rp-bulk button{border:0;background:#22406B;color:#fff;border-radius:6px;padding:3px 8px;font:inherit;font-size:11.5px;font-weight:700;cursor:pointer}.rp-bulk button:disabled{opacity:.4}
+.rp-grp{display:flex;align-items:center;gap:10px;padding:8px 16px;background:#F7F9FC;border-bottom:1px solid #EEF2F6;font-weight:800;font-size:12.5px;color:#14284B}.rp-grp span{font-weight:500;color:#6A7A8E}.rp-grp em{margin-left:auto;font-style:normal;font-size:11.5px;color:#0F6E78;cursor:pointer}
+.rp-r{display:grid;grid-template-columns:5px 22px minmax(150px,1.4fr) minmax(130px,1.1fr) 190px 128px 170px minmax(150px,1fr);align-items:center;gap:10px;padding:10px 14px 10px 0;border-bottom:1px solid #F0F3F7}
+.rp-r .s{align-self:stretch;border-radius:0 4px 4px 0}.rp-r small{display:block;color:#7A899B;font-size:11px}.rp-r b{font-size:13px}.rp-r.sel{background:#FFFBF2}.rp-r.bad{background:#FFF6F5}
+.rp-r input[type=checkbox]{margin:0 0 0 4px}
+.rp-due{display:inline-block;font-size:10.5px;font-weight:800;border-radius:10px;padding:0 6px}.rp-due.r{background:#FDE4E2;color:#B3261E}.rp-due.y{background:#FFF1D6;color:#9A6200}.rp-due.g{background:#E2F4EA;color:#1E7A45}.rp-due.n{background:#EEF2F6;color:#5F6F86}
+.rp-paid{color:#1E7A45!important;font-weight:600}
+.rp-sc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rp-tg{display:inline-flex;background:#F1F4F8;border-radius:8px;padding:2px}.rp-tg button{border:0;background:none;padding:3px 8px;border-radius:6px;font:inherit;font-size:11px;font-weight:700;color:#6A7A8E;cursor:pointer}.rp-tg button.on{background:#fff;color:#14284B;box-shadow:0 1px 3px rgba(0,0,0,.12)}.rp-tg button:disabled{cursor:default}
+.rp-pb{width:62px}.rp-pb>i{display:flex;height:6px;border-radius:4px;background:#EEF2F6;overflow:hidden}.rp-pb>i>i{background:#F0A21A;border-radius:4px}.rp-pb small{font-size:10px!important}
+.rp-val{text-align:right}.rp-val b{font-size:14px}.rp-val .full{display:block;color:#9AA7B8;text-decoration:line-through;font-size:11px}
+.rp-dc{display:inline-flex;background:#F1F4F8;border-radius:10px;padding:3px;gap:2px}.rp-dc button{width:36px;border:0;background:none;padding:5px 0;border-radius:8px;font:inherit;font-weight:800;font-size:12px;color:#8696A8;cursor:pointer}
+.rp-dc .kC,.rp-pill.kC{background:#1E9E5A;color:#fff}.rp-dc .kS,.rp-pill.kS{background:#D9902A;color:#fff}.rp-dc .kH,.rp-pill.kH{background:#7C4DC0;color:#fff}.rp-dc .kN,.rp-pill.kN{background:#3A68C2;color:#fff}
+.rp-pill{display:inline-block;border-radius:8px;padding:3px 8px;font-weight:800;font-size:11px;background:#EEF2F6;color:#6A7A8E}
+.rp-d small{margin-top:4px}.rp-dt{color:#33475B!important}.rp-dt.m{color:#9AA7B8!important}
+.rp-date{border:1.5px solid #0F6E78;border-radius:8px;padding:4px 6px;font:inherit;font-size:12px;margin-top:4px;width:138px}.rp-date.bad{border:1.5px dashed #E8743B;background:#FFF8F1}
+.rp-in{width:100%;border:1px dashed #CBD5E1;border-radius:8px;padding:5px 8px;font:inherit;font-size:12px;background:#fff}.rp-in.rs{border-color:#B793E6;background:#FAF6FF}.rp-in.need{border-style:solid;border-color:#E8743B}
+.rp-nt{font-size:12px;color:#33475B}.rp-nt.rs{color:#5B2F99}
+.rp-cx{margin:0 14px 10px 32px;background:#FFFCF5;border:1px solid #F3E1BD;border-radius:12px;padding:11px 14px;font-size:12px}.rp-cx>b{margin-right:8px}.rp-cx>span{color:#6A7A8E}
+.rp-cxr{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:8px 0}.rp-cxr label{margin:0 4px 0 6px;font-weight:700;color:#4A5A6E;font-size:11.5px}.rp-cxr button{border:1px solid #CBD5E1;background:#fff;border-radius:8px;padding:4px 10px;font:inherit;font-weight:700;font-size:12px;cursor:pointer}.rp-cxr button.on{border-color:#0F6E78;background:#EEF7F8;color:#0B4F56}
+.rp-cxr input{width:90px;border:1px solid #CBD5E1;border-radius:8px;padding:4px 8px;font:inherit}.rp-cxr select{width:auto;padding:4px 6px}
+.rp-fx{display:flex;justify-content:space-between;gap:10px;background:#fff;border-radius:8px;padding:7px 10px;color:#4A5A6E}.rp-fx b{color:#0F6E78}.rp-cxa{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.rp-empty{padding:26px;text-align:center;color:#5F6F86;font-size:13px;line-height:1.6}
+.rp-side>div{background:#fff;border:1px solid #DCE3EB;border-radius:16px;padding:13px 15px;margin-bottom:12px}.rp-side h3{margin:0 0 2px;font-size:14px}.rp-side p{margin:0 0 8px;color:#6A7A8E;font-size:11.5px}
+.rp-dn{display:flex;align-items:center;gap:12px}.rp-dn b{font-size:20px;display:block}.rp-dn small{color:#6A7A8E;font-size:11px;line-height:1.45;display:block}
+.rp-bk div{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px dashed #EEF2F6}.rp-bk div:last-child{border:0}.rp-bk i{width:10px;height:10px;border-radius:3px;flex:none}.rp-bk small{margin-left:auto;color:#7A899B}.rp-bk b{width:70px;text-align:right}
+.rp-ci div{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px dashed #EEF2F6}.rp-ci div:last-child{border:0}.rp-ci small{display:block;color:#7A899B;font-size:10.5px}
+.rp-big{font-size:22px;font-weight:800}.rp-big small{font-size:13px;color:#6A7A8E;font-weight:600}.rp-prog{height:8px;border-radius:5px;background:#EEF2F6;overflow:hidden;margin-top:6px}.rp-prog i{display:block;height:100%;background:#0F6E78}
+.rp-ta{width:100%;min-height:62px;border:1px solid #CBD5E1;border-radius:9px;padding:7px 9px;font:inherit;font-size:12px}
+.rp-leg{background:#F7F9FC!important;font-size:11.5px;line-height:1.55;color:#33475B}.rp-leg b{color:#14284B}
+.rp-ft{position:fixed;left:22px;right:22px;bottom:12px;max-width:1516px;margin:0 auto;background:#14284B;color:#fff;border-radius:16px;padding:10px 18px;display:flex;align-items:center;gap:20px;z-index:6;box-shadow:0 10px 30px rgba(15,30,60,.25)}
+.rp-ft small{display:block;font-size:10.5px;opacity:.7}.rp-ft b{font-size:15px}.rp-ft>i{width:1px;height:30px;background:#2C4A75}.rp-ft .sp{flex:1}.rp-ft .btn{background:#fff;color:#14284B;border:0}.rp-ft .btn.go{background:#2EC4C4;color:#0B2D3A}.rp-ft .btn.ok{background:#1E9E5A;color:#fff}.rp-ft .btn.red{background:#fff;color:#B42318}
+.rp-msg{font-size:12px;opacity:.8}.rp-msg.e{color:#FFB4AA;opacity:1;font-weight:700}
+@media(max-width:1250px){.rp-lay{grid-template-columns:1fr}.rp-r{grid-template-columns:5px 22px 1.3fr 1fr 170px 118px 160px 1fr}}
+@media(max-width:700px){.rp{padding:12px 10px 120px}.rp-flow{flex-wrap:wrap;gap:6px}.rp-flow>i{display:none}.rp-r{grid-template-columns:5px 1fr 1fr;row-gap:6px}.rp-r>input,.rp-r>span:nth-child(2){display:none}.rp-ft{flex-wrap:wrap;gap:8px;left:8px;right:8px}}
+/* lembar RA–RI (cetak, TTD basah) */
+.rat .rat-t{font-size:7.6pt}.pg-flow.rat table.rat-t th{background:#E2EFDA;color:#1F3864;border-color:#8DB37A}.pg-flow.rat table.rat-t tr.gh th{background:#C6E0B4}.pg-flow.rat table.rat-t tr.nr th{background:#F2F2F2;color:#4A5A72;font-weight:400;font-size:6.6pt}.pg-flow.rat table.rat-h2 th{background:#EDE4F7;color:#4B2A85;border-color:#C9B5E8}
+.rat .rat-t tr.tot2 td{background:#FFF2CC;font-weight:700}.rat-ip{margin-top:3mm}.rat-h{font-weight:700;font-size:8.5pt;color:#1F3864;margin-bottom:1.5mm}.rat-h span{font-weight:400;color:#4A5A72}
+.rat-k{display:grid;grid-template-columns:repeat(4,1fr);gap:2.5mm}.rat-k div{border:.6pt solid #8DB37A;padding:2mm 2.5mm;font-size:7.4pt;color:#33475B}.rat-k small{display:block;font-size:7.4pt;color:#1F3864;font-weight:700}.rat-k b{display:block;font-size:10pt;color:#16263D;margin:.5mm 0}
+.rat .rat-h2{margin-top:2.5mm;font-size:7.4pt}
+.rat-sig{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;margin-top:5mm;break-inside:avoid}.rat-sig div{border:.6pt solid #B9C5D3;padding:2.5mm 3mm;min-height:30mm;display:flex;flex-direction:column;font-size:8pt}
+.rat-sig i{flex:1;min-height:14mm}.rat-sig b{text-decoration:underline}.rat-sig small{color:#4A5A72;font-size:7.4pt}.rat-sig em{font-style:normal;font-size:7.4pt;margin-top:1mm}.rat-sig small.ok{color:#1E6B3E;margin-top:1mm}
 /* ====================== v2.9: Overview baru, Customer Balances, Credit Limits, Reverse Payment */
 .ov2-k{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .ov2-kp{position:relative;overflow:hidden;background:#fff;border:1px solid #DFE6EE;border-radius:14px;padding:14px 16px 12px 18px;min-width:0;min-height:104px}.ov2-kp:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
@@ -2474,7 +2531,7 @@ function bindSurat() {
 /* ====================================================== mode */
 function setMode(m) {
   if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'exec';
-  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'setuju';
+  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'plan', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
   document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim'); $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
@@ -2801,7 +2858,7 @@ function pgBatal(pkg) {
 }
 /* ---------- v2.5: Lembar Validasi Rencana Cair — keputusan Section Head per invoice ---------- */
 var VDEC = null; // { nomor: {d, a} } saat Section Head sedang memutuskan
-var DECL = { C: '✓ CAIR', S: '◇ CADANGAN', N: '→ BULAN DEPAN', H: '⏸ HOLD' }, DECO = ['C', 'S', 'H', 'N'];
+var DECL = { C: '✓ RA', S: '◇ POTENSI TAMBAHAN', N: '→ BULAN BERIKUTNYA', H: '⏸ DALAM PROSES' }, DECO = ['C', 'S', 'H', 'N']; // v2.9: istilah laporan finance
 var VGRPL = { A: 'Tunggakan (jatuh tempo sebelum awal bulan)', B: 'Jatuh tempo bulan ini', C: 'Jatuh tempo belum ada (waiting submit / belum tanda terima)', D: 'Jatuh tempo bulan depan dan seterusnya' };
 var VPOS = { A: 'Tunggakan', B: 'Bulan ini', C: 'Belum ada JT', D: 'Bulan depan+' };
 function vDec(x) { if (PKG && PKG._mode === 'usul' && VUS) { var u = VUS.items[x.nomor]; return u && u.u ? u.u : 'N'; } var v = VDEC && VDEC[x.nomor]; return v ? v.d : (x.dec || 'N'); }
@@ -2997,132 +3054,248 @@ document.addEventListener('click', function (e) {
 });
 document.addEventListener('input', function (e) { var t = e.target; if (t && t.classList && t.classList.contains('vreason') && VDEC) { var n = t.getAttribute('data-vr'); (VDEC[n] || (VDEC[n] = { d: 'H', a: '' })).a = t.value; PKG._pages = buildPages(PKG, ''); } });
 function vInit() { VDEC = {}; (PKG.items || []).forEach(function (x) { VDEC[x.nomor] = { d: x.dec || x.def || 'N', a: x.alasan || '' }; }); }
-/* ====================================================== v2.8.7: Collection Plan (Rencana Inkaso) — menu sendiri, layar penuh
-   memakai data & logika lembar validasi yang sama (apiPackage VAL, VUS, vusSave/vusSubmit); keputusan Section Head tetap di Approvals */
-var PLAN = { ref: '', f: 'all', q: '', sel: {}, seq: 0 };
+/* ====================================================== v2.9: Rencana Termin (RA) — Section Head memilih → AR mengisi tanggal → Section Head menyetujui → cetak & TTD basah
+   data: apiPackage VAL (invoice terbuka, lembar yang diajukan/berlaku) + PKG.plan (draf RAPLAN: tahap, cicilan, alasan, penjelasan) */
+var PLAN = { ref: '', f: 'all', q: '', sel: {}, seq: 0, W: {}, open: '', note: '', edit: false, busy: false };
+var RAC = { C: '#1E9E5A', S: '#D9902A', H: '#7C4DC0', N: '#3A68C2', '': '#CBD5E1' };
+function planNextRef(ref) { var y = +ref.substring(0, 4), m = +ref.substring(5, 7) + 1; if (m > 12) { m = 1; y++; } return y + '-' + ('0' + m).slice(-2); }
+function tgS(d) { if (!d) return ''; var p = String(d).substring(0, 10).split('-'); return +p[2] + ' ' + (BLN_ID[+p[1] - 1] || '').substring(0, 3) + ' ' + p[0]; }
+function planBln(ref) { return BLN_ID[+ref.substring(5, 7) - 1] || ''; }
+function raLbl(d, ref) { return d === 'C' ? '✓ RA Termin' : d === 'S' ? '◇ Potensi Inkaso Tambahan' : d === 'H' ? '⏸ Dalam Proses Penyelesaian' : d === 'N' ? '→ Rencana Inkaso ' + planBln(planNextRef(ref || PLAN.ref)) : 'Belum dipilih'; }
+function raShort(d, ref) { return d === 'C' ? '✓ RA' : d === 'S' ? '◇ Potensi' : d === 'H' ? '⏸ Proses' : d === 'N' ? '→ ' + planBln(planNextRef(ref || PLAN.ref)).substring(0, 3) : '—'; }
 function planMonths() {
   var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = [];
   for (var k = 1; k >= -4; k--) { var mm = m + k, yy = y; while (mm > 12) { mm -= 12; yy++; } while (mm < 1) { mm += 12; yy--; } o.push(yy + '-' + ('0' + mm).slice(-2)); }
-  return o;
+  return o.reverse();
+}
+function planRole() { return B.access && B.access.viewer ? 'view' : B.access && B.access.maker ? 'ar' : 'sh'; }
+function planStage() {
+  var P = PKG, a = P && P.appr, pl = (P && P.plan) || {};
+  if (a && a.status === 'MENUNGGU') return 3;
+  if (pl.st === 'AR') return 2;
+  if (PLAN.edit || pl.st === 'SH') return 1;
+  if (a && a.status === 'DISETUJUI' && !a.berubah && !P.legacy) return 4;
+  return 1;
 }
 function planLoad(ref) {
-  if (!B) return; PLAN.ref = ref || PLAN.ref || B.today.substring(0, 7); PLAN.sel = {};
+  if (!B) return; PLAN.ref = ref || PLAN.ref || B.today.substring(0, 7); PLAN.sel = {}; PLAN.open = ''; PLAN.edit = false;
   var w = $('planWrap'), my = ++PLAN.seq;
-  w.innerHTML = '<div class="cp"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Loading collection plan ' + esc(monEn(PLAN.ref)) + '…</div><div class="sk" style="width:60%"></div><div class="sk" style="height:120px;margin-top:14px"></div></div></div>';
-  if (B.raManual && B.raManual[PLAN.ref]) { PKG = null; VUS = null; return planRender(); }
+  w.innerHTML = '<div class="rp"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Memuat Rencana Termin ' + esc(planBln(PLAN.ref)) + '…</div><div class="sk" style="width:60%"></div><div class="sk" style="height:120px;margin-top:14px"></div></div></div>';
+  if (B.raManual && B.raManual[PLAN.ref]) { PKG = null; return planRender(); }
   call('apiPackage', ['VAL', PLAN.ref], function (pkg) {
     if (my !== PLAN.seq || MODE !== 'plan') return;
-    STACK = false; PKG = pkg; PKG.kind = 'VAL'; VDEC = null; VUS = null;
-    var a = pkg.appr, pend = a && a.status === 'MENUNGGU', ok = a && a.status === 'DISETUJUI' && !a.berubah && !pkg.legacy;
-    PKG._mode = !(B.access && B.access.maker) || pend || ok ? 'view' : 'usul';
-    if (PKG._mode === 'usul') vusInit();
-    planRender();
-  }, function (e) { if (my === PLAN.seq) w.innerHTML = '<div class="cp"><div class="note err" style="margin-top:20px">Collection plan could not be loaded: ' + esc(e.message || e) + '</div></div>'; });
+    STACK = false; PKG = pkg; PKG.kind = 'VAL'; VDEC = null; VUS = null; planInit(); planRender();
+  }, function (e) { if (my === PLAN.seq) w.innerHTML = '<div class="rp"><div class="note err" style="margin-top:20px">Rencana Termin tidak bisa dimuat: ' + esc(e.message || e) + '</div></div>'; });
 }
-function planRevise() { if (!PKG) return; PKG._mode = 'usul'; vusInit(); planRender(); }
-function planDec(x) { return PKG._mode === 'usul' ? (VUS.items[x.nomor] || {}).u || '' : (x.dec || 'N'); }
-function planDue(x) {
-  if (!x.jt) return '<span class="cp-od n">no due date</span>';
-  var d = Math.round((new Date(B.today + 'T00:00:00Z') - new Date(x.jt + 'T00:00:00Z')) / 864e5);
-  return d > 0 ? '<span class="cp-od">' + d + ' d overdue</span>' : d === 0 ? '<span class="cp-od g">due today</span>' : '<span class="cp-od b">in ' + (-d) + ' d</span>';
+function planInit() {
+  var P = PKG, pl = P.plan || {}, st = planStage(), W = {};
+  PLAN.note = pl.note || '';
+  (P.items || []).forEach(function (x) {
+    if (x.gone && st < 3) return;
+    var k = E.normInv(x.nomor), c = (pl.cic || {})[k] || {};
+    if (st >= 3) W[x.nomor] = { u: st === 4 ? (x.dec || 'N') : (x.usul || 'N'), d: x.rtgl || '', pct: +x.pct || 0, ke: +x.ke || 1, kn: +x.kn || 2, al: x.alasan || '', pj: x.pj || '' };
+    else {
+      var u = pl.init ? (x.regU || '') : (+x.paid > 0 ? 'C' : ''), d = x.regT && x.regT >= P.start && x.regT <= P.end ? x.regT : (+x.paid > 0 ? x.paidTgl : '');
+      W[x.nomor] = { u: u, d: d, pct: +c.pct || 0, ke: +c.ke || 1, kn: +c.kn || 2, al: (pl.al || {})[k] || '', pj: (pl.pj || {})[k] || '' };
+    }
+  });
+  PLAN.W = W;
 }
-function planStatusTxt(s) {
-  s = String(s || ''); if (/NETTO LUNAS/.test(s) && /PPN BELUM/.test(s)) return '<span class="cp-sx">Net paid · VAT unpaid</span>';
-  if (/PPN LUNAS/.test(s) && /NETTO BELUM/.test(s)) return '<span class="cp-sx">VAT paid · net unpaid</span>';
-  if (/SEBAGIAN|CICIL/.test(s)) return '<span class="cp-sx">Partly paid</span>';
-  return '<span style="font-size:11.5px;color:var(--steel)">' + esc(titleCaseS(s.replace(/\s*\(.*\)$/, '')) || '—') + '</span>';
+function planVal(x, w) { return E.raPlanValue({ net0: x.net0, nilai: x.nilai, full: x.full }, w && w.pct || 0); }
+function planKas(x, w) { var v = planVal(x, w), n0 = +x.net0 || 0; return n0 > 0.5 ? Math.round((+x.sisa0 || +x.sisa || 0) * v / n0) : (+x.sisa0 || +x.sisa || 0); }
+function planPj(x, w) { return w.pj || E.raPlanPj({ invke: x.invke, net0: x.net0, nilai: x.nilai, full: x.full }, w.pct || 0, w.ke || 1); }
+function planAge(x) {
+  var t = B.today, d = x.jt ? dayDiff(x.jt, t) : null;
+  if (d === null) return '<span class="rp-due n">belum ada JT</span>';
+  return d > 0 ? '<span class="rp-due r">' + d + ' hari lewat JT</span>' : d === 0 ? '<span class="rp-due y">JT hari ini</span>' : '<span class="rp-due ' + (d >= -7 ? 'y' : 'g') + '">JT ' + esc(tg(x.jt).substring(0, 5)) + ' · ' + (-d) + ' hari lagi</span>';
+}
+function planTot() {
+  var T = { C: { n: 0, v: 0, k: 0 }, S: { n: 0, v: 0, k: 0 }, H: { n: 0, v: 0, k: 0 }, N: { n: 0, v: 0, k: 0 }, '': { n: 0, v: 0, k: 0 } }, nd = 0, nc = 0, cic = [];
+  (PKG.items || []).forEach(function (x) { var w = PLAN.W[x.nomor]; if (!w) return; var t = T[w.u] || T['']; t.n++; t.v += planVal(x, w); t.k += planKas(x, w); if (w.u === 'C') { nc++; if (w.d >= PKG.start && w.d <= PKG.end) nd++; } if (w.pct && w.u) cic.push(x); });
+  return { T: T, nd: nd, nc: nc, cic: cic };
 }
 function planRender() {
   var w = $('planWrap'); if (!w || !B) return;
-  var st = w.scrollTop, ref = PLAN.ref, rm = B.raManual && B.raManual[ref], maker = !!(B.access && B.access.maker);
-  var months = planMonths(), h = '<div class="cp"><div class="cp-hd"><h2>Collection Plan</h2><select id="cpMon" aria-label="Plan month">' + months.map(function (m) { return '<option value="' + m + '"' + (m === ref ? ' selected' : '') + '>' + esc(monEn(m)) + (m === B.today.substring(0, 7) ? ' (current)' : '') + '</option>'; }).join('') + '</select>';
+  var sy = w.scrollTop, ref = PLAN.ref, rm = B.raManual && B.raManual[ref], role = planRole(), months = planMonths();
+  var mo = '<div class="rp-mo">' + months.map(function (m) { return '<button type="button" data-rpm="' + m + '" class="' + (m === ref ? 'on' : '') + '">' + esc(m === ref ? planBln(m) + ' ' + m.substring(0, 4) : planBln(m).substring(0, 3)) + '</button>'; }).join('') + '</div>';
+  var h = '<div class="rp"><div class="rp-hd"><div><h2>Rencana Termin (RA)</h2><p>Nilai RA = DPP − PPh · urut umur piutang terlama</p></div>' + mo;
   if (rm) {
-    var nx = (function () { var y = +ref.substring(0, 4), m = +ref.substring(5, 7) + 1; if (m > 12) { m = 1; y++; } return y + '-' + ('0' + m).slice(-2); })();
-    h += '<span class="sp"></span></div><div class="cp-ban g"><b>✓ RA ' + esc(monEn(ref)) + ' follows the RA Manual sheet</b> · ' + plural(rm.n, 'row') + ' · Rp ' + nfDot(rm.total) + (rm.luar ? ' · ' + rm.luar + ' row(s) without a matching invoice number (see Cek Data)' : '') + '<span class="sp"></span></div>' +
-      '<div class="cp-card"><div class="cp-empty">This month\'s collection plan was prepared outside the app (meeting sheet) and is read from the sheet <b>RA Manual</b>.<br>RA-RI Termin, Pareto and Overview already use it; receipts recorded in the app count as RI automatically.<br><br>' +
-      (maker ? '<button class="btn primary" type="button" data-cpm="' + nx + '">Prepare ' + esc(monEn(nx)) + ' plan →</button>' : '') + '</div></div></div>';
+    h += '<span class="sp"></span></div><div class="rp-ban g"><b>✓ RA ' + esc(planBln(ref)) + ' mengikuti sheet RA Manual</b> · ' + rm.n + ' baris' + ' · Rp ' + nfDot(rm.total) + (rm.luar ? ' · ' + rm.luar + ' baris tanpa nomor invoice yang cocok (lihat Cek Data)' : '') + '</div>' +
+      '<div class="rp-card rp-empty">Rencana termin bulan ini disusun di luar aplikasi (lembar rapat) dan dibaca dari sheet <b>RA Manual</b>.<br>Laporan RA-RI Termin, Pareto dan Overview sudah memakainya; penerimaan yang dicatat di aplikasi otomatis menjadi RI.' +
+      (role !== 'view' ? '<br><br><button class="btn primary" type="button" data-rpm="' + planNextRef(ref) + '">Rencana Termin ' + esc(planBln(planNextRef(ref))) + ' →</button>' : '') + '</div></div>';
     w.innerHTML = h; planBind(); return;
   }
   if (!PKG || PKG.kind !== 'VAL') { w.innerHTML = h + '</div></div>'; planBind(); return; }
-  var P = PKG, a = P.appr, usul = P._mode === 'usul', rev = usul && VUS.revisi, pus = rev && VUS.dasar === 'PUSAT';
-  var items = (P.items || []).filter(function (x) { return !x.gone || !usul; });
-  // alur status
-  var stp = function (cls, ic, t) { return '<span class="' + cls + '"><i>' + ic + '</i>' + t + '</span>'; }, sts = a ? a.status : '';
-  var flow = [stp(usul && VUS.savedAt || sts ? 'd' : '', usul && VUS.savedAt || sts ? '✓' : '1', 'Draft'), stp(sts ? 'd' : '', sts ? '✓' : '2', 'Submitted')];
-  if (sts === 'DITOLAK') flow.push(stp('x', '✕', 'Rejected'), stp('', '3', 'Resubmit'));
-  flow.push(sts === 'DISETUJUI' && !a.berubah ? stp('d', '✓', 'Approved') : sts === 'MENUNGGU' ? stp('w', '⏳', 'Awaiting Section Head') : stp('', sts === 'DITOLAK' ? '4' : '3', 'Approved'));
-  h += '<div class="cp-st">' + flow.join('<em></em>') + '</div><span class="sp"></span>' +
-    (!usul && maker && sts === 'DISETUJUI' ? '<button class="btn" type="button" id="cpRev">Propose revision</button>' : '') + '<button class="btn" type="button" id="cpPrint">' + ico('print') + 'Print / PDF</button></div>';
+  var P = PKG, a = P.appr, pl = P.plan || {}, st = planStage(), eDec = st === 1 && role === 'sh', eDate = st === 2 && role === 'ar', ePj = eDec || eDate;
+  var who = st === 1 ? (role === 'sh' ? '👤 Giliran Anda · pilih invoice' : '⏳ Menunggu Section Head memilih') : st === 2 ? (role === 'ar' ? '👤 Giliran Anda · isi tanggal' : '⏳ Menunggu AR mengisi tanggal') : st === 3 ? (role === 'sh' ? '👤 Giliran Anda · persetujuan' : '⏳ Menunggu persetujuan Section Head') : '✓ Disetujui';
+  h = h.replace('<h2>Rencana Termin (RA)</h2>', '<h2>Rencana Termin (RA) <span class="rp-who' + (/Giliran/.test(who) ? ' on' : '') + '">' + who + '</span></h2>');
+  h += '<span class="sp"></span><button class="btn" type="button" id="rpPrint">' + ico('print') + 'Lembar RA–RI</button></div>';
+  // alur 4 langkah
+  var fs = [['Section Head', 'memilih invoice yang cair'], ['AR Officer', 'mengisi tanggal rencana cair'], ['Section Head', 'menyetujui RA'], ['Cetak & TTD basah', 'Mengetahui · Diperiksa · Dibuat']];
+  h += '<div class="rp-flow">' + fs.map(function (f, i) { var s = i + 1 < st || (st === 4 && i === 3) ? 'dn' : i + 1 === st ? 'on' : ''; return (i ? '<i class="' + (i + 1 <= st ? 'd' : '') + '"></i>' : '') + '<div class="' + s + '"><b>' + (s === 'dn' ? '✓' : i + 1) + '</b><span><strong>' + f[0] + '</strong>' + f[1] + '</span></div>'; }).join('') + '</div>';
   // banner
-  if (sts === 'DITOLAK') h += '<div class="cp-ban r"><b>✕ Rejected ' + esc(tg(a.putus_waktu)) + '</b> by ' + esc(a.putus_nama || a.putus_oleh || 'Section Head') + ' — “' + esc(String(a.catatan || '').replace(/^\[DELEGASI[^\]]*\]\s*/, '')) + '”' + (/^\[DELEGASI/.test(a.catatan || '') ? ' <span style="color:var(--steel)">(delegation)</span>' : '') + '<span class="sp"></span><span style="color:var(--steel)">' + esc(a.id) + '</span></div>';
-  else if (sts === 'MENUNGGU') h += '<div class="cp-ban y"><b>⏳ Submitted ' + esc(a.waktu) + '</b> · ' + esc(a.id) + ' · awaiting the Section Head decision in Approvals. The proposal is locked until then.</div>';
-  else if (sts === 'DISETUJUI' && !a.berubah) h += '<div class="cp-ban g"><b>✓ Approved ' + esc(tg(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + (usul ? ' · you are preparing a revision; the approved plan stays in force until the revision is approved' : '') + '</div>';
-  else if (!a && !usul) h += '<div class="cp-ban b"><b>Not submitted yet</b> · the AR Officer has not submitted this month\'s plan; choices shown are preliminary (no proposal = next month).</div>';
-  else if (a && a.berubah) h += '<div class="cp-ban y"><b>Data changed since submission</b> (e.g. new invoices issued) · submit a revision if the plan must change.</div>';
-  if (rev) h += '<div class="cp-rv"><b>Revision basis:</b><label><input type="radio" name="vdasar" value="PUSAT"' + (pus ? ' checked' : '') + '> Central meeting result</label><label><input type="radio" name="vdasar" value="INTERNAL"' + (VUS.dasar === 'INTERNAL' ? ' checked' : '') + '> Internal correction</label>' +
-    (pus ? '<label>· meeting date <input type="date" id="vRapat" value="' + esc(VUS.tglRapat) + '"></label>' : '') + '<span style="color:var(--steel);font-size:11.5px">“Applies” = decision in force · ＋ added by central meeting · − moved to next month</span></div>';
-  // ringkasan
-  var T = { C: { n: 0, v: 0, k: 0 }, S: { n: 0, v: 0, k: 0 }, H: { n: 0, v: 0, k: 0 }, N: { n: 0, v: 0, k: 0 }, '': { n: 0, v: 0, k: 0 } }, nb = 0;
-  items.forEach(function (x) { var d = planDec(x), t = T[d] || T['']; t.n++; t.v += +x.nilai || 0; t.k += +x.sisa || 0; if (usul && vusBad(x)) nb++; });
-  var tgt = +((B.targets || {})[ref] || 0), pct = tgt ? T.C.k / tgt : 0;
-  h += '<div class="cp-tiles"><div class="cp-t C"><small>✓ CAIR · ' + plural(T.C.n, 'invoice') + '</small><b>' + rpShort(T.C.v) + '</b>' + (tgt ? '<div class="cp-bar"><i style="width:' + Math.min(100, Math.round(pct * 100)) + '%"></i></div><div class="s">expected cash ' + rpShort(T.C.k) + ' = ' + Math.round(pct * 100) + '% of collection target ' + rpShort(tgt) + '</div>' : '<div class="s">DPP − PPh · expected cash ' + rpShort(T.C.k) + '</div>') + '</div>' +
-    '<div class="cp-t S"><small>◇ CADANGAN</small><b>' + rpShort(T.S.v) + '</b><div class="s">' + plural(T.S.n, 'invoice') + '</div></div>' +
-    '<div class="cp-t H"><small>⏸ HOLD</small><b>' + rpShort(T.H.v) + '</b><div class="s">' + plural(T.H.n, 'invoice') + '</div></div>' +
-    '<div class="cp-t N"><small>→ NEXT MONTH</small><b>' + T.N.n + ' inv</b><div class="s">' + rpShort(T.N.v) + '</div></div>' +
-    '<div class="cp-t"><small>Not decided yet</small><b>' + T[''].n + ' inv</b><div class="s">' + (usul ? 'sent as → next month' : '—') + '</div></div>' +
-    '<div class="cp-t E' + (nb ? ' on' : '') + '"><small>Planned dates missing</small><b>' + plural(nb, 'row') + '</b><div class="s">required for ✓ / ◇</div></div></div>';
-  // saringan
-  var q = PLAN.q.toUpperCase(), F = [['all', 'All'], ['A', 'A · Arrears'], ['B', 'B · Due this month'], ['C', 'C · No due date'], ['D', 'D · Due next month+']].concat(usul ? [['und', 'Not decided'], ['bad', 'Date missing']] : []);
-  var fm = function (x, f) { return f === 'all' ? true : f === 'und' ? !planDec(x) : f === 'bad' ? usul && vusBad(x) : x.grp === f; };
-  var base = items.filter(function (x) { return !q || (x.pelanggan + ' ' + x.npp + ' ' + x.proyek + ' ' + x.nomor).toUpperCase().indexOf(q) >= 0; });
-  var L = base.filter(function (x) { return fm(x, PLAN.f); }), nSel = Object.keys(PLAN.sel).filter(function (k) { return PLAN.sel[k]; }).length;
-  h += '<div class="cp-card"><div class="cp-tb"><input id="cpQ" placeholder="Search customer, project or invoice" value="' + esc(PLAN.q) + '">' + F.map(function (f) { return '<button type="button" class="cp-ch' + (PLAN.f === f[0] ? ' on' : '') + '" data-cpf="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (x) { return fm(x, f[0]); }).length + '</em></button>'; }).join('') + '<span class="sp"></span>';
-  if (usul) h += '<span class="cp-bulk">' + nSel + ' selected · set to <button type="button" data-cpb="C"' + (nSel ? '' : ' disabled') + '>✓ CAIR</button><button type="button" data-cpb="S"' + (nSel ? '' : ' disabled') + '>◇</button><button type="button" data-cpb="H"' + (nSel ? '' : ' disabled') + '>⏸</button><button type="button" data-cpb="N"' + (nSel ? '' : ' disabled') + '>→</button></span>' +
-    '<details class="cp-qf"><summary class="btn">Quick fill ▾</summary><div class="m"><button type="button" data-uq="A:C">All arrears → ✓ CAIR</button><button type="button" data-uq="B:C">All due this month → ✓ CAIR</button><button type="button" data-uq="D:N">All due next month → → NEXT MONTH</button><button type="button" data-uq="tgl">Blank planned dates = month end</button><button type="button" data-uq="clear">Clear all proposals</button>' + (P.recs ? '<button type="button" data-uq="valx">Cancel this month’s sheets…</button>' : '') + '</div></details>';
-  h += '</div><table class="cpt"><thead><tr>' + (usul ? '<th style="width:28px"><input type="checkbox" id="cpAll"' + (L.length && L.every(function (x) { return PLAN.sel[x.nomor]; }) ? ' checked' : '') + '></th>' : '') + '<th>Customer / project</th><th>Invoice</th><th>Due date</th><th>Outstanding status</th><th class="n">Plan (DPP − PPh)</th>' + (rev ? '<th>Applies</th>' : '') + '<th>' + (usul ? 'Proposal' : 'Decision') + '</th><th>Planned date</th><th>' + (usul ? 'Note' : 'Note / reason') + '</th>' + (pus ? '<th>Meeting</th>' : '') + '</tr></thead><tbody>';
-  var cs = (usul ? 1 : 0) + 8 + (rev ? 1 : 0) + (pus ? 1 : 0);
+  if (pl.back && st === 1) h += '<div class="rp-ban r">↩ <b>' + esc(pl.back) + '</b></div>';
+  if (st === 4 && a) h += '<div class="rp-ban g"><b>✓ RA Termin ' + esc(planBln(ref)) + ' disetujui ' + esc(tgJam(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + ' · cetak Lembar RA–RI untuk tanda tangan basah' + (role === 'sh' ? '<span class="sp"></span><button class="btn sm" type="button" id="rpRev">Revisi RA</button>' : '') + '</div>';
+  if (PLAN.edit && st === 1) h += '<div class="rp-ban y">Anda menyusun <b>revisi</b>. RA yang sudah disetujui tetap berlaku sampai revisi disetujui.</div>';
+  if (PLAN.note && st >= 2) h += '<div class="rp-ban t">✉️ <span><b>Catatan Section Head:</b> “' + esc(PLAN.note) + '”</span></div>';
+  if (st === 3 && a) h += '<div class="rp-ban y"><b>⏳ Diajukan ' + esc(tgJam(a.waktu)) + '</b> · ' + esc(a.id) + ' oleh ' + esc(a.oleh_nama || a.oleh || 'AR') + (role === 'sh' ? ' · pilihan sama dengan yang Anda kirim; AR hanya menambah tanggal' : '') + '</div>';
+  // daftar
+  var TT = planTot(), T = TT.T, items = (P.items || []).filter(function (x) { return PLAN.W[x.nomor]; }), q = PLAN.q.toUpperCase();
+  var F = [['all', 'Semua', ''], ['C', '✓ RA', 'g'], ['S', '◇ Potensi', 'a'], ['H', '⏸ Proses', 'p'], ['N', raShort('N'), 'b'], ['und', 'Belum', ''], ['cic', 'Cicilan', '']].concat(st >= 2 ? [['nodate', 'Perlu tanggal', 'r']] : []);
+  var fm = function (x, f) { var v = PLAN.W[x.nomor]; return f === 'all' ? true : f === 'und' ? !v.u : f === 'cic' ? v.pct > 0 && !!v.u : f === 'nodate' ? v.u === 'C' && !(v.d >= P.start && v.d <= P.end) : v.u === f; };
+  var base = items.filter(function (x) { return !q || (x.pelanggan + ' ' + x.npp + ' ' + x.proyek + ' ' + x.nomor).toUpperCase().indexOf(q) >= 0; }), L = base.filter(function (x) { return fm(x, PLAN.f); });
+  var nSel = Object.keys(PLAN.sel).filter(function (k) { return PLAN.sel[k]; }).length;
+  h += '<div class="rp-lay"><div class="rp-main"><div class="rp-tb"><input id="rpQ" placeholder="Cari pelanggan, proyek, invoice, NPP…" value="' + esc(PLAN.q) + '">' + F.map(function (f) { return '<button type="button" class="rp-ch ' + f[2] + (PLAN.f === f[0] ? ' on' : '') + '" data-rpf="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (x) { return fm(x, f[0]); }).length + '</em></button>'; }).join('') +
+    (eDec ? '<span class="rp-bulk">' + nSel + ' dipilih · jadikan ' + ['C', 'S', 'H', 'N'].map(function (k) { return '<button type="button" data-rpb="' + k + '"' + (nSel ? '' : ' disabled') + '>' + raShort(k) + '</button>'; }).join('') + '</span>' : '') +
+    (eDate ? '<span class="sp"></span><button class="btn sm" type="button" id="rpFillJt">📅 Kosong = jatuh tempo / akhir bulan</button>' : '') + '</div>';
   ['A', 'B', 'C', 'D'].forEach(function (g) {
     var G = L.filter(function (x) { return x.grp === g; }); if (!G.length) return;
-    h += '<tr class="g"><td colspan="' + cs + '">' + g + ' · ' + esc(VGRPL[g]) + ' <span>· ' + plural(G.length, 'invoice') + ' · ' + rpShort(G.reduce(function (t, x) { return t + (+x.nilai || 0); }, 0)) + '</span></td></tr>';
+    h += '<div class="rp-grp">' + g + ' · ' + esc(VGRPL[g].replace(/^Tunggakan.*/, 'Tunggakan')) + ' <span>' + G.length + ' invoice' + ' · ' + rpShort(G.reduce(function (t, x) { return t + (+x.net0 || 0); }, 0)) + (g === 'A' ? ' · umur terlama di atas' : '') + '</span>' + (eDec ? '<em data-rpga="' + g + '">☐ pilih semua grup</em>' : '') + '</div>';
     G.forEach(function (x) {
-      var d = planDec(x), nm = esc(x.nomor), v = usul ? VUS.items[x.nomor] : null, bad = usul && vusBad(x), need = d === 'C' || d === 'S';
-      h += '<tr class="' + (bad && VUS.tried ? 'bad' : PLAN.sel[x.nomor] ? 'sel' : '') + '">' + (usul ? '<td><input type="checkbox" data-cps="' + nm + '"' + (PLAN.sel[x.nomor] ? ' checked' : '') + '></td>' : '') +
-        '<td><b>' + esc(titleCaseS(x.pelanggan)) + '</b><small>' + esc(x.npp) + ' · ' + esc(x.proyek) + '</small></td>' +
-        '<td>' + esc(short(x.nomor)) + '<small>' + esc(x.invke) + '</small>' + (+x.paid > 0 ? '<span class="cp-paid">received ' + esc(tg(x.paidTgl)) + ' · Rp ' + nfDot(x.paid) + '</span>' : '') + (x.carry ? '<small>moved from ' + esc(x.carry) + '</small>' : '') + '</td>' +
-        '<td>' + (x.jt ? esc(tg(x.jt)) : '—') + '<br>' + planDue(x) + '</td><td>' + planStatusTxt(x.status) + '</td>' +
-        '<td class="n"><b>' + nfDot(x.nilai) + '</b><small>cash ' + nfDot(x.sisa) + '</small></td>' +
-        (rev ? '<td>' + (x.cur ? '<span class="cp-pill ' + x.cur + '">' + DECL[x.cur].split(' ')[0] + '</span>' : '—') + '</td>' : '') +
-        '<td>' + (usul ? '<span class="cp-seg">' + DECO.map(function (k) { return '<button type="button" data-un="' + nm + '" data-uk="' + k + '" class="' + k + (d === k ? ' on' : '') + '" title="' + DECL[k] + '">' + (d === k ? DECL[k] : DECL[k].split(' ')[0]) + '</button>'; }).join('') + '</span>' + (rev && pus && x.cur === 'C' && d !== 'C' ? '<small style="color:#B45309">− moved by central meeting</small>' : '')
-          : '<span class="cp-pill ' + d + '">' + DECL[d] + '</span>' + (x.usul && x.usul !== d ? '<small>AR proposed ' + DECL[x.usul] + '</small>' : '')) + '</td>' +
-        '<td>' + (usul ? (need ? '<input type="date" class="vdate' + (bad ? ' bad' : '') + '" data-ud="' + nm + '" value="' + esc(v.d) + '" min="' + P.start + '" max="' + P.end + '">' : '<span style="color:#8696A8;font-size:11.5px">not needed</span>') : esc(tg(x.rtgl)) || '—') + '</td>' +
-        '<td>' + (usul ? '<input class="vcat" data-uc="' + nm + '" value="' + esc(v.c) + '" placeholder="optional">' : esc(d === 'H' ? x.alasan || x.catatan || '' : x.catatan || '')) + '</td>' +
-        (pus ? '<td>' + (need ? '<label style="margin:0;font-size:11.5px;display:flex;gap:4px;align-items:center"><input type="checkbox" data-up="' + nm + '"' + (v.p === '+' ? ' checked' : '') + '> ＋</label>' : '') + '</td>' : '') + '</tr>';
+      var v = PLAN.W[x.nomor], nm = esc(x.nomor), val = planVal(x, v), col = RAC[v.u || ''], needD = v.u === 'C', badD = needD && st >= 2 && !(v.d >= P.start && v.d <= P.end), sisaC = !v.pct && +x.full > 0 && +x.net0 < +x.full - 1;
+      var sch = eDec ? '<span class="rp-tg"><button type="button" data-rpp="' + nm + '" data-v="0" class="' + (v.pct ? '' : 'on') + '">' + (sisaC ? 'Sisa' : 'Penuh') + '</button><button type="button" data-rpp="' + nm + '" data-v="c" class="' + (v.pct ? 'on' : '') + '">' + (v.pct ? 'Cicilan ' + v.pct + '%' : 'Cicilan') + '</button></span>'
+        : '<span class="rp-tg"><button type="button" class="on" disabled>' + (v.pct ? 'Cicilan ' + v.pct + '%' : sisaC ? 'Sisa cicilan' : 'Penuh') + '</button></span>';
+      if (v.pct) sch += '<span class="rp-pb"><i><i style="width:' + Math.min(100, v.pct) + '%"></i></i><small>ke-' + v.ke + ' dari ' + v.kn + '</small></span>';
+      var dec = eDec ? '<span class="rp-dc">' + ['C', 'S', 'H', 'N'].map(function (k) { return '<button type="button" data-rpd="' + nm + '" data-k="' + k + '" class="' + (v.u === k ? 'k' + k : '') + '" title="' + esc(raLbl(k)) + '">' + raShort(k).split(' ')[0] + '</button>'; }).join('') + '</span>'
+        : '<span class="rp-pill k' + (v.u || 'x') + '">' + esc(raShort(v.u)) + (st >= 2 && v.u ? ' · dipilih SH' : '') + '</span>';
+      var dt = eDate && (v.u === 'C' || v.u === 'S') ? '<input type="date" class="rp-date' + (badD ? ' bad' : '') + '" data-rpt="' + nm + '" value="' + esc(v.d) + '" min="' + P.start + '" max="' + P.end + '"><small>' + (needD ? 'wajib' : 'opsional') + '</small>'
+        : v.u === 'C' || v.u === 'S' ? (v.d ? '<small class="rp-dt">cair 📅 ' + esc(tg(v.d)) + '</small>' : '<small class="rp-dt m">' + (st === 1 ? 'tgl: diisi AR' : 'tanggal belum ada') + '</small>') : '<small class="rp-dt m">' + (v.u === 'H' ? 'menunggu penyelesaian' : v.u === 'N' ? 'bulan berikutnya' : v.u === 'S' ? 'diupayakan cair' : '') + '</small>';
+      var pjT = planPj(x, v), nt = v.u === 'H' ? (eDec ? '<input class="rp-in rs' + (!v.al ? ' need' : '') + '" data-rpa="' + nm + '" value="' + esc(v.al) + '" placeholder="Alasan (wajib) — mis. menunggu rekonsiliasi PPN">' : '<span class="rp-nt rs">⏸ ' + esc(v.al || '(alasan belum diisi)') + '</span>')
+        : ePj && v.u ? '<input class="rp-in" data-rpj="' + nm + '" value="' + esc(v.pj) + '" placeholder="' + esc(pjT) + '">' : '<span class="rp-nt">' + esc(v.u ? pjT : '') + '</span>';
+      h += '<div class="rp-r' + (PLAN.sel[x.nomor] ? ' sel' : '') + (badD ? ' bad' : '') + '"><span class="s" style="background:' + col + '"></span>' + (eDec ? '<input type="checkbox" data-rps="' + nm + '"' + (PLAN.sel[x.nomor] ? ' checked' : '') + '>' : '<span></span>') +
+        '<div><b>' + esc(titleCaseS(x.pelanggan)) + '</b><small>' + esc(x.npp) + ' · ' + esc(x.proyek) + '</small></div>' +
+        '<div><b>' + esc(short(x.nomor)) + '</b><small>' + esc(x.invke) + ' · ' + planAge(x) + '</small>' + (+x.paid > 0 ? '<small class="rp-paid">sudah cair ' + esc(tg(x.paidTgl)) + ' · Rp ' + nfDot(x.paid) + '</small>' : '') + '</div>' +
+        '<div class="rp-sc">' + sch + '</div>' +
+        '<div class="rp-val"><b style="color:' + (v.u && v.u !== 'C' ? col : '#14284B') + '">' + nfDot(val) + '</b>' + (v.pct ? '<span class="full">' + nfDot(x.net0) + '</span>' : '<small>' + (v.u === 'S' ? 'tidak masuk RA' : v.u === 'H' ? 'ditahan' : v.u === 'N' ? planBln(planNextRef(ref)) : 'DPP − PPh') + '</small>') + '</div>' +
+        '<div class="rp-d">' + dec + dt + '</div><div class="rp-n">' + nt + '</div></div>';
+      if (eDec && PLAN.open === x.nomor) {
+        var pc = v.pct || 50, vv = E.raPlanValue({ net0: x.net0, full: x.full }, pc);
+        h += '<div class="rp-cx"><b>Skema cicilan · ' + esc(short(x.nomor)) + '</b><span>DPP − PPh invoice Rp ' + nfDot(x.full) + ' · sisa awal bulan Rp ' + nfDot(x.net0) + '</span><div class="rp-cxr"><label>Persen bulan ini</label>' + [30, 40, 50, 60].map(function (p) { return '<button type="button" data-rpc="' + nm + '" data-p="' + p + '" class="' + (pc === p ? 'on' : '') + '">' + p + '%</button>'; }).join('') +
+          '<input type="number" min="1" max="99" step="1" data-rpcx="' + nm + '" value="' + ([30, 40, 50, 60].indexOf(pc) < 0 ? pc : '') + '" placeholder="lainnya %">' +
+          '<label>Cicilan ke</label><select data-rpk="' + nm + '">' + [1, 2, 3, 4].map(function (n) { return '<option' + (v.ke === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select><label>dari</label><select data-rpn="' + nm + '">' + [2, 3, 4, 5].map(function (n) { return '<option' + (v.kn === n ? ' selected' : '') + '>' + n + '</option>'; }).join('') + '</select></div>' +
+          '<div class="rp-fx"><span>(DPP − PPh) Rp ' + nfDot(x.full) + ' × ' + pc + '% = DPP × ' + pc + '% − PPh × ' + pc + '%</span><b>Nilai RA Rp ' + nfDot(vv) + '</b></div><div class="rp-cxa"><button class="btn sm" type="button" data-rpp="' + nm + '" data-v="0">Batalkan cicilan</button><button class="btn sm primary" type="button" data-rpx="1">Selesai</button></div></div>';
+      }
     });
   });
-  if (!L.length) h += '<tr><td colspan="' + cs + '" class="cp-empty">' + (items.length ? 'No invoices match this filter.' : 'No open invoices for ' + esc(monEn(ref)) + '.') + '</td></tr>';
-  h += '</tbody></table></div>';
+  if (!L.length) h += '<div class="rp-empty">' + (items.length ? 'Tidak ada invoice untuk saringan ini.' : 'Tidak ada invoice terbuka untuk ' + esc(planBln(ref)) + '.') + '</div>';
+  h += '</div>';
+  // panel kanan
+  var tgt = +((B.targets || {})[ref] || 0), pT = tgt ? T.C.v / tgt : 0, pT2 = tgt ? (T.C.v + T.S.v) / tgt : 0, R = 40, Cc = 2 * Math.PI * R;
+  h += '<div class="rp-side"><div><h3>RA Termin ' + esc(planBln(ref)) + '</h3><p>' + (tgt ? 'dibandingkan target inkaso' : 'DPP − PPh') + '</p><div class="rp-dn"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="#EAF0F5" stroke-width="11"/><circle cx="48" cy="48" r="40" fill="none" stroke="#1E9E5A" stroke-width="11" stroke-dasharray="' + (Math.min(1, pT) * Cc).toFixed(1) + ' ' + Cc.toFixed(1) + '" transform="rotate(-90 48 48)"/><text x="48" y="53" text-anchor="middle" font-size="16" font-weight="800" fill="#14284B">' + (tgt ? pctId(pT) : T.C.n) + '</text></svg><div><b>' + rpShort(T.C.v) + '</b><small>' + T.C.n + ' invoice' + ' · DPP − PPh' + (tgt ? '<br>target ' + rpShort(tgt) + (T.C.v < tgt ? ' · kurang ' + rpShort(tgt - T.C.v) : '') + '<br>RA + potensi ' + pctId(pT2) : '') + '<br>prakiraan kas (incl. PPN) ' + rpShort(T.C.k) + '</small></div></div></div>' +
+    '<div><h3>Komposisi</h3><p>' + items.length + ' invoice' + ' terbuka</p><div class="rp-bk">' + ['C', 'S', 'H', 'N', ''].map(function (k) { return '<div><i style="background:' + RAC[k] + '"></i>' + esc(raLbl(k)) + '<small>' + T[k].n + '</small><b>' + rpShort(T[k].v).replace('Rp ', '') + '</b></div>'; }).join('') + '</div>' + (st === 1 && T[''].n ? '<p style="margin:6px 0 0">yang belum dipilih otomatis menjadi ' + esc(raLbl('N')) + '</p>' : '') + '</div>';
+  if (st >= 2) {
+    var wk = [0, 0, 0, 0, 0], wn = [0, 0, 0, 0, 0]; items.forEach(function (x) { var v = PLAN.W[x.nomor]; if (v.u !== 'C') return; var i = v.d >= P.start && v.d <= P.end ? Math.min(3, Math.floor((+v.d.substring(8, 10) - 1) / 7)) : 4; wk[i] += planVal(x, v); wn[i]++; });
+    h += '<div><h3>Kelengkapan tanggal</h3><p>wajib untuk semua ✓ RA</p><div class="rp-big">' + TT.nd + ' <small>dari ' + TT.nc + '</small></div><div class="rp-prog"><i style="width:' + (TT.nc ? TT.nd / TT.nc * 100 : 0) + '%"></i></div>' +
+      '<div class="rp-bk" style="margin-top:8px">' + ['Minggu 1 (1–7)', 'Minggu 2 (8–14)', 'Minggu 3 (15–21)', 'Minggu 4 (22–akhir)', 'Belum ada tanggal'].map(function (t, i) { return '<div><i style="background:' + (i === 4 ? '#E8743B' : '#1E9E5A') + '"></i>' + t + '<small>' + wn[i] + '</small><b>' + rpShort(wk[i]).replace('Rp ', '') + '</b></div>'; }).join('') + '</div></div>';
+  }
+  if (TT.cic.length) h += '<div><h3>Cicilan bulan ini</h3><p>sisa otomatis muncul lagi bulan berikutnya</p><div class="rp-ci">' + TT.cic.map(function (x) { var v = PLAN.W[x.nomor]; return '<div><span>' + esc(short(x.nomor)) + ' ' + esc(titleCaseS(x.pelanggan).replace(/^PT\s+/, '').split(' ')[0]) + '<small>' + v.pct + '% · ke-' + v.ke + ' dari ' + v.kn + ' · ' + esc(raShort(v.u)) + '</small></span><b>' + rpShort(planVal(x, v)).replace('Rp ', '') + '</b></div>'; }).join('') + '</div></div>';
+  if (eDec) h += '<div><h3>Catatan untuk AR</h3><p>ikut terkirim bersama pilihan</p><textarea id="rpNote" class="rp-ta" placeholder="mis. Astakona 0185 cukup 50% dulu, sisanya bulan depan">' + esc(PLAN.note) + '</textarea></div>';
+  h += '<div class="rp-leg"><b>⏸ Dalam Proses Penyelesaian</b> = ada hal yang menahan pembayaran (sengketa, PPN, berkas kurang) — alasan wajib, muncul terus sampai dilepas.<br><b>' + esc(raLbl('N')) + '</b> = tidak ada masalah, hanya jadwal cairnya bulan berikutnya.<br><b>◇ Potensi Inkaso Tambahan</b> = diupayakan cair, tidak masuk angka RA.</div></div></div>';
   // bar bawah
-  h += '<div class="cp-ft"><div><small>✓ CAIR</small><b>' + rpShort(T.C.v) + '</b></div><div><small>◇ CADANGAN</small><b>' + rpShort(T.S.v) + '</b></div><div><small>⏸ HOLD</small><b>' + rpShort(T.H.v) + '</b></div>' + (tgt ? '<div><small>vs collection target</small><b>' + Math.round(pct * 100) + '%</b></div>' : '') + '<span class="sp"></span>' +
-    (usul ? '<span class="vmsg" id="vusMsg">' + (VUS.savedAt ? 'Draft saved ' + esc(VUS.savedAt) : 'Not saved yet') + '</span><button class="btn" type="button" data-uq="save">Save draft</button><button class="btn primary" type="button" data-uq="submit">' + ico('send') + (sts === 'DITOLAK' || rev ? 'Resubmit' : 'Submit') + ' to Section Head</button>'
-      : '<span class="vmsg">' + (sts === 'MENUNGGU' ? 'Awaiting Section Head decision' : sts === 'DISETUJUI' ? 'Plan in force' : maker ? '' : 'View only') + '</span>') + '</div></div>';
-  w.innerHTML = h; w.scrollTop = st; planBind();
+  var act = '';
+  if (st === 1 && role === 'sh') act = (PLAN.edit ? '<button class="btn" type="button" data-rpa2="cancelrev">Batal revisi</button>' : '') + '<button class="btn" type="button" data-rpa2="shsave">Simpan</button><button class="btn go" type="button" data-rpa2="shsend">Kirim ke AR Officer ➜</button>';
+  else if (st === 2 && role === 'ar') act = '<button class="btn" type="button" data-rpa2="arback">↩ Kembalikan ke SH</button><button class="btn" type="button" data-rpa2="arsave">Simpan</button><button class="btn go" type="button" data-rpa2="arsubmit"' + (TT.nd < TT.nc ? ' title="Lengkapi tanggal semua ✓ RA"' : '') + '>Ajukan persetujuan ke Section Head ➜</button>';
+  else if (st === 2 && role === 'sh') act = '<button class="btn" type="button" data-rpa2="shpull">Tarik kembali untuk diubah</button>';
+  else if (st === 3 && role === 'sh') act = '<button class="btn red" type="button" data-rpa2="reject">✗ Tolak &amp; kembalikan</button><button class="btn ok" type="button" data-rpa2="approve">✓ Setujui RA Termin</button>';
+  else if (st === 4) act = '<button class="btn go" type="button" id="rpPrint2">' + ico('print') + 'Cetak Lembar RA–RI (TTD basah)</button>';
+  var msg = st === 1 ? (role === 'sh' ? (T[''].n ? T[''].n + ' belum dipilih → ' + raLbl('N') : 'semua invoice sudah dipilih') : 'Section Head sedang memilih invoice') : st === 2 ? (role === 'ar' ? 'tanggal terisi ' + TT.nd + ' / ' + TT.nc : 'menunggu AR mengisi tanggal') : st === 3 ? (role === 'sh' ? '' : 'menunggu persetujuan Section Head') : 'RA berlaku';
+  h += '<div class="rp-ft"><div><small>✓ RA TERMIN</small><b>' + rpShort(T.C.v) + '</b></div><i></i><div><small>◇ Potensi</small><b>' + rpShort(T.S.v).replace('Rp ', '') + '</b></div><div><small>⏸ Proses</small><b>' + rpShort(T.H.v).replace('Rp ', '') + '</b></div><div><small>' + esc(raShort('N')) + '</small><b>' + rpShort(T.N.v).replace('Rp ', '') + '</b></div><span class="sp"></span><span class="rp-msg" id="rpMsg">' + esc(msg) + '</span>' + act + '</div></div>';
+  w.innerHTML = h; w.scrollTop = sy; planBind();
+}
+function planMsg(t, err) { var m = $('rpMsg'); if (m) { m.className = 'rp-msg' + (err ? ' e' : ''); m.textContent = t; } if (err) toast(t); }
+function planShPayload() {
+  var items = [], cic = {}, al = {}, pj = {};
+  (PKG.items || []).forEach(function (x) { var v = PLAN.W[x.nomor]; if (!v || x.gone) return; items.push({ nomor: x.nomor, u: v.u });
+    if (v.pct) cic[x.nomor] = { pct: v.pct, ke: v.ke, kn: v.kn }; if (v.u === 'H' && v.al) al[x.nomor] = v.al; if (v.pj) pj[x.nomor] = v.pj; });
+  return { items: items, cic: cic, al: al, pj: pj, note: PLAN.note };
+}
+function planArPayload() {
+  var items = [], pj = {};
+  (PKG.items || []).forEach(function (x) { var v = PLAN.W[x.nomor]; if (!v || x.gone || !v.u) return; if (v.u === 'C' || v.u === 'S') items.push({ nomor: x.nomor, d: v.d || '' }); pj[x.nomor] = v.pj || ''; });
+  return { items: items, pj: pj };
+}
+function planAct(k) {
+  if (PLAN.busy) return; var ref = PLAN.ref, done = function (t) { return function (r) { PLAN.busy = false; toast(t); refreshAll(function () { planLoad(ref); }); }; }, fail = function (e) { PLAN.busy = false; planMsg(e.message || String(e), true); };
+  var run = function (fn, args, t) { PLAN.busy = true; planMsg('Menyimpan…'); call(fn, args, done(t), fail); };
+  if (k === 'cancelrev') { PLAN.edit = false; planInit(); return planRender(); }
+  if (k === 'shsave') return run('apiRaPlanSave', [ref, planShPayload(), 'sh-save'], 'Pilihan disimpan.');
+  if (k === 'shpull') return confirmDlg('Tarik kembali pilihan?', 'AR belum mengajukan. Pilihan dikembalikan ke Anda untuk diubah, lalu kirim lagi ke AR.', 'Tarik kembali', function () { run('apiRaPlanSave', [ref, planShPayload(), 'sh-save'], 'Pilihan ditarik kembali.'); });
+  if (k === 'shsend') {
+    var T = planTot().T, nh = (PKG.items || []).filter(function (x) { var v = PLAN.W[x.nomor]; return v && v.u === 'H' && !String(v.al || '').trim(); });
+    if (nh.length) { planMsg('Isi alasan untuk ' + nh.length + ' invoice' + ' Dalam Proses Penyelesaian.', true); PLAN.f = 'H'; return planRender(); }
+    if (!T.C.n) return planMsg('Pilih minimal satu invoice sebagai ✓ RA.', true);
+    return confirmDlg('Kirim ke AR Officer?', '<b>' + T.C.n + ' invoice' + ' ✓ RA · ' + rpShort(T.C.v) + '</b> (DPP − PPh)<br>◇ Potensi ' + T.S.n + ' · ⏸ Proses ' + T.H.n + ' · ' + esc(raShort('N')) + ' ' + (T.N.n + T[''].n) + (T[''].n ? ' (termasuk ' + T[''].n + ' yang belum dipilih)' : '') + '<br><span style="font-size:12px;color:var(--steel)">AR mendapat notifikasi untuk mengisi tanggal rencana cair, lalu mengajukan persetujuan kepada Anda.</span>', 'Kirim ke AR', function () { run('apiRaPlanSave', [ref, planShPayload(), 'sh-send'], 'Terkirim ke AR Officer.'); });
+  }
+  if (k === 'arsave') return run('apiRaPlanSave', [ref, planArPayload(), 'ar-save'], 'Tanggal disimpan.');
+  if (k === 'arback') return confirmDlg('Kembalikan ke Section Head?', 'Tulis alasan / usulan perubahan (wajib):<textarea id="dlgNote" placeholder="mis. Indah Kiat 0153 sudah konfirmasi bayar penuh, mohon diubah ke Penuh"></textarea>', 'Kembalikan', function () { var p = planArPayload(); p.note = ($('dlgNote').value || '').trim(); run('apiRaPlanSave', [ref, p, 'ar-back'], 'Dikembalikan ke Section Head.'); }, function () { if (($('dlgNote').value || '').trim().length < 5) { toast('Tulis catatan minimal 5 karakter.'); return false; } });
+  if (k === 'arsubmit') {
+    var TT = planTot(); if (TT.nd < TT.nc) { PLAN.f = 'nodate'; planRender(); return planMsg((TT.nc - TT.nd) + ' invoice ✓ RA belum ada tanggal rencana cair di ' + planBln(ref) + '.', true); }
+    return confirmDlg('Ajukan persetujuan RA Termin ' + esc(planBln(ref)) + '?', '<b>' + TT.T.C.n + ' invoice' + ' ✓ RA · ' + rpShort(TT.T.C.v) + '</b> (DPP − PPh), semua bertanggal.<br><span style="font-size:12px;color:var(--steel)">Section Head menyetujui di aplikasi; setelah itu Lembar RA–RI dicetak untuk tanda tangan basah.</span>', 'Ajukan', function () {
+      PLAN.busy = true; planMsg('Mengajukan…');
+      call('apiRaPlanSave', [ref, planArPayload(), 'ar-save'], function () {
+        var items = (PKG.items || []).filter(function (x) { return !x.gone && PLAN.W[x.nomor]; }).map(function (x) { return { nomor: x.nomor, d: PLAN.W[x.nomor].d || '' }; });
+        call('apiSubmit', ['VAL', ref, { flow: 'SH', items: items }], done('Diajukan ke Section Head.'), fail);
+      }, fail);
+    });
+  }
+  if (k === 'approve' || k === 'reject') {
+    var a = PKG.appr, ok = k === 'approve';
+    return confirmDlg(ok ? 'Setujui RA Termin ' + esc(planBln(ref)) + '?' : 'Tolak & kembalikan?', (ok ? 'RA Termin berlaku: <b>' + rpShort(planTot().T.C.v) + '</b>. Setelah disetujui, cetak Lembar RA–RI untuk tanda tangan basah.' : 'Pilihan kembali ke Anda untuk diperbaiki, lalu dikirim lagi ke AR.') + '<textarea id="dlgNote" placeholder="' + (ok ? 'Catatan (opsional)' : 'Alasan penolakan (wajib)') + '"></textarea>', ok ? 'Setujui' : 'Tolak', function () {
+      PLAN.busy = true; planMsg('Menyimpan keputusan…');
+      call('apiDecide', [a.id, ok ? 'SETUJU' : 'TOLAK', ($('dlgNote').value || '').trim(), []], done(ok ? 'RA Termin disetujui.' : 'Dikembalikan.'), fail);
+    }, function () { if (!ok && !($('dlgNote').value || '').trim()) { toast('Isi alasan penolakan.'); return false; } });
+  }
 }
 function planBind() {
   var w = $('planWrap');
-  if ($('cpMon')) $('cpMon').onchange = function () { planLoad(this.value); };
-  w.querySelectorAll('[data-cpm]').forEach(function (b) { b.onclick = function () { planLoad(b.dataset.cpm); }; });
-  if ($('cpRev')) $('cpRev').onclick = planRevise;
-  if ($('cpPrint')) $('cpPrint').onclick = function () { printHtml(pgValidasi(PKG)); };
-  if ($('cpQ')) $('cpQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(planBind.t); planBind.t = setTimeout(function () { PLAN.q = v; planRender(); var i = $('cpQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
-  w.querySelectorAll('[data-cpf]').forEach(function (b) { b.onclick = function () { PLAN.f = b.dataset.cpf; planRender(); }; });
-  w.querySelectorAll('[data-cps]').forEach(function (c) { c.onchange = function () { PLAN.sel[c.dataset.cps] = c.checked; planRender(); }; });
-  if ($('cpAll')) $('cpAll').onchange = function () { var on = this.checked; w.querySelectorAll('[data-cps]').forEach(function (c) { PLAN.sel[c.dataset.cps] = on; }); planRender(); };
-  w.querySelectorAll('[data-cpb]').forEach(function (b) { b.onclick = function () {
-    var k = b.dataset.cpb, n = 0;
-    (PKG.items || []).forEach(function (x) { if (!PLAN.sel[x.nomor] || x.gone) return; var v = VUS.items[x.nomor]; if (!v || (+x.paid > 0 && k !== 'C' && k !== 'S')) return;
-      v.u = k; n++; if ((k === 'C' || k === 'S') && +x.paid > 0 && !v.d) v.d = x.paidTgl; if (VUS.revisi && VUS.dasar === 'PUSAT' && k === 'C' && x.cur !== 'C' && !v.p) v.p = '+'; if (k !== 'C' && k !== 'S') v.p = ''; });
-    PLAN.sel = {}; toast(plural(n, 'invoice') + ' set to ' + DECL[k] + '.'); planRender(); }; });
-  w.querySelectorAll('.cp-qf .m button').forEach(function (b) { b.addEventListener('click', function () { var d = b.closest('details'); if (d) d.open = false; }); });
+  w.querySelectorAll('[data-rpm]').forEach(function (b) { b.onclick = function () { planLoad(b.dataset.rpm); }; });
+  if ($('rpPrint')) $('rpPrint').onclick = function () { printHtml(pgRaTermin()); };
+  if ($('rpPrint2')) $('rpPrint2').onclick = function () { printHtml(pgRaTermin()); };
+  if ($('rpRev')) $('rpRev').onclick = function () { PLAN.edit = true; planInit(); planRender(); };
+  if ($('rpQ')) $('rpQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(planBind.t); planBind.t = setTimeout(function () { PLAN.q = v; planRender(); var i = $('rpQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
+  if ($('rpNote')) $('rpNote').oninput = function () { PLAN.note = this.value; };
+  if ($('rpFillJt')) $('rpFillJt').onclick = function () { var n = 0; (PKG.items || []).forEach(function (x) { var v = PLAN.W[x.nomor]; if (!v || v.u !== 'C' || (v.d >= PKG.start && v.d <= PKG.end)) return; v.d = x.jt && x.jt >= PKG.start && x.jt <= PKG.end ? x.jt : PKG.end; n++; }); toast(n + ' tanggal' + ' diisi — periksa lagi sebelum mengajukan.'); planRender(); };
+  w.querySelectorAll('[data-rpf]').forEach(function (b) { b.onclick = function () { PLAN.f = b.dataset.rpf; planRender(); }; });
+  w.querySelectorAll('[data-rps]').forEach(function (c) { c.onchange = function () { PLAN.sel[c.dataset.rps] = c.checked; planRender(); }; });
+  w.querySelectorAll('[data-rpga]').forEach(function (b) { b.onclick = function () { var g = b.dataset.rpga, L = (PKG.items || []).filter(function (x) { return x.grp === g && PLAN.W[x.nomor]; }), on = !L.every(function (x) { return PLAN.sel[x.nomor]; }); L.forEach(function (x) { PLAN.sel[x.nomor] = on; }); planRender(); }; });
+  w.querySelectorAll('[data-rpb]').forEach(function (b) { b.onclick = function () { var k = b.dataset.rpb, n = 0; Object.keys(PLAN.sel).forEach(function (nm) { if (PLAN.sel[nm] && PLAN.W[nm]) { PLAN.W[nm].u = k; n++; } }); PLAN.sel = {}; toast(n + ' invoice' + ' → ' + raLbl(k) + '.'); planRender(); }; });
+  w.querySelectorAll('[data-rpd]').forEach(function (b) { b.onclick = function () { var v = PLAN.W[b.dataset.rpd], k = b.dataset.k; v.u = v.u === k ? '' : k; planRender(); if (v.u === 'H' && !v.al) { var i = w.querySelector('[data-rpa="' + b.dataset.rpd.replace(/"/g, '\\"') + '"]'); if (i) i.focus(); } }; });
+  w.querySelectorAll('[data-rpp]').forEach(function (b) { b.onclick = function () { var nm = b.dataset.rpp, v = PLAN.W[nm]; if (b.dataset.v === '0') { v.pct = 0; PLAN.open = ''; } else { if (!v.pct) v.pct = 50; PLAN.open = PLAN.open === nm ? '' : nm; } planRender(); }; });
+  w.querySelectorAll('[data-rpc]').forEach(function (b) { b.onclick = function () { PLAN.W[b.dataset.rpc].pct = +b.dataset.p; planRender(); }; });
+  w.querySelectorAll('[data-rpcx]').forEach(function (i) { i.onchange = function () { var p = Math.round(+this.value || 0); if (p > 0 && p < 100) { PLAN.W[i.dataset.rpcx].pct = p; planRender(); } else toast('Persen cicilan 1–99.'); }; });
+  w.querySelectorAll('[data-rpk]').forEach(function (s) { s.onchange = function () { PLAN.W[s.dataset.rpk].ke = +this.value; planRender(); }; });
+  w.querySelectorAll('[data-rpn]').forEach(function (s) { s.onchange = function () { PLAN.W[s.dataset.rpn].kn = +this.value; planRender(); }; });
+  w.querySelectorAll('[data-rpx]').forEach(function (b) { b.onclick = function () { PLAN.open = ''; planRender(); }; });
+  w.querySelectorAll('[data-rpt]').forEach(function (i) { i.onchange = function () { PLAN.W[i.dataset.rpt].d = this.value; planRender(); }; });
+  w.querySelectorAll('[data-rpa]').forEach(function (i) { i.oninput = function () { PLAN.W[i.dataset.rpa].al = this.value; }; });
+  w.querySelectorAll('[data-rpj]').forEach(function (i) { i.oninput = function () { PLAN.W[i.dataset.rpj].pj = this.value; }; });
+  w.querySelectorAll('[data-rpa2]').forEach(function (b) { b.onclick = function () { planAct(b.dataset.rpa2); }; });
+}
+/** Lembar RA–RI Termin (format pusat) untuk tanda tangan basah: Mengetahui (kiri) · Diperiksa & disetujui (tengah) · Dibuat (kanan) */
+function pgRaTermin() {
+  var P = PKG, ref = PLAN.ref, a = P.appr, st = planStage(), TT = planTot(), T = TT.T, R0 = P.roles || {}, bln = planBln(ref).toUpperCase() + ' ' + ref.substring(0, 4);
+  var items = (P.items || []).filter(function (x) { return PLAN.W[x.nomor]; }), C = items.filter(function (x) { return PLAN.W[x.nomor].u === 'C'; });
+  var riAll = items.reduce(function (t, x) { return t + (+x.paid || 0); }, 0), riRA = C.reduce(function (t, x) { return t + (+x.paid || 0); }, 0), tgt = +((B.targets || {})[ref] || 0);
+  var stTxt = st === 4 ? (a ? 'Disetujui ' + esc(a.id) + ' ' + esc(tg(a.putus_waktu)) : 'Disetujui') : st === 3 ? 'Diajukan ' + esc(a.id) + ' · menunggu persetujuan' : 'DRAF — belum disetujui';
+  var h = '<div class="page pg-flow land rat">' + docHead('RENCANA & REALISASI TERMIN (RA–RI) · ' + bln, 'Format laporan ke pusat · RA = DPP − PPh · RI = nominal cair (incl. PPN) · Pencapaian = Total RI ÷ RA', esc(stTxt) + (P.rev !== undefined && st >= 3 ? '<br>Rev.' + ('0' + (P.rev || 0)).slice(-2) : '') + '<br>dicetak ' + esc(tg(B.today)));
+  h += '<table class="t rat-t"><thead><tr class="gh"><th colspan="10">RA TERMIN ' + bln + '</th><th colspan="2">RI TERMIN ' + bln + '</th></tr><tr><th style="width:7mm">NO</th><th>PELANGGAN</th><th>PROYEK</th><th style="width:20mm">NPP</th><th style="width:17mm">TANGGAL INVOICE</th><th style="width:34mm">NO INVOICE</th><th style="width:24mm">NILAI RA<br>(DPP − PPh)</th><th style="width:11mm">UMUR (HARI)</th><th style="width:30mm">PENJELASAN</th><th style="width:17mm">RA TANGGAL CAIR</th><th style="width:24mm">NOMINAL CAIR</th><th style="width:17mm">TANGGAL CAIR</th></tr>' +
+    '<tr class="nr">' + [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (n) { return '<th>' + n + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    C.map(function (x, i) { var v = PLAN.W[x.nomor]; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(x.pelanggan) + '</td><td>' + esc(x.proyek) + '</td><td>' + esc(x.npp) + '</td><td>' + esc(tgS(x.tgl)) + '</td><td>' + esc(x.nomor) + '</td><td class="n">' + nd(planVal(x, v)) + '</td><td class="n">' + (x.tgl ? Math.max(0, dayDiff(x.tgl, B.today)) : '') + '</td><td>' + esc(planPj(x, v)) + '</td><td>' + (v.d ? esc(tgS(v.d)) : '') + '</td><td class="n">' + (+x.paid > 0 ? nd(x.paid) : '') + '</td><td>' + (+x.paid > 0 ? esc(tgS(x.paidTgl)) : '') + '</td></tr>'; }).join('') +
+    (C.length ? '' : '<tr><td colspan="12" style="text-align:center">Belum ada invoice ✓ RA.</td></tr>') +
+    '</tbody><tbody><tr class="tot"><td colspan="6" style="text-align:center">TOTAL RA (' + C.length + ' invoice)</td><td class="n">' + nd(T.C.v) + '</td><td colspan="3"></td><td class="n">' + nd(riRA) + '</td><td></td></tr>' +
+    '<tr class="tot2"><td colspan="6" style="text-align:center">TOTAL RI BULAN INI (seluruh uang masuk, termasuk cair di luar RA)</td><td colspan="4"></td><td class="n">' + nd(riAll) + '</td><td class="n">' + (T.C.v ? pctId(riAll / T.C.v, 2) : '') + '</td></tr></tbody></table>';
+  h += '<div class="rat-ip"><div class="rat-h">Informasi Pendukung <span>(tidak termasuk angka RA yang dilaporkan ke pusat)</span></div><div class="rat-k">' +
+    '<div><small>◇ Potensi Inkaso Tambahan</small><b>Rp ' + nd(T.S.v) + '</b>' + T.S.n + ' invoice' + ' · diupayakan cair bila memungkinkan</div>' +
+    '<div><small>⏸ Dalam Proses Penyelesaian</small><b>Rp ' + nd(T.H.v) + '</b>' + T.H.n + ' invoice' + ' · menunggu kelengkapan / konfirmasi pelanggan</div>' +
+    '<div><small>→ Rencana Inkaso ' + esc(planBln(planNextRef(ref))) + ' ' + planNextRef(ref).substring(0, 4) + '</small><b>Rp ' + nd(T.N.v + T[''].v) + '</b>' + (T.N.n + T[''].n) + ' invoice' + ' · sesuai jadwal bayar pelanggan</div>' +
+    '<div><small>Target Inkaso ' + esc(planBln(ref)) + '</small><b>' + (tgt ? 'Rp ' + nd(tgt) : '—') + '</b>' + (tgt ? 'RA ' + pctId(T.C.v / tgt) + ' · RA + potensi tambahan ' + pctId((T.C.v + T.S.v) / tgt) + ' dari target' : 'target belum diisi di Parameter') + '</div></div>';
+  var H = items.filter(function (x) { return PLAN.W[x.nomor].u === 'H'; });
+  if (H.length) h += '<table class="t rat-h2"><tr><th style="width:7mm">NO</th><th>Dalam proses penyelesaian · pelanggan</th><th style="width:34mm">No invoice</th><th style="width:24mm">Nilai (DPP − PPh)</th><th>Keterangan</th></tr>' + H.map(function (x, i) { var v = PLAN.W[x.nomor]; return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(x.pelanggan) + '</td><td>' + esc(x.nomor) + '</td><td class="n">' + nd(planVal(x, v)) + '</td><td>' + esc(v.al || '') + '</td></tr>'; }).join('') + '</table>';
+  h += '</div>';
+  var mk = R0.MENGETAHUI || { nama: 'Yusqi Audah Firdaus', jabatan: 'Manager of Concrete Service Unit' }, ap = R0.PENYETUJU || {}, pb = R0.PEMBUAT || {};
+  var box = function (t, p, x) { return '<div><span>' + t + '</span><i></i><b>' + esc(p.nama || '………………………') + '</b><small>' + esc(p.jabatan || '') + '</small><em>Tanggal : …………………</em>' + (x || '') + '</div>'; };
+  h += '<div class="rat-sig">' + box('Mengetahui,', mk) + box('Diperiksa &amp; disetujui oleh,', ap, st === 4 && a ? '<small class="ok">disetujui di aplikasi · ' + esc(a.id) + ' · ' + esc(tgJam(a.putus_waktu)) + '</small>' : '') + box('Dibuat oleh,', pb) + '</div>';
+  return h + docFoot(st === 4 ? P : null) + '</div>';
 }
 function pgRekap(pkg) {
   var A = { 'PIUTANG_USAHA': 'Piutang Usaha', 'PIUTANG_RETENSI': 'Piutang Retensi', 'TAGBRUT': 'Tagihan Bruto', 'HAD': 'Hasil Akan Diterima' };
@@ -3170,6 +3343,7 @@ function openPackage(kind, ref, quiet, after) {
   if (!quiet) { var w0 = $('sheetwrap'); w0.style.transform = ''; w0.style.width = ''; w0.style.height = ''; w0.innerHTML = skelHtml(kind, ref); }
   var my = openPackage.seq = (openPackage.seq || 0) + 1; // klik beruntun: hanya lembar terakhir yang ditampilkan
   call('apiPackage', [kind, ref], function (pkg) {
+    if (kind === 'VAL' && pkg.flowSH && MODE !== 'plan') { PLAN.ref = pkg.ref; if (STACK) closePackage(); setMode('plan'); return; } // v2.9: RA alur Section Head dibuka di layar Rencana Termin
     var show = function (invDocs) { if (my !== openPackage.seq) return; PKG = pkg; VDEC = null; PKG._pages = buildPages(pkg, invDocs); showPackage(); if (after) setTimeout(after, 300); };
     if (kind !== 'INV') return show('');
     if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
@@ -3524,13 +3698,13 @@ var NAV_MAKER = [
   { g: 'cust', ic: 'users', t: 'Customers', items: [['md', 'book', 'Customer Master', 'customers, projects & addenda', '', 'BP'], ['bal', 'users', 'Customer Balances', 'open items & aging per customer, ledger', '', 'FD10N']] },
   { g: 'pen', ic: 'doc', t: 'Invoices', items: [['buat', 'doc', 'Create Invoice', 'invoice, receipt, BAP, draft tax invoice', '', 'FB70'], ['buka', 'book', 'Invoice List', 'search, revise, document filing, manual close', '', 'FBL5N'], ['act:xinv', 'xd', 'Cancel Invoice', 'cancel with Section Head approval', '', 'FB08']] },
   { g: 'pay', ic: 'bank', t: 'Payments', items: [['bayar', 'bank', 'Post Incoming Payment', 'bank transfer, offset, compensation', '', 'F-28'], ['tbayar', 'book', 'Payment List', 'receipts per month, approval sheets, print'], ['act:rev', 'rev', 'Reverse Payment', 'reverse a posted receipt (with approval)', '', 'FBRA']] },
-  { g: 'col', ic: 'cal', t: 'Collections', badge: 'colBadge', y: 1, items: [['plan', 'cal', 'Collection Plan', 'monthly plan (RA) for the Section Head', 'planBadge'], ['surat', 'mail', 'Dunning Letters', 'letters for overdue invoices, escalation', 'srBadge', 'F150'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
+  { g: 'col', ic: 'cal', t: 'Collections', badge: 'colBadge', y: 1, items: [['plan', 'cal', 'Rencana Termin (RA)', 'Section Head selects · AR fills dates · approval', 'planBadge'], ['surat', 'mail', 'Dunning Letters', 'letters for overdue invoices, escalation', 'srBadge', 'F150'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { g: 'close', ic: 'fold', t: 'Month-End', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' },
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin', badge: 'planBadge', y: 1 }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' },
   { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { g: 'close', ic: 'fold', t: 'Month-End', items: [['close', 'chk', 'AR Closing Checklist', 'month-end check & sign-off'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, ledgers']] }];
-var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' },
+var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin' },
   { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
 var NAV = NAV_MAKER;
@@ -3543,7 +3717,7 @@ function buildNav(maker) {
     return '<button type="button" class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</button>';
   }).join('');
   var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['plan', 'cal', 'Plan'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
-    : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
+    : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['plan', 'cal', 'RA'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
   $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
   document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (/^act:/.test(b.dataset.mode)) { navAct(b.dataset.mode.substring(4)); return; } if (STACK) closePackage(); setMode(b.dataset.mode); }; });
   document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
@@ -3552,7 +3726,7 @@ function buildNav(maker) {
 function ddClose() { document.querySelectorAll('.tb-dd').forEach(function (d) { d.hidden = true; }); }
 function bindTop() {
   document.addEventListener('click', function (e) { if (!e.target.closest('.tb-dd')) ddClose(); });
-  $('tbBell').onclick = function () { setMode('setuju'); };
+  $('tbBell').onclick = function () { var pp = planPending(); if (pp.length) { PLAN.ref = pp[0].ref; setMode('plan'); return; } setMode(B && B.access && B.access.viewer ? 'exec' : 'setuju'); };
 }
 function navShow(m) {
   document.querySelectorAll('#tbNav .tb-it').forEach(function (b) {
@@ -3562,7 +3736,7 @@ function navShow(m) {
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
   var grp = { buat: 'buka', surat: 'plan', tbayar: 'bayar', close: 'dok', md: 'dashboard', bal: 'dashboard', lim: 'plan' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Create Invoice', buka: 'Invoice List', surat: 'Dunning Letters', bayar: 'Post Incoming Payment', tbayar: 'Payment List', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', md: 'Customer Master', bal: 'Customer Balances', lim: 'Credit Limits', dok: 'Documents & Handover', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Create Invoice', buka: 'Invoice List', surat: 'Dunning Letters', bayar: 'Post Incoming Payment', tbayar: 'Payment List', plan: 'Rencana Termin', exec: 'Executive Summary', close: 'AR Closing', md: 'Customer Master', bal: 'Customer Balances', lim: 'Credit Limits', dok: 'Documents & Handover', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3592,13 +3766,24 @@ function mSumRender() {
   $('mDocBtn').onclick = function () { bc.add('m-doc'); fitZoom(); };
 }
 function navOpen() { }
+/** v2.9: Rencana Termin yang menunggu tindakan akun ini — AR: isi tanggal (dikirim SH) · Section Head: pilih invoice bulan berjalan */
+function planPending() {
+  if (!B || !B.raPlans || (B.access && B.access.viewer)) return [];
+  var maker = !!(B.access && B.access.maker), cur = B.today.substring(0, 7), o = [];
+  B.raPlans.forEach(function (p) {
+    if (B.raManual && B.raManual[p.ref]) return;
+    if (maker && p.st === 'AR') o.push({ ref: p.ref, t: 'Section Head memilih RA Termin ' + planBln(p.ref) + ' — isi tanggal rencana cair' });
+    if (!maker && (p.st === 'SH' || (!p.st && p.ref === cur && dokStatus(B.DOC.VAL, cur)[0] !== 'ok' && dokStatus(B.DOC.VAL, cur)[0] !== 'wt'))) o.push({ ref: p.ref, t: (p.back ? 'RA Termin ' + planBln(p.ref) + ' dikembalikan — ' : 'Pilih invoice RA Termin ') + planBln(p.ref) });
+  });
+  return o;
+}
 function navBadges() {
   if (!B || !$('tbNav')) return;
   var maker = !!(B.access && B.access.maker), A = apModel(), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
-  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0, pl = maker && dokStatus(B.DOC.VAL, B.today.substring(0, 7))[0] !== 'ok' ? 1 : 0;
+  var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0, pl = planPending().length;
   [['apBadge', ap], ['dokBadge', dk], ['planBadge', pl], ['colBadge', pl + sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
-  $('tbBellDot').hidden = !ap;
-  $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
+  $('tbBellDot').hidden = !ap && !pl;
+  $('tbBell').title = pl ? planPending()[0].t : ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
 }
 /* ====================================================== Tutup Buku Bulanan */
 var DOK_AN = {};
@@ -4308,7 +4493,9 @@ function ovRender(d) {
     var vs = dokStatus(B.DOC.VAL, cur), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length, nd = B.payments.filter(function (p) { return !p.tgl; }), dp = dokPending() + (B.hoPending || 0), df = dfMissingCount();
     if (d.nOd) ai(0, '⏰', '#FDE4E2', plural(d.nOd, 'invoice') + ' overdue', rpShort(d.overdue) + (d.oldest ? ' · oldest ' + d.oldest.d + ' days (4C.' + esc(short(d.oldest.nomor)) + ' ' + esc(titleCaseS(d.oldest.pelanggan).replace(/^PT\s+/, '')) + ')' : ''), d.nOd, 'surat', 'Dunning Letters');
     if (sr) ai(0, '✉️', '#FDE4E2', plural(sr, 'dunning letter') + ' due', 'next letter or escalation is due', sr, 'surat', 'Dunning Letters');
-    if (vs[0] !== 'ok') ai(1, '📅', '#FFF1D6', 'Collection plan ' + monEn(cur, true) + ': ' + esc(vs[1].toLowerCase()), 'prepare and send to the Section Head', '!', 'plan', 'Collection Plan');
+    var rpc = (B.raPlans || []).filter(function (p) { return p.ref === cur; })[0] || {}, rman = B.raManual && B.raManual[cur];
+    planPending().forEach(function (p) { ai(0, '📅', '#FDE4E2', esc(p.t), 'Section Head sudah memilih invoice — tanggal wajib untuk semua ✓ RA', '!', 'plan:' + p.ref, 'Rencana Termin'); });
+    if (!rman && rpc.st !== 'AR' && vs[0] !== 'ok') ai(2, '📅', '#E4EEFA', 'RA Termin ' + planBln(cur) + ': ' + (rpc.st === 'WAIT' || vs[0] === 'wt' ? 'menunggu persetujuan Section Head' : 'menunggu Section Head memilih invoice'), 'alur: Section Head memilih → AR mengisi tanggal → Section Head menyetujui', '⏳', 'plan', 'Rencana Termin');
     if (A.k.belum + A.k.ulang) ai(A.k.ulang ? 0 : 1, '📝', A.k.ulang ? '#FDE4E2' : '#FFF1D6', 'Documents to submit for approval', A.k.belum + ' not submitted' + (A.k.ulang ? ' · ' + A.k.ulang + ' to resubmit' : ''), A.k.belum + A.k.ulang, 'setuju', 'Approvals');
     if (nd.length) ai(0, '🧾', '#FDE4E2', plural(nd.length, 'receipt') + ' missing the payment date', esc(nd.slice(0, 3).map(function (p) { return p.idp; }).join(', ')) + ' · fill the date in Log Penerimaan', nd.length, 'tbayar', 'Payment List');
     if (dp) ai(1, '📋', '#FFF1D6', 'Month-end close items open', (dokPending() ? 'monthly summary not approved' : '') + (dokPending() && B.hoPending ? ' · ' : '') + (B.hoPending ? plural(B.hoPending, 'document') + ' not handed over' : ''), dp, 'close', 'AR Closing');
@@ -4318,6 +4505,7 @@ function ovRender(d) {
   } else {
     var TT = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : 'oldest first'; };
     [['PAY', '🏦', 'Cash receipts & reversals'], ['INV', '🧾', 'Invoices'], ['VAL', '📅', 'Collection plan validation'], ['LAIN', '⚠️', 'Other (cancellations, manual close)']].forEach(function (x) { var n = TT[x[0]].tunggu.length; if (n) ai(n > 3 ? 0 : 1, x[1], '#E4EEFA', x[2], old(TT[x[0]]), n, viewer ? '' : 'ap:' + x[0], viewer ? 'Pending' : 'Review'); });
+    if (!viewer) planPending().forEach(function (p) { ai(0, '📅', '#E3F1F2', esc(p.t), 'centang invoice yang cair, persen cicilan bila ada, lalu kirim ke AR Officer', '!', 'plan:' + p.ref, 'Rencana Termin'); });
     if (d.attn.od90n) ai(0, '⏰', '#FDE4E2', plural(d.attn.od90n, 'customer') + ' &gt; 90 days past due', rpShort(d.attn.od90v), d.attn.od90n, 'bal', 'Customer Balances');
     if (d.attn.janji) ai(1, '🤝', '#FFF1D6', 'Payment promises / letter deadlines missed', 'follow up with the AR Officer', d.attn.janji, 'bal', 'Customer Balances');
   }
@@ -4358,7 +4546,7 @@ function ovRender(d) {
   if ($('ovRefresh')) $('ovRefresh').onclick = refreshReports;
   $('ovPrint').onclick = function () { var x = $('ovWrap').innerHTML.replace('class="ov ov2"', 'class="ov ov2 ovp"'); printHtml(x); };
   if (viewer) $('ovWrap').querySelectorAll('[data-ovgo^="ap:"],[data-ovgo=""],[data-ovinv]').forEach(function (el) { el.removeAttribute('data-ovgo'); el.removeAttribute('data-ovinv'); el.style.cursor = 'default'; });
-  $('ovWrap').querySelectorAll('[data-ovgo]').forEach(function (el) { el.onclick = function () { var g = el.dataset.ovgo; if (!g) return; if (g === 'sheet') { window.open(B.sheetUrl || '#', '_blank'); return; } if (/^ap:/.test(g)) { AP_TAB = g.substring(3); g = 'setuju'; } setMode(g); }; });
+  $('ovWrap').querySelectorAll('[data-ovgo]').forEach(function (el) { el.onclick = function () { var g = el.dataset.ovgo; if (!g) return; if (g === 'sheet') { window.open(B.sheetUrl || '#', '_blank'); return; } if (/^ap:/.test(g)) { AP_TAB = g.substring(3); g = 'setuju'; } if (/^plan:/.test(g)) { PLAN.ref = g.substring(5); g = 'plan'; } setMode(g); }; });
   $('ovWrap').querySelectorAll('[data-ovinv]').forEach(function (el) { el.onclick = function () { setMode('setuju'); openPackage('INV', E.normInv(el.dataset.ovinv)); }; });
 }
 function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }

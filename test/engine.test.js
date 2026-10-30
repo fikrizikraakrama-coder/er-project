@@ -434,3 +434,26 @@ test('v2.9 Credit limit: peringatan bila exposure + invoice baru melewati batas 
   const OK = ENGINE.invoiceChecks({ c: { bayar: 1e8, total: 1e8 }, jenis: 'LAINNYA', tgl: '2026-10-01', today: '2026-10-13', pro: { tarif: 0.0265 }, limit: 1e9, expo: 7e8 });
   assert.ok(!OK.some(w => /credit limit/.test(w.t)));
 });
+
+test('v2.9 Rencana Termin alur Section Head: cicilan 50% = (DPP − PPh) × 50%, penjelasan otomatis, keputusan SH dipakai apa adanya, RA final ikut cicilan', () => {
+  const input = fixture({ submit: '2026-09-21', validasi: '✓ CAIR', rencana: '2026-10-20', invke: 'Progres 5' });
+  let ctx = ENGINE.compute(JSON.parse(JSON.stringify(input))).ctx;
+  const k = ENGINE.normInv(NOMOR), d = ENGINE.packageFor(ctx, 'VAL', '2026-10', { fresh: true, sh: true }), x = d.items[0];
+  assert.strictEqual(x.usul, 'C'); assert.ok(x.full > 0 && x.net0 > 0);
+  const plan = { cic: { [k]: { pct: 50, ke: 1, kn: 2 } }, al: {}, pj: {}, note: 'cukup 50%' };
+  assert.strictEqual(ENGINE.valCheckUsulan(d, { flow: 'SH', plan }), '');
+  const snap = ENGINE.valSnapshot(d, { flow: 'SH', plan, items: [] }), it = snap.items[0];
+  assert.strictEqual(snap.flow, 'SH'); assert.strictEqual(it.pct, 50);
+  assert.strictEqual(it.nilai, Math.round(x.full * 0.5)); assert.strictEqual(it.nilaiM, it.nilai);
+  assert.match(it.pj, /^Cicilan 1 Prog 5 \(50%\)$/);
+  assert.strictEqual(snap.nilai, it.nilai);
+  ENGINE.valApplyDecisions(snap, snap.items.map(i => ({ nomor: i.nomor, d: i.u || 'N', a: i.alasan || '' })));
+  input.approvals = [row(ENGINE.APPR, { id: 'APV-00001', waktu: '2026-10-02 09:00', jenis: 'VALIDASI RENCANA CAIR', ref: '2026-10', sidik: ENGINE.valSidik(d.fp, snap.items), oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_oleh: 'sh@kantor.co.id', putus_waktu: '2026-10-02 10:00', data: JSON.stringify(snap) })];
+  const res = ENGINE.compute(JSON.parse(JSON.stringify(input))), sm = res.reports['RA-RI Termin'].blocks[1].rows;
+  assert.strictEqual(sm[4][1], it.nilai, 'RA final = nilai cicilan (DPP − PPh)');
+  assert.strictEqual(ENGINE.packageFor(res.ctx, 'VAL', '2026-10').flowSH, true);
+  // "Dalam Proses Penyelesaian" wajib beralasan
+  const d2 = ENGINE.packageFor(ctx, 'VAL', '2026-10', { fresh: true, sh: true }); d2.items[0].usul = 'H';
+  assert.match(ENGINE.valCheckUsulan(d2, { flow: 'SH', plan: { al: {} } }), /alasan/);
+  assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 12', net0: 40, full: 100 }, 0, 0), 'Sisa Cicilan Prog 12');
+});

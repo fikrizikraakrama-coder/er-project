@@ -11,7 +11,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.9.0 · 31-10-2026';
+  var VERSION = '2.9.1 · 31-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -2420,25 +2420,28 @@ var ENGINE = (function () {
       if (pv) {
         prevTxt = 'bulan lalu: ' + DEC[pv.d] + (pv.a ? ' — ' + pv.a : '');
         // "→ BULAN DEPAN" bulan lalu otomatis menjadi usulan ✓ CAIR bulan ini (kecuali AR sudah mengganti usulannya)
-        if (pv.d === 'N' && prev.v2 && (S(pv.it.ua) || S(pv.it.u)) && (!ua || ua === S(pv.it.ua))) { ue = 'C'; carry = prevLbl; }
+        if (!(opt && opt.sh) && pv.d === 'N' && prev.v2 && (S(pv.it.ua) || S(pv.it.u)) && (!ua || ua === S(pv.it.ua))) { ue = 'C'; carry = prevLbl; }
       }
       // revisi di bulan yang sama: pilihan awal = keputusan yang berlaku (Section Head cukup mengubah yang perlu)
       var px = sameV2 && same.map[k], sn = snap[k], rtgl = D(i.rencana), cat = S(i.catatan), pf = '';
       // v2.7: invoice yang sudah cair bulan ini tanpa usulan → ✓ CAIR dengan tanggal penerimaan
-      if (!ue && pd.n > 0) { ue = 'C'; }
+      if (!ue && pd.n > 0 && !(opt && opt.sh)) { ue = 'C'; } // alur Section Head: pilihan SH apa adanya
       if (pd.n > 0 && (ue === 'C' || ue === 'S') && !(rtgl >= sel.start && rtgl <= sel.end)) rtgl = pd.tgl;
       var def = ue || (px ? px.d : 'N'), defA = px && px.d === 'H' ? px.a : '';
       // lembar yang sudah diajukan: nilai, usulan & pilihan awal mengikuti isi saat diajukan (yang diputuskan = yang diajukan)
       if (sn) { ua = S(sn.ua); ue = S(sn.u); carry = S(sn.carry); prevTxt = S(sn.prev) || prevTxt; def = S(sn.def) || def; defA = S(sn.defA); rtgl = S(sn.rtgl); cat = S(sn.cat); pf = S(sn.p); }
       return { nomor: i.nomor, pelanggan: i.pelanggan, npp: i.npp, proyek: i._pro ? i._pro.singkat : '', invke: invLabel(i), tgl: i.tgl, jt: jt, rencana: planDate(i), grp: sn ? (S(sn.grp) || grp) : grp,
         nilai: sn ? N(sn.nilai) : aw.net, sisa: sn ? N(sn.sisa) : aw.kas, status: i._res.status, catatan: cat, rtgl: rtgl, p: pf, cur: px ? px.d : '', curP: px ? S(px.it.p) : '', curT: px ? S(px.it.rtgl) : '', curC: px ? S(px.it.cat) : '', regU: usulCode(i.validasi), regT: D(i.rencana), regC: S(i.catatan), ua: ua, usul: ue, carry: carry, prev: prevTxt, paid: pd.n, paidTgl: pd.tgl,
-        def: def, defA: defA, dec: sn ? (S(sn.dec) || def) : def, alasan: sn ? (S(sn.dec) ? S(sn.alasan) : defA) : defA, inSnap: !!sn };
+        def: def, defA: defA, dec: sn ? (S(sn.dec) || def) : def, alasan: sn ? (S(sn.dec) ? S(sn.alasan) : (S(sn.alasan) || defA)) : defA, inSnap: !!sn,
+        // v2.9: alur Section Head — nilai penuh (DPP − PPh invoice), sisa awal bulan, cicilan & penjelasan dari lembar yang diajukan
+        net0: sn ? N(sn.net0 || sn.nilai) : rnd(aw.net), sisa0: sn ? N(sn.sisa0 || sn.sisa) : rnd(aw.kas), full: sn ? N(sn.full) : rnd(i._a.netto - i._a.pph), pct: sn ? N(sn.pct) : 0, ke: sn ? N(sn.ke) : 0, kn: sn ? N(sn.kn) : 0, pj: sn ? S(sn.pj) : '' };
     });
     // invoice yang ada di lembar yang diajukan tetapi tidak lagi memenuhi syarat (mis. dibatalkan) tetap ditampilkan agar keputusannya utuh
     var have = {}; items.forEach(function (x) { have[normInv(x.nomor)] = 1; });
     if (v2rec && !(opt && opt.fresh)) rec._data.items.forEach(function (it) { if (!have[normInv(it.nomor)]) { var x = JSON.parse(JSON.stringify(it)); x.usul = S(it.u); x.dec = S(it.dec) || S(it.def) || 'N'; x.alasan = S(it.dec) ? S(it.alasan) : S(it.defA); x.paid = 0; x.gone = true; x.inSnap = true; items.push(x); } });
     var GO = { A: 0, B: 1, C: 2, D: 3 };
-    items.sort(function (a, b) { return (GO[a.grp] - GO[b.grp]) || ((a.jt || '9999') < (b.jt || '9999') ? -1 : (a.jt || '9999') > (b.jt || '9999') ? 1 : b.nilai - a.nilai); });
+    // dalam grup: umur terlama di atas (jatuh tempo paling awal; tanpa jatuh tempo → tanggal invoice paling awal)
+    items.sort(function (a, b) { var ka = a.jt || a.tgl || '9999', kb = b.jt || b.tgl || '9999'; return (GO[a.grp] - GO[b.grp]) || (ka < kb ? -1 : ka > kb ? 1 : b.nilai - a.nilai); });
     var tot = {}; DEC_ORDER.forEach(function (d) { var L = items.filter(function (x) { return x.dec === d; }); tot[d] = { n: L.length, nilai: sumBy(L, function (x) { return x.nilai; }), sisa: sumBy(L, function (x) { return x.sisa; }) }; });
     var fp = hash('VAL2|' + ref + '|' + items.filter(function (x) { return !x.gone; }).map(function (x) { return normInv(x.nomor) + ':' + rnd(x.nilai) + ':' + x.usul; }).join(';'));
     var nApproved = ctx.appr.filter(function (r) { return r.jenis === DOC.VAL && r.ref === ref && r.status === 'DISETUJUI'; }).length;
@@ -2448,22 +2451,45 @@ var ENGINE = (function () {
       fp: fp, appr: a, jenis: DOC.VAL, v: 2, legacy: !!(rec && rec._data && !v2rec), rev: v2rec ? N(rec._data.rev) : nApproved, revNext: nApproved,
       berubah: !!(v2rec && rec._data.fp0 && rec._data.fp0 !== fp), notProposed: items.filter(function (x) { return !x.ua && !x.carry; }).length, today: ctx.today,
       dasar: v2rec ? S(rec._data.dasar) : '', tglRapat: v2rec ? S(rec._data.tglRapat) : '', curId: same ? same.rec.id : '', curRev: same && same.v2 ? N(same.rec._data.rev) : '', curAt: same ? S(same.rec.putus_waktu) : '',
-      recs: ctx.appr.filter(function (r) { return r.jenis === DOC.VAL && r.ref === ref && (r.status === 'DISETUJUI' || r.status === 'MENUNGGU'); }).length };
+      recs: ctx.appr.filter(function (r) { return r.jenis === DOC.VAL && r.ref === ref && (r.status === 'DISETUJUI' || r.status === 'MENUNGGU'); }).length,
+      flowSH: !!(rec && rec._data && rec._data.flow === 'SH'), note: rec && rec._data ? S(rec._data.note) : '' };
   }
   /** isi DATA SNAPSHOT saat diajukan (dipakai Code.gs) */
   function valSnapshot(d, opt) {
     opt = opt || {}; var pm = opt.p || {}, pusat = U(opt.dasar) === 'PUSAT';
     (opt.items || []).forEach(function (x) { if (x.p) pm[normInv(x.nomor)] = x.p; });
-    return { v: 2, label: d.label, rev: d.revNext, fp0: d.fp, nilai: d.tot.C.nilai, dasar: S(opt.dasar), tglRapat: S(opt.tglRapat), items: d.items.filter(function (x) { return !x.gone; }).map(function (x) {
+    var sh = opt.flow === 'SH', pl = opt.plan || {}, cic = pl.cic || {}, al = pl.al || {}, pj = pl.pj || {};
+    var snap = { v: 2, label: d.label, rev: d.revNext, fp0: d.fp, nilai: d.tot.C.nilai, dasar: S(opt.dasar), tglRapat: S(opt.tglRapat), items: d.items.filter(function (x) { return !x.gone; }).map(function (x) {
       var p = S(pm[normInv(x.nomor)]); if (pusat && x.cur === 'C' && x.usul !== 'C') p = '-'; if (p === '+' && (x.usul !== 'C' && x.usul !== 'S')) p = '';
-      return { nomor: x.nomor, pelanggan: x.pelanggan, npp: x.npp, proyek: x.proyek, invke: x.invke, tgl: x.tgl, jt: x.jt, rencana: x.rencana, grp: x.grp, nilai: rnd(x.nilai), sisa: rnd(x.sisa),
+      var o = { nomor: x.nomor, pelanggan: x.pelanggan, npp: x.npp, proyek: x.proyek, invke: x.invke, tgl: x.tgl, jt: x.jt, rencana: x.rencana, grp: x.grp, nilai: rnd(x.nilai), sisa: rnd(x.sisa),
         status: x.status, ua: x.ua, u: x.usul, carry: x.carry, prev: x.prev, def: x.def, defA: x.defA, paid: rnd(x.paid), paidTgl: x.paidTgl, rtgl: x.rtgl, cat: x.catatan, p: p, cur: x.cur };
+      if (sh) { // v2.9: pilihan Section Head + cicilan (DPP − PPh) × persen; penjelasan tercetak; alasan "Dalam Proses Penyelesaian"
+        var k = normInv(x.nomor), c = cic[k] || {}, v = raPlanValue(x, N(c.pct));
+        o.net0 = rnd(x.net0 || x.nilai); o.sisa0 = rnd(x.sisa0 || x.sisa); o.full = rnd(x.full); o.pct = N(c.pct) > 0 && N(c.pct) < 100 ? N(c.pct) : 0; o.ke = o.pct ? (N(c.ke) || 1) : 0; o.kn = o.pct ? (N(c.kn) || 2) : 0;
+        if (o.pct) { o.nilaiM = v; o.sisa = o.net0 > 0.5 ? rnd(o.sisa0 * v / o.net0) : o.sisa0; }
+        o.nilai = v; o.pj = S(pj[k]) || raPlanPj(x, o.pct, o.ke); o.cat = o.pj; o.alasan = x.usul === 'H' ? S(al[k]) : '';
+      }
+      return o;
     }) };
+    if (sh) { snap.flow = 'SH'; snap.note = S(pl.note); snap.nilai = sumBy(snap.items.filter(function (x) { return x.u === 'C'; }), function (x) { return x.nilai; }); }
+    return snap;
+  }
+  /** v2.9: nilai RA satu invoice — penuh = sisa DPP − PPh awal bulan; cicilan = (DPP − PPh invoice) × persen, maks. sisa */
+  function raPlanValue(x, pct) { var net0 = N(x.net0 || x.nilai); if (!(pct > 0 && pct < 100)) return rnd(net0); return rnd(Math.min(net0, N(x.full || net0) * pct / 100)); }
+  /** v2.9: penjelasan tercetak di RA Termin — "Prog 5" · "Cicilan 1 Prog 17 (50%)" · "Sisa Cicilan Prog 12" */
+  function raPlanPj(x, pct, ke) {
+    var l = S(x.invke).replace(/^PROGRES\s*/i, 'Prog ').replace(/^Uang Muka.*/i, 'UM').replace(/^Pelepasan\s+/i, '');
+    if (pct > 0) return 'Cicilan ' + (ke || 1) + ' ' + l + ' (' + pct + '%)';
+    if (N(x.full) > 0 && N(x.net0 || x.nilai) < N(x.full) - 1) return 'Sisa Cicilan ' + l;
+    return l;
   }
   /** v2.7: periksa usulan AR sebelum diajukan (tanggal rencana cair wajib untuk ✓ / ◇, di dalam bulan yang diajukan) */
   function valCheckUsulan(d, opt) {
-    var bad = d.items.filter(function (x) { return !x.gone && (x.usul === 'C' || x.usul === 'S') && !(x.rtgl >= d.start && x.rtgl <= d.end); });
-    if (bad.length) return bad.length + ' invoice ✓ CAIR / ◇ CADANGAN belum ada rencana tanggal cair di ' + d.label + ' (' + bad.slice(0, 3).map(function (x) { return x.nomor; }).join(', ') + (bad.length > 3 ? ', …' : '') + ').';
+    var sh = opt && opt.flow === 'SH', al = (opt && opt.plan && opt.plan.al) || {};
+    // v2.9 alur Section Head: tanggal wajib hanya untuk ✓ RA; "Dalam Proses Penyelesaian" wajib beralasan
+    var bad = d.items.filter(function (x) { return !x.gone && (x.usul === 'C' || (!sh && x.usul === 'S')) && !(x.rtgl >= d.start && x.rtgl <= d.end); });
+    if (sh) { var nh = d.items.filter(function (x) { return !x.gone && x.usul === 'H' && !S(al[normInv(x.nomor)]); }); if (nh.length) return nh.length + ' invoice "Dalam Proses Penyelesaian" belum ada alasannya (' + nh.slice(0, 3).map(function (x) { return x.nomor; }).join(', ') + ') — minta Section Head melengkapi.'; }
+    if (bad.length) return bad.length + ' invoice ' + (sh ? '✓ RA' : '✓ CAIR / ◇ CADANGAN') + ' belum ada rencana tanggal cair di ' + d.label + ' (' + bad.slice(0, 3).map(function (x) { return x.nomor; }).join(', ') + (bad.length > 3 ? ', …' : '') + ').';
     if (U(opt && opt.dasar) === 'PUSAT' && !D(opt.tglRapat)) return 'Isi tanggal rapat pusat (dasar revisi: hasil rapat pusat).';
     return '';
   }
@@ -2539,7 +2565,7 @@ var ENGINE = (function () {
         if (pd.n && (code === 'C' || code === 'K')) cat.push('realisasi tercatat ' + tglTxt(pd.tgl));
         if (it && S(it.cat)) cat.push(S(it.cat));
         else if (S(i.catatan)) cat.push(S(i.catatan));
-        var src = code === 'C' ? sumber(i) : code === 'K' ? (dasar === 'PUSAT' ? '➖ digeser rapat pusat' : '➖ revisi internal') : code === 'S' ? 'cadangan' : '';
+        var src = code === 'C' ? sumber(i) : code === 'K' ? (dasar === 'PUSAT' ? '➖ digeser rapat pusat' : '➖ revisi internal') : code === 'S' ? 'potensi tambahan' : '';
         var rt = it && S(it.rtgl) ? S(it.rtgl) : planDate(i);
         rows.push([no, i.pelanggan, i._pro ? i._pro.singkat : '', i.npp, i.nomor, invLabel(i), DEC_KAT[code], src, inAwal && code !== 'S' && code !== 'X' ? ra0 : '', inFinal ? raN : '', code === 'C' ? rt : '', pd.n || '', pd.tgl, cat.join(' · ')]);
         A0 += ra0; A += raK; B += raN; Cc += pd.n;
@@ -2550,7 +2576,7 @@ var ENGINE = (function () {
     };
     sec('C', '✓ RA FINAL — DIRENCANAKAN CAIR' + (vd ? ' (VALIDASI SECTION HEAD F&HR' + rv(vd) + ')' : ' (JATUH TEMPO S.D. AKHIR BULAN)'), ra);
     if (keluar.length) sec('K', '➖ DIKELUARKAN DARI RA SAAT REVISI' + (dasar === 'PUSAT' ? ' (RAPAT PUSAT)' : ''), keluar); else T.K = { a0: 0, ra: 0, ran: 0, ri: 0 };
-    sec('S', '◇ CADANGAN — TIDAK DITARGETKAN, DIKEJAR BILA MEMUNGKINKAN', cad);
+    sec('S', '◇ POTENSI INKASO TAMBAHAN — TIDAK DITARGETKAN, DIUPAYAKAN CAIR BILA MEMUNGKINKAN', cad);
     sec('X', '✚ DI LUAR RA — CAIR TANPA RENCANA', luar);
     var tri = T.C.ri + T.K.ri + T.S.ri + T.X.ri, a0 = T.C.a0 + T.K.a0;
     st.push(sty(rows.length, 'total')); rows.push(['', 'TOTAL RA / RI ' + monthLabel(sel.y, sel.m).toUpperCase(), '', '', '', '', '', '', a0, T.C.ran, '', tri, '', T.C.ran ? 'PENCAPAIAN ' + pctTxt(tri / T.C.ran) + ' (TOTAL RI ÷ RA FINAL)' : '']);
@@ -2567,7 +2593,7 @@ var ENGINE = (function () {
       ['+ Tambahan' + (dasar === 'PUSAT' ? ' rapat pusat' : ' revisi') + ' (' + nT + ' invoice, DPP − PPh)', tamN],
       ['− Dikeluarkan saat revisi (' + keluar.length + ' invoice, DPP − PPh)', kelN],
       ['RA FINAL (DPP − PPh)' + (vd ? ' — ' + vd.rec.id + rv(vd) : ''), T.C.ran],
-      ['RI atas ✓ RA final (nominal cair, incl. PPN)', T.C.ri], ['RI dari ◇ cadangan', T.S.ri], ['RI ✚ di luar RA', T.X.ri + T.K.ri], ['TOTAL RI (seluruh uang masuk bulan ini, incl. PPN)', tri],
+      ['RI atas ✓ RA final (nominal cair, incl. PPN)', T.C.ri], ['RI dari ◇ potensi inkaso tambahan', T.S.ri], ['RI ✚ di luar RA', T.X.ri + T.K.ri], ['TOTAL RI (seluruh uang masuk bulan ini, incl. PPN)', tri],
       ['PENCAPAIAN = TOTAL RI ÷ RA FINAL (angka utama, sama dengan laporan ke pusat)', T.C.ran ? tri / T.C.ran : ''],
       ['Pencapaian terhadap RA awal = TOTAL RI ÷ RA awal (pembanding)', a0n ? tri / a0n : ''],
       ['RA = DPP − PPh per invoice (format rapat / pusat). RI = nominal uang yang benar-benar masuk (termasuk PPN), termasuk cadangan & yang cair di luar RA; pindah buku & kompensasi tidak dihitung. RA awal = lembar pertama yang disetujui bulan ini; RA final = revisi terakhir yang disetujui.' + (sel.end >= ctx.today ? ' Bulan berjalan: angka masih bergerak sampai akhir bulan.' : ''), '']];
@@ -2575,7 +2601,7 @@ var ENGINE = (function () {
     smB.cellFmt = [[9, 1, 'pct'], [10, 1, 'pct']];
     return { from: 8, blocks: [block(8, 1, rows, { styles: st, fmt: { 8: 'money', 9: 'money', 10: 'date', 11: 'money', 12: 'date' } }), smB], wrapCols: [14], minW: { 14: 30 } };
   }
-  var DEC_KAT = { C: '✓ RA', S: '◇ CADANGAN', X: '✚ DI LUAR RA', K: '➖ DIKELUARKAN' };
+  var DEC_KAT = { C: '✓ RA', S: '◇ POTENSI TAMBAHAN', X: '✚ DI LUAR RA', K: '➖ DIKELUARKAN' };
 
   // ------------------------------------------------------------------ KINERJA PIUTANG & PERINGATAN DINI
   function kinerjaData(ctx) {
@@ -3325,7 +3351,7 @@ var ENGINE = (function () {
     terbilang: terbilang, toRoman: toRoman, retTxt: retTxt, normInv: normInv, nppValid: nppValid, nppKey: nppKey, npwp16: npwp16, D: D, N: N, S: S, U: U, rnd: rnd, flo: flo,
     monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,
     MEMO: MEMO, PEREF: PEREF, MEMO_KODE: MEMO_KODE, memorial: memorial, memoParse: memoParse, memoSheetRows: memoSheetRows, peSummary: peSummary, peSummaryBlocks: peSummaryBlocks,
-    delegasiFor: delegasiFor, isDelegasi: isDelegasi, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
+    raPlanValue: raPlanValue, raPlanPj: raPlanPj, delegasiFor: delegasiFor, isDelegasi: isDelegasi, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
     DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData, overview: overview, pajakReport: pajakReport
   };
 })();
