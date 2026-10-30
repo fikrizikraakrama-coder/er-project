@@ -361,7 +361,8 @@ test('RA Manual: daftar bulan itu menjadi RA resmi (nilai DPP − PPh), no. invo
   input.ramanual = [row(ENGINE.RAM, { bulan: '2026-10', nomor: '0101/2026', pelanggan: 'PT CONTOH', nilai: 60e6 }), row(ENGINE.RAM, { bulan: 'Oktober 2026', nomor: '', pelanggan: 'PT LAIN', proyek: 'Angkutan', nilai: 40e6 })];
   const res = ENGINE.compute(input), rep = res.reports['RA-RI Termin'], sm = rep.blocks[1].rows;
   assert.ok(res.ctx.valDec['2026-10'].manual);
-  assert.strictEqual(sm[4][2], 100e6, 'RA final (DPP − PPh) = 60 jt + 40 jt sesuai sheet');
+  assert.strictEqual(sm[4][1], 100e6, 'RA final (DPP − PPh) = 60 jt + 40 jt sesuai sheet');
+  assert.strictEqual(sm[8][1], 50e6, 'total RI = seluruh uang masuk'); assert.strictEqual(sm[9][1], 0.5, 'pencapaian = total RI ÷ RA final (format pusat)');
   assert.strictEqual(sm[5][1], 50e6, 'RI atas RA = penerimaan 10-10');
   assert.match(rep.blocks[0].rows[1][0], /sheet RA Manual/);
   assert.deepStrictEqual(res.ctx.raManual['2026-10'], { label: 'RA Manual Oktober 2026', n: 2, total: 100e6, luar: 1 });

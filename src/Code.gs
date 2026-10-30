@@ -280,7 +280,7 @@ function rebuildAll_(opt) {
 var LAST_RES_ = null;
 var REPORT_SUB_ = {
   'Pareto': 'Daftar tagihan yang harus cair. Usulan AR, rencana tgl cair & catatan diisi di aplikasi ▸ Otorisasi Dokumen AR ▸ Lembar Validasi Rencana Cair. Kolom 🔒 tidak diketik manual; kolom VALIDASI SECTION HEAD F&HR 🔒 terisi otomatis saat Section Head F&HR menyetujui lembar.',
-  'RA-RI Termin': 'RA = invoice yang divalidasi ✓ CAIR oleh Section Head F&HR di Lembar Validasi (RA awal = lembar pertama yang disetujui, RA final = revisi terakhir); RI = penerimaan di bulan itu. Satu tabel: ✓ RA · ➖ DIKELUARKAN · ◇ CADANGAN · ✚ DI LUAR RA, dengan Pencapaian RA dan Total RI ÷ RA.'
+  'RA-RI Termin': 'RA = invoice yang divalidasi ✓ CAIR oleh Section Head F&HR di Lembar Validasi (RA awal = lembar pertama yang disetujui, RA final = revisi terakhir); RA dalam DPP − PPh; RI = seluruh uang masuk bulan itu (nominal cair, incl. PPN). Pencapaian = TOTAL RI ÷ RA FINAL (sama dengan laporan ke pusat). Satu tabel: ✓ RA · ➖ DIKELUARKAN · ◇ CADANGAN · ✚ DI LUAR RA.'
 };
 function compute_() { return ENGINE.compute(readAll_()); }
 /** hitungan tanpa laporan (cepat) — untuk aplikasi; mode 'memo' ikut menghitung memorial */

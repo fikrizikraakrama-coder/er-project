@@ -2515,7 +2515,8 @@ var ENGINE = (function () {
     ra.sort(byTgl); cad.sort(byTgl); keluar.sort(byTgl);
     var inSet = {}; ra.concat(cad).concat(keluar).forEach(function (i) { inSet[normInv(i.nomor)] = 1; });
     var luar = ctx.invs.filter(function (i) { return !i._batal && !inSet[normInv(i.nomor)] && paidInMonth(i, sel).n > 0; }).sort(byTgl);
-    var hdr = ['NO', 'PELANGGAN', 'PROYEK', 'NPP', 'NO INVOICE', 'TAGIHAN', 'KATEGORI', 'SUMBER', 'RA AWAL (KAS INCL. PPN)', 'RA FINAL (KAS INCL. PPN)', 'RA FINAL (DPP − PPh)', 'RA TGL CAIR', 'RI NOMINAL CAIR', 'RI TGL CAIR', '% RI / RA FINAL', 'CATATAN'];
+    // v2.9: format pusat — RA = DPP − PPh (rencana), RI = nominal uang masuk apa adanya (incl. PPN), pencapaian = TOTAL RI ÷ RA final
+    var hdr = ['NO', 'PELANGGAN', 'PROYEK', 'NPP', 'NO INVOICE', 'TAGIHAN', 'KATEGORI', 'SUMBER', 'RA AWAL (DPP − PPh)', 'RA FINAL (DPP − PPh)', 'RA TGL CAIR', 'RI NOMINAL CAIR (INCL. PPN)', 'RI TGL CAIR', 'CATATAN'];
     var rows = [['RA TERMIN ' + MONTHS[sel.m - 1].toUpperCase() + ' ' + sel.y + '  |  RI TERMIN ' + MONTHS[sel.m - 1].toUpperCase() + ' ' + sel.y], [note], hdr], st = [sty(0, 'title'), sty(1, 'note'), sty(2, 'hdr')], no = 0, T = {};
     var tglTxt = function (s) { return s ? s.split('-').reverse().join('-') : ''; };
     var sumber = function (i) {
@@ -2531,7 +2532,7 @@ var ENGINE = (function () {
       list.forEach(function (i) {
         no++; var k = normInv(i.nomor), pd = paidInMonth(i, sel), x = vd && vd.map[k], it = x ? x.it : null, aw = raVal(i, it, sel.start), cat = [];
         var inFinal = code === 'C', inAwal = !!awalC[k] || (!v0 && code === 'C');
-        var ra0 = inAwal && code !== 'S' && code !== 'X' ? aw.kas : 0, raK = inFinal ? aw.kas : 0, raN = inFinal ? aw.net : 0;
+        var ra0 = inAwal && code !== 'S' && code !== 'X' ? aw.net : 0, raK = inFinal ? aw.kas : 0, raN = inFinal ? aw.net : 0;
         if (code === 'X') cat.push('bukan RA' + (x ? ' · validasi Section Head F&HR: ' + DEC[x.d] + (x.a ? ' (' + x.a + ')' : '') : ''));
         if (code === 'K') cat.push('tidak dihitung di RA final');
         if (pd.n && (code === 'C' || code === 'K')) cat.push('realisasi tercatat ' + tglTxt(pd.tgl));
@@ -2539,11 +2540,11 @@ var ENGINE = (function () {
         else if (S(i.catatan)) cat.push(S(i.catatan));
         var src = code === 'C' ? sumber(i) : code === 'K' ? (dasar === 'PUSAT' ? '➖ digeser rapat pusat' : '➖ revisi internal') : code === 'S' ? 'cadangan' : '';
         var rt = it && S(it.rtgl) ? S(it.rtgl) : planDate(i);
-        rows.push([no, i.pelanggan, i._pro ? i._pro.singkat : '', i.npp, i.nomor, invLabel(i), DEC_KAT[code], src, inAwal && code !== 'S' && code !== 'X' ? ra0 : '', inFinal ? raK : '', inFinal ? raN : '', code === 'C' ? rt : '', pd.n || '', pd.tgl, inFinal && raK ? pd.n / raK : '', cat.join(' · ')]);
+        rows.push([no, i.pelanggan, i._pro ? i._pro.singkat : '', i.npp, i.nomor, invLabel(i), DEC_KAT[code], src, inAwal && code !== 'S' && code !== 'X' ? ra0 : '', inFinal ? raN : '', code === 'C' ? rt : '', pd.n || '', pd.tgl, cat.join(' · ')]);
         A0 += ra0; A += raK; B += raN; Cc += pd.n;
       });
-      if (code === 'C' && vd && vd.manual) vd.luar.forEach(function (l) { no++; rows.push([no, l.pelanggan, l.proyek, '', l.nomor || '-', '', DEC_KAT.C, 'RA manual', l.nilai, l.nilai, l.nilai, '', '', '', '', 'tidak ada no. invoice yang cocok di Monitoring Invoice — RI tidak bisa dicocokkan otomatis']); A0 += l.nilai; A += l.nilai; B += l.nilai; });
-      st.push(sty(rows.length, 'total')); rows.push(['', 'Subtotal ' + DEC_KAT[code], '', '', '', '', '', '', A0 || (code === 'C' || code === 'K' ? 0 : ''), code === 'C' ? A : '', code === 'C' ? B : '', '', Cc, '', code === 'C' && A ? Cc / A : '', '']);
+      if (code === 'C' && vd && vd.manual) vd.luar.forEach(function (l) { no++; rows.push([no, l.pelanggan, l.proyek, '', l.nomor || '-', '', DEC_KAT.C, 'RA manual', l.nilai, l.nilai, '', '', '', 'tidak ada no. invoice yang cocok di Monitoring Invoice — RI tidak bisa dicocokkan otomatis']); A0 += l.nilai; A += l.nilai; B += l.nilai; });
+      st.push(sty(rows.length, 'total')); rows.push(['', 'Subtotal ' + DEC_KAT[code], '', '', '', '', '', '', A0 || (code === 'C' || code === 'K' ? 0 : ''), code === 'C' ? B : '', '', Cc, '', '']);
       T[code] = { a0: A0, ra: A, ran: B, ri: Cc };
     };
     sec('C', '✓ RA FINAL — DIRENCANAKAN CAIR' + (vd ? ' (VALIDASI SECTION HEAD F&HR' + rv(vd) + ')' : ' (JATUH TEMPO S.D. AKHIR BULAN)'), ra);
@@ -2551,7 +2552,7 @@ var ENGINE = (function () {
     sec('S', '◇ CADANGAN — TIDAK DITARGETKAN, DIKEJAR BILA MEMUNGKINKAN', cad);
     sec('X', '✚ DI LUAR RA — CAIR TANPA RENCANA', luar);
     var tri = T.C.ri + T.K.ri + T.S.ri + T.X.ri, a0 = T.C.a0 + T.K.a0;
-    st.push(sty(rows.length, 'total')); rows.push(['', 'TOTAL RA / RI ' + monthLabel(sel.y, sel.m).toUpperCase(), '', '', '', '', '', '', a0, T.C.ra, T.C.ran, '', tri, '', T.C.ra ? tri / T.C.ra : '', '']);
+    st.push(sty(rows.length, 'total')); rows.push(['', 'TOTAL RA / RI ' + monthLabel(sel.y, sel.m).toUpperCase(), '', '', '', '', '', '', a0, T.C.ran, '', tri, '', T.C.ran ? 'PENCAPAIAN ' + pctTxt(tri / T.C.ran) + ' (TOTAL RI ÷ RA FINAL)' : '']);
     // RA awal dalam DPP − PPh, tambahan & dikeluarkan
     var a0n = 0, tamK = 0, tamN = 0, kelK = 0, kelN = 0, riAwal = 0;
     ra.forEach(function (i) { var k = normInv(i.nomor), aw = raVal(i, vd && vd.map[k] ? vd.map[k].it : null, sel.start); if (awalC[k] || !v0) a0n += aw.net; else { tamK += aw.kas; tamN += aw.net; } });
@@ -2559,19 +2560,19 @@ var ENGINE = (function () {
     keluar.forEach(function (i) { var aw = awalBulan(i, sel.start); a0n += aw.net; kelK += aw.kas; kelN += aw.net; });
     ra.concat(keluar).forEach(function (i) { if (awalC[normInv(i.nomor)] || !v0) riAwal += paidInMonth(i, sel).n; });
     var r2 = 8 + rows.length + 2, nT = ra.length - (v0 ? ra.filter(function (i) { return awalC[normInv(i.nomor)]; }).length : ra.length);
-    var sm = [['RINGKASAN ' + sel.label.toUpperCase(), 'KAS (INCL. PPN, SETELAH PPh)', 'DPP − PPh'],
-      ['RA AWAL' + (v0 ? ' (' + v0.rec.id + rv(v0) + ', dilaporkan unit ke pusat)' : ''), a0, a0n],
-      ['+ Tambahan' + (dasar === 'PUSAT' ? ' rapat pusat' : ' revisi') + ' (' + nT + ' invoice)', tamK, tamN],
-      ['− Dikeluarkan saat revisi (' + keluar.length + ' invoice)', kelK, kelN],
-      ['RA FINAL' + (vd ? ' (' + vd.rec.id + rv(vd) + ')' : ''), T.C.ra, T.C.ran],
-      ['RI atas ✓ RA final', T.C.ri, ''], ['RI dari ◇ cadangan', T.S.ri, ''], ['RI ✚ di luar RA', T.X.ri + T.K.ri, ''], ['TOTAL RI', tri, ''],
-      ['PENCAPAIAN RA FINAL = RI atas RA final ÷ RA final (angka utama)', T.C.ra ? T.C.ri / T.C.ra : '', ''],
-      ['PENCAPAIAN RA AWAL = RI atas RA awal ÷ RA awal (pembanding)', a0 ? riAwal / a0 : '', ''],
-      ['TOTAL RI ÷ RA FINAL (termasuk cadangan & di luar RA)', T.C.ra ? tri / T.C.ra : '', ''],
-      ['RA awal = lembar pertama yang disetujui bulan ini (yang dilaporkan ke pusat); RA final = revisi terakhir yang disetujui. Bila belum ada revisi, keduanya sama.' + (sel.end >= ctx.today ? ' Bulan berjalan: angka masih bergerak sampai akhir bulan.' : ''), '', '']];
-    var smB = block(r2, 1, sm, { styles: [sty(0, 'hdr'), sty(4, 'bold'), sty(8, 'bold'), sty(9, 'kpi'), sty(10, 'kpi'), sty(12, 'note')], fmt: { 1: 'money', 2: 'money' }, span: 4 });
-    smB.cellFmt = [[9, 1, 'pct'], [10, 1, 'pct'], [11, 1, 'pct']];
-    return { from: 8, blocks: [block(8, 1, rows, { styles: st, fmt: { 8: 'money', 9: 'money', 10: 'money', 11: 'date', 12: 'money', 13: 'date', 14: 'pct' } }), smB], wrapCols: [16], minW: { 16: 30 } };
+    // baris ringkasan dibaca Overview & Analisis Bulanan: [1] RA awal · [4] RA final · [5] RI atas RA · [6] RI cadangan · [7] RI di luar RA · [8] total RI · [9] pencapaian
+    var sm = [['RINGKASAN ' + sel.label.toUpperCase(), 'NILAI'],
+      ['RA AWAL (DPP − PPh)' + (v0 ? ' — ' + v0.rec.id + rv(v0) + ', dilaporkan unit ke pusat' : ''), a0n],
+      ['+ Tambahan' + (dasar === 'PUSAT' ? ' rapat pusat' : ' revisi') + ' (' + nT + ' invoice, DPP − PPh)', tamN],
+      ['− Dikeluarkan saat revisi (' + keluar.length + ' invoice, DPP − PPh)', kelN],
+      ['RA FINAL (DPP − PPh)' + (vd ? ' — ' + vd.rec.id + rv(vd) : ''), T.C.ran],
+      ['RI atas ✓ RA final (nominal cair, incl. PPN)', T.C.ri], ['RI dari ◇ cadangan', T.S.ri], ['RI ✚ di luar RA', T.X.ri + T.K.ri], ['TOTAL RI (seluruh uang masuk bulan ini, incl. PPN)', tri],
+      ['PENCAPAIAN = TOTAL RI ÷ RA FINAL (angka utama, sama dengan laporan ke pusat)', T.C.ran ? tri / T.C.ran : ''],
+      ['Pencapaian terhadap RA awal = TOTAL RI ÷ RA awal (pembanding)', a0n ? tri / a0n : ''],
+      ['RA = DPP − PPh per invoice (format rapat / pusat). RI = nominal uang yang benar-benar masuk (termasuk PPN), termasuk cadangan & yang cair di luar RA; pindah buku & kompensasi tidak dihitung. RA awal = lembar pertama yang disetujui bulan ini; RA final = revisi terakhir yang disetujui.' + (sel.end >= ctx.today ? ' Bulan berjalan: angka masih bergerak sampai akhir bulan.' : ''), '']];
+    var smB = block(r2, 1, sm, { styles: [sty(0, 'hdr'), sty(4, 'bold'), sty(8, 'bold'), sty(9, 'kpi'), sty(10, 'kpi'), sty(11, 'note')], fmt: { 1: 'money' }, span: 4 });
+    smB.cellFmt = [[9, 1, 'pct'], [10, 1, 'pct']];
+    return { from: 8, blocks: [block(8, 1, rows, { styles: st, fmt: { 8: 'money', 9: 'money', 10: 'date', 11: 'money', 12: 'date' } }), smB], wrapCols: [14], minW: { 14: 30 } };
   }
   var DEC_KAT = { C: '✓ RA', S: '◇ CADANGAN', X: '✚ DI LUAR RA', K: '➖ DIKELUARKAN' };
 
@@ -2687,7 +2688,10 @@ var ENGINE = (function () {
   function kinerjaTiles(ctx) {
     var K = ctx._kin || (ctx._kin = kinerjaData(ctx)), sel = parseMonthSel('', ctx.today, false), ref = sel.y + '-' + pad(sel.m, 2), vd = (ctx.valDec || {})[ref];
     var raK = 0, ri = 0;
-    if (vd) Object.keys(vd.map).forEach(function (k) { if (vd.map[k].d !== 'C') return; var i = ctx.invs.filter(function (x) { return normInv(x.nomor) === k; })[0]; if (!i) return; raK += raVal(i, vd.map[k].it, sel.start).kas; ri += paidInMonth(i, sel).n; });
+    if (vd) Object.keys(vd.map).forEach(function (k) { if (vd.map[k].d !== 'C') return; var i = ctx.invs.filter(function (x) { return normInv(x.nomor) === k; })[0]; if (!i) return; raK += raVal(i, vd.map[k].it, sel.start).net; });
+    if (vd && vd.manual) vd.luar.forEach(function (l) { raK += l.nilai; });
+    // v2.9: format pusat — seluruh uang masuk bulan ini ÷ RA final (DPP − PPh)
+    ri = sumBy(ctx.pays, function (p) { return p._inv && !p._inv._batal && !p._nk && p.nominal > 0 && p.tgl >= sel.start && p.tgl <= sel.end ? p.nominal : 0; });
     var pRA = vd && raK ? ri / raK : null, worse = K.d12 && K.d3 ? K.d3.dso > K.d12.dso : false;
     var t = [
       ['RECEIVABLES TURNOVER', '', '', 'DSO (ROLLING 12 BULAN)', '', '', 'TEPAT WAKTU (12 BULAN)', '', '', 'PENCAPAIAN RA ' + MONTHS[sel.m - 1].toUpperCase(), '', '', 'PERINGATAN DINI', '', ''],
@@ -3275,7 +3279,7 @@ var ENGINE = (function () {
     else valCandidates(ctx, sel).forEach(function (i) { var d = planDate(i); if (d && d <= e0) raList.push({ i: i, it: null }); });
     raList.forEach(function (x) {
       var i = x.i, aw = raVal(i, x.it, s0), pd = paidInMonth(i, sel), sisa = aw.kas - pd.n;
-      if (sisa > 0.5) belum.push({ nomor: i.nomor, pelanggan: i.pelanggan, proyek: i._pro ? i._pro.singkat : i.npp, rencana: x.it && S(x.it.rtgl) ? D(x.it.rtgl) || S(x.it.rtgl) : planDate(i), nilai: rnd(sisa), sebagian: pd.n > 0.5 });
+      if (sisa > 0.5) belum.push({ /* nilai = sisa RA dalam DPP − PPh */ nomor: i.nomor, pelanggan: i.pelanggan, proyek: i._pro ? i._pro.singkat : i.npp, rencana: x.it && S(x.it.rtgl) ? D(x.it.rtgl) || S(x.it.rtgl) : planDate(i), nilai: rnd(aw.kas > 0.5 ? aw.net * sisa / aw.kas : sisa), sebagian: pd.n > 0.5 });
     });
     belum.sort(function (a, b) { return a.rencana < b.rencana ? -1 : a.rencana > b.rencana ? 1 : b.nilai - a.nilai; });
     var hk = 0; if (cur) for (var d2 = today; d2 <= e0; d2 = addDays(d2, 1)) { var wd = new Date(d2 + 'T00:00:00Z').getUTCDay(); if (wd > 0 && wd < 6) hk++; }

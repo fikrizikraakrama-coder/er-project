@@ -486,9 +486,9 @@ function arMonthlyArchive_() {
 }
 function arMonthlyRows_() {var sh=arMonthlyArchive_();return sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,12).getValues():[];}
 function arMonthlyNarrative_(m) {
-  var pct=m.raFinal?Math.round(m.riAtasRA/m.raFinal*10000)/100:null,lines=[];
+  var pct=m.raFinal?Math.round((m.totalRI||m.riAtasRA)/m.raFinal*10000)/100:null,lines=[];
   lines.push('Posisi '+m.cutoff+': saldo buku pembantu Rp '+ENGINE.fmtRp(m.saldo)+', berubah Rp '+ENGINE.fmtRp(m.perubahan)+' dari akhir bulan sebelumnya.');
-  lines.push('Penerimaan kas bulan ini Rp '+ENGINE.fmtRp(m.penerimaan)+'. RA final Rp '+ENGINE.fmtRp(m.raFinal)+'; RI atas RA Rp '+ENGINE.fmtRp(m.riAtasRA)+(pct===null?'; pencapaian belum dapat dihitung karena RA nol.':'; pencapaian '+pct+'%.'));
+  lines.push('Penerimaan kas bulan ini Rp '+ENGINE.fmtRp(m.penerimaan)+'. RA final (DPP − PPh) Rp '+ENGINE.fmtRp(m.raFinal)+'; total RI Rp '+ENGINE.fmtRp(m.totalRI||0)+' (RI atas RA Rp '+ENGINE.fmtRp(m.riAtasRA)+')'+(pct===null?'; pencapaian belum dapat dihitung karena RA nol.':'; pencapaian (total RI ÷ RA final) '+pct+'%.'));
   lines.push('Sisa kas lewat jatuh tempo Rp '+ENGINE.fmtRp(m.overdue)+'. Selisih basis saldo buku pembantu dan kas harus dibaca bersama potongan PPh/adm.');
   if(m.top.length)lines.push('Prioritas menurut saldo buku pembantu: '+m.top.map(function(x){return x.pelanggan+' (Rp '+ENGINE.fmtRp(x.saldo)+')';}).join('; ')+'.');
   if(m.bedaStatus)lines.push(m.bedaStatus+' invoice berstatus selesai namun kartu bersaldo: cocokkan rincian pembayaran dan potongan sebelum penagihan.');

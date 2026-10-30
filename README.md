@@ -78,6 +78,10 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
   penerimaan, jenis `PEMBALIKAN PENERIMAAN` di Log Persetujuan) baris ditandai **↺ DIBALIK** di kolom CEK, tidak dihitung lagi, invoice kembali terbuka,
   memorial Akuntansi otomatis dibatalkan / dikoreksi, dan bila penerimaan itu sudah diserahkan ke Akuntansi, pembalikannya masuk lembar serah terima
   penerimaan berikutnya agar posting SAP dibalik (FB08). Lembar Pembalikan Penerimaan bisa dicetak & diarsipkan. Penerimaan yang benar lalu dicatat ulang.
+- **RA–RI mengikuti format pusat (v2.9.0)**: RA = **DPP − PPh** (persis seperti sheet RA Manual / lembar rapat, tidak lagi dinaikkan ke kas incl. PPN),
+  RI = **seluruh uang masuk** bulan itu (nominal cair apa adanya, termasuk PPN, termasuk cadangan & yang cair di luar RA; pindah buku & kompensasi tidak dihitung),
+  **Pencapaian = TOTAL RI ÷ RA FINAL** — sama dengan persentase yang dilaporkan unit ke pusat (contoh Oktober: 28,88 M ÷ 32,07 M = 90,07%). Berlaku di laporan
+  RA-RI Termin (kolom RA kas & persen per baris dihapus), Overview, Executive Summary, tile Dashboard dan Analisis Bulanan. RI dari item RA tetap tampil sebagai info.
 - **Cancel Invoice** kini juga ada di menu Invoices (pilih invoice dari daftar → lembar pembatalan seperti sebelumnya).
 - **Issue Invoice bertahap (v2.8.8)**: 1 Customer & project · 2 Amount · 3 Wording · 4 Preview & save, dengan ringkasan angka yang selalu
   terlihat (progres − UM = DPP + PPN − retensi − PPh = kas diterima). Langkah 3 = **pola uraian per proyek** dengan isian otomatis

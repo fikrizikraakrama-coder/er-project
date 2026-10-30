@@ -4101,12 +4101,12 @@ function exM(v) { return rpShort(v); }
 function execRender(d) {
   var cur = B.today.substring(0, 7), R = d.rari || {}, viewer = !!(B.access && B.access.viewer);
   var opts = ''; for (var k = 0; k < 13; k++) { var y = +cur.substring(0, 4), mm = +cur.substring(5, 7) - k; while (mm < 1) { mm += 12; y--; } var r = y + '-' + ('0' + mm).slice(-2); opts += '<option value="' + r + '"' + (r === d.ref ? ' selected' : '') + '>' + monEn(r) + (k === 0 ? ' (current)' : '') + '</option>'; }
-  var odPct = d.open ? d.overdue / d.open : 0, colPct = d.target ? d.receipts / d.target : 0, riPct = R.raFinal ? R.riRA / R.raFinal : 0;
+  var odPct = d.open ? d.overdue / d.open : 0, colPct = d.target ? d.receipts / d.target : 0, riPct = R.raFinal ? R.totalRI / R.raFinal : 0;
   var kpi = function (t, v, s, cls) { return '<div class="ex-k"><small>' + t + '</small><b>' + v + '</b><span class="' + (cls || '') + '">' + s + '</span></div>'; };
   var h = '<div class="ov ex"><div class="ov-hd"><div><h2>Executive Summary</h2><p>' + (d.cur ? 'Position as of ' + dateEn(d.asOf) : 'Month-end position ' + dateEn(d.asOf)) + ' · data from Sistem AR CSU' + (viewer ? ' · view only' : '') + '</p></div><span class="sp"></span><label class="ov-sel">' + ico('cal') + '<select id="exMonth">' + opts + '</select></label><button class="ibtn" id="exPrint" type="button">' + ico('print') + 'Print / PDF</button></div>';
   h += '<div class="ex-kpis">' + kpi('Total receivables', exM(d.open), d.nOpen + ' open invoices') + kpi('Overdue', exM(d.overdue), pctId(odPct, 0) + ' of total', odPct > 0.3 ? 'dn' : '') +
     kpi('Collected ' + monEn(d.ref, true), exM(d.receipts), d.target ? pctId(colPct, 0) + ' of target ' + exM(d.target) : 'no target set', d.target && colPct < 0.7 ? 'dn' : 'up') +
-    kpi('Collection plan realised (RI ÷ RA)', R.raFinal ? pctId(riPct) : '—', 'RA ' + exM(R.raFinal) + ' · RI ' + exM(R.riRA) + (d.raManual ? ' · RA manual' : '')) +
+    kpi('Collection plan realised (total RI ÷ RA)', R.raFinal ? pctId(riPct) : '—', 'RA ' + exM(R.raFinal) + ' (DPP − PPh) · RI ' + exM(R.totalRI) + ' · of which from RA items ' + exM(R.riRA) + (d.raManual ? ' · RA manual' : '')) +
     kpi('DSO (3 months)', d.dso3 != null ? d.dso3 + ' days' : '—', d.dso12 != null ? '12-month ' + d.dso12 + ' days' : '') +
     kpi('Invoices issued ' + monEn(d.ref, true), (d.issued || {}).n || 0, exM((d.issued || {}).total) + ' incl. VAT') + '</div>';
   // tren 12 bulan: tagihan terbit vs uang masuk
@@ -4291,15 +4291,15 @@ function ovRender(d) {
     '<div class="ov2-kp" style="--c:#F0A21A"><small>DSO · 12 months</small><b>' + (d.dso12 === null ? '–' : d.dso12 + ' days') + '</b><span>' + (d.dso3 === null ? 'rolling, position today' : '3-mo DSO ' + d.dso3 + ' days' + (d.dso12 !== null ? (d.dso3 > d.dso12 ? ' · <span class="up">▲ worsening</span>' : ' · <span class="gd">▼ improving</span>') : '')) + '</span></div></div>';
   if (maker) h += '<label class="m-only ov-srch">' + ico('srch') + '<input id="ovQ" placeholder="Search customer / invoice no.…" enterkeyhint="search"></label>';
   // ---- RA–RI
-  var lain = R.riCad + R.riLuar, sisaRA = Math.max(0, R.raFinal - R.riRA), pRA = R.raFinal ? R.riRA / R.raFinal : 0, pT = d.target ? d.receipts / d.target : null;
+  var lain = R.riCad + R.riLuar, sisaRA = Math.max(0, R.raFinal - R.totalRI), pRA = R.raFinal ? R.totalRI / R.raFinal : 0, /* v2.9: format pusat — TOTAL RI ÷ RA final (DPP − PPh) */ pT = d.target ? d.receipts / d.target : null;
   var row = function (t, v, b, p, c) { return '<div class="ov2-br"><div><span><b>' + t + '</b> · ' + rpShort(v) + ' of ' + rpShort(b) + '</span><b>' + pctId(p) + '</b></div><i class="ov2-pb l"><i style="width:' + Math.min(100, p * 100) + '%;background:' + c + '"></i></i></div>'; };
   h += '<div class="ov-row ov2-r"><div class="ov-p"><h3>' + ico('bank') + 'Collection plan vs actual (RA–RI)<span class="r">' + (R.valId ? '<span class="chp ok">final plan ' + esc(R.valId) + '</span>' : '<span class="chp no">plan not yet validated</span>') + '</span></h3><div class="s">Validated collection plan (RA) vs cash actually received (RI) · ' + monEn(d.ref) + (d.raManual ? ' · RA manual sheet' : '') + '</div>';
   if (R.raFinal) {
-    h += '<div class="ov2-ra"><div class="ov2-dn">' + ovRing(pRA, '#1AA6A6', '#EAF0F5', 150, 13) + (pT !== null ? '<span class="in">' + ovRing(pT, '#3F6FD8', '#EAF0F5', 104, 8) + '</span>' : '') + '<div class="lb"><b>' + pctId(pRA) + '</b><small>of final RA</small></div></div><div class="ov2-bs">' +
-      row('RI vs final RA', R.riRA, R.raFinal, pRA, '#1AA6A6') + (pT !== null ? row('Cash vs collection target', d.receipts, d.target, pT, '#3F6FD8') : '') +
-      '<div class="ov-lg"><span><i style="background:#1AA6A6"></i>RI against RA</span><span><i style="background:#7CD3D3"></i>reserve / outside RA ' + rpShort(lain) + '</span>' + (pT !== null ? '<span><i style="background:#3F6FD8"></i>total cash vs target</span>' : '') + '</div></div></div>' +
+    h += '<div class="ov2-ra"><div class="ov2-dn">' + ovRing(Math.min(1, pRA), '#1AA6A6', '#EAF0F5', 150, 13) + (pT !== null ? '<span class="in">' + ovRing(pT, '#3F6FD8', '#EAF0F5', 104, 8) + '</span>' : '') + '<div class="lb"><b>' + pctId(pRA) + '</b><small>of final RA</small></div></div><div class="ov2-bs">' +
+      row('Total RI vs final RA', R.totalRI, R.raFinal, pRA, '#1AA6A6') + (pT !== null ? row('Cash vs collection target', d.receipts, d.target, pT, '#3F6FD8') : '') +
+      '<div class="ov-lg"><span><i style="background:#1AA6A6"></i>' + rpShort(R.riRA) + ' from RA items</span><span><i style="background:#7CD3D3"></i>' + rpShort(lain) + ' reserve / outside RA</span>' + (pT !== null ? '<span><i style="background:#3F6FD8"></i>total cash vs target</span>' : '') + '</div></div></div>' +
       '<div class="ov2-mini"><div><small>Still to collect (RA)</small><b>' + rpShort(sisaRA) + '</b></div><div><small>Needed per working day</small><b>' + (d.cur && R.hariKerja ? rpShort(sisaRA / R.hariKerja) : '–') + '</b></div><div><small>Planned items collected</small><b>' + (d.raPaid || 0) + ' of ' + (d.raN || 0) + '</b></div></div>' +
-      '<div class="ov2-tip">💡 Same cash, two bases: <b>final RA</b> = plan validated by the Section Head · <b>collection target</b> = monthly target in Parameter.</div>';
+      '<div class="ov2-tip">💡 Same as the report to head office: <b>RA</b> = DPP − PPh (as on the plan / RA sheet) · <b>RI</b> = all cash received this month incl. VAT (also reserve &amp; outside RA) · <b>%</b> = total RI ÷ final RA.</div>';
   } else h += '<div class="ov-empty">No collection plan (RA) for ' + monEn(d.ref) + ' yet. Cash received: <b>' + rpShort(d.receipts) + '</b>' + (d.target ? ' · ' + pctId(d.receipts / d.target) + ' of target ' + rpShort(d.target) : '') + '.' + (maker ? '<br><button class="btn sm" type="button" data-ovgo="plan" style="margin-top:8px">Prepare Collection Plan</button>' : '') + '</div>';
   h += '</div>';
   // ---- Action needed
