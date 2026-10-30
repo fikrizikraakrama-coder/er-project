@@ -3241,16 +3241,21 @@ var ENGINE = (function () {
     var lebih = ctx.invs.filter(function (i) { return !i._batal && /^LEBIH BAYAR/.test(i._res.status); }), cq = ctx.invs.filter(function (i) { return i._cq; });
     var lebihV = sumBy(lebih, function (i) { return -N(i._res.sisa); });
     add({ k: 'recon', t: 'Customer reconciliation', st: lebih.length || cq.length ? 'r' : 'g', m: lebih.length ? 'Rp ' + fmtRp(lebihV) : 'No credit balances', s: lebih.length ? 'over-paid balances to explain' : 'every invoice balance follows its receipts',
-      items: [].concat(lebih.length ? [plural0(lebih.length, 'invoice') + ' over-paid: ' + lebih.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []).concat(cq.length ? [plural0(cq.length, 'invoice') + ' with VAT ≠ 11% × DPP (DPP probably wrong): ' + cq.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []), go: 'dashboard', auto: 'auto' });
+      items: [].concat(lebih.length ? [plural0(lebih.length, 'invoice') + ' over-paid: ' + lebih.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []).concat(cq.length ? [plural0(cq.length, 'invoice') + ' with VAT ≠ 11% × DPP (DPP probably wrong): ' + cq.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []), go: 'buka', auto: 'auto',
+      // v2.9.1: temuan yang bisa langsung diperbaiki dari aplikasi
+      fix: lebih.slice(0, 20).map(function (i) { return { t: 'lebih', nomor: i.nomor, pel: i.pelanggan, npp: i.npp, v: rnd(-N(i._res.sisa)), dpp: rnd(i._a.dpp), ppn: rnd(i._a.ppn), cq: i._cq ? rnd(i._cq.dppOk) : 0 }; })
+        .concat(cq.filter(function (i) { return lebih.indexOf(i) < 0; }).slice(0, 20).map(function (i) { return { t: 'cq', nomor: i.nomor, pel: i.pelanggan, npp: i.npp, v: rnd(N(i._res.sisa)), dpp: rnd(i._a.dpp), ppn: rnd(i._a.ppn), cq: rnd(i._cq.dppOk) }; })) });
     // 5 aging
     var C = e0 < ctx.today ? e0 : ctx.today, od90 = [], od365 = [];
     ctx.invs.forEach(function (i) { if (i._batal || i._res.closed || !i._res.jt) return; var d = diffDays(C, i._res.jt); if (d > 90) od90.push(i); if (d > 365) od365.push(i); });
     add({ k: 'aging', t: 'AR aging review', st: od365.length ? 'y' : 'g', m: 'Rp ' + fmtRp(sumBy(od90, function (i) { return Math.max(0, i._res.sisa); })) + ' > 90 days', s: plural0(od90.length, 'invoice') + ' > 90 days · ' + od365.length + ' > 1 year',
-      items: od365.slice(0, 5).map(function (i) { return short(i.nomor) + ' ' + titleCase(i.pelanggan) + ' — ' + S(i._res.status).toLowerCase(); }), go: 'surat', auto: 'auto + notes' });
+      items: od365.length > 8 ? [od365.length + ' invoice > 1 tahun (8 terlama di bawah)'] : [], go: 'surat', auto: 'auto + notes',
+      fix: od365.slice().sort(function (a, b) { return a._res.jt < b._res.jt ? -1 : 1; }).slice(0, 8).map(function (i) { return { t: 'od', nomor: i.nomor, pel: i.pelanggan, npp: i.npp, v: rnd(Math.max(0, i._res.sisa)), st: titleCase(S(i._res.status)).replace(/\s*\(.*\)$/, ''), d: diffDays(C, i._res.jt) }; }) });
     // 6 disputes / short payments
     var disp = ctx.invs.filter(function (i) { return !i._batal && /^KURANG BAYAR/.test(i._res.status); }), vd = (ctx.valDec || {})[ref], hold = vd ? Object.keys(vd.map).filter(function (k) { return vd.map[k].d === 'H'; }) : [];
     add({ k: 'disp', t: 'Disputes & short payments', st: disp.length || hold.length ? 'y' : 'g', m: disp.length ? 'Rp ' + fmtRp(sumBy(disp, function (i) { return Math.max(0, i._res.sisa); })) : 'None open', s: plural0(disp.length, 'short-paid invoice') + ' · ' + hold.length + ' on HOLD in the collection plan',
-      items: disp.slice(0, 5).map(function (i) { return short(i.nomor) + ' ' + titleCase(i.pelanggan) + ' — sisa Rp ' + fmtRp(i._res.sisa) + (S(i.ba_no) ? ' · BA/memo ' + S(i.ba_no) : ''); }), go: 'dashboard', auto: 'auto' });
+      items: [], go: 'buka', auto: 'auto',
+      fix: disp.slice(0, 20).map(function (i) { return { t: 'disp', nomor: i.nomor, pel: i.pelanggan, npp: i.npp, v: rnd(Math.max(0, i._res.sisa)), ba: S(i.ba_no) }; }) });
     // 7 CKPN
     var mv = null; try { mv = ckpnMovement(ctx, e0); } catch (e) { mv = null; }
     var ck = mv ? sumBy(mv.groups, function (o) { return N(o.ckpn); }) : 0, ckp = mv ? sumBy(mv.groups, function (o) { return N(o.prev); }) : 0;
