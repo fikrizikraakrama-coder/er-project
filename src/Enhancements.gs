@@ -294,9 +294,9 @@ function arFormatSourceSheets_(ss) {
   var schemas=[ENGINE.REG,ENGINE.LOG,ENGINE.MPEL,ENGINE.MPRO,ENGINE.ADD,ENGINE.TAG,ENGINE.NOTE,ENGINE.APPR,ENGINE.MEMO,ENGINE.PEREF];
   schemas.forEach(function(sc){var sh=ss.getSheetByName(sc.sheet);if(!sh||sh.getLastRow()<sc.firstRow)return;var n=sh.getLastRow()-sc.firstRow+1,map=colMap_(sh,sc,sc===ENGINE.REG?ENGINE.REG_ALIAS:sc===ENGINE.MPRO?ENGINE.MPRO_ALIAS:null);
     sh.getRange(sc.firstRow,1,n,sh.getLastColumn()).setVerticalAlignment('middle');
-    sc.cols.forEach(function(c){var j=map[c[0]];if(!j)return;var rg=sh.getRange(sc.firstRow,j,n,1),f=colFmt_(c),numeric=/^(money|money0|pct|int|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','ret_pct','tarif','top','adm','top_ret'].indexOf(c[0])>=0;
+    sc.cols.forEach(function(c){var j=map[c[0]];if(!j)return;var rg=sh.getRange(sc.firstRow,j,n,1),f=colFmt_(c),numeric=/^(money|money0|pct|int|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','ret_pct','tarif','top','adm','top_ret','limit'].indexOf(c[0])>=0;
       // NO & tanggal di tengah · nilai uang rata kanan · jumlah/persen/hari di tengah · tulisan rata kiri
-      var al=c[0]==='no'||f==='date'||['lunas','tutup','ke'].indexOf(c[0])>=0?'center':/^(money|money0|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','adm'].indexOf(c[0])>=0?'right':numeric?'center':'left';
+      var al=c[0]==='no'||f==='date'||['lunas','tutup','ke'].indexOf(c[0])>=0?'center':/^(money|money0|num2)$/.test(f||'')||['nilai','nilai_ok','add_tambah','add_kurang','um','um_awal','adm','limit'].indexOf(c[0])>=0?'right':numeric?'center':'left';
       rg.setHorizontalAlignment(al);
       if(al==='left'&&(arLeftLabel_(c[1])||/catatan|ket$|alasan|uraian/.test(c[0])))rg.setWrap(true);
     });
@@ -739,6 +739,7 @@ function arPropsCleanup_() {
 /** pengajuan / keputusan yang mengubah data periode tertutup (pembatalan invoice, lembar validasi) hanya boleh saat izin koreksi aktif */
 function arPeriodDateOf_(kind, d) {
   if (kind === 'BATAL') return d && d.inv ? String(d.inv.tgl || '') : '';
+  if (kind === 'REVP') return d && d.tgl ? String(d.tgl) : '';
   if (kind === 'VAL' || kind === 'VALX') return /^\d{4}-\d{2}$/.test(String(d && d.ref || '')) ? arMonthEnd_(String(d.ref)) : '';
   return '';
 }
@@ -1116,6 +1117,7 @@ function apiMasterData() {
 /** tulis satu baris master (baru = baris setelah data terakhir) */
 function arMdWrite_(sh, schema, alias, row, data) {
   var map = colMap_(sh, schema, alias), auto = ['add_tambah', 'add_kurang', 'nilai_ok'];
+  if (schema.cols.some(function (c) { return !map[c[0]] && (c[0] in data) && auto.indexOf(c[0]) < 0; })) { ensureSchema_(sh, schema, alias, null); map = colMap_(sh, schema, alias); } // v2.9: kolom baru (mis. BATAS KREDIT) dibuat saat pertama dipakai
   if (!row) { row = lastDataRow_(sh, schema.firstRow, [map[schema.cols[0][0]]]) + 1; roomFor_(sh, row); }
   schema.cols.forEach(function (c) { var k = c[0], j = map[k]; if (!j || !(k in data) || auto.indexOf(k) >= 0) return; var v = data[k], rg = sh.getRange(row, j);
     if (AR_MD_TEXT_.indexOf(k) >= 0) { rg.setNumberFormat('@').setValue(arSafeCell_(String(v || ''))); }

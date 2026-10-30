@@ -299,9 +299,9 @@ test('ADJUSTMENT DPP (dasar PPN saja): DPP faktur tetap, piutang & PPh dari DPP 
 });
 
 test('TTD basah: jenis bawaan INV/PAY/KP/REK, TIDAK mematikan; status DISETUJUI tanpa nama Section Head', () => {
-  assert.deepStrictEqual(ENGINE.basahKinds({}), ['INV', 'PAY', 'KP', 'REK']);
+  assert.deepStrictEqual(ENGINE.basahKinds({}), ['INV', 'PAY', 'KP', 'REK', 'REVP']);
   assert.deepStrictEqual(ENGINE.basahKinds({ PERSETUJUAN_TTD_BASAH: 'TIDAK' }), []);
-  assert.deepStrictEqual(ENGINE.basahKinds({ PERSETUJUAN_TTD_BASAH: 'inv, pay; tutup' }), ['INV', 'PAY', 'TUTUP']);
+  assert.deepStrictEqual(ENGINE.basahKinds({ PERSETUJUAN_TTD_BASAH: 'inv, pay; tutup' }), ['INV', 'PAY', 'TUTUP', 'REVP']);
   const input = fixture({ submit: '2026-09-21' }), d0 = ENGINE.packageFor(ENGINE.compute(input).ctx, 'INV', NOMOR);
   input.approvals = [row(ENGINE.APPR, { id: 'APV-00001', waktu: '2026-10-13 09:00', jenis: 'PAKET INVOICE', ref: ENGINE.normInv(NOMOR), sidik: d0.fp, oleh: 'maker@kantor.co.id', status: 'DISETUJUI', putus_waktu: '2026-10-13 09:00', catatan: ENGINE.TTD_BASAH_TAG + ' Persetujuan Section Head melalui tanda tangan basah' })];
   const d = ENGINE.packageFor(ENGINE.compute(input).ctx, 'INV', NOMOR);
@@ -404,4 +404,32 @@ test('Master Data: pemeriksaan pelanggan & proyek, perubahan sensitif terdeteksi
   assert.ok(L.some(x => /already exists/.test(x.t))); assert.ok(L.some(x => /Retention must/.test(x.t)));
   const d = ENGINE.masterDiff('PRO', { npp: 'A', nilai: 39993668000, lokasi: 'X' }, { npp: 'A', nilai: 39933668000, lokasi: 'X' });
   assert.strictEqual(d.length, 1); assert.ok(d[0].sens);
+});
+
+test('v2.9 Reverse Payment: diajukan → tetap dihitung; disetujui → baris DIBALIK, invoice terbuka lagi, persetujuan lama tidak "berubah"', () => {
+  const input = fixture({ submit: '2026-09-01' });
+  input.paramRek = [['BNI', '149394879', 'BANK_BNI']];
+  input.log = [row(ENGINE.LOG, { idp: 'PNR-00001', tgl: '2026-10-10', inv: NOMOR, nominal: 111e6 - 2650000, rekening: 'BNI 149394879' })];
+  let r = ENGINE.compute(input);
+  const inv0 = r.ctx.invs[0]._res; assert.ok(inv0.closed, 'lunas sebelum dibalik');
+  const d = ENGINE.packageFor(r.ctx, 'REVP', 'PNR-00001');
+  assert.strictEqual(d.ref, 'PNR-00001'); assert.strictEqual(d.canSubmit, true); assert.ok(d.rows[0].sisaAfter > 1e8);
+  const payFp = ENGINE.packageFor(r.ctx, 'PAY', 'PNR-00001').fp;
+  const apPay = row(ENGINE.APPR, { id: 'APV-00001', waktu: '2026-10-11 09:00', jenis: 'PAKET PENERIMAAN', ref: 'PNR-00001', sidik: payFp, oleh: 'm@x', status: 'DISETUJUI', putus_waktu: '2026-10-11 09:00' });
+  input.approvals = [apPay, row(ENGINE.APPR, { id: 'APV-00002', waktu: '2026-10-12 09:00', jenis: 'PEMBALIKAN PENERIMAAN', ref: 'PNR-00001', sidik: d.fp, oleh: 'm@x', status: 'MENUNGGU', data: JSON.stringify({ ids: ['PNR-00001'], alasan: 'salah invoice' }) })];
+  r = ENGINE.compute(input); assert.ok(r.ctx.invs[0]._res.closed, 'menunggu: masih dihitung');
+  input.approvals[1] = row(ENGINE.APPR, { id: 'APV-00002', waktu: '2026-10-12 09:00', jenis: 'PEMBALIKAN PENERIMAAN', ref: 'PNR-00001', sidik: d.fp, oleh: 'm@x', status: 'DISETUJUI', putus_waktu: '2026-10-12 10:00', data: JSON.stringify({ ids: ['PNR-00001'], alasan: 'salah invoice' }) });
+  r = ENGINE.compute(input);
+  assert.ok(!r.ctx.invs[0]._res.closed, 'invoice terbuka lagi'); assert.strictEqual(r.ctx.pays.length, 0); assert.strictEqual(r.ctx.paysRev.length, 1);
+  assert.match(r.logOut[0].cek, /DIBALIK/);
+  const ap = ENGINE.approvalsPlain(r.ctx).filter(a => a.id === 'APV-00001')[0]; assert.strictEqual(ap.berubah, false);
+  const d2 = ENGINE.packageFor(r.ctx, 'REVP', 'PNR-00001'); assert.strictEqual(d2.done, true); assert.strictEqual(d2.canSubmit, false);
+  assert.strictEqual(ENGINE.bootstrap(r, 'm@x').reversed.length, 1);
+});
+
+test('v2.9 Credit limit: peringatan bila exposure + invoice baru melewati batas kredit', () => {
+  const W = ENGINE.invoiceChecks({ c: { bayar: 5e8, total: 5e8 }, jenis: 'LAINNYA', tgl: '2026-10-01', today: '2026-10-13', pro: { tarif: 0.0265 }, limit: 1e9, expo: 7e8 });
+  assert.ok(W.some(w => w.lvl === 'W' && /credit limit/.test(w.t)));
+  const OK = ENGINE.invoiceChecks({ c: { bayar: 1e8, total: 1e8 }, jenis: 'LAINNYA', tgl: '2026-10-01', today: '2026-10-13', pro: { tarif: 0.0265 }, limit: 1e9, expo: 7e8 });
+  assert.ok(!OK.some(w => /credit limit/.test(w.t)));
 });

@@ -394,6 +394,7 @@ aside .brand,#accessBadge{display:none!important}
 .tb-dd button:hover,.tb-dd button.on{background:#F1F6FA}.tb-dd button small{display:block;font-weight:400;color:#7A889C;font-size:11px;margin-top:1px}
 .tb-dd i{font-style:normal;width:28px;height:28px;border-radius:7px;background:#EEF3FA;display:grid;place-items:center;color:#2F5597;flex:none}
 .tb-dd .tb-b{margin-left:auto}
+.tb-dd .tc{display:inline-block;font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.03em;background:#E3F1F2;color:#0B4F56;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:1px}
 .tb-user{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12.5px;text-align:right;white-space:nowrap}.tb-user small{display:block;color:#9FB3CC;font-size:10.5px}
 .tb-av{width:32px;height:32px;border-radius:50%;background:#3CC6CE;color:#0B3B47;display:grid;place-items:center;font-weight:800;font-size:12px}
 .tb-bell{position:relative;color:#B9C8DB;cursor:pointer;margin-right:4px;display:flex}.tb-bell i{position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:#E5484D}
@@ -448,7 +449,7 @@ button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(25
 body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body.full #stage{display:none!important}
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 /* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
-#planWrap,#execWrap,#closeWrap{flex:1;overflow:auto;background:#EEF2F6}
+#planWrap,#execWrap,#closeWrap,#custWrap{flex:1;overflow:auto;background:#EEF2F6}
 #mdWrap{flex:1;overflow:hidden;background:#EEF2F6}
 .md{display:grid;grid-template-columns:390px 1fr;height:100%;color:#16263D}.md-left{background:#fff;border-right:1px solid #DCE3EB;display:flex;flex-direction:column;min-height:0}
 .md-lh{padding:14px 16px 6px}.md-lh h2{margin:0;font-size:17px}.md-lh p{margin:2px 0 0;color:#5B6B80;font-size:11.5px}
@@ -543,7 +544,7 @@ table.cpt{width:100%;border-collapse:collapse}.cpt th{font-size:10.5px;text-tran
 .ov-p h3{margin:0;font-size:15px;display:flex;align-items:center;gap:8px}.ov-p h3 .r{margin-left:auto;font-size:11.8px;color:#5F6F86;font-weight:500}.ov-p .s{font-size:12px;color:#5F6F86;margin:3px 0 11px}
 .ov-m{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:11px}.ov-m div{background:#F4F7FA;border-radius:9px;padding:8px 11px}.ov-m small{color:#5F6F86;font-size:11.5px;display:block}.ov-m b{font-size:15px}
 .ov-t{width:100%;border-collapse:collapse;font-size:12.4px}.ov-t th{background:#1E3A5F;color:#fff;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;text-align:left;padding:6px 7px;font-weight:600}.ov-t td{padding:7px;border-bottom:1px solid #EDF1F5;white-space:nowrap}.ov-t td.n,.ov-t th.n{text-align:right;font-variant-numeric:tabular-nums}
-.ov-t td.w{white-space:normal}.ov-t tr.ck{cursor:pointer}.ov-t tr.ck:hover td{background:#F6F9FC}
+.ov-t td.w{white-space:normal}.ov-t tr.rk{cursor:pointer}.ov-t tr.rk:hover td{background:#F6F9FC}
 .chp{font-size:10.8px;font-weight:700;border-radius:9px;padding:2px 8px;white-space:nowrap}.chp.ok{background:#E5F5EB;color:#1E6B3E}.chp.wt{background:#E3F3F4;color:#0B5A62}.chp.no{background:#FFF3DA;color:#8A5A00}.chp.bad{background:#FDECEA;color:#A3241A}.chp.na{background:#EEF2F6;color:#5F6F86}
 .ov-big{display:flex;align-items:baseline;gap:8px;margin:2px 0 7px}.ov-big b{font-size:30px;letter-spacing:-.6px}.ov-big span{font-size:13px;color:#33475B}.ov-big em{margin-left:auto;font-style:normal;font-size:12px;color:#5F6F86}.ov-big em b{font-size:13px;letter-spacing:0;color:#16263D}
 .ovr-p{font-weight:700;color:#0F6E78;font-style:normal}.ovr-tag{font-style:normal;display:inline-block;background:#EEF3FA;color:#2F4A6E;border-radius:5px;padding:0 6px;font-size:11px;font-weight:600}
@@ -565,6 +566,51 @@ table.cpt{width:100%;border-collapse:collapse}.cpt th{font-size:10.5px;text-tran
 .ov-trend svg{width:100%;height:auto;display:block}
 .ov-empty{font-size:12.5px;color:#5F6F86;background:#F6F8FB;border-radius:8px;padding:12px;text-align:center}
 .ov .more{font-size:12px;color:#0F6E78;font-weight:600;background:none;border:0;padding:8px 0 0;cursor:pointer}
+/* ====================== v2.9: Overview baru, Customer Balances, Credit Limits, Reverse Payment */
+.ov2-k{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.ov2-kp{position:relative;overflow:hidden;background:#fff;border:1px solid #DFE6EE;border-radius:14px;padding:14px 16px 12px 18px;min-width:0;min-height:104px}.ov2-kp:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c)}
+.ov2-kp small{display:block;color:#5B6B80;font-weight:600;font-size:11.8px}.ov2-kp b{display:block;font-size:clamp(17px,1.6vw,24px);margin:5px 0 3px;letter-spacing:-.3px;white-space:nowrap}.ov2-kp b.red{color:#C8372F}
+.ov2-kp span{display:block;font-size:11.6px;color:#5B6B80;max-width:calc(100% - 70px)}.ov2-kp .up{display:inline;color:#C8372F;font-weight:700}.ov2-kp .gd{display:inline;color:#1E8A4C;font-weight:700}.ov2-kp strong{color:#0F6E78}
+.ov2-sp,.ov2-rg{position:absolute;right:12px;bottom:10px}
+.ov2-pb{display:flex;height:7px;background:#EEF2F6;border-radius:6px;overflow:hidden;margin-top:9px;max-width:170px}.ov2-pb i{display:block;height:100%;background:#1AA6A6}.ov2-pb.l{height:11px;max-width:none;margin:5px 0 12px}.ov2-pb.s{height:7px;max-width:none;margin:5px 0 0}
+.ov2-r{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}.ov2-r3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ov2-ra{display:flex;gap:24px;align-items:center}.ov2-dn{position:relative;width:150px;height:150px;flex:none}.ov2-dn .ov2-rg{position:absolute;left:0;top:0}.ov2-dn .in .ov2-rg{left:23px;top:23px}
+.ov2-dn .lb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.ov2-dn .lb b{font-size:22px;color:#0F6E78}.ov2-dn .lb small{font-size:10.5px;color:#6A7A8E}
+.ov2-bs{flex:1;min-width:0}.ov2-br>div{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.ov2-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.ov2-mini div{background:#F5F8FB;border-radius:10px;padding:9px 12px}.ov2-mini small{display:block;color:#5B6B80;font-size:11px}.ov2-mini b{font-size:15px}
+.ov2-tip{background:#F1F8F8;border:1px dashed #9CCFD1;border-radius:10px;padding:8px 12px;font-size:12px;color:#24505A;margin-top:12px}.ov2-tip.r{background:#FFF6F5;border-color:#F1B7B2;color:#7A2A24}
+.ov2-ac{display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid #EEF2F6;cursor:pointer}.ov2-ac:hover{background:#F8FAFC}.ov2-ac:last-child{border-bottom:0}
+.ov2-ac .ai{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-style:normal;font-size:15px;flex:none}.ov2-ac .tx{flex:1;min-width:0}.ov2-ac .tx b{display:block;font-size:13px}.ov2-ac .tx small{display:block;color:#6A7A8E;font-size:11.5px}
+.ov2-ac em{font-style:normal;font-weight:800;font-size:12.5px;border-radius:20px;padding:2px 10px}.ov2-ac em.ov{background:#FDE4E2;color:#B3261E}.ov2-ac em.wn{background:#FFF1D6;color:#9A6200}.ov2-ac em.bl{background:#E4EEFA;color:#1F5BA8}
+.ov2-ac .go{color:#0F6E78;font-weight:700;font-size:12px;white-space:nowrap;min-width:118px;text-align:right}.ov2-ok{background:#E9F6EF;color:#1E6B3E;border-radius:10px;padding:14px;text-align:center;font-weight:600;font-size:13px}.ov2-ok.sm{padding:9px;margin-bottom:6px;font-size:12.5px}
+.ov2-ab{display:flex;height:24px;border-radius:8px;overflow:hidden;margin:4px 0 10px;background:#EEF2F6}.ov2-ab i{display:block}
+.ov2-al div{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12.5px}.ov2-al .dot{width:10px;height:10px;border-radius:3px;flex:none}.ov2-al small{margin-left:auto;color:#7A899B;width:48px;text-align:right}.ov2-al b{width:84px;text-align:right;font-variant-numeric:tabular-nums}
+.ov2-t{width:100%;border-collapse:collapse;font-size:12.5px}.ov2-t th{text-align:left;color:#6A7A8E;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;padding:6px;border-bottom:1px solid #E5EAF0}
+.ov2-t td{padding:8px 6px;border-bottom:1px solid #F0F3F7;vertical-align:middle}.ov2-t tr:last-child td{border-bottom:0}.ov2-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.ov2-t td small{display:block;color:#7A899B;font-size:11px}.ov2-t tr.rk{cursor:pointer}.ov2-t tr.rk:hover td{background:#F6F9FC}
+.ov2 h3 .r a{color:#0F6E78;font-weight:700;cursor:pointer}.ov2-qa{display:flex;gap:8px;margin-top:14px}
+@media(max-width:1250px){.ov2-k{grid-template-columns:repeat(3,minmax(0,1fr))}.ov2-r,.ov2-r3{grid-template-columns:1fr}}
+@media(max-width:700px){.ov2-k{grid-template-columns:1fr 1fr!important;gap:8px}.ov2-kp{min-height:0;padding:10px 10px 10px 14px}.ov2-kp span{max-width:none}.ov2-sp,.ov2-rg{display:none}.ov2-kp .ov2-pb{max-width:none}.ov2-ra{flex-direction:column}.ov2-mini{grid-template-columns:1fr 1fr}.ov2-ac .go{display:none}}
+@media print{#print-root .ovp .ov2-kp,#print-root .ovp .ov2-qa{break-inside:avoid}#print-root .ovp .ov2-qa{display:none}}
+.cu{padding:18px 22px 28px;max-width:1500px;margin:0 auto;color:#16263D}.cu-hd{display:flex;align-items:flex-end;gap:12px;margin-bottom:14px}.cu-hd h2{margin:0;font-size:22px}.cu-hd p{margin:3px 0 0;color:#5F6F86;font-size:12.5px}.cu-hd .sp{flex:1}
+.cu .tc,.ap-tc{display:inline-block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.03em;background:#E3F1F2;color:#0B4F56;border-radius:5px;padding:2px 6px;margin-left:8px;vertical-align:3px}
+.cu-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.cu-k div{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:12px 15px}.cu-k small{display:block;color:#5B6B80;font-size:11.8px}.cu-k b{font-size:21px}.cu-k b span{font-size:12px;color:#6A7A8E;font-weight:500}.cu-k .k-r b{color:#C8372F}.cu-k .k-y b{color:#9A6200}
+.cu-tb{margin:12px 0 8px}.cu-tb input{max-width:360px}
+.cu-c{background:#fff;border:1px solid #DFE6EE;border-radius:12px;overflow:auto}.cu-t{width:100%;border-collapse:collapse;font-size:12.8px}.cu-t th{text-align:left;color:#6A7A8E;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;padding:9px 12px;border-bottom:1px solid #E5EAF0;background:#FAFBFD}
+.cu-t td{padding:9px 12px;border-bottom:1px solid #F0F3F7;vertical-align:middle}.cu-t .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.cu-t td small{display:block;color:#7A899B;font-size:11px}.cu-t .z{color:#A3AEBD}.cu-t td.red{color:#B3261E;font-weight:700}
+.cu-t tr.rk{cursor:pointer}.cu-t tr.rk:hover td,.cu-t tr.on td{background:#F4F8FB}.cu-t tr.tot td{font-weight:800;background:#F5F8FB;border-top:2px solid #DCE3EB}
+.cu-bar{display:inline-flex;width:calc(100% - 52px);height:9px;background:#EEF2F6;border-radius:6px;overflow:hidden;vertical-align:middle}.cu-bar i{display:block;height:100%}.cu-bar.s{display:flex;width:100%;height:5px;margin-top:4px}
+.cu-p{font-size:10.5px;font-weight:800;border-radius:20px;padding:2px 8px;white-space:nowrap}.cu-p.ok{background:#E2F4EA;color:#1E7A45}.cu-p.wn{background:#FFF1D6;color:#9A6200}.cu-p.ov{background:#FDE4E2;color:#B3261E}.cu-p.nl{background:#EEF2F6;color:#5F6F86}
+.cu-sub td{background:#F8FAFC;padding:6px 12px 12px}.cu-pj div{display:flex;align-items:center;gap:14px;padding:6px 8px;border-bottom:1px dashed #E3E9F0}.cu-pj div:last-child{border:0}.cu-pj span{flex:1}.cu-pj small{display:block;color:#7A899B;font-size:11px}
+@media(max-width:700px){.cu{padding:12px}.cu-k{grid-template-columns:1fr 1fr}.cu-hd{flex-wrap:wrap}}
+@media print{#print-root .cup{width:281mm;zoom:.75;padding:0;max-width:none}#print-root .cup .btn,#print-root .cup .cu-tb{display:none}}
+.pk-in{margin:0 0 8px;font-size:12.5px;color:var(--steel);line-height:1.45}.pk-l{max-height:52vh;overflow:auto;margin-top:8px;border:1px solid #E3E9F0;border-radius:9px}
+.pk-l button{display:flex;gap:10px;width:100%;align-items:center;text-align:left;background:#fff;border:0;border-bottom:1px solid #EEF2F6;padding:9px 11px;font:inherit;cursor:pointer}.pk-l button:hover{background:#F2F7FA}.pk-l button span{flex:1;min-width:0}.pk-l small{display:block;color:var(--steel);font-size:11.5px}
+.pk-l em{font-style:normal;font-weight:700;font-size:12.5px;white-space:nowrap;text-align:right}.pk-l em i{display:block;font-style:normal;font-weight:700;font-size:10.5px;color:#9A6200}.pk-more{padding:10px;text-align:center;font-size:12px;color:var(--steel)}
+.rv-imp{display:grid;grid-template-columns:1fr 1fr;gap:10px}.rv-imp div{border:1px solid #E1E7EE;border-radius:10px;padding:9px 12px}.rv-imp small{display:block;color:#5B6B80;font-size:11px}.rv-imp b{display:block;font-size:14px}.rv-imp span{font-size:11.5px;color:#5B6B80}.rv-ar{color:#5B6B80!important;font-size:14px!important}
+.rv-opt{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.rv-opt button{border:1px solid #CBD5E1;background:#fff;border-radius:8px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;color:#33475B}.rv-opt button.on{border-color:#0F6E78;background:#EEF7F8;color:#0B4F56}
+.btn.danger{background:#B42318!important;border-color:#B42318!important;color:#fff!important}
+.pill.rvp{background:#FDECEA;color:#A3241A;font-weight:700}tr.rvd td{color:#7A889C}tr.rvd s{color:#7A889C}
+.rvb{margin-top:4px;border:1px solid #F1B7B2;background:#FFF6F5;color:#A3241A;border-radius:7px;padding:2px 8px;font:inherit;font-size:11px;font-weight:700;cursor:pointer}.rvb:hover{background:#FDE4E2}
 @media(max-width:1250px){.ov-k{grid-template-columns:repeat(3,minmax(0,1fr))}.ov-r1,.ov-r2{grid-template-columns:1fr}}
 @page ovP{size:A4 landscape;margin:8mm}
 @media print{#print-root .ovp{page:ovP;width:281mm;zoom:.72;padding:0;max-width:none}#print-root .ovp .ov-p,#print-root .ovp .ov-kp{break-inside:avoid}#print-root .ovp .ibtn,#print-root .ovp .ov-sel,#print-root .ovp .more{display:none}#print-root .ovp *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -700,6 +746,10 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
 <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5M12 6v2M12 16v2"/></symbol>
 <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1 0 8z"/><path d="M12 12v6M9.5 14.5 12 12l2.5 2.5"/></symbol>
+<symbol id="i-rev" viewBox="0 0 24 24"><path d="M4 5v5h5"/><path d="M4.6 10A8 8 0 1 1 6 16.5"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6 6 0 0 1 3.5 6"/></symbol>
+<symbol id="i-lim" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
+<symbol id="i-xd" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9.5 12.5l5 5M14.5 12.5l-5 5"/></symbol>
 </defs></svg>
 <header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div class="tb-name">AR CSU<small id="tbVer">Receivables Management</small></div></div>
   <div id="mTitle"></div>
@@ -717,7 +767,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 
     <!-- ===================== MODE BUAT -->
     <div class="scroll fx" id="mode-buat">
-      <div class="fx-hd"><h2>Issue Invoice</h2><p>Progress billing with invoice, receipt, BAP and e-Faktur draft</p></div>
+      <div class="fx-hd"><h2>Create Invoice<em class="ap-tc">FB70</em></h2><p>Progress billing with invoice, receipt, BAP and e-Faktur draft</p></div>
       <div class="fx-steps iv-steps" id="stInv"><span data-ivs="1">1 · Customer &amp; project</span><span data-ivs="2">2 · Amount</span><span data-ivs="3">3 · Wording</span><span data-ivs="4">4 · Preview &amp; save</span></div>
       <div class="iv-sum" id="ivSum"></div>
       <fieldset class="stp" data-ivstep="1">
@@ -801,7 +851,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 
     <!-- ===================== MODE BAYAR -->
     <div class="scroll fx" id="mode-bayar" hidden>
-      <div class="fx-hd"><h2>Record Cash Receipt</h2><p>Incoming customer payment, applied to open invoices (VAT first, then net)</p></div>
+      <div class="fx-hd"><h2>Post Incoming Payment<em class="ap-tc">F-28</em></h2><p>Incoming customer payment, applied to open invoices (VAT first, then net)</p></div>
       <div class="fx-steps" id="stPay"><span>1 · Bank details</span><span>2 · Apply to invoices</span><span>3 · Review &amp; save</span></div>
       <div class="seg" role="group" aria-label="Receipt type"><button type="button" data-pj="trf" aria-pressed="true">Bank transfer</button><button type="button" data-pj="pb" aria-pressed="false">Offset / reclass</button><button type="button" data-pj="kom" aria-pressed="false">Compensation</button></div>
       <div id="pjTrf">
@@ -849,12 +899,12 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <div class="note" id="cRes"></div>
         </fieldset>
       </div>
-      <div class="note" style="margin-top:14px">Receipts already recorded (per month, with approval sheets) are in <button class="linkbtn" type="button" data-mgo="tbayar">Cash Receipts ▸ Receipts Register</button>.</div>
+      <div class="note" style="margin-top:14px">Receipts already recorded (per month, with approval sheets) are in <button class="linkbtn" type="button" data-mgo="tbayar">Payments ▸ Payment List</button>. A wrong receipt is corrected with <b>Payments ▸ Reverse Payment</b>.</div>
     </div>
 
     <!-- ===================== MODE REGISTER PENERIMAAN (v2.8.7) -->
     <div class="scroll" id="mode-tbayar" hidden>
-      <div class="m-only m-acts"><button type="button" class="btn" data-mgo="bayar">+ Record receipt</button></div>
+      <div class="m-only m-acts"><button type="button" class="btn" data-mgo="bayar">+ Post payment</button></div>
       <label for="pQ">Search receipt no., invoice, NPP, customer or bank reference</label><input id="pQ" placeholder="e.g. PNR-00355 or 0137/2026 or 264C 1235 or ASTAKONA">
       <div style="display:flex;gap:8px;margin-top:8px"><select id="pMon" aria-label="Receipt month" style="font-weight:700"></select><button class="btn" type="button" id="pRegPrint" style="flex:0 0 auto"><svg class="ic"><use href="#i-print"/></svg>Print</button></div>
       <div class="fchips" id="pChips"></div><div class="fsum" id="pSum"></div>
@@ -946,6 +996,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="execWrap" hidden></div>
     <div id="closeWrap" hidden></div>
     <div id="mdWrap" hidden></div>
+    <div id="custWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
@@ -1493,7 +1544,7 @@ function update() {
   // info persen
   if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' of contract value' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' after amendments' : '');
   else $('pctInfo').textContent = '';
-  INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net }) : [];
+  INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net, limit: pel() ? +pel().limit || 0 : 0, expo: custExpo(S.pelanggan, nomorStr()) }) : [];
   renderSummary(); renderChecks(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
 }
 /** template yang menghitung PPN dari DPP sebelum retensi dipotong (retensi di akhir) */
@@ -2422,16 +2473,16 @@ function bindSurat() {
 
 /* ====================================================== mode */
 function setMode(m) {
-  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close'].indexOf(m) < 0) m = 'exec';
-  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec', 'close'].indexOf(m) < 0) m = 'setuju';
+  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'exec';
+  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
-  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
+  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim'); $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
@@ -2439,6 +2490,7 @@ function setMode(m) {
   if (m === 'exec') execLoad();
   if (m === 'close') closeLoad();
   if (m === 'md') { if (MD.d) mdRender(); mdLoad(); }
+  if (m === 'bal' || m === 'lim') custRender();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
@@ -3109,6 +3161,7 @@ function buildPages(pkg, invDocs) {
   else if (k === 'REK') internal = all = pgRekap(pkg);
   else if (k === 'BATAL') internal = all = pgBatal(pkg);
   else if (k === 'VALX') internal = all = pgValX(pkg);
+  else if (k === 'REVP') internal = all = pgRevp(pkg) + (pkg.done ? '' : '');
   return { internal: internal, all: all };
 }
 function openPackage(kind, ref, quiet, after) {
@@ -3139,7 +3192,7 @@ function showPackage() {
 }
 function closePackage() { STACK = false; document.body.classList.remove('stack', 'm-doc', 'has-sum', 'm-view'); PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); renderDocs(); }
 function skelHtml(kind, ref) {
-  var nm = { INV: 'invoice approval sheet', PAY: 'cash receipt approval sheet', VAL: 'collection plan validation sheet', REK: 'monthly summary', KP: 'customer ledger', TUTUP: 'manual close sheet', BATAL: 'cancellation sheet', VALX: 'validation sheet cancellation' }[kind] || 'document';
+  var nm = { INV: 'invoice approval sheet', PAY: 'cash receipt approval sheet', VAL: 'collection plan validation sheet', REK: 'monthly summary', KP: 'customer ledger', TUTUP: 'manual close sheet', BATAL: 'cancellation sheet', VALX: 'validation sheet cancellation', REVP: 'payment reversal sheet' }[kind] || 'document';
   return '<div class="skel"><div class="pg"><div class="spin"></div>Preparing ' + nm + ' ' + esc(String(ref).replace(/^REF\s+/, '').replace(/^KU\.02\.02\/WB-4C\./, '')) + '…</div>' +
     '<div class="sk" style="width:40%;height:16px"></div><div class="sk" style="width:72%"></div><div class="sk" style="height:90px;margin:16px 0"></div><div class="sk" style="width:55%"></div><div class="sk" style="width:35%"></div>' +
     '<div style="display:flex;gap:12px;margin-top:22px"><div class="sk" style="flex:1;height:90px"></div><div class="sk" style="flex:1;height:90px"></div><div class="sk" style="flex:1;height:90px"></div></div></div>';
@@ -3148,7 +3201,7 @@ function skelHtml(kind, ref) {
 function pkgTabsInit() {
   var pages = Array.prototype.slice.call(document.querySelectorAll('#sheetwrap .stackwrap > .page')), groups = [];
   var nameOf = function (pg) { var h = pg.querySelector('h2'), t = h ? h.textContent.trim().toUpperCase() : '';
-    return /^LEMBAR PENGESAHAN|^LEMBAR PENUTUPAN|^LEMBAR PEMBATALAN|^PEMBATALAN LEMBAR/.test(t) ? 'Approval sheet' : /^KARTU PIUTANG/.test(t) ? 'Customer ledger' : /^USULAN JURNAL/.test(t) ? 'Proposed SAP journal' : /^DRAFT FAKTUR/.test(t) ? 'Tax invoice draft' :
+    return /^LEMBAR PENGESAHAN|^LEMBAR PENUTUPAN|^LEMBAR PEMBATALAN|^LEMBAR PEMBALIKAN|^PEMBATALAN LEMBAR/.test(t) ? 'Approval sheet' : /^KARTU PIUTANG/.test(t) ? 'Customer ledger' : /^USULAN JURNAL/.test(t) ? 'Proposed SAP journal' : /^DRAFT FAKTUR/.test(t) ? 'Tax invoice draft' :
       /^LEMBAR VALIDASI/.test(t) ? 'Validation sheet' : /^REKAP/.test(t) ? 'Monthly summary' : pg.classList.contains('pg-kw') ? 'Receipt (kwitansi)' : pg.classList.contains('pg-bap') ? 'BAP' : pg.classList.contains('pg-inv') ? 'Invoice' : 'Attachment'; };
   pages.forEach(function (pg) { var n = nameOf(pg), g = groups.filter(function (x) { return x.n === n; })[0]; if (!g) groups.push(g = { n: n, p: [] }); g.p.push(pg); });
   var show = function (ix) { groups.forEach(function (g, k) { g.p.forEach(function (pg) { pg.hidden = k !== ix; }); }); document.querySelectorAll('#pkgTabs .ptab').forEach(function (b, k) { b.classList.toggle('on', k === ix); }); fitZoom(); };
@@ -3165,8 +3218,8 @@ function canDecideNow() {
 function pkgActions() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah, ok = a && a.status === 'DISETUJUI' && !a.berubah;
   var canSubmit = /^PEMBUAT/.test(role) && !pend && (!ok || PKG.kind === 'VAL'), canDecide = canDecideNow();
-  if (PKG.kind === 'BATAL' || PKG.kind === 'VALX') canSubmit = /^PEMBUAT/.test(role) && !!PKG.canSubmit;
-  $('btnPkgSubmit').textContent = PKG.kind === 'BATAL' || PKG.kind === 'VALX' ? 'Submit cancellation to Section Head' : PKG.kind === 'VAL' && PKG._mode === 'usul' ? 'Submit to Section Head' : PKG.kind === 'VAL' && (ok || PKG.legacy || (a && a.status === 'DISETUJUI')) ? 'Submit revision (Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ')' : 'Submit to Section Head';
+  if (PKG.kind === 'BATAL' || PKG.kind === 'VALX' || PKG.kind === 'REVP') canSubmit = /^PEMBUAT/.test(role) && !!PKG.canSubmit;
+  $('btnPkgSubmit').textContent = PKG.kind === 'REVP' ? 'Reverse & submit for approval' : PKG.kind === 'BATAL' || PKG.kind === 'VALX' ? 'Submit cancellation to Section Head' : PKG.kind === 'VAL' && PKG._mode === 'usul' ? 'Submit to Section Head' : PKG.kind === 'VAL' && (ok || PKG.legacy || (a && a.status === 'DISETUJUI')) ? 'Submit revision (Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ')' : 'Submit to Section Head';
   $('pkgTitle').innerHTML = '<b>' + esc(lblEn(PKG.label)) + '</b><br><span style="color:var(--steel)">' + (a ? esc(a.teks || a.status) + (a.valid === false ? ' · <b style="color:var(--red)">invalid code</b>' : '') : 'Not submitted') + '</span>';
   $('btnPkgSubmit').hidden = !canSubmit; $('btnPkgOk').hidden = !canDecide; $('btnPkgNo').hidden = !canDecide;
   $('act-pkg').hidden = false;
@@ -3230,6 +3283,7 @@ function archiveMeta(P) {
   if (k === 'KP') { var kk = P.kartu || {}, b3 = j(['KP', String(P.npp).replace(/\s+/g, ''), cleanPel(kk.pelanggan), 'per ' + tg(P.asOf)]); return { name: b3 + '_' + kode, month: String(P.asOf).slice(0, 7), prefix: b3 + '_' }; }
   if (k === 'TUTUP') { var b4 = j([shortInv(P.inv.nomor), cleanPel(P.inv.pelanggan), 'Tutup manual']); return { name: b4 + '_' + kode, month: String(B.today).slice(0, 7), prefix: b4 + '_' }; }
   if (k === 'VALX') { var b7 = j(['Pembatalan lembar validasi', String(P.ref)]); return { name: b7 + '_' + kode, month: String(P.ref).slice(0, 7), prefix: b7 + '_' }; }
+  if (k === 'REVP') { var b7 = j([P.ids.join('-'), cleanPel((P.rows[0] || {}).pelanggan || ''), 'Pembalikan']); return { name: b7 + '_' + kode, month: String(B.today).slice(0, 7), prefix: b7 + '_' }; }
   if (k === 'BATAL') { var b6 = j([shortInv(P.inv.nomor), cleanPel(P.inv.pelanggan), 'Pembatalan']); return { name: b6 + '_' + kode, month: String(B.today).slice(0, 7), prefix: b6 + '_' }; }
   var b5 = j([k === 'VAL' ? 'Validasi rencana cair' : 'Rekap bulanan', String(P.ref)]); return { name: b5 + '_' + kode, month: String(P.ref).slice(0, 7), prefix: b5 + '_' };
 }
@@ -3326,6 +3380,7 @@ function submitPkg() {
     });
     return;
   }
+  if (PKG.kind === 'REVP') { revSubmit(); return; }
   if (PKG.kind === 'BATAL') {
     var i = PKG.inv;
     confirmDlg('Submit invoice cancellation', 'Cancel <b>' + esc(i.nomor) + '</b> · ' + esc(i.pelanggan) + ' · Rp ' + nfDot(i.total) + '?<br><span style="font-size:12px;color:var(--steel)">The invoice remains active until the Section Head approves.</span>' +
@@ -3379,7 +3434,7 @@ function decidePkg(setuju) {
 function refreshAll(cb) { call('apiBootstrap', [], function (b) { B = b; OV = {}; srBadge(); applyAccess(); renderList(); fillOpenList(); renderSetuju(); if (cb) cb(); }); }
 
 /* ====================================================== v2: mode Otorisasi Dokumen AR */
-var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX' };
+var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX', 'PEMBALIKAN PENERIMAAN': 'REVP' };
 /* tutup periode: PEMBUAT menutup (hanya maju); Section Head membuka koreksi sementara (maks. 7 hari) atau mencabutnya */
 function renderPeriode() {
   var P = B.params || {}, tutup = E.periodeTutup(P, B.today), kor = P.PERIODE_KOREKSI_SAMPAI && P.PERIODE_KOREKSI_SAMPAI >= B.today ? P.PERIODE_KOREKSI_SAMPAI : '';
@@ -3416,33 +3471,42 @@ function renderSetuju() {
 /* ====================================================== v2.8.7: Receipts Register (Cash Receipts ▸ Receipts Register) */
 var PAY_F = 'all';
 /** penerimaan dikelompokkan per transfer / ID penerimaan; month = bulan uang diterima (value date) */
-function payGroups(pm, q) {
+function payGroups(pm, q, all) {
   var G = {}, order = [];
   B.payments.forEach(function (p) {
-    if (q ? (p.idp + ' ' + p.ref + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + (p.npp || '') + ' ' + p.key).toUpperCase().indexOf(q) < 0 : String(p.tgl || '').substring(0, 7) !== pm) return;
-    var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ho: p.ho || '', rek: p.rekening, ref: p.ref, ids: [], npp: [] }; order.push(g); }
+    if (!all && (q ? (p.idp + ' ' + p.ref + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + (p.npp || '') + ' ' + p.key).toUpperCase().indexOf(q) < 0 : String(p.tgl || '').substring(0, 7) !== pm)) return;
+    var g = G[p.key]; if (!g) { g = G[p.key] = { key: p.key, tgl: p.tgl, pel: p.pelanggan, inv: [], n: 0, pb: p.pb, kom: p.kom, appr: p.appr, ho: p.ho || '', rek: p.rekening, ref: p.ref, ids: [], npp: [], revPend: '' }; order.push(g); }
+    if (p.revPend) g.revPend = p.revPend;
     if (p.npp && g.npp.indexOf(p.npp) < 0) g.npp.push(p.npp);
     g.n += p.pb ? Math.max(0, p.nominal) : p.nominal; if (g.inv.indexOf(short(p.nomor)) < 0) g.inv.push(short(p.nomor)); if (p.idp && g.ids.indexOf(p.idp) < 0) g.ids.push(p.idp); if (p.tgl > g.tgl) g.tgl = p.tgl; });
   return order.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : (a.ids[0] || '') < (b.ids[0] || '') ? 1 : -1; });
 }
 function payMatch(g, f) {
-  return f === 'all' ? true : f === 'trf' ? !g.pb && !g.kom : f === 'off' ? g.pb || g.kom : f === 'nosub' ? !/^✓/.test(g.appr) : f === 'noho' ? /BELUM DISERAHKAN|SERAHKAN LAGI/.test(g.ho) : true;
+  if (g.rv) return f === 'all' || f === 'rev';
+  return f === 'rev' ? !!g.revPend : f === 'all' ? true : f === 'trf' ? !g.pb && !g.kom : f === 'off' ? g.pb || g.kom : f === 'nosub' ? !/^✓/.test(g.appr) : f === 'noho' ? /BELUM DISERAHKAN|SERAHKAN LAGI/.test(g.ho) : true;
 }
 function renderPayReg() {
   if (!B || !$('payList')) return;
   if ($('pMon') && !$('pMon').options.length) $('pMon').innerHTML = monthOpts(PAY_M);
   var q = ($('pQ') && $('pQ').value || '').toUpperCase().trim(), pm = PAY_M === 'CUR' ? B.today.substring(0, 7) : PAY_M, base = payGroups(pm, q);
-  var F = [['all', 'All'], ['trf', 'Bank transfer'], ['off', 'Offset / compensation'], ['nosub', 'Not approved'], ['noho', 'Not handed over']];
+  // v2.9: penerimaan yang sudah dibalik tetap tampil (dicoret) agar jejaknya terlihat
+  (B.reversed || []).forEach(function (x) { if (q ? (x.ids.join(' ') + ' ' + x.pelanggan + ' ' + x.npp + ' ' + x.inv.join(' ') + ' ' + x.key).toUpperCase().indexOf(q) < 0 : String(x.tgl || '').substring(0, 7) !== pm) return;
+    base.push({ key: x.ref, rv: x, tgl: x.tgl, pel: x.pelanggan, inv: x.inv.map(short), n: x.nilai, ids: x.ids, npp: [x.npp], appr: '', ho: '', pb: x.rekening === 'PINDAH BUKU', kom: x.rekening === 'KOMPENSASI' }); });
+  base.sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
+  var maker = !!(B.access && B.access.maker), F = [['all', 'All'], ['trf', 'Bank transfer'], ['off', 'Offset / compensation'], ['nosub', 'Not approved'], ['noho', 'Not handed over'], ['rev', 'Reversed']];
   $('pChips').innerHTML = F.map(function (f) { return '<button type="button" data-pf="' + f[0] + '" class="' + (PAY_F === f[0] ? 'on' : '') + '">' + f[1] + '<em>' + base.filter(function (g) { return payMatch(g, f[0]); }).length + '</em></button>'; }).join('');
   $('pChips').querySelectorAll('[data-pf]').forEach(function (b) { b.onclick = function () { PAY_F = b.dataset.pf; renderPayReg(); }; });
-  var L = base.filter(function (g) { return payMatch(g, PAY_F); }), cash = L.reduce(function (t, g) { return t + (g.pb || g.kom ? 0 : g.n); }, 0), off = L.reduce(function (t, g) { return t + (g.pb || g.kom ? g.n : 0); }, 0);
+  var L = base.filter(function (g) { return payMatch(g, PAY_F); }), cash = L.reduce(function (t, g) { return t + (g.rv || g.pb || g.kom ? 0 : g.n); }, 0), off = L.reduce(function (t, g) { return t + (!g.rv && (g.pb || g.kom) ? g.n : 0); }, 0);
   renderPayReg.last = { L: L, pm: pm, q: q, cash: cash, off: off };
   $('pSum').innerHTML = '<b>' + (q ? 'Search “' + esc($('pQ').value.trim()) + '” · all months' : monEn(pm)) + '</b> · ' + plural(L.length, 'receipt') + ' · ' + rpShort(cash) + ' cash received' + (off ? ' · ' + rpShort(off) + ' offsets & compensations' : '') + (q ? '' : ' · typing searches all months');
   $('payList').innerHTML = L.length ? L.map(function (g) {
+    if (g.rv) return '<tr class="rvd' + (AP_SEL === 'REVP|' + g.key ? ' sel' : '') + '" data-open="REVP|' + esc(g.key) + '"><td><b>' + esc(g.ids[0]) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + '</b><br><span style="color:var(--steel)">' + esc(tg(g.tgl)) + '</span><br><span class="pill rvp">↺ reversed</span></td><td>' + esc(titleCaseS(g.pel)) + '<br><span class="pnpp">NPP ' + esc(g.npp.join(', ')) + '</span><br><span style="color:var(--steel)">4C.' + esc(g.inv.join(', 4C.')) + '</span></td>' +
+      '<td><span class="num"><s>Rp ' + nfDot(g.n) + '</s></span><br><span style="color:var(--steel);font-size:11.5px">reversed ' + esc(tg(g.rv.tglRev)) + ' · ' + esc(g.rv.apv) + '</span></td></tr>';
     var ho = /^✓/.test(g.ho) ? '<span class="pho y">✓ handed over</span>' : /BELUM|LAGI/.test(g.ho) ? '<span class="pho n">not handed over</span>' : '';
     return '<tr data-open="PAY|' + esc(g.key) + '"' + (AP_SEL === 'PAY|' + g.key ? ' class="sel"' : '') + '><td><b>' + esc(g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + '</b><br><span style="color:var(--steel)">' + esc(tg(g.tgl)) + '</span>' + (g.pb ? '<br><span class="pill">offset</span>' : g.kom ? '<br><span class="pill">compensation</span>' : '') + '</td>' +
       '<td>' + esc(titleCaseS(g.pel)) + '<br><span class="pnpp">NPP ' + esc(g.npp.join(', ')) + '</span><br><span style="color:var(--steel)">4C.' + esc(g.inv.join(', 4C.')) + '</span></td>' +
-      '<td><span class="num"><b>Rp ' + nfDot(g.n) + '</b></span><br><span style="color:var(--steel);font-size:11.5px">' + esc(apprEn(g.appr) || 'not submitted') + '</span>' + (ho ? '<br>' + ho : '') + '</td></tr>';
+      '<td><span class="num"><b>Rp ' + nfDot(g.n) + '</b></span><br><span style="color:var(--steel);font-size:11.5px">' + esc(apprEn(g.appr) || 'not submitted') + '</span>' + (ho ? '<br>' + ho : '') +
+      (g.revPend ? '<br><span class="pill rvp">↺ reversal pending</span>' : maker ? '<br><button type="button" class="rvb" data-open="REVP|' + esc(g.key) + '" data-sub="1" title="Reverse this receipt (FBRA)">↺ Reverse</button>' : '') + '</td></tr>';
   }).join('') : '<tr><td colspan="3" class="empty">' + (q ? 'No matching receipts.' : 'No cash receipts recorded in ' + monEn(pm) + '.') + '</td></tr>';
 }
 /** cetak register penerimaan (bahasa Indonesia) */
@@ -3457,27 +3521,31 @@ function pgPayReg() {
 /* ====================================================== v2.8.4: bar menu atas (kelompok mengikuti alur kerja piutang) */
 var NAV_MAKER = [
   { id: 'dashboard', ic: 'home', t: 'Overview' },
-  { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
-  { g: 'pay', ic: 'bank', t: 'Cash Receipts', items: [['bayar', 'bank', 'Record Receipt', 'bank transfer, offset, compensation'], ['tbayar', 'book', 'Receipts Register', 'receipts per month, approval sheets, print']] },
-  { id: 'plan', ic: 'cal', t: 'Collection Plan', badge: 'planBadge', y: 1 },
-  { id: 'md', ic: 'book', t: 'Master Data' },
-  { g: 'close', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
+  { g: 'cust', ic: 'users', t: 'Customers', items: [['md', 'book', 'Customer Master', 'customers, projects & addenda', '', 'BP'], ['bal', 'users', 'Customer Balances', 'open items & aging per customer, ledger', '', 'FD10N']] },
+  { g: 'pen', ic: 'doc', t: 'Invoices', items: [['buat', 'doc', 'Create Invoice', 'invoice, receipt, BAP, draft tax invoice', '', 'FB70'], ['buka', 'book', 'Invoice List', 'search, revise, document filing, manual close', '', 'FBL5N'], ['act:xinv', 'xd', 'Cancel Invoice', 'cancel with Section Head approval', '', 'FB08']] },
+  { g: 'pay', ic: 'bank', t: 'Payments', items: [['bayar', 'bank', 'Post Incoming Payment', 'bank transfer, offset, compensation', '', 'F-28'], ['tbayar', 'book', 'Payment List', 'receipts per month, approval sheets, print'], ['act:rev', 'rev', 'Reverse Payment', 'reverse a posted receipt (with approval)', '', 'FBRA']] },
+  { g: 'col', ic: 'cal', t: 'Collections', badge: 'colBadge', y: 1, items: [['plan', 'cal', 'Collection Plan', 'monthly plan (RA) for the Section Head', 'planBadge'], ['surat', 'mail', 'Dunning Letters', 'letters for overdue invoices, escalation', 'srBadge', 'F150'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
+  { g: 'close', ic: 'fold', t: 'Month-End', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
-var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' }, { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' },
+  { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
+  { g: 'close', ic: 'fold', t: 'Month-End', items: [['close', 'chk', 'AR Closing Checklist', 'month-end check & sign-off'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, ledgers']] }];
+var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' },
+  { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
+  { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
 var NAV = NAV_MAKER;
 function ico(n) { return '<svg class="ic"><use href="#i-' + n + '"/></svg>'; }
 function buildNav(maker) {
   var viewer = !!(B && B.access && B.access.viewer); NAV = maker ? NAV_MAKER : viewer ? NAV_VIEW : NAV_APPR;
   $('tbNav').innerHTML = NAV.map(function (n) {
-    if (n.items) return '<div style="position:relative"><button type="button" class="tb-it" data-g="' + n.g + '">' + ico(n.ic) + esc(n.t) + ' <span class="tb-b" id="' + n.badge + '" hidden></span><span class="car">▼</span></button>' +
-      '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { return '<button type="button" data-mode="' + it[0] + '"><i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + '</button>'; }).join('') + '</div></div>';
+    if (n.items) return '<div style="position:relative"><button type="button" class="tb-it" data-g="' + n.g + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '<span class="car">▼</span></button>' +
+      '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { return '<button type="button" data-mode="' + it[0] + '"><i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + (it[5] ? '<em class="tc" title="SAP equivalent">' + esc(it[5]) + '</em>' : '') + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + '</button>'; }).join('') + '</div></div>';
     return '<button type="button" class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</button>';
   }).join('');
   var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['plan', 'cal', 'Plan'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
     : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
   $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
-  document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (STACK) closePackage(); setMode(b.dataset.mode); }; });
+  document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (/^act:/.test(b.dataset.mode)) { navAct(b.dataset.mode.substring(4)); return; } if (STACK) closePackage(); setMode(b.dataset.mode); }; });
   document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
   navShow(MODE);
 }
@@ -3492,9 +3560,9 @@ function navShow(m) {
     b.classList.toggle('on', !!on);
   });
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
-  var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar', close: 'dok' }[m] || m;
+  var grp = { buat: 'buka', surat: 'plan', tbayar: 'bayar', close: 'dok', md: 'dashboard', bal: 'dashboard', lim: 'plan' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', md: 'Master Data', dok: 'Month-End Close', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Create Invoice', buka: 'Invoice List', surat: 'Dunning Letters', bayar: 'Post Incoming Payment', tbayar: 'Payment List', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', md: 'Customer Master', bal: 'Customer Balances', lim: 'Credit Limits', dok: 'Documents & Handover', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3528,7 +3596,7 @@ function navBadges() {
   if (!B || !$('tbNav')) return;
   var maker = !!(B.access && B.access.maker), A = apModel(), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
   var ap = maker ? A.k.belum + A.k.ulang : A.k.tunggu, dk = maker ? dokPending() + (B.hoPending || 0) : 0, pl = maker && dokStatus(B.DOC.VAL, B.today.substring(0, 7))[0] !== 'ok' ? 1 : 0;
-  [['apBadge', ap], ['dokBadge', dk], ['planBadge', pl], ['penBadge', sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
+  [['apBadge', ap], ['dokBadge', dk], ['planBadge', pl], ['colBadge', pl + sr], ['srBadge', sr], ['apBadgeM', ap], ['dokBadgeM', dk]].forEach(function (x) { var el = $(x[0]); if (el) { el.hidden = !x[1]; el.textContent = x[1]; } });
   $('tbBellDot').hidden = !ap;
   $('tbBell').title = ap ? (maker ? ap + ' to submit' : ap + ' awaiting your decision') : 'Nothing requires action';
 }
@@ -3677,7 +3745,7 @@ function renderAnalisis(d) {
 }
 /* ====================================================== v2.8.4: Status Persetujuan (Pembuat) / Otorisasi (Section Head) */
 var AP_TABS = [['PAY', 'Cash Receipts'], ['INV', 'Invoices'], ['VAL', 'Validation'], ['LAIN', 'Other']], AP_TAB = '', AP_SEL = '', AP_HIST = false, AP_NEXT = false;
-function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
+function apGroup(a) { var k = KIND_OF[a.jenis] || ''; return k === 'PAY' || k === 'INV' ? k : k === 'REVP' ? 'PAY' : k === 'VAL' || k === 'VALX' ? 'VAL' : 'LAIN'; }
 function dayDiff(a, b) { return Math.round((Date.parse(String(b).substring(0, 10)) - Date.parse(String(a).substring(0, 10))) / 864e5); }
 function rpShort(v) { v = Number(v) || 0; return v >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' Miliar' : v >= 1e6 ? 'Rp ' + (v / 1e6).toFixed(1).replace('.', ',') + ' juta' : 'Rp ' + nfDot(v); }
 var PA_COL = [['#E8EEF8', '#2F5597'], ['#FDEFE4', '#A0521B'], ['#E5F5EB', '#1E6B3E'], ['#F3E8FA', '#6B3FA0'], ['#E3F4F5', '#0F6E78']];
@@ -3722,7 +3790,7 @@ function apModel() {
 var BLN_ID = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 /** label pengajuan dari server (Bahasa Indonesia) → tampilan aplikasi berbahasa Inggris; dokumen cetak tetap memakai label asli */
 function lblEn(s) {
-  return String(s || '').replace(/^Penerimaan termin\b/, 'Cash receipt').replace(/^Pembatalan invoice\b/, 'Invoice cancellation').replace(/^Pembatalan lembar validasi\b/, 'Validation sheet cancellation')
+  return String(s || '').replace(/^Penerimaan termin\b/, 'Cash receipt').replace(/^Pembatalan invoice\b/, 'Invoice cancellation').replace(/^Pembalikan penerimaan\b/, 'Payment reversal').replace(/^Pembatalan lembar validasi\b/, 'Validation sheet cancellation')
     .replace(/^Penutupan manual\b/, 'Manual close').replace(/^Kartu piutang\b/, 'Customer ledger').replace(/ per (\d)/, ' as of $1')
     .replace(new RegExp('\\b(' + BLN_ID.join('|') + ')(?= \\d{4})', 'g'), function (m) { return MON_EN[BLN_ID.indexOf(m)]; });
 }
@@ -3799,7 +3867,7 @@ function applyAccess() {
 /* ====================================================== v2.8.8: Master Data — pelanggan, proyek, adendum (padanan BP / FD01–03) */
 var MD = { d: null, tab: 'PEL', q: '', f: 'all', sel: '', sub: 'main', edit: false, form: null, orig: '', reason: '', wiz: null, add: null, busy: false };
 var MD_PEL = [['Identity & tax', 'used on invoices and e-Faktur (Coretax)', [['nama', 'Customer name (capitals)', 'text', null, 'lock'], ['inv', 'Name printed on invoice', 'text'], ['kode_bp', 'SAP BP code', 'text'], ['npwp', 'NPWP (16 digits)', 'text'], ['nitku', 'NITKU (22 digits)', 'text'], ['a1', 'Address line 1', 'text'], ['a2', 'Address line 2', 'text'], ['a3', 'Address line 3', 'text']]],
-  ['Classification & terms', 'drive GL accounts, CKPN and due dates', [['jenis', 'Customer type', 'sel', 'jenis_pel'], ['kelompok', 'Group', 'sel', 'kelompok'], ['dasar_jt', 'Due date basis', 'sel', 'dasar_jt'], ['top_ret', 'Retention TOP (days)', 'num'], ['adm', 'Max bank charge accepted (Rp)', 'money'], ['aktif', 'Active', 'sel', 'yatidak']]],
+  ['Classification & terms', 'drive GL accounts, CKPN and due dates', [['jenis', 'Customer type', 'sel', 'jenis_pel'], ['kelompok', 'Group', 'sel', 'kelompok'], ['dasar_jt', 'Due date basis', 'sel', 'dasar_jt'], ['top_ret', 'Retention TOP (days)', 'num'], ['adm', 'Max bank charge accepted (Rp)', 'money'], ['limit', 'Credit limit (Rp) · empty = no limit', 'money'], ['aktif', 'Active', 'sel', 'yatidak']]],
   ['BAP representative & notes', 'printed on BAP (Fajarputera template)', [['wakil', 'Representative name', 'text'], ['jab', 'Representative title', 'text'], ['catatan', 'Notes', 'area']]]];
 var MD_PRO = [['Contract', '', [['npp', 'NPP', 'text', null, 'lock'], ['pelanggan', 'Customer', 'pel'], ['singkat', 'Short name (reports)', 'text'], ['kontrak', 'Contract / SPK no.', 'text'], ['tgl_kontrak', 'Contract date', 'date'], ['nilai', 'Original contract value (excl. VAT)', 'money'], ['nilai_ok', 'Value after addenda', 'ro']]],
   ['Description', 'invoice wording, BAP and ledger', [['deskripsi', 'Invoice description ("Atas …")', 'area'], ['pekerjaan', 'Work name (BAP / ledger)', 'text'], ['nama_pe', 'Project name (P&E)', 'text'], ['lokasi', 'Location', 'text'], ['kode', 'Work type', 'text'], ['pola_uraian', 'Invoice wording pattern ({jenis} {progres} {termin} {terminR} {deskripsi} {bapp} {tglbapp} {kumulatif})', 'area'], ['pola_kw', 'Receipt wording pattern (optional)', 'area']]],
@@ -3829,7 +3897,7 @@ function mdRender() {
   if (!F.some(function (f) { return f[0] === MD.f; })) MD.f = F[0][0];
   var L = base.filter(function (r) { return fm(r, MD.f); }).sort(function (a, b) { return String(mdKey(a)) < String(mdKey(b)) ? -1 : 1; });
   if (!MD.sel && L.length) MD.sel = mdKey(L[0]);
-  var h = '<div class="md"><div class="md-left"><div class="md-lh"><h2>Master Data</h2><p>Customers &amp; projects used by invoices, receipts and reports</p></div>' +
+  var h = '<div class="md"><div class="md-left"><div class="md-lh"><h2>Customer Master<em class="ap-tc">BP</em></h2><p>Customers &amp; projects used by invoices, receipts and reports</p></div>' +
     '<div class="md-seg"><button type="button" data-mdt="PEL" class="' + (pel ? 'on' : '') + '">Customers <em>' + D.pel.length + '</em></button><button type="button" data-mdt="PRO" class="' + (!pel ? 'on' : '') + '">Projects <em>' + D.pro.length + '</em></button></div>' +
     '<div class="md-tb"><input id="mdQ" placeholder="' + (pel ? 'Search name, NPWP, BP code…' : 'Search NPP, project or customer…') + '" value="' + esc(MD.q) + '"></div>' +
     '<div class="md-chips">' + F.map(function (f) { return '<button type="button" class="cp-ch' + (MD.f === f[0] ? ' on' : '') + (f[0] === 'inc' ? ' w' : '') + '" data-mdf="' + f[0] + '">' + f[1] + '<em>' + base.filter(function (r) { return fm(r, f[0]); }).length + '</em></button>'; }).join('') + '</div><div class="md-list">' +
@@ -3945,7 +4013,7 @@ function mdWizRender() {
   var stp = function (n, t) { return '<span class="' + (st > n ? 'd' : st === n ? 'c' : '') + '"><i>' + (st > n ? '✓' : n) + '</i>' + t + '</span>'; };
   var sum = st > 1 ? '<div class="card md-card"><h3>Step 1 · Customer<span class="sp"></span><button class="linkbtn" type="button" data-wz="1">Edit</button></h3><div class="md-sum"><div><small>Name</small><b>' + esc(String(z.pel.nama || '').toUpperCase()) + '</b></div><div><small>NPWP</small><b>' + esc(z.pel.npwp || '—') + '</b></div><div><small>Type · group</small><b>' + esc((z.pel.jenis || '') + ' · ' + (z.pel.kelompok || '')) + '</b></div><div><small>SAP BP code</small><b style="' + (z.pel.kode_bp ? '' : 'color:#B45309') + '">' + esc(z.pel.kode_bp || 'to be filled') + '</b></div></div></div>' : '';
   var side = '<div class="card md-card"><h3>Checks</h3>' + (C.length ? C.map(function (x) { return '<div class="ck ' + x.lvl + '"><span class="ic">' + CHK_ICON[x.lvl] + '</span><div><b>' + esc(x.t) + '</b>' + (x.m ? '<span>' + esc(x.m) + '</span>' : '') + '</div></div>'; }).join('') : '<div class="ck ok"><span class="ic">✓</span><div><b>All checks passed</b></div></div>') + '</div>' +
-    '<div class="note" style="font-size:11.5px">After saving, the customer and project are added to <b>Master Pelanggan</b> &amp; <b>Master Proyek</b> and can be chosen at once in Billing ▸ Issue Invoice.</div>';
+    '<div class="note" style="font-size:11.5px">After saving, the customer and project are added to <b>Master Pelanggan</b> &amp; <b>Master Proyek</b> and can be chosen at once in Invoices ▸ Create Invoice.</div>';
   w.innerHTML = '<div class="md md-wiz"><div class="md-wh"><div><h1>New customer</h1><p>Three steps · nothing is saved until step 3</p></div><span class="sp"></span><button class="btn" type="button" id="wzX">✕ Cancel</button></div>' +
     '<div class="cp-st md-steps">' + stp(1, 'Customer') + '<em></em>' + stp(2, 'First project') + '<em></em>' + stp(3, 'Invoice wording &amp; review') + '</div>' +
     '<div class="md-wgrid"><div>' + body + '</div><div>' + sum + side + '</div></div>' +
@@ -3991,7 +4059,7 @@ function closeRender(d) {
   h += '<div class="cl-grid"><div class="cl-steps">' + d.steps.map(function (x, k) {
     return '<div class="cl-st ' + x.st + '" id="cl-' + x.k + '"><h4><span class="no">' + (k + 1) + '</span>' + esc(x.t) + '<span class="badge">' + CL_ST[x.st] + '</span></h4><div class="m">' + esc(x.m) + '</div><div class="s">' + esc(x.s) + '</div>' +
       (x.items && x.items.length ? '<ul>' + x.items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') +
-      ((x.st === 'y' || x.st === 'r') && x.go ? '<button type="button" class="act" data-mgo2="' + x.go + '">→ Open ' + esc({ setuju: 'Approvals', buka: 'Invoice Register', tbayar: 'Receipts Register', dashboard: 'Overview', surat: 'Collection Letters', dok: 'Monthly documents' }[x.go] || x.go) + '</button>' : '') + '<span class="auto">' + esc(x.auto || '') + '</span></div>';
+      ((x.st === 'y' || x.st === 'r') && x.go ? '<button type="button" class="act" data-mgo2="' + x.go + '">→ Open ' + esc({ setuju: 'Approvals', buka: 'Invoice List', tbayar: 'Payment List', dashboard: 'Overview', surat: 'Dunning Letters', dok: 'Monthly documents' }[x.go] || x.go) + '</button>' : '') + '<span class="auto">' + esc(x.auto || '') + '</span></div>';
   }).join('') + '</div><div>' +
     '<div class="card cl-card"><h3>Final AR close report</h3><div class="cl-rep">' + [['Total AR', R.total], ['Current (not yet due)', R.current], ['Overdue', R.overdue], ['> 90 days', R.od90, 'r'], ['Over-paid / credit balances', R.lebih ? -R.lebih : 0, R.lebih ? 'r' : ''], ['Disputed / short-paid', R.disp], ['CKPN', R.ckpn], ['AR vs GL difference', R.gl === null ? 'LK not pasted' : R.gl, R.gl ? 'r' : '']].map(function (r) { return '<div><span>' + r[0] + '</span><b class="' + (r[2] || '') + '">' + (typeof r[1] === 'number' ? (r[1] < 0 ? '(' + nfDot(-r[1]) + ')' : nfDot(r[1])) : esc(r[1])) + '</b></div>'; }).join('') + '</div>' +
     '<div class="note" style="margin-top:8px;font-size:11.5px">“What is our total AR, and why is every major balance still outstanding?” — per customer in the Monthly AR Analysis.</div></div>' +
@@ -4078,34 +4146,123 @@ function execRender(d) {
   $('exPrint').onclick = function () { printHtml($('execWrap').innerHTML.replace('class="ov ex"', 'class="ov ex ovp"')); };
   $('execWrap').querySelectorAll('[data-mgo]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo); }; });
 }
+/* ====================================================== v2.9: Cancel Invoice (FB08) & Reverse Payment (FBRA) — pilih dokumen dari menu */
+function navAct(a) {
+  if (STACK) closePackage();
+  if (a === 'xinv') {
+    var L = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL'; }).slice().sort(function (x, y) { return x.tgl < y.tgl ? 1 : x.tgl > y.tgl ? -1 : 0; });
+    pickDlg('Cancel Invoice', 'Choose the invoice to cancel. It stays active until the Section Head approves. An invoice that already has receipts must have them reversed or offset first.', L.map(function (i) {
+      return { k: E.normInv(i.nomor), q: i.nomor + ' ' + i.pelanggan + ' ' + i.npp, t: '4C.' + short(i.nomor), s: titleCaseS(i.pelanggan) + ' · NPP ' + i.npp + ' · ' + (i.invke || '') + ' · ' + tg(i.tgl), v: 'Rp ' + nfDot(i.total), x: i.batalPend ? 'cancellation pending' : i.diterima > 0 ? 'has receipts' : '' };
+    }), function (k) { setMode('buka'); openPackage('BATAL', k); });
+  } else if (a === 'rev') {
+    pickDlg('Reverse Payment', 'Choose the receipt to reverse. The receipt is <b>not deleted</b>: after approval it is marked REVERSED, no longer counted, and the invoice returns to open.', payGroups('', '', true).map(function (g) {
+      return { k: g.key, q: g.ids.join(' ') + ' ' + g.ref + ' ' + g.pel + ' ' + g.npp.join(' ') + ' ' + g.inv.join(' '), t: (g.ids[0] || String(g.key).replace(/^REF\s+/, '')) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : ''), s: titleCaseS(g.pel) + ' · NPP ' + g.npp.join(', ') + ' · 4C.' + g.inv.join(', 4C.') + ' · ' + tg(g.tgl), v: 'Rp ' + nfDot(g.n), x: g.revPend ? 'reversal pending' : g.pb ? 'offset' : g.kom ? 'compensation' : '' };
+    }), function (k) { setMode('tbayar'); openPackage('REVP', k); });
+  }
+}
+function pickDlg(title, intro, items, onPick) {
+  var d = $('dlg'), no0 = $('dlgNo').textContent; if (d.open) d.close();
+  $('dlgT').textContent = title;
+  $('dlgB').innerHTML = '<p class="pk-in">' + intro + '</p><input id="pkQ" placeholder="Search number, customer, NPP, invoice…" autocomplete="off"><div class="pk-l" id="pkL"></div>';
+  var draw = function () {
+    var q = $('pkQ').value.toUpperCase().trim(), L = items.filter(function (x) { return !q || (x.t + ' ' + x.q).toUpperCase().indexOf(q) >= 0; });
+    $('pkL').innerHTML = L.length ? L.slice(0, 60).map(function (x) { return '<button type="button" data-pk="' + esc(x.k) + '"><span><b>' + esc(x.t) + '</b><small>' + esc(x.s) + '</small></span><em>' + esc(x.v) + (x.x ? '<i>' + esc(x.x) + '</i>' : '') + '</em></button>'; }).join('') + (L.length > 60 ? '<div class="pk-more">' + (L.length - 60) + ' more — type to narrow down</div>' : '') : '<div class="pk-more">No match.</div>';
+    $('pkL').querySelectorAll('[data-pk]').forEach(function (b) { b.onclick = function () { d.close(); onPick(b.dataset.pk); }; });
+  };
+  $('dlgYes').hidden = true; $('dlgNo').textContent = 'Close'; $('dlgNo').onclick = function () { d.close(); };
+  d.onclose = function () { $('dlgYes').hidden = false; $('dlgNo').textContent = no0; d.onclose = null; };
+  $('pkQ').oninput = draw; draw(); d.showModal(); setTimeout(function () { $('pkQ').focus(); }, 30);
+}
+/* ---------- v2.9: Lembar Pembalikan Penerimaan ---------- */
+function pgRevp(pkg) {
+  var a = pkg.appr, ok = a && a.status === 'DISETUJUI', pend = a && a.status === 'MENUNGGU';
+  var h = '<div class="page pg-flow">' + docHead('LEMBAR PEMBALIKAN PENERIMAAN', 'Bukti persetujuan pembalikan penerimaan piutang. Baris Log Penerimaan tidak dihapus — ditandai DIBALIK dan tidak dihitung lagi; invoice kembali terbuka. Untuk Akuntansi: balik posting SAP (FB08).', 'No. ' + esc(pkg.ids.join(', ')) + (a ? '<br>' + esc(a.id) : ''));
+  h += '<table class="t"><thead><tr><th style="width:22mm">No. Penerimaan</th><th style="width:17mm">Tgl Bayar</th><th>Invoice · Pelanggan</th><th style="width:24mm">NPP</th><th style="width:30mm">Rekening / Ref</th><th style="width:25mm">Nominal (Rp)</th><th style="width:40mm">Status invoice</th></tr></thead><tbody>' +
+    pkg.rows.map(function (r) { return '<tr><td>' + esc(r.idp) + '</td><td>' + esc(tg(r.tgl)) + '</td><td>4C.' + esc(short(r.nomor)) + (r.invke ? ' · ' + esc(r.invke) : '') + '<br><span style="color:#4A5A72">' + esc(r.pelanggan) + '</span></td><td>' + esc(r.npp) + '</td><td>' + esc(r.rekening) + (r.ref ? '<br>' + esc(r.ref) : '') + (r.sap ? '<br>SAP ' + esc(r.sap) : '') + '</td><td class="n">' + nd(r.nominal) + '</td><td>' +
+      (pkg.done ? 'Terbuka · sisa ' + nd(r.sisa) : esc(r.status || '-') + ' → <b>terbuka</b><br>sisa ' + nd(r.sisaAfter)) + '</td></tr>'; }).join('') +
+    '</tbody><tbody><tr class="tot"><td colspan="5">TOTAL DIBALIK</td><td class="n">' + nd(pkg.nilai) + '</td><td></td></tr></tbody></table>';
+  if (a) h += '<h3>Alasan pembalikan</h3><div class="bbox">' + (pkg.sebab ? '<b>' + esc(REV_SEBAB_ID[pkg.sebab] || pkg.sebab) + '</b> — ' : '') + esc(pkg.alasan || '-') + '</div>';
+  if (a && a.status === 'DITOLAK') h += '<div class="warn">Pembalikan DITOLAK Section Head' + (a.catatan ? ': ' + esc(a.catatan) : '') + '. Penerimaan tetap dihitung.</div>';
+  h += '<h3>' + (ok ? 'Tindak lanjut' : 'Pemeriksaan sebelum pembalikan') + '</h3><ul class="bchk">' + (pkg.checks || []).map(function (c) { return '<li class="' + c.s + '">' + (c.s === 'ok' ? '✓ ' : c.s === 'bad' ? '✗ ' : '● ') + esc(c.t) + '</li>'; }).join('') + '</ul>';
+  if (!a || a.status === 'DITOLAK') h += pkg.canSubmit ? '<div class="warn">Click <b>Reverse &amp; submit for approval</b> in the left panel, then choose the reason.</div>' : '<div class="warn">' + esc(pkg.blok || '') + '</div>';
+  if (pend) h += '<div class="warn">Menunggu persetujuan — sampai disetujui, penerimaan ini tetap dihitung.</div>';
+  return h + signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
+}
+var REV_SEBAB = [['SALAH INVOICE', 'Wrong invoice'], ['SALAH NOMINAL', 'Wrong amount'], ['DOBEL INPUT', 'Duplicate entry'], ['TRANSFER DIKEMBALIKAN', 'Bank returned the transfer'], ['LAINNYA', 'Other']], REV_SEBAB_ID = { 'SALAH INVOICE': 'Salah invoice', 'SALAH NOMINAL': 'Salah nominal', 'DOBEL INPUT': 'Input ganda', 'TRANSFER DIKEMBALIKAN': 'Transfer dikembalikan bank', 'LAINNYA': 'Lainnya' };
+function revSubmit() {
+  var r0 = PKG.rows[0] || {}, ho = PKG.ho ? '<div class="note y" style="margin-top:10px;font-size:12px">⚠ Already handed over to Accounting (' + esc(PKG.ho) + ') — the reversal is added to the next handover sheet so Accounting can reverse the SAP posting (FB08).</div>' : '';
+  confirmDlg('Reverse payment ' + PKG.ids.join(', '), '<div class="rv-imp"><div><small>Receipt</small><b>Rp ' + nfDot(PKG.nilai) + ' · ' + esc(tg(r0.tgl)) + '</b><span>' + esc(r0.rekening || '') + (r0.ref ? ' · ref ' + esc(r0.ref) : '') + '</span></div>' +
+    PKG.rows.map(function (r) { return '<div><small>Invoice 4C.' + esc(short(r.nomor)) + ' · ' + esc(titleCaseS(r.pelanggan)) + '</small><b>' + esc(r.status || '-') + ' <span class="rv-ar">→</span> <span style="color:#B45309">open · Rp ' + nfDot(r.sisaAfter) + '</span></b>' + (r.pph ? '<span>WHT ' + nfDot(r.pph) + ' recognition also reversed</span>' : '') + '</div>'; }).join('') + '</div>' +
+    '<label style="margin-top:10px">Why?</label><div class="rv-opt" id="rvOpt">' + REV_SEBAB.map(function (x, i) { return '<button type="button" data-sb="' + x[0] + '" class="' + (i ? '' : 'on') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+    '<textarea id="dlgNote" placeholder="e.g. should be allocated to 0217/2026 (same customer) — re-post after reversal"></textarea>' + ho +
+    '<div style="font-size:11.5px;color:var(--steel);margin-top:8px">' + (PKG.autoBasah ? 'Recorded as approved immediately — the Section Head approves by <b>wet signature</b> on the printed reversal sheet, like any receipt.' : 'The receipt keeps counting until the Section Head approves.') + '</div>',
+    'Reverse & submit for approval', function () {
+      var sb = ($('rvOpt').querySelector('.on') || {}).dataset, al = ($('dlgNote').value || '').trim();
+      $('pkgStatus').textContent = 'Submitting…';
+      call('apiSubmit', ['REVP', PKG.ref, { sebab: sb ? sb.sb : '', alasan: al }], function (r) { toast('Submitted: ' + r.id); $('pkgStatus').textContent = 'Reversal submitted with ID ' + r.id + '.'; refreshAll(function () { openPackage('REVP', PKG.ref, true); if (MODE === 'tbayar') renderPayReg(); }); },
+        function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; });
+    }, function () { if (($('dlgNote').value || '').trim().length < 10) { toast('Explain the reversal (at least 10 characters).'); return false; } });
+  $('dlgYes').classList.add('danger');
+  $('dlg').addEventListener('close', function f() { $('dlgYes').classList.remove('danger'); $('dlg').removeEventListener('close', f); });
+  $('rvOpt').querySelectorAll('[data-sb]').forEach(function (b) { b.onclick = function () { $('rvOpt').querySelectorAll('[data-sb]').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
+}
+/* ====================================================== v2.9: Customer Balances (FD10N) & Credit Limits (UKM_BP) */
+var CU = { q: '', open: '' };
+function custAgg() {
+  var M = {}, T = B.today, mk = function (nama, p) { return M[nama] || (M[nama] = { nama: nama, jenis: p ? p.jenis : '', kel: p ? p.kelompok : '', limit: p ? +p.limit || 0 : 0, n: 0, open: 0, nd: 0, b30: 0, b90: 0, b90p: 0, nojt: 0, od: 0, npp: {}, last: '', oldest: 0 }); };
+  B.pelanggan.forEach(function (p) { mk(p.nama, p); });
+  B.invoices.forEach(function (i) {
+    if (i.status_inv === 'BATAL') return; var s = Math.max(0, +i.sisa || 0); if (s <= 0.5) return;
+    var x = mk(i.pelanggan, null); x.n++; x.open += s; var np = x.npp[i.npp] || (x.npp[i.npp] = { npp: i.npp, proyek: i.proyek, n: 0, v: 0 }); np.n++; np.v += s;
+    if (!i.jt) x.nojt += s; else { var d = dayDiff(i.jt, T); if (d <= 0) x.nd += s; else { x.od += s; x.oldest = Math.max(x.oldest, d); if (d <= 30) x.b30 += s; else if (d <= 90) x.b90 += s; else x.b90p += s; } }
+  });
+  B.payments.forEach(function (p) { var x = M[p.pelanggan]; if (x && !p.pb && !p.kom && p.tgl > x.last) x.last = p.tgl; });
+  return Object.keys(M).map(function (k) { return M[k]; });
+}
+function custRender() {
+  var lim = MODE === 'lim', A = custAgg(), maker = !!(B.access && B.access.maker), q = CU.q.toUpperCase(), h = '<div class="cu">', mv = function (v) { return v > 0.5 ? nfDot(v) : '<span class="z">–</span>'; };
+  var tc = function (t) { return '<em class="tc" title="SAP equivalent">' + t + '</em>'; };
+  if (lim) {
+    A.forEach(function (x) { x.use = x.limit ? x.open / x.limit : null; });
+    var L = A.filter(function (x) { return x.limit || x.open > 0.5; }), wl = L.filter(function (x) { return x.limit; }), over = wl.filter(function (x) { return x.use > 1; }), hi = wl.filter(function (x) { return x.use > 0.8 && x.use <= 1; });
+    L.sort(function (a, b) { return (b.use === null ? -1 : b.use) - (a.use === null ? -1 : a.use) || b.open - a.open; });
+    if (q) L = L.filter(function (x) { return x.nama.indexOf(q) >= 0; });
+    h += '<div class="cu-hd"><div><h2>Credit Limits' + tc('UKM_BP') + '</h2><p>Exposure = open balance of all active invoices, including those awaiting approval · limits are set per customer in Customer Master (field <b>Credit limit</b>)</p></div><span class="sp"></span>' + (maker ? '<button class="btn" type="button" id="cuGoMd">Set limits in Customer Master</button>' : '') + '</div>' +
+      '<div class="cu-k"><div><small>Customers with a limit</small><b>' + wl.length + ' <span>of ' + A.filter(function (x) { return x.open > 0.5 || x.limit; }).length + ' active</span></b></div><div class="k-r"><small>Over the limit</small><b>' + over.length + '</b></div><div class="k-y"><small>Above 80%</small><b>' + hi.length + '</b></div><div><small>Total exposure (customers with a limit)</small><b>' + rpShort(wl.reduce(function (t, x) { return t + x.open; }, 0)) + '</b></div></div>' +
+      '<div class="cu-tb"><input id="cuQ" placeholder="Search customer…" value="' + esc(CU.q) + '"></div>' +
+      '<div class="cu-c"><table class="cu-t"><tr><th>Customer</th><th class="n">Credit limit</th><th class="n">Exposure</th><th style="width:26%">Usage</th><th class="n">Overdue</th><th>Status</th></tr>' +
+      (L.length ? L.map(function (x) { var u = x.use, col = u === null ? '' : u > 1 ? '#D9473F' : u > 0.8 ? '#F0A21A' : '#2E9E5B', st = u === null ? '<span class="cu-p nl">NO LIMIT</span>' : u > 1 ? '<span class="cu-p ov">OVER LIMIT</span>' : u > 0.8 ? '<span class="cu-p wn">ABOVE 80%</span>' : '<span class="cu-p ok">OK</span>';
+        return '<tr' + (maker ? ' class="rk" data-cumd="' + esc(x.nama) + '"' : '') + '><td><b>' + esc(x.nama) + '</b><small>' + esc((x.jenis || '') + (x.kel && /BERELASI/.test(x.kel) ? ' · related party' : '') + ' · ' + plural(Object.keys(x.npp).length, 'project')) + '</small></td><td class="n">' + (x.limit ? nfDot(x.limit) : '<span class="z">—</span>') + '</td><td class="n">' + (u > 1 ? '<b>' + nfDot(x.open) + '</b>' : nfDot(x.open)) + '</td><td>' +
+          (u === null ? '<span class="z">no limit set</span>' : '<span class="cu-bar"><i style="width:' + Math.min(100, u * 100) + '%;background:' + col + '"></i></span> ' + pctId(u, 0)) + '</td><td class="n">' + mv(x.od) + '</td><td>' + st + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="empty">No customers.</td></tr>') + '</table></div>' +
+      '<div class="note y" style="margin-top:12px;font-size:12px"><b>When creating an invoice</b> that pushes a customer over its limit, <b>Create Invoice</b> shows a warning (save with a reason) — the reason is printed on the approval sheet.</div>';
+  } else {
+    var L2 = A.filter(function (x) { return x.open > 0.5; }).sort(function (a, b) { return b.open - a.open; }), tot = { open: 0, nd: 0, b30: 0, b90: 0, b90p: 0, nojt: 0, od: 0 };
+    L2.forEach(function (x) { Object.keys(tot).forEach(function (k) { tot[k] += x[k]; }); });
+    if (q) L2 = L2.filter(function (x) { return x.nama.indexOf(q) >= 0 || Object.keys(x.npp).some(function (n) { return n.toUpperCase().indexOf(q) >= 0; }); });
+    h += '<div class="cu-hd"><div><h2>Customer Balances' + tc('FD10N') + '</h2><p>Open items per customer by days past due · position ' + esc(dateEn(B.today)) + ' · click a customer for its projects and ledger</p></div><span class="sp"></span><button class="btn" type="button" id="cuPrint">' + ico('print') + ' Print</button></div>' +
+      '<div class="cu-k"><div><small>Customers with an open balance</small><b>' + L2.length + '</b></div><div><small>Open receivables</small><b>' + rpShort(tot.open) + '</b></div><div class="k-r"><small>Overdue</small><b>' + rpShort(tot.od) + '</b></div><div class="k-r"><small>&gt; 90 days</small><b>' + rpShort(tot.b90p) + '</b></div></div>' +
+      '<div class="cu-tb"><input id="cuQ" placeholder="Search customer or NPP…" value="' + esc(CU.q) + '"></div>' +
+      '<div class="cu-c"><table class="cu-t"><tr><th>Customer</th><th class="n">Open balance</th><th class="n">No due date</th><th class="n">Not yet due</th><th class="n">1–30 days</th><th class="n">31–90 days</th><th class="n">&gt; 90 days</th><th>Last receipt</th></tr>' +
+      (L2.length ? L2.map(function (x) { var on = CU.open === x.nama, P = Object.keys(x.npp).map(function (n) { return x.npp[n]; }).sort(function (a, b) { return b.v - a.v; });
+        return '<tr class="rk' + (on ? ' on' : '') + '" data-cuo="' + esc(x.nama) + '"><td><b>' + (on ? '▾ ' : '▸ ') + esc(x.nama) + '</b><small>' + esc((x.jenis || '') + ' · ' + plural(x.n, 'open invoice')) + (x.oldest ? ' · oldest ' + x.oldest + ' days overdue' : '') + '</small></td><td class="n"><b>' + nfDot(x.open) + '</b><span class="cu-bar s"><i style="width:' + (x.open ? x.nd / x.open * 100 : 0) + '%;background:#2E9E5B"></i><i style="width:' + (x.open ? x.od / x.open * 100 : 0) + '%;background:#D9473F"></i></span></td><td class="n">' + mv(x.nojt) + '</td><td class="n">' + mv(x.nd) + '</td><td class="n">' + mv(x.b30) + '</td><td class="n">' + mv(x.b90) + '</td><td class="n' + (x.b90p > 0.5 ? ' red' : '') + '">' + mv(x.b90p) + '</td><td>' + (x.last ? esc(tg(x.last)) : '<span class="z">–</span>') + '</td></tr>' +
+          (on ? '<tr class="cu-sub"><td colspan="8"><div class="cu-pj">' + P.map(function (p) { return '<div><span><b>' + esc(p.npp) + '</b> ' + esc(p.proyek || '') + '<small>' + plural(p.n, 'open invoice') + '</small></span><b>Rp ' + nfDot(p.v) + '</b><button class="btn sm" type="button" data-cukp="' + esc(p.npp) + '">Customer ledger</button></div>'; }).join('') + '</div></td></tr>' : ''); }).join('') : '<tr><td colspan="8" class="empty">No open balances.</td></tr>') +
+      '<tr class="tot"><td>Total</td><td class="n">' + nfDot(tot.open) + '</td><td class="n">' + nfDot(tot.nojt) + '</td><td class="n">' + nfDot(tot.nd) + '</td><td class="n">' + nfDot(tot.b30) + '</td><td class="n">' + nfDot(tot.b90) + '</td><td class="n">' + nfDot(tot.b90p) + '</td><td></td></tr></table></div>';
+  }
+  $('custWrap').innerHTML = h + '</div>';
+  var qi = $('cuQ'); qi.oninput = function () { CU.q = this.value; var p = this.selectionStart; custRender(); var n = $('cuQ'); n.focus(); n.setSelectionRange(p, p); };
+  if ($('cuGoMd')) $('cuGoMd').onclick = function () { MD.tab = 'PEL'; MD.edit = false; setMode('md'); };
+  if ($('cuPrint')) $('cuPrint').onclick = function () { printHtml($('custWrap').innerHTML.replace('class="cu"', 'class="cu cup"')); };
+  $('custWrap').querySelectorAll('[data-cumd]').forEach(function (r) { r.onclick = function () { MD.tab = 'PEL'; MD.sel = r.dataset.cumd; MD.edit = false; MD.q = ''; setMode('md'); }; });
+  $('custWrap').querySelectorAll('[data-cuo]').forEach(function (r) { r.onclick = function () { CU.open = CU.open === r.dataset.cuo ? '' : r.dataset.cuo; custRender(); }; });
+  $('custWrap').querySelectorAll('[data-cukp]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); setMode('dok'); openPackage('KP', b.dataset.cukp + '|' + B.today); }; });
+}
+/** exposure pelanggan (saldo invoice aktif selain invoice yang sedang dibuat) untuk peringatan batas kredit */
+function custExpo(nama, selfNo) { var k = selfNo ? E.normInv(selfNo) : ''; return B.invoices.reduce(function (t, i) { return t + (i.pelanggan === nama && i.status_inv !== 'BATAL' && E.normInv(i.nomor) !== k ? Math.max(0, +i.sisa || 0) : 0); }, 0); }
 /* ====================================================== v2.8.5: Overview (layar penuh, AR Officer & Section Head) */
 var OV = {}, OV_M = '', MON_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 function monEn(ref, short3) { var p = String(ref).split('-'), n = MON_EN[+p[1] - 1] || ''; return (short3 ? n.substring(0, 3) : n) + (short3 ? '' : ' ' + p[0]); }
 function dateEn(s) { if (!s) return ''; var p = String(s).substring(0, 10).split('-'); return +p[2] + ' ' + MON_EN[+p[1] - 1].substring(0, 3) + ' ' + p[0]; }
 function pctId(x, d) { return (x * 100).toFixed(d === undefined ? 1 : d).replace('.', ',') + '%'; }
-/** v2.8.7: tiga persen dengan pembaginya + diagram (RA final vs target inkaso) — uang masuk sama, hanya 100%-nya yang berbeda */
-function ovRaRi(R, d, lain) {
-  var pRA = R.riRA / R.raFinal, pTot = R.totalRI / R.raFinal, pT = d.target ? d.receipts / d.target : null, mx = Math.max(R.raFinal, d.target || 0, R.totalRI, d.receipts) * 1.06;
-  var x = function (v) { return Math.max(0, v / mx * 100); }, f = function (v) { return rpShort(v).replace('Rp ', '').replace(' Miliar', ' M').replace(' juta', ' jt'); };
-  var tile = function (p, t, f1, f2) { return '<div class="ovr-t"><b>' + pctId(p) + '</b><div class="l">' + t + '</div><div class="f">' + f1 + (f2 ? '<br>' + f2 : '') + '</div></div>'; };
-  var seg = function (a, b, c, lb) { return b - a <= 0 ? '' : '<i class="sg' + (x(b - a) < 14 ? ' sm' : '') + '" style="left:' + x(a) + '%;width:calc(' + x(b - a) + '% - 2px);background:' + c + '">' + (x(b - a) > 7 ? lb : '') + '</i>'; };
-  // dua penanda berdekatan: label pertama rata kanan di garisnya, label kedua rata kiri — tidak bertumpuk
-  var mk = function (v, t, low, al) { return '<i class="mk' + (low ? ' lo' : '') + '" style="left:' + x(v) + '%"><span' + (al === 'L' ? ' style="transform:translateX(-100%)"' : al === 'R' ? ' style="transform:none;left:3px"' : '') + '>' + t + '</span></i>'; };
-  var h = '<div class="ovr-tiles' + (pT === null ? ' two' : '') + '">' +
-    tile(pRA, 'RI against RA', f(R.riRA) + ' ÷ final RA ' + f(R.raFinal), '= RA-RI Termin, RA subtotal') +
-    tile(pTot, 'Total RI against RA', '(' + f(R.riRA) + ' + ' + f(lain) + ' outside RA) ÷ final RA', '= RA-RI Termin, grand total') +
-    (pT === null ? '' : tile(pT, 'Total RI against collection target', f(d.receipts) + ' ÷ target ' + f(d.target), '(Parameter · monthly target)')) + '</div>';
-  var close = Math.abs(x(R.totalRI) - x(R.riRA)) < 16;
-  h += '<div class="ovr-ch"><div class="ovr-r"><div class="n">Final RA<small>' + rpShort(R.raFinal) + '</small></div><div class="br"><i class="bg" style="width:' + x(R.raFinal) + '%"></i>' +
-    seg(0, Math.min(R.riRA, mx), '#1E7B45', f(R.riRA)) + seg(R.riRA, R.totalRI, '#2AA3B0', f(lain)) + mk(R.riRA, pctId(pRA), false, close && lain > 0 ? 'L' : '') + (lain > 0 ? mk(R.totalRI, pctId(pTot), false, close ? 'R' : '') : '') +
-    '<em style="left:calc(' + x(R.raFinal) + '% + 6px)">100% = RA</em></div></div>';
-  if (pT !== null) h += '<div class="ovr-r"><div class="n">Collection target<small>' + rpShort(d.target) + '</small></div><div class="br"><i class="bg" style="width:' + x(d.target) + '%"></i>' +
-    seg(0, d.receipts, '#2F5D9E', f(d.receipts)) + mk(d.receipts, pctId(pT), true) + '<em style="left:calc(' + x(d.target) + '% + 6px)">100% = target</em></div></div>';
-  h += '</div><div class="ov-lg"><span><i style="background:#1E7B45"></i>RI against RA ' + rpShort(R.riRA) + '</span><span><i style="background:#2AA3B0"></i>RI reserve / outside RA ' + rpShort(lain) + '</span>' +
-    (pT === null ? '' : '<span><i style="background:#2F5D9E"></i>Total cash received ' + rpShort(d.receipts) + '</span>') + '<span><i style="background:#EDF0F4;border:1px solid #CBD5E1"></i>not yet reached</span>' + (d.cur ? '<span style="margin-left:auto">working days left <b>' + R.hariKerja + '</b></span>' : '') + '</div>' +
-    '<div class="ovr-note">Same cash received: <b>Rp ' + nfDot(R.totalRI) + '</b>. The percentages differ only by the base — <b>final RA</b> (collection plan validated by the Section Head) or the <b>collection target</b> (monthly target in Parameter).</div>';
-  return h;
-}
 function renderDashboard() {
   var cur = B.today.substring(0, 7), m = OV_M || cur, d = OV[m];
   if (d && d._today === B.today) return ovRender(d);
@@ -4113,67 +4270,95 @@ function renderDashboard() {
   call('apiOverview', [m === cur ? '' : m], function (r) { r._today = B.today; OV[m] = r; if (MODE === 'dashboard' && (OV_M || cur) === m) ovRender(r); },
     function (e) { $('ovWrap').innerHTML = '<div class="ov"><div class="note err">Overview could not be loaded: ' + esc(e.message || e) + '</div></div>'; });
 }
+function ovSpark(V, col, w, h) { if (!V.length) return ''; var mx = Math.max.apply(null, V), mn = Math.min.apply(null, V), r = mx - mn || 1; return '<svg class="ov2-sp" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '"><polyline fill="none" stroke="' + col + '" stroke-width="2" stroke-linejoin="round" points="' + V.map(function (v, i) { return (i * w / Math.max(1, V.length - 1)).toFixed(1) + ',' + (h - 3 - (v - mn) / r * (h - 6)).toFixed(1); }).join(' ') + '"/></svg>'; }
+function ovRing(p, col, bg, sz, sw) { var r = (sz - sw) / 2, c = 2 * Math.PI * r; return '<svg class="ov2-rg" width="' + sz + '" height="' + sz + '" viewBox="0 0 ' + sz + ' ' + sz + '"><circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" fill="none" stroke="' + bg + '" stroke-width="' + sw + '"/><circle cx="' + sz / 2 + '" cy="' + sz / 2 + '" r="' + r + '" fill="none" stroke="' + col + '" stroke-width="' + sw + '" stroke-dasharray="' + (Math.max(0, Math.min(1, p)) * c).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 ' + sz / 2 + ' ' + sz / 2 + ')"/></svg>'; }
 function ovRender(d) {
-  var maker = !!(B.access && B.access.maker), cur = B.today.substring(0, 7), A = apModel(), mon3 = monEn(d.ref, true);
-  // pilihan bulan: bulan berjalan + 12 bulan sebelumnya (ganti tahun otomatis)
+  var maker = !!(B.access && B.access.maker), viewer = !!(B.access && B.access.viewer), cur = B.today.substring(0, 7), A = apModel(), mon3 = monEn(d.ref, true), R = d.rari, iss = d.issued, T = d.trend || [];
   var opts = ''; for (var k = 0; k < 13; k++) { var y = +cur.substring(0, 4), mm = +cur.substring(5, 7) - k; while (mm < 1) { mm += 12; y--; } var r = y + '-' + ('0' + mm).slice(-2); opts += '<option value="' + r + '"' + (r === d.ref ? ' selected' : '') + '>' + monEn(r) + (k === 0 ? ' (current month)' : '') + '</option>'; }
-  var h = '<div class="ov"><div class="ov-hd"><div><h2>Receivables Overview · ' + monEn(d.ref) + '</h2><p>' + (d.cur ? 'As of ' + dateEn(d.asOf) : 'Month-end position ' + dateEn(d.asOf)) + (d.reportTime ? ' · reports refreshed ' + esc(tgJam(d.reportTime)) : '') + ' · the current month rolls over automatically each month (including year-end)</p></div><span class="sp"></span>' +
-    '<label class="ov-sel">' + ico('cal') + '<select id="ovMonth">' + opts + '</select></label>' +
-    (maker ? '<button class="ibtn" id="ovRefresh" type="button">' + ico('cloud') + 'Refresh reports</button>' : '<button class="ibtn" id="ovPrint" type="button">' + ico('print') + 'Print overview</button>') + '</div>';
-  // angka utama
-  var iss = d.issued, chg = iss.prevTotal ? (iss.total - iss.prevTotal) / iss.prevTotal : null, R = d.rari, pRA = R.raFinal ? R.riRA / R.raFinal : null, pT = d.target ? d.receipts / d.target : null;
-  var kp = function (t, v, f) { return '<div class="ov-kp"><small>' + t + '</small><b>' + v + '</b><span>' + f + '</span></div>'; };
-  h += '<div class="ov-k">' +
-    kp('Open receivables', rpShort(d.open), plural(d.nOpen, 'invoice') + ' · incl. VAT') +
-    kp('Overdue', rpShort(d.overdue), d.open ? '<span class="' + (d.overdue / d.open > .3 ? 'up' : '') + '">' + pctId(d.overdue / d.open) + ' of open AR</span>' : '–') +
-    kp('Invoices issued · ' + mon3, rpShort(iss.total), plural(iss.n, 'invoice') + (chg === null ? '' : ' · <span class="' + (chg >= 0 ? 'gd' : 'up') + '">' + (chg >= 0 ? '▲ ' : '▼ ') + pctId(Math.abs(chg), 0) + ' vs ' + monEn(prevRef(d.ref), true) + '</span>')) +
-    kp('Cash received · ' + mon3, rpShort(d.receipts), (d.target ? 'collection target ' + rpShort(d.target) + '<br><em class="ovr-p">' + pctId(pT) + '</em> <i class="ovr-tag">÷ collection target</i>' : 'no collection target set') +
-      (R.raFinal ? '<br><em class="ovr-p">' + pctId(R.totalRI / R.raFinal) + '</em> <i class="ovr-tag">÷ final RA</i>' : '')) +
-    kp('Collection plan (RA) · ' + mon3, pRA === null ? '–' : pctId(pRA), R.raFinal ? '<span class="' + (pRA < .5 && d.cur ? 'up' : 'gd') + '">RI ' + rpShort(R.riRA) + ' of RA ' + rpShort(R.raFinal) + '</span><br><i class="ovr-tag">÷ final RA</i> · total RI ' + pctId(R.totalRI / R.raFinal) : 'no collection plan this month') +
-    kp('DSO · 12 months', d.dso12 === null ? '–' : d.dso12 + ' days', d.dso3 === null ? 'rolling, position today' : '3-month DSO ' + d.dso3 + ' days' + (d.dso12 !== null && d.dso3 > d.dso12 ? ' · <span class="up">▲ worsening</span>' : '')) + '</div>';
+  var hr = new Date().getHours(), nm = String((B.user && B.user.nama) || '').split(/\s+/)[0], hi = (hr < 11 ? 'Good morning' : hr < 15 ? 'Good afternoon' : 'Good evening') + (nm ? ', ' + esc(titleCaseS(nm)) : '');
+  var h = '<div class="ov ov2"><div class="ov-hd"><div><h2>' + (d.cur ? hi + ' 👋' : 'Receivables Overview · ' + monEn(d.ref)) + '</h2><p>Receivables Overview · <b>' + monEn(d.ref) + '</b> · ' + (d.cur ? 'as of ' + dateEn(d.asOf) + (R.hariKerja ? ' · ' + plural(R.hariKerja, 'working day') + ' left this month' : '') : 'month-end position ' + dateEn(d.asOf)) + (d.reportTime ? ' · reports refreshed ' + esc(tgJam(d.reportTime)) : '') + '</p></div><span class="sp"></span>' +
+    '<label class="ov-sel">' + ico('cal') + '<select id="ovMonth">' + opts + '</select></label>' + (maker ? '<button class="ibtn" id="ovRefresh" type="button">' + ico('cloud') + 'Refresh</button>' : '') + '<button class="ibtn" id="ovPrint" type="button">' + ico('print') + 'Print summary</button></div>';
+  // ---- KPI
+  var po = T.length > 1 ? T[T.length - 2].open : 0, dOpen = po ? (d.open - po) / po : null, chg = iss.prevTotal ? (iss.total - iss.prevTotal) / iss.prevTotal : null;
+  var base = R.raFinal || d.target || 0, pCol = base ? d.receipts / base : null;
+  var delta = function (x, goodDown) { if (x === null) return ''; var up = x >= 0; return ' · <span class="' + ((up ? !goodDown : goodDown) ? 'gd' : 'up') + '">' + (up ? '▲ ' : '▼ ') + pctId(Math.abs(x), 1) + '</span> vs ' + monEn(prevRef(d.ref), true); };
+  var bars = T.slice(-7).map(function (t) { return t.inv; }), bmx = Math.max.apply(null, bars.concat([1]));
+  h += '<div class="ov2-k">' +
+    '<div class="ov2-kp" style="--c:#14284B"><small>Open receivables</small><b>' + rpShort(d.open) + '</b><span>' + plural(d.nOpen, 'invoice') + delta(dOpen, true) + '</span>' + ovSpark(T.map(function (t) { return t.open; }), '#14284B', 84, 30) + '</div>' +
+    '<div class="ov2-kp" style="--c:#D9473F"><small>Overdue</small><b class="red">' + rpShort(d.overdue) + '</b><span>' + (d.open ? pctId(d.overdue / d.open) + ' of open AR · ' : '') + plural(d.nOd || 0, 'invoice') + '</span>' + ovRing(d.open ? d.overdue / d.open : 0, '#D9473F', '#F3D6D3', 38, 5) + '</div>' +
+    '<div class="ov2-kp" style="--c:#1AA6A6"><small>Collected · ' + mon3 + '</small><b>' + rpShort(d.receipts) + '</b><span>' + (base ? 'of ' + (R.raFinal ? 'plan' : 'target') + ' ' + rpShort(base) + ' · <strong>' + pctId(pCol) + '</strong>' : 'no plan or target set') + '</span>' + (base ? '<i class="ov2-pb"><i style="width:' + Math.min(100, pCol * 100) + '%"></i></i>' : '') + '</div>' +
+    '<div class="ov2-kp" style="--c:#3F6FD8"><small>Invoiced · ' + mon3 + '</small><b>' + rpShort(iss.total) + '</b><span>' + plural(iss.n, 'invoice') + delta(chg, false) + '</span><svg class="ov2-sp" width="84" height="30">' + bars.map(function (v, i) { var hh = Math.max(2, v / bmx * 26); return '<rect x="' + i * 12 + '" y="' + (30 - hh) + '" width="8" height="' + hh + '" rx="1.5" fill="' + (i === bars.length - 1 ? '#3F6FD8' : '#BFD0F3') + '"/>'; }).join('') + '</svg></div>' +
+    '<div class="ov2-kp" style="--c:#F0A21A"><small>DSO · 12 months</small><b>' + (d.dso12 === null ? '–' : d.dso12 + ' days') + '</b><span>' + (d.dso3 === null ? 'rolling, position today' : '3-mo DSO ' + d.dso3 + ' days' + (d.dso12 !== null ? (d.dso3 > d.dso12 ? ' · <span class="up">▲ worsening</span>' : ' · <span class="gd">▼ improving</span>') : '')) + '</span></div></div>';
   if (maker) h += '<label class="m-only ov-srch">' + ico('srch') + '<input id="ovQ" placeholder="Search customer / invoice no.…" enterkeyhint="search"></label>';
-  // invoice keluar bulan ini
-  var L = B.invoices.filter(function (i) { return d.issued.list.indexOf(i.nomor) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
-  var cnt = { ok: 0, wt: 0, no: 0, bad: 0 }; L.forEach(function (i) { cnt[ovSt(i)[0]] = (cnt[ovSt(i)[0]] || 0) + 1; });
-  h += '<div class="ov-row ov-r1"><div class="ov-p"><h3>' + ico('doc') + 'Invoices issued · ' + monEn(d.ref) + '<span class="r">prior month: ' + rpShort(iss.prevTotal) + ' · ' + plural(iss.prevN, 'invoice') + '</span></h3><div class="s">Billing issued in the month and its approval status</div>' +
-    '<div class="ov-m"><div><small>Tax base (DPP)</small><b>' + rpShort(iss.dpp) + '</b></div><div><small>VAT</small><b>' + rpShort(iss.ppn) + '</b></div><div><small>Approvals</small><b>' + cnt.ok + ' ✓ · ' + cnt.wt + ' ⏳ · ' + (cnt.no + cnt.bad) + ' open</b></div></div>' +
-    (L.length ? '<table class="ov-t"><tr><th>Date</th><th>Invoice</th><th>Customer</th><th class="n">Total</th><th>Status</th></tr>' + L.slice(0, 6).map(function (i) { var st = ovSt(i); return '<tr class="ck" data-ovinv="' + esc(i.nomor) + '"><td>' + tg(i.tgl).substring(0, 5) + '</td><td>4C.' + esc(short(i.nomor)) + '</td><td class="w">' + esc(titleCaseS(i.pelanggan)) + '</td><td class="n">' + nfDot(i.total) + '</td><td><span class="chp ' + st[0] + '">' + st[1] + '</span></td></tr>'; }).join('') + '</table>' +
-      (L.length > 6 ? '<button class="more" type="button" data-ovgo="' + (maker ? 'buka' : 'setuju') + '">+ ' + (L.length - 6) + ' more invoices' + (maker ? ' · open Invoice Register' : '') + '</button>' : '') : '<div class="ov-empty">No invoices issued in ' + monEn(d.ref) + ' yet.</div>') + '</div>';
-  // RA-RI
-  var w = function (v) { return R.raFinal ? Math.min(100, v / R.raFinal * 100) : 0; }, belumV = R.belum.reduce(function (t, x) { return t + x.nilai; }, 0), lain = R.riCad + R.riLuar;
-  h += '<div class="ov-p"><h3>' + ico('bank') + 'Collection plan vs actual (RA–RI) · ' + monEn(d.ref) + (R.valId ? '<span class="r">final plan ' + esc(R.valId) + '</span>' : '<span class="r">plan not yet validated</span>') + '</h3><div class="s">Validated planned collections (RA) vs actual receipts (RI)</div>' +
-    (R.raFinal ? ovRaRi(R, d, lain) :
-      '<div class="ov-empty" style="margin-bottom:10px">No collection plan (RA) for ' + monEn(d.ref) + '. Total receipts (RI): ' + rpShort(R.totalRI) + '.</div>') +
-    (R.belum.length ? '<table class="ov-t"><tr><th>Not yet collected (RA ✓)</th><th>Planned</th><th class="n">Amount</th></tr>' + R.belum.slice(0, 5).map(function (x) { return '<tr><td class="w">' + esc(titleCaseS(x.pelanggan).replace(/^PT\s+/, '')) + ' · ' + esc(short(x.nomor).replace(/^(\d{4}).*$/, '4C.$1')) + (x.sebagian ? ' <span class="chp wt">partial</span>' : '') + '</td><td>' + (x.rencana ? tg(x.rencana).substring(0, 5) : '–') + '</td><td class="n">' + rpShort(x.nilai).replace('Rp ', '') + '</td></tr>'; }).join('') + '</table>' + (R.belum.length > 5 ? '<button class="more" type="button" data-ovgo="dok">+ ' + (R.belum.length - 5) + ' more · see RA–RI report</button>' : '') :
-      R.raFinal ? '<div class="ov-empty">All planned collections (RA ✓) have been received.</div>' : '') + '</div></div>';
-  // tren, umur piutang, tindakan
-  h += '<div class="ov-row ov-r2"><div class="ov-p ov-trend"><h3>12-month trend<span class="r">Rp miliar</span></h3><div class="s">Invoices issued vs cash received · rolls across year-end</div>' + ovTrend(d.trend) +
-    '<div class="ov-lg"><span><i style="background:#C9D6E8"></i>Invoices issued</span><span><i style="background:#19A0A8"></i>Cash received</span></div></div>';
-  var AG = [['No due date', '#8B9BB4'], ['Not yet due', '#19A0A8'], ['1–30 days', '#D69A1C'], ['31–90 days', '#E07B39'], ['91–180 days', '#D9534F'], ['> 180 days', '#A1271F']], mx = Math.max.apply(null, d.aging.concat([1]));
-  h += '<div class="ov-p"><h3>AR aging<span class="r">' + (d.cur ? 'position today' : 'as of ' + dateEn(d.asOf)) + '</span></h3><div class="s">' + rpShort(d.open) + ' open · days past due date</div><div class="ov-ag">' +
-    AG.map(function (a, ix) { return '<span>' + a[0] + '</span><span class="bg"><i style="width:' + (d.aging[ix] / mx * 100) + '%;background:' + a[1] + '"></i></span><b>' + rpShort(d.aging[ix]).replace('Rp ', '') + '</b>'; }).join('') + '</div></div>';
-  var ac = function (ic, bg, fg, t, n, go, tag) { return '<div class="ov-ac" data-ovgo="' + go + '"><span class="ai" style="background:' + bg + ';color:' + fg + '">' + ico(ic) + '</span><span class="tx">' + t + (tag ? ' <span class="chp no">' + tag + '</span>' : '') + '</span><b class="' + (n ? '' : 'z') + '">' + n + '</b></div>'; };
+  // ---- RA–RI
+  var lain = R.riCad + R.riLuar, sisaRA = Math.max(0, R.raFinal - R.riRA), pRA = R.raFinal ? R.riRA / R.raFinal : 0, pT = d.target ? d.receipts / d.target : null;
+  var row = function (t, v, b, p, c) { return '<div class="ov2-br"><div><span><b>' + t + '</b> · ' + rpShort(v) + ' of ' + rpShort(b) + '</span><b>' + pctId(p) + '</b></div><i class="ov2-pb l"><i style="width:' + Math.min(100, p * 100) + '%;background:' + c + '"></i></i></div>'; };
+  h += '<div class="ov-row ov2-r"><div class="ov-p"><h3>' + ico('bank') + 'Collection plan vs actual (RA–RI)<span class="r">' + (R.valId ? '<span class="chp ok">final plan ' + esc(R.valId) + '</span>' : '<span class="chp no">plan not yet validated</span>') + '</span></h3><div class="s">Validated collection plan (RA) vs cash actually received (RI) · ' + monEn(d.ref) + (d.raManual ? ' · RA manual sheet' : '') + '</div>';
+  if (R.raFinal) {
+    h += '<div class="ov2-ra"><div class="ov2-dn">' + ovRing(pRA, '#1AA6A6', '#EAF0F5', 150, 13) + (pT !== null ? '<span class="in">' + ovRing(pT, '#3F6FD8', '#EAF0F5', 104, 8) + '</span>' : '') + '<div class="lb"><b>' + pctId(pRA) + '</b><small>of final RA</small></div></div><div class="ov2-bs">' +
+      row('RI vs final RA', R.riRA, R.raFinal, pRA, '#1AA6A6') + (pT !== null ? row('Cash vs collection target', d.receipts, d.target, pT, '#3F6FD8') : '') +
+      '<div class="ov-lg"><span><i style="background:#1AA6A6"></i>RI against RA</span><span><i style="background:#7CD3D3"></i>reserve / outside RA ' + rpShort(lain) + '</span>' + (pT !== null ? '<span><i style="background:#3F6FD8"></i>total cash vs target</span>' : '') + '</div></div></div>' +
+      '<div class="ov2-mini"><div><small>Still to collect (RA)</small><b>' + rpShort(sisaRA) + '</b></div><div><small>Needed per working day</small><b>' + (d.cur && R.hariKerja ? rpShort(sisaRA / R.hariKerja) : '–') + '</b></div><div><small>Planned items collected</small><b>' + (d.raPaid || 0) + ' of ' + (d.raN || 0) + '</b></div></div>' +
+      '<div class="ov2-tip">💡 Same cash, two bases: <b>final RA</b> = plan validated by the Section Head · <b>collection target</b> = monthly target in Parameter.</div>';
+  } else h += '<div class="ov-empty">No collection plan (RA) for ' + monEn(d.ref) + ' yet. Cash received: <b>' + rpShort(d.receipts) + '</b>' + (d.target ? ' · ' + pctId(d.receipts / d.target) + ' of target ' + rpShort(d.target) : '') + '.' + (maker ? '<br><button class="btn sm" type="button" data-ovgo="plan" style="margin-top:8px">Prepare Collection Plan</button>' : '') + '</div>';
+  h += '</div>';
+  // ---- Action needed
+  var it = [], ai = function (sev, ic, bg, t, sub, n, go, lk) { it.push({ sev: sev, h: '<div class="ov2-ac" data-ovgo="' + go + '"><i class="ai" style="background:' + bg + '">' + ic + '</i><span class="tx"><b>' + t + '</b><small>' + sub + '</small></span><em class="' + (sev === 0 ? 'ov' : sev === 1 ? 'wn' : 'bl') + '">' + n + '</em><span class="go">' + lk + ' →</span></div>' }); };
   if (maker) {
-    var sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length;
-    h += '<div class="ov-p"><h3>Action needed<span class="r">today</span></h3><div class="s">Shortcuts to pending work</div>' +
-      ac('send', '#FFF3DA', '#A86C00', 'Not yet submitted for approval', A.k.belum, 'setuju') + ac('warn', '#FDECEA', '#B42318', 'Resubmit required', A.k.ulang, 'setuju') +
-      ac('mail', '#FDECEA', '#B42318', 'Collection letters due', sr, 'surat') + ac('clk', '#E3F4F5', '#0F7C86', 'Payment promises / deadlines missed', d.attn.janji, 'surat') +
-      ac('fold', '#E8EEF8', '#2F5597', 'Month-end close documents open', dokPending(), 'dok') + ac('doc', '#E3F4F5', '#0F7C86', 'Document filing incomplete (signed pack / e-Faktur)', dfMissingCount(), 'buka') + ac('warn', '#F3E8FA', '#6B3FA0', 'Data check findings', d.issues, 'sheet') + '</div>';
+    var vs = dokStatus(B.DOC.VAL, cur), sr = ((B.suratAlerts) || []).filter(function (a) { return a.perlu; }).length, nd = B.payments.filter(function (p) { return !p.tgl; }), dp = dokPending() + (B.hoPending || 0), df = dfMissingCount();
+    if (d.nOd) ai(0, '⏰', '#FDE4E2', plural(d.nOd, 'invoice') + ' overdue', rpShort(d.overdue) + (d.oldest ? ' · oldest ' + d.oldest.d + ' days (4C.' + esc(short(d.oldest.nomor)) + ' ' + esc(titleCaseS(d.oldest.pelanggan).replace(/^PT\s+/, '')) + ')' : ''), d.nOd, 'surat', 'Dunning Letters');
+    if (sr) ai(0, '✉️', '#FDE4E2', plural(sr, 'dunning letter') + ' due', 'next letter or escalation is due', sr, 'surat', 'Dunning Letters');
+    if (vs[0] !== 'ok') ai(1, '📅', '#FFF1D6', 'Collection plan ' + monEn(cur, true) + ': ' + esc(vs[1].toLowerCase()), 'prepare and send to the Section Head', '!', 'plan', 'Collection Plan');
+    if (A.k.belum + A.k.ulang) ai(A.k.ulang ? 0 : 1, '📝', A.k.ulang ? '#FDE4E2' : '#FFF1D6', 'Documents to submit for approval', A.k.belum + ' not submitted' + (A.k.ulang ? ' · ' + A.k.ulang + ' to resubmit' : ''), A.k.belum + A.k.ulang, 'setuju', 'Approvals');
+    if (nd.length) ai(0, '🧾', '#FDE4E2', plural(nd.length, 'receipt') + ' missing the payment date', esc(nd.slice(0, 3).map(function (p) { return p.idp; }).join(', ')) + ' · fill the date in Log Penerimaan', nd.length, 'tbayar', 'Payment List');
+    if (dp) ai(1, '📋', '#FFF1D6', 'Month-end close items open', (dokPending() ? 'monthly summary not approved' : '') + (dokPending() && B.hoPending ? ' · ' : '') + (B.hoPending ? plural(B.hoPending, 'document') + ' not handed over' : ''), dp, 'close', 'AR Closing');
+    if (d.due14 && d.due14.n) ai(2, '📆', '#E4EEFA', 'Due in the next 14 days', plural(d.due14.n, 'invoice') + ' · ' + rpShort(d.due14.v), d.due14.n, 'buka', 'Invoice List');
+    if (df) ai(2, '📎', '#E4EEFA', 'Document filing incomplete', 'signed invoice pack or e-Faktur PDF missing', df, 'buka', 'Invoice List');
+    if (d.issues) ai(2, '🔎', '#F3E8FA', 'Data check findings', 'see the Cek Data sheet', d.issues, 'sheet', 'Open sheet');
   } else {
-    var T = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : ''; };
-    h += '<div class="ov-p"><h3>' + (B.access && B.access.viewer ? 'Pending Section Head decisions' : 'Awaiting your decision') + '<span class="r">' + A.k.tunggu + ' requests</span></h3><div class="s">Oldest first · click to review</div>' +
-      ac('bank', '#E3F4F5', '#0F7C86', 'Cash receipts', T.PAY.tunggu.length, 'ap:PAY', old(T.PAY)) + ac('doc', '#E8EEF8', '#2F5597', 'Invoices', T.INV.tunggu.length, 'ap:INV', old(T.INV)) +
-      ac('cal', '#F3E8FA', '#6B3FA0', 'Collection plan validation', T.VAL.tunggu.length, 'ap:VAL', old(T.VAL)) + ac('warn', '#FDECEA', '#B42318', 'Other (cancellations, manual close)', T.LAIN.tunggu.length, 'ap:LAIN', old(T.LAIN)) +
-      '<div class="ov-note"><b>Attention this month:</b> ' + (d.attn.od90n ? d.attn.od90n + ' customer' + (d.attn.od90n > 1 ? 's' : '') + ' &gt; 90 days past due totalling <b>' + rpShort(d.attn.od90v) + '</b>' : 'no customer &gt; 90 days past due') + ' · missed payment promises ' + d.attn.janji + ' · escalations (3rd letter) ' + d.attn.eskalasi + '</div></div>';
+    var TT = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : 'oldest first'; };
+    [['PAY', '🏦', 'Cash receipts & reversals'], ['INV', '🧾', 'Invoices'], ['VAL', '📅', 'Collection plan validation'], ['LAIN', '⚠️', 'Other (cancellations, manual close)']].forEach(function (x) { var n = TT[x[0]].tunggu.length; if (n) ai(n > 3 ? 0 : 1, x[1], '#E4EEFA', x[2], old(TT[x[0]]), n, viewer ? '' : 'ap:' + x[0], viewer ? 'Pending' : 'Review'); });
+    if (d.attn.od90n) ai(0, '⏰', '#FDE4E2', plural(d.attn.od90n, 'customer') + ' &gt; 90 days past due', rpShort(d.attn.od90v), d.attn.od90n, 'bal', 'Customer Balances');
+    if (d.attn.janji) ai(1, '🤝', '#FFF1D6', 'Payment promises / letter deadlines missed', 'follow up with the AR Officer', d.attn.janji, 'bal', 'Customer Balances');
   }
-  h += '</div></div>';
+  it.sort(function (a, b) { return a.sev - b.sev; });
+  h += '<div class="ov-p ov2-act"><h3>⚡ ' + (maker ? 'Action needed' : viewer ? 'Pending Section Head decisions' : 'Awaiting your decision') + '<span class="r">' + plural(it.length, 'item') + '</span></h3><div class="s">' + (maker ? 'Your to-do list today — click to open the menu' : 'Click to review') + '</div>' +
+    (!maker && !A.k.tunggu ? '<div class="ov2-ok sm">✓ No requests awaiting ' + (viewer ? 'a decision' : 'your decision') + '</div>' : '') + (it.length ? it.map(function (x) { return x.h; }).join('') : !maker ? '' : '<div class="ov2-ok">✓ All clear — nothing requires action.</div>') + '</div></div>';
+  // ---- trend & aging
+  var W = 760, H = 200, l = 40, b = 170, t0 = 14, mx = Math.max.apply(null, T.map(function (x) { return Math.max(x.inv, x.rec, x.open || 0); }).concat([1]));
+  var st = Math.pow(10, Math.floor(Math.log10(mx))), step = [1, 2, 2.5, 5, 10].map(function (q) { return q * st; }).filter(function (q) { return mx / q <= 4; })[0] || st * 10, top = Math.ceil(mx / step) * step;
+  var yy = function (v) { return b - v / top * (b - t0); }, cw = (W - l - 6) / Math.max(1, T.length), svg = '';
+  for (var g = 0; g <= top + 1e-6; g += step) svg += '<line x1="' + l + '" x2="' + W + '" y1="' + yy(g) + '" y2="' + yy(g) + '" stroke="#EEF2F6"/><text x="' + (l - 6) + '" y="' + (yy(g) + 4) + '" text-anchor="end" font-size="10" fill="#8696A8">' + (g / 1e9).toFixed(g / 1e9 % 1 ? 1 : 0).replace('.', ',') + ' M</text>';
+  T.forEach(function (x, i) { var x0 = l + i * cw + cw * 0.18, bw = cw * 0.3, last = i === T.length - 1;
+    svg += '<rect x="' + x0 + '" y="' + yy(x.inv) + '" width="' + bw + '" height="' + (b - yy(x.inv)) + '" rx="3" fill="#BFD0F3"><title>' + monEn(x.ref) + ' · invoiced ' + rpShort(x.inv) + '</title></rect><rect x="' + (x0 + bw + 2) + '" y="' + yy(x.rec) + '" width="' + bw + '" height="' + (b - yy(x.rec)) + '" rx="3" fill="#1AA6A6"><title>' + monEn(x.ref) + ' · collected ' + rpShort(x.rec) + '</title></rect>' +
+      '<text x="' + (x0 + bw + 1) + '" y="' + (b + 16) + '" text-anchor="middle" font-size="10"' + (last ? ' font-weight="700" fill="#14284B"' : ' fill="#6A7A8E"') + '>' + monEn(x.ref, true) + (x.m === 1 ? " '" + String(x.y).substring(2) : '') + '</text>'; });
+  var pts = T.map(function (x, i) { return (l + i * cw + cw * 0.5).toFixed(1) + ',' + yy(x.open || 0).toFixed(1); });
+  if (T.length && T[0].open !== undefined) svg += '<polyline fill="none" stroke="#14284B" stroke-width="2.5" stroke-linejoin="round" points="' + pts.join(' ') + '"/><circle cx="' + pts[pts.length - 1].split(',')[0] + '" cy="' + pts[pts.length - 1].split(',')[1] + '" r="4" fill="#14284B"><title>Open AR ' + rpShort(T[T.length - 1].open) + '</title></circle>';
+  h += '<div class="ov-row ov2-r"><div class="ov-p"><h3>📈 12-month trend<span class="r"><span class="ov-lg" style="margin:0"><span><i style="background:#BFD0F3"></i>Invoiced</span><span><i style="background:#1AA6A6"></i>Collected</span><span><i style="background:#14284B"></i>Open AR</span></span></span></h3><div class="s">Billing vs cash received per month, with month-end open receivables · rolls across year-end</div><svg viewBox="0 0 ' + W + ' ' + (H + 4) + '" width="100%" role="img" aria-label="12-month trend">' + svg + '</svg></div>';
+  var AG = [['No due date yet', '#8696A8'], ['Not yet due', '#2E9E5B'], ['1–30 days', '#F0A21A'], ['31–90 days', '#E8743B'], ['91–180 days', '#D9473F'], ['&gt; 180 days', '#A1271F']], at = d.aging.reduce(function (s0, v) { return s0 + v; }, 0) || 1;
+  h += '<div class="ov-p"><h3>⏳ AR aging<span class="r">open ' + rpShort(d.open) + '</span></h3><div class="s">By days past due date · ' + (d.cur ? 'position today' : 'as of ' + dateEn(d.asOf)) + '</div><div class="ov2-ab">' + AG.map(function (a, i) { return d.aging[i] > 0.5 ? '<i style="width:' + (d.aging[i] / at * 100) + '%;background:' + a[1] + '" title="' + a[0] + '"></i>' : ''; }).join('') + '</div><div class="ov2-al">' +
+    AG.map(function (a, i) { return '<div><span class="dot" style="background:' + a[1] + '"></span>' + a[0] + '<small>' + pctId(d.aging[i] / at) + '</small><b>' + rpShort(d.aging[i]).replace('Rp ', '') + '</b></div>'; }).join('') + '</div>' +
+    (d.attn.od90n ? '<div class="ov2-tip r">⚠ &gt; 90 days: ' + plural(d.attn.od90n, 'customer') + ' · ' + rpShort(d.attn.od90v) + (maker ? ' — consider an escalation letter.' : '') + '</div>' : '<div class="ov2-tip">✓ No customer more than 90 days past due.</div>') + '</div></div>';
+  // ---- bottom
+  var tm = Math.max.apply(null, (d.top || []).map(function (x) { return x.open; }).concat([1]));
+  h += '<div class="ov-row ov2-r3"><div class="ov-p"><h3>🏢 Top customers by balance<span class="r"><a data-ovgo="bal">Customer Balances →</a></span></h3><div class="s">Open AR · red part = overdue</div><table class="ov2-t">' +
+    ((d.top || []).slice(0, 5).map(function (x) { return '<tr><td><b>' + esc(titleCaseS(x.pelanggan)) + '</b><span class="ov2-pb s"><i style="width:' + ((x.open - x.od) / tm * 100) + '%;background:#14284B"></i><i style="width:' + (x.od / tm * 100) + '%;background:#D9473F"></i></span></td><td class="n"><b>' + rpShort(x.open).replace('Rp ', '') + '</b><small>' + (x.od > 0.5 ? rpShort(x.od).replace('Rp ', '') + ' overdue' : '—') + '</small></td></tr>'; }).join('') || '<tr><td>—</td></tr>') + '</table></div>';
+  var rel = function (dt) { if (!dt) return '<span class="chp na">no date</span>'; var n = dayDiff(B.today, dt); return n < 0 ? '<span class="chp bad">' + -n + ' d late</span>' : n === 0 ? '<span class="chp no">today</span>' : '<span class="chp ' + (n <= 7 ? 'wt' : 'ok') + '">in ' + n + (n === 1 ? ' day' : ' days') + '</span>'; };
+  h += '<div class="ov-p"><h3>📆 Planned &amp; not yet collected<span class="r"><a data-ovgo="' + (maker || viewer ? 'plan' : 'ap:VAL') + '">' + (maker || viewer ? 'Collection Plan' : 'Plan validation') + ' →</a></span></h3><div class="s">' + (R.raFinal ? 'In this month\'s plan (RA ✓), soonest first' : 'No validated plan this month') + '</div>' +
+    (R.belum.length ? '<table class="ov2-t"><tr><th>Customer · invoice</th><th>Planned</th><th class="n">Amount</th></tr>' + R.belum.slice(0, 5).map(function (x) { return '<tr><td><b>' + esc(titleCaseS(x.pelanggan).replace(/^PT\s+/, '')) + '</b><small>4C.' + esc(short(x.nomor)) + (x.sebagian ? ' · partial' : '') + '</small></td><td>' + rel(x.rencana) + '</td><td class="n">' + rpShort(x.nilai).replace('Rp ', '') + '</td></tr>'; }).join('') + '</table>' + (R.belum.length > 5 ? '<button class="more" type="button" data-ovgo="dok">+ ' + (R.belum.length - 5) + ' more · see RA–RI report</button>' : '')
+      : '<div class="ov-empty">' + (R.raFinal ? 'All planned collections have been received. 🎉' : 'Nothing planned yet.') + '</div>') + '</div>';
+  var L = B.invoices.filter(function (i) { return iss.list.indexOf(i.nomor) >= 0; }).sort(function (a, b) { return a.tgl < b.tgl ? 1 : a.tgl > b.tgl ? -1 : 0; });
+  h += '<div class="ov-p"><h3>🧾 Invoices issued · ' + mon3 + '<span class="r"><a data-ovgo="' + (maker ? 'buka' : 'setuju') + '">' + (maker ? 'Invoice List' : 'Approvals') + ' →</a></span></h3><div class="s">DPP ' + rpShort(iss.dpp) + ' · VAT ' + rpShort(iss.ppn) + ' · prior month ' + rpShort(iss.prevTotal) + '</div>' +
+    (L.length ? '<table class="ov2-t"><tr><th>Date</th><th>Invoice · customer</th><th class="n">Total</th><th>Status</th></tr>' + L.slice(0, 5).map(function (i) { var s2 = ovSt(i); return '<tr class="rk" data-ovinv="' + esc(i.nomor) + '"><td>' + tg(i.tgl).substring(0, 5) + '</td><td><b>4C.' + esc(short(i.nomor)) + '</b><small>' + esc(titleCaseS(i.pelanggan)) + '</small></td><td class="n">' + nfDot(i.total) + '</td><td><span class="chp ' + s2[0] + '">' + s2[1] + '</span></td></tr>'; }).join('') + '</table>' + (L.length > 5 ? '<button class="more" type="button" data-ovgo="' + (maker ? 'buka' : 'setuju') + '">+ ' + (L.length - 5) + ' more invoices</button>' : '')
+      : '<div class="ov-empty">No invoices issued in ' + monEn(d.ref) + ' yet.</div>') +
+    (maker ? '<div class="ov2-qa"><button class="btn primary" type="button" data-ovgo="buat">＋ Create Invoice</button><button class="btn" type="button" data-ovgo="bayar">' + ico('bank') + ' Post Payment</button></div>' : '') + '</div></div></div>';
   $('ovWrap').innerHTML = h;
   if ($('ovQ')) $('ovQ').onkeydown = function (e) { if (e.key !== 'Enter' || !this.value.trim()) return; var q = this.value.trim(); setMode('buka'); $('qInv').value = q; renderList(); };
   $('ovMonth').onchange = function () { OV_M = this.value === cur ? '' : this.value; renderDashboard(); };
   if ($('ovRefresh')) $('ovRefresh').onclick = refreshReports;
-  if ($('ovPrint')) $('ovPrint').onclick = function () { var x = $('ovWrap').innerHTML.replace('class="ov"', 'class="ov ovp"'); printHtml(x); };
-  if (B.access && B.access.viewer) $('ovWrap').querySelectorAll('[data-ovgo^="ap:"],[data-ovinv]').forEach(function (el) { el.removeAttribute('data-ovgo'); el.removeAttribute('data-ovinv'); el.style.cursor = 'default'; });
-  $('ovWrap').querySelectorAll('[data-ovgo]').forEach(function (el) { el.onclick = function () { var g = el.dataset.ovgo; if (g === 'sheet') { window.open(B.sheetUrl || '#', '_blank'); return; } if (/^ap:/.test(g)) { AP_TAB = g.substring(3); g = 'setuju'; } if (!maker && ['setuju', 'dashboard', 'dok'].indexOf(g) < 0) g = 'setuju'; setMode(g); }; });
+  $('ovPrint').onclick = function () { var x = $('ovWrap').innerHTML.replace('class="ov ov2"', 'class="ov ov2 ovp"'); printHtml(x); };
+  if (viewer) $('ovWrap').querySelectorAll('[data-ovgo^="ap:"],[data-ovgo=""],[data-ovinv]').forEach(function (el) { el.removeAttribute('data-ovgo'); el.removeAttribute('data-ovinv'); el.style.cursor = 'default'; });
+  $('ovWrap').querySelectorAll('[data-ovgo]').forEach(function (el) { el.onclick = function () { var g = el.dataset.ovgo; if (!g) return; if (g === 'sheet') { window.open(B.sheetUrl || '#', '_blank'); return; } if (/^ap:/.test(g)) { AP_TAB = g.substring(3); g = 'setuju'; } setMode(g); }; });
   $('ovWrap').querySelectorAll('[data-ovinv]').forEach(function (el) { el.onclick = function () { setMode('setuju'); openPackage('INV', E.normInv(el.dataset.ovinv)); }; });
 }
 function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }

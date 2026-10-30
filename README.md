@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.8 (sama dengan v2.8.7)
+## Pemasangan v2.9.0 (sama dengan v2.8.7)
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -61,6 +61,24 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Menu baru v2.9.0 (mengikuti alur AR SAP, kode T-code tampil kecil sebagai petunjuk)**: Overview · **Customers** (Customer Master `BP`, Customer Balances `FD10N`) ·
+  **Invoices** (Create Invoice `FB70`, Invoice List `FBL5N`, Cancel Invoice `FB08`) · **Payments** (Post Incoming Payment `F-28`, Payment List, Reverse Payment `FBRA`) ·
+  **Collections** (Collection Plan, Dunning Letters `F150`, Credit Limits `UKM_BP`) · **Month-End** (AR Closing Checklist, Documents & Handover) · Approvals.
+- **Overview baru (v2.9.0)**: sapaan & sisa hari kerja, 5 kartu KPI dengan grafik mini (saldo piutang + tren, overdue + cincin, uang masuk vs RA, invoice terbit, DSO),
+  panel RA–RI ringkas (donat + 2 bar, sisa yang harus ditagih, **kebutuhan per hari kerja**, item RA yang sudah cair), **Action needed** (hanya yang perlu dikerjakan,
+  urut dari yang paling penting, langsung ke menunya), tren 12 bulan (invoice vs uang masuk + garis saldo piutang), umur piutang berwarna, pelanggan terbesar,
+  rencana cair yang belum masuk ("x d late / in x days") dan invoice terbit bulan ini. Tabel invoice yang dulu berantakan sudah diperbaiki.
+- **Customer Balances (v2.9.0)**: saldo per pelanggan per umur (belum ada JT, belum jatuh tempo, 1–30, 31–90, > 90 hari) + penerimaan terakhir; klik pelanggan →
+  proyek & tombol kartu piutang. Bisa dicetak.
+- **Credit Limits (v2.9.0)**: kolom baru **BATAS KREDIT (Rp, OPSIONAL)** di Master Pelanggan (dibuat otomatis; diisi lewat Customer Master, perubahan wajib dasar &
+  diemailkan ke Section Head). Layar membandingkan batas vs exposure (saldo invoice aktif) dengan status OVER LIMIT / ABOVE 80% / OK. Create Invoice memberi
+  **peringatan** bila invoice baru membuat pelanggan melewati batas (boleh disimpan dengan alasan; tercetak di lembar pengesahan).
+- **Reverse Payment (v2.9.0)**: penerimaan yang salah dibalik lewat aplikasi (Payments ▸ Reverse Payment atau tombol ↺ Reverse di Payment List) dengan alasan
+  (salah invoice / salah nominal / input ganda / transfer dikembalikan / lainnya). Baris Log Penerimaan **tidak dihapus**: setelah disahkan (TTD basah seperti
+  penerimaan, jenis `PEMBALIKAN PENERIMAAN` di Log Persetujuan) baris ditandai **↺ DIBALIK** di kolom CEK, tidak dihitung lagi, invoice kembali terbuka,
+  memorial Akuntansi otomatis dibatalkan / dikoreksi, dan bila penerimaan itu sudah diserahkan ke Akuntansi, pembalikannya masuk lembar serah terima
+  penerimaan berikutnya agar posting SAP dibalik (FB08). Lembar Pembalikan Penerimaan bisa dicetak & diarsipkan. Penerimaan yang benar lalu dicatat ulang.
+- **Cancel Invoice** kini juga ada di menu Invoices (pilih invoice dari daftar → lembar pembatalan seperti sebelumnya).
 - **Issue Invoice bertahap (v2.8.8)**: 1 Customer & project · 2 Amount · 3 Wording · 4 Preview & save, dengan ringkasan angka yang selalu
   terlihat (progres − UM = DPP + PPN − retensi − PPh = kas diterima). Langkah 3 = **pola uraian per proyek** dengan isian otomatis
   `{jenis} {progres} {termin} {terminR} {deskripsi} {bapp} {tglbapp} {kumulatif}` (tombol sisip; "Save as this project's pattern" menyimpan ke

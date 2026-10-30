@@ -257,6 +257,7 @@ function rebuildAll_(opt) {
     try { arExtendFilters_(ss); } catch (err) { }
     try { arRepairInvoiceDates_(ss); } catch (err) { }
     try { arRepairPayDates_(ss); } catch (err) { }
+    try { if (arProps_().getProperty('MPEL_LIMIT_V29') !== '1') { var mpl = ss.getSheetByName('Master Pelanggan'); if (mpl) ensureSchema_(mpl, ENGINE.MPEL, null, null); arProps_().setProperty('MPEL_LIMIT_V29', '1'); } } catch (err) { }
     try { if (arProps_().getProperty('MPRO_POLA_V288') !== '1') { var mp8 = ss.getSheetByName('Master Proyek'); if (mp8) ensureSchema_(mp8, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); arProps_().setProperty('MPRO_POLA_V288', '1'); } } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
@@ -1127,6 +1128,10 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
       if (!d.canSubmit) throw new Error(d.blok);
       if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
     }
+    if (kind === 'REVP') {
+      if (!d.canSubmit) throw new Error(d.blok);
+      if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('A reversal reason is required (at least 10 characters).');
+    }
     if (kind === 'BATAL') {
       if (!d.canSubmit) throw new Error(d.blok);
       var als = String((extra && extra.alasan) || '').trim(); if (als.length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
@@ -1135,6 +1140,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
     if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
     if (kind === 'VALX') snap = { label: d.label, nilai: 0, alasan: String(extra.alasan).trim(), list: d.list };
     if (kind === 'BATAL') snap = { label: d.label, nilai: d.nilai, nomor: d.inv.nomor, pelanggan: d.inv.pelanggan, alasan: String(extra.alasan).trim(), pengganti: String(extra.pengganti || '').trim() };
+    if (kind === 'REVP') snap = { label: d.label, nilai: d.nilai, ids: d.ids, key: d.key, sebab: String(extra.sebab || '').trim().slice(0, 60), alasan: String(extra.alasan).trim() };
     if (kind === 'REK') { snap.invoices = d.invoices.length; snap.pays = d.pays.length; snap.totDebit = d.totDebit; snap.ckpn = d.ckpn; }
     var A = apprRows_(), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), jenis = ENGINE.DOC[kind];
     A.rows.filter(function (r) { return String(r.jenis).toUpperCase() === jenis && String(r.ref) === String(d.ref) && String(r.status).toUpperCase() === 'MENUNGGU'; })
@@ -1202,9 +1208,9 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
     if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Request ' + id + ' already has status ' + r.status + '.');
     // pemisahan tugas: berlaku juga untuk delegasi — pengaju tidak pernah memutuskan pengajuannya sendiri
     if (String(r.oleh).toLowerCase() === me) throw new Error('A request cannot be approved by its own preparer.');
-    var kTglD = arGuardClosed_(kind, kind === 'BATAL' ? ENGINE.packageFor(res.ctx, kind, r.ref) : { ref: r.ref }, 'Decision ' + r.id);
+    var kTglD = arGuardClosed_(kind, kind === 'BATAL' || kind === 'REVP' ? ENGINE.packageFor(res.ctx, kind, r.ref) : { ref: r.ref }, 'Decision ' + r.id);
     if (dl) catatan = '[DELEGASI a.n. ' + dl.atas + ' s.d. ' + dl.sampai + (dl.dasar ? ' · dasar: ' + dl.dasar : '') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : '');
-    if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX') {
+    if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX' || kind === 'REVP') {
       var d = ENGINE.packageFor(res.ctx, kind, r.ref);
       if (!d || d.fp !== String(r.sidik)) {
         A.sh.getRange(r._row, A.map.status).setValue('DIBATALKAN'); A.sh.getRange(r._row, A.map.catatan).setValue('Data berubah sebelum diputuskan — perlu diajukan ulang');
@@ -1290,7 +1296,7 @@ function archiveFolder_(P, kind, month) {
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
-  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak' }[kind] || 'Lainnya';
+  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
   return sub(sub(f, y), ('0' + mm).slice(-2) + ' ' + ENGINE.MONTHS[mm - 1] + ' ' + y);
 }
