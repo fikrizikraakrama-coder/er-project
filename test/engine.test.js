@@ -368,3 +368,21 @@ test('RA Manual: daftar bulan itu menjadi RA resmi (nilai DPP − PPh), no. invo
   assert.ok(res.issues.some(x => x[0] === 'RA MANUAL' && /No invoice kosong/.test(x[3])));
   assert.match(res.regOut[0].validasi_ok, /RA Manual Oktober 2026/);
 });
+
+test('Pemeriksaan input invoice: progres > 100% = error dengan saran; nomor progres melompat = peringatan', () => {
+  const pro = { tarif: 0.0265, prog: [['KU.02.02/WB-4C.0100/2026', 33744595250, 11, '2026-06-25']] };
+  const c = ENGINE.calcInvoice({ template: 'UMUM', jenis: 'PROGRES', nilaiKontrak: 42637832648, progres: 8993237398, tarif: 0.0265 });
+  let L = ENGINE.invoiceChecks({ c, jenis: 'PROGRES', tgl: '2026-08-05', today: '2026-10-30', progKe: 13, judul: 'Tagihan Progres Ke-13', nomor: 'KU.02.02/WB-4C.0141/2026', pro, kontrak: 42637832648 });
+  const e = L.find(x => x.lvl === 'E'); assert.ok(e && /exceeds the contract/.test(e.t)); assert.strictEqual(e.fix.v, 8893237398);
+  assert.ok(L.some(x => x.lvl === 'W' && /skips/.test(x.t)));
+  const c2 = ENGINE.calcInvoice({ template: 'UMUM', jenis: 'PROGRES', nilaiKontrak: 42637832648, progres: 8893237398, tarif: 0.0265 });
+  L = ENGINE.invoiceChecks({ c: c2, jenis: 'PROGRES', tgl: '2026-08-05', today: '2026-10-30', progKe: 12, judul: 'Tagihan Progres Ke-12', nomor: 'X', pro, kontrak: 42637832648 });
+  assert.ok(!L.some(x => x.lvl === 'E')); assert.ok(L.some(x => /Final progress/.test(x.t)));
+});
+
+test('Konsistensi data invoice di sheet: DPP sudah dikurangi retensi & adjustment terdeteksi (kasus WRK 0063)', () => {
+  const inv = { _a: { dpp: 3695438665, ppn: 445105983, ret: 217378745, retpos: 'AKHIR', adj: 133600618 } };
+  const q = ENGINE.invConsistency(inv);
+  assert.ok(q); assert.strictEqual(q.dppOk, 4046418027); assert.match(q.why, /retensi & adjustment/);
+  assert.strictEqual(ENGINE.invConsistency({ _a: { dpp: 4046418028, ppn: 445105983, ret: 217378745, retpos: 'AKHIR', adj: 133600618 } }), null);
+});

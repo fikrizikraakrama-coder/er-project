@@ -788,6 +788,8 @@ var ENGINE = (function () {
       }
       if (/^KURANG BAYAR \d/.test(res.status)) issues.push(['STATUS', REG.sheet, inv.nomor, res.status + ' (pelunasan sudah ditandai)', 'Bila kekurangan ditagih lewat berita acara / memo: isi NO. BA / MEMO. Bila dikompensasi invoice lain: catat PINDAH BUKU. Bila direlakan: TUTUP MANUAL + alasan.']);
       if (res.status === 'KURANG BAYAR – DITAGIH VIA BA/MEMO' && /BELUM DIISI/i.test(S(inv.ba_no))) issues.push(['STATUS', REG.sheet, inv.nomor, 'Nomor BA / memo penagihan kekurangan belum diisi', 'Isi NO. BA / MEMO dan TGL BA / MEMO']);
+      var cq = invConsistency(inv); inv._cq = cq;
+      if (cq) issues.push(['KONSISTENSI', REG.sheet, inv.nomor, cq.why + ': PPN ' + fmtRp(a.ppn) + ' cocok dengan DPP ' + fmtRp(cq.dppOk) + ' (di sheet ' + fmtRp(a.dpp) + ', selisih ' + fmtRp(cq.selisih) + ')', 'Perbaiki kolom DPP (atau PPN) sesuai faktur pajak / BAPP']);
       if (res.status.indexOf('LEBIH BAYAR') === 0) issues.push(['STATUS', REG.sheet, inv.nomor, res.status, 'Bila kelebihan dipakai untuk invoice lain, catat PINDAH BUKU (aplikasi ▸ Pembayaran ▸ Pindah buku); bila salah input, perbaiki Log Penerimaan']);
       res.rencana_net = res.closed ? 0 : Math.max(0, a.netto - pphE - keN);
       res.rencana_kas = res.closed ? 0 : Math.max(0, res.sisa);
@@ -1180,7 +1182,8 @@ var ENGINE = (function () {
     if (!inv) return null;
     var rec = ctx.latest(DOC.INV, k);
     return { inv: plainInv(inv), kartu: kartuPlain(ctx, inv.npp, ctx.today), jurnal: [jPlain(jInvoice(ctx, inv))], faktur: fakturDraft(ctx, inv),
-      fp: inv._fp, appr: rec ? apprPlain(rec, inv._fp) : null, ref: k, jenis: DOC.INV, label: 'Invoice ' + inv.nomor + ' — ' + inv.pelanggan, nilai: inv._a.total };
+      fp: inv._fp, appr: rec ? apprPlain(rec, inv._fp) : null, ref: k, jenis: DOC.INV, label: 'Invoice ' + inv.nomor + ' — ' + inv.pelanggan, nilai: inv._a.total,
+      cek: (function () { var w = null; try { w = JSON.parse(S(inv.json) || '{}').warn || null; } catch (e) { } return { warn: w, cq: inv._cq || null }; })() };
   }
   function payPackage(ctx, key) {
     var g = ctx.payGroups[key];
@@ -2772,7 +2775,8 @@ var ENGINE = (function () {
       um: p.um, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
       signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng,
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,
-      retDitahan: umr[p.npp] && umr[p.npp].ret ? umr[p.npp].ret[7] : 0, retBatas: umr[p.npp] ? umr[p.npp].batas : 0 }; });
+      retDitahan: umr[p.npp] && umr[p.npp].ret ? umr[p.npp].ret[7] : 0, retBatas: umr[p.npp] ? umr[p.npp].batas : 0,
+      prog: ctx.invs.filter(function (i) { return i.npp === p.npp && !i._batal && i._a.jenis === 'PROGRES'; }).map(function (i) { var m = S(i.invke).match(/(\d+)/); return [i.nomor, rnd(i._a.bruto), m ? +m[1] : 0, i.tgl]; }) }; });
     var params = {}; Object.keys(P).forEach(function (k) { if (['signers', 'targets', 'akun', 'users', 'ckpn'].indexOf(k) < 0) params[k] = P[k]; });
     var pendTutup = ctx.invs.filter(function (i) { return U(i.tutup) === 'CLOSE MANUAL' && /^CLOSE MANUAL –/.test(i._res.status); }).map(function (i) { return { nomor: i.nomor, pelanggan: i.pelanggan, sisa: i._res.sisa, alasan: S(i.alasan_tutup), status: i._res.status }; });
     var y = +ctx.today.substring(0, 4), m = +ctx.today.substring(5, 7), months = [];
@@ -2799,6 +2803,42 @@ var ENGINE = (function () {
     var k = kontrakAt({ nilai_awal: p.nilai, adds: p.adendum || [], nilai_ok: p.nilai_ok }, form.tgl);
     return { umSisa: umSisa, template: p.template, jenis: form.jenis, nilaiKontrak: k.net, progres: numForm(form.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
       dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: (form.items || []).map(function (x) { return { uraian: x.uraian, nilai: numForm(x.nilai), bulan: numForm(x.bulan) }; }), dpp: numForm(form.dpp), ppnOn: form.ppnOn };
+  }
+  /** v2.8.8: pemeriksaan isian invoice sebelum disimpan — E = error (tidak bisa simpan) · W = peringatan (boleh dengan alasan) · I = info.
+   *  x: { c: hasil calcInvoice, jenis, tgl, progKe, judul, nomor, today, pro (proyek dari bootstrap), kontrak (nilai kontrak berlaku) } */
+  function invoiceChecks(x) {
+    var out = [], c = x.c || {}, p = x.pro || {}, add = function (lvl, f, t, m, fix) { out.push({ lvl: lvl, f: f || '', t: t, m: m || '', fix: fix || null }); };
+    var self = normInv(x.nomor || ''), prog = (p.prog || []).filter(function (r) { return normInv(r[0]) !== self; });
+    if (!x.tgl) add('E', 'fTgl', 'Invoice date is empty');
+    else if (x.today && x.tgl > x.today) add('E', 'fTgl', 'Invoice date is in the future', tglPanjang(x.tgl) + ' is after today.');
+    if (!(N(x.kontrak) > 0) && x.jenis === 'PROGRES') add('E', 'fPro', 'Contract value is empty', 'Fill the contract value in Master Proyek first.');
+    if (c && x.jenis === 'PROGRES' && N(x.kontrak) > 0 && N(c.progres) > 0) {
+      var before = sumBy(prog, function (r) { return N(r[1]); }), cum = before + N(c.progres), pc = cum / N(x.kontrak);
+      if (pc > 1.0005) add('E', 'fProgres', 'Progress exceeds the contract', 'Cumulative becomes ' + pctTxt(pc) + ' of contract ' + fmtRp(x.kontrak) + ' (billed before: ' + fmtRp(before) + '). Maximum this invoice: ' + fmtRp(Math.max(0, N(x.kontrak) - before)) + '.', { id: 'fProgres', v: Math.max(0, rnd(N(x.kontrak) - before)) });
+      else if (pc > 0.9995 && pc <= 1.0005) add('I', 'fProgres', 'Final progress', 'Cumulative progress reaches 100% of the contract.');
+      var lastKe = prog.reduce(function (m, r) { return Math.max(m, N(r[2])); }, 0), ke = N(x.progKe);
+      if (ke && lastKe && ke !== lastKe + 1 && !prog.some(function (r) { return N(r[2]) === ke; })) add('W', 'fProgKe', 'Progress number skips', 'Last progress invoice is no. ' + lastKe + '; this one is no. ' + ke + '.', { id: 'fProgKe', v: lastKe + 1 });
+      if (ke && prog.some(function (r) { return N(r[2]) === ke; })) add('W', 'fProgKe', 'Progress number already used', 'Progress ' + ke + ' already exists: ' + prog.filter(function (r) { return N(r[2]) === ke; }).map(function (r) { return r[0].replace(/^KU\.02\.02\/WB-4C\./, ''); }).join(', ') + '.');
+      var lastT = prog.reduce(function (m, r) { return S(r[3]) > m ? S(r[3]) : m; }, '');
+      if (x.tgl && lastT && x.tgl < lastT) add('W', 'fTgl', 'Date before the previous progress invoice', 'Previous progress invoice is dated ' + tglPanjang(lastT) + '.');
+    }
+    if (c && c.umCapped) add('I', 'fProgres', 'Down payment deduction capped', 'Normal calculation ' + fmtRp(c.umAsli) + '; only the remaining DP ' + fmtRp(c.umSisa) + ' is deducted.');
+    else if (c && x.jenis === 'PROGRES' && N(c.umk) > 0 && c.umSisa !== '' && c.umSisa !== undefined && Math.abs(N(c.umSisa) - N(c.umk)) <= 1) add('I', '', 'Down payment fully deducted', 'Remaining DP after this invoice: Rp 0.');
+    if (c && x.jenis === 'RETENSI' && N(c.dpp) > N(p.retSisa) + 1000) add('E', 'fDpp', 'Retention billed exceeds unbilled retention', fmtRp(c.dpp) + ' > unbilled ' + fmtRp(p.retSisa) + '.', { id: 'fDpp', v: rnd(N(p.retSisa)) });
+    if (c && N(c.dpp) > 0 && N(c.ppn) > 0 && Math.abs(N(c.ppn) - N(c.dpp) * 0.11) > Math.max(2, N(c.ppn) * 0.002)) add('W', '', 'VAT does not match DPP', 'VAT ' + fmtRp(c.ppn) + ' vs 11% × DPP = ' + fmtRp(rnd(N(c.dpp) * 0.11)) + '.');
+    if (c && !(N(c.bayar) > 0) && x.jenis) add('E', 'fProgres', 'Amount payable is zero', 'Fill the progress value / amount billed.');
+    if (/…|\.\.\./.test(S(x.judul))) add('W', 'fJudul', 'Description still has a blank (…)', 'Fill the progress / term number so the description is complete.');
+    if (!(N(p.tarif) > 0)) add('W', '', 'WHT rate is empty', 'Fill TARIF PPh in Master Proyek (default 2,65% is used).');
+    return out;
+  }
+  /** v2.8.8: konsistensi data invoice di sheet (mis. diisi langsung) — PPN harus = 11% × DPP; bila tidak, perkirakan DPP yang benar */
+  function invConsistency(inv) {
+    var a = inv._a; if (!a || !(a.ppn > 0) || !(a.dpp > 0) || inv._batal) return null;
+    var exp = a.dpp * 0.11; if (Math.abs(a.ppn - exp) <= Math.max(2, a.ppn * 0.002)) return null;
+    var dppOk = rnd(a.ppn / 0.11), miss = dppOk - a.dpp, why = '';
+    if (a.ret && a.retpos === 'AKHIR' && Math.abs(miss - a.ret - a.adj) <= Math.max(5, dppOk * 0.0005)) why = 'DPP tampaknya sudah dikurangi retensi' + (a.adj ? ' & adjustment' : '') + ' (retensi ditahan tidak mengurangi DPP)';
+    else if (a.adj && Math.abs(miss - a.adj) <= Math.max(5, dppOk * 0.0005)) why = 'DPP tampaknya belum memuat ADJUSTMENT DPP';
+    return { dppOk: dppOk, selisih: rnd(miss), why: why || 'PPN tidak sama dengan 11% × DPP' };
   }
   function calcInvoice(f) {
     // Meniru rumus form Excel: angka mentah (desimal) dipakai berantai, dibulatkan saat ditampilkan / di sel ber-ROUND.
@@ -3116,7 +3156,7 @@ var ENGINE = (function () {
   }
 
   return {
-    tagihanProyekRows: tagihanProyekRows, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    tagihanProyekRows: tagihanProyekRows, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,

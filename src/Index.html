@@ -449,6 +449,11 @@ body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 /* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
 #planWrap,#execWrap{flex:1;overflow:auto;background:#EEF2F6}
+.chkE{border:2px solid #D32F2F!important;background:#FFF5F5!important}.chkW{border:2px solid #F59E0B!important;background:#FFFAEB!important}
+#invChk{margin-top:10px}.ckhd{display:flex;gap:6px;align-items:center;font-weight:700;font-size:12.5px;margin-bottom:6px}.ckc{border-radius:12px;padding:2px 9px;font-size:11px;font-weight:800}.ckc.E{background:#FDECEC;color:#B42318}.ckc.W{background:#FFF4DC;color:#8A5300}.ckc.I{background:#EAF1FD;color:#24478F}
+.ck{display:flex;gap:9px;border:1px solid;border-radius:9px;padding:8px 10px;margin-bottom:6px;font-size:12px}.ck .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;flex:0 0 auto;font-size:12px}.ck b{display:block}.ck span:not(.ic){display:block;color:#4A5A72;font-size:11.5px;margin-top:1px}
+.ck.E{background:#FFF5F5;border-color:#F3C2C2}.ck.E .ic{background:#D32F2F}.ck.W{background:#FFFAEB;border-color:#F6D79B}.ck.W .ic{background:#F59E0B}.ck.I{background:#F2F6FD;border-color:#C9D7F0}.ck.I .ic{background:#3B6FD8}.ck.ok{background:#F2FAF4;border-color:#BFE3CB}.ck.ok .ic{background:#2E7D32}
+.ckfix{margin:5px 6px 0 0;border:0;border-radius:6px;background:#0F6E78;color:#fff;font-weight:700;font-size:11px;padding:3px 8px;cursor:pointer}.ckgo{margin-top:5px;border:0;background:none;color:#0F6E78;font-weight:700;font-size:11.5px;cursor:pointer;padding:0}.ckn{font-size:11px;color:#5B6B80}
 .ex-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.ex-k{background:#fff;border:1px solid #DCE3EB;border-radius:10px;padding:11px 13px}.ex-k small{display:block;color:#5B6B80;font-size:11.5px;font-weight:600}.ex-k b{display:block;font-size:20px;margin:3px 0 2px}.ex-k span{font-size:11px;color:#5B6B80}.ex-k .dn{color:#C62828;font-weight:700}.ex-k .up{color:#2E7D32;font-weight:700}
 .ex-g{display:grid;gap:12px;margin-top:12px}.ex-g.g2{grid-template-columns:1.3fr 1fr}.ex-g.g3{grid-template-columns:1fr 1fr .9fr}.ex-c{background:#fff;border:1px solid #DCE3EB;border-radius:12px;padding:13px 15px}.ex-c h3{margin:0;font-size:13.5px}.ex-c>p{margin:2px 0 8px;font-size:11px;color:#5B6B80}
 .ex-lg{display:flex;gap:14px;font-size:11px;color:#5B6B80}.ex-lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
@@ -691,7 +696,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <div class="row" style="gap:6px"><div><label for="fProgKe">Progress no.</label><input id="fProgKe" inputmode="numeric"></div><div><label for="fTermin">Term no.</label><input id="fTermin" inputmode="numeric"></div></div>
         </div>
         <div id="grpProgres">
-          <div class="row"><div><label for="fProgres">Cumulative progress value (IDR)</label><input id="fProgres" inputmode="decimal" class="num"></div><div><label for="fPct">or % of contract</label><input id="fPct" inputmode="decimal" placeholder="%"></div></div>
+          <div class="row"><div><label for="fProgres">Progress value this invoice (IDR)</label><input id="fProgres" inputmode="decimal" class="num"></div><div><label for="fPct">or % of contract</label><input id="fPct" inputmode="decimal" placeholder="%"></div></div>
           <div class="hint" id="pctInfo"></div>
         </div>
         <div id="grpDpp" hidden>
@@ -706,6 +711,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
         </div>
         <div class="calc"><table class="sum" id="sumTbl"></table></div>
         <div id="umNote"></div>
+        <div id="invChk"></div>
         <label for="fJudul">Billing description (printed on invoice &amp; receipt)</label><textarea id="fJudul"></textarea>
         <button class="linkbtn" id="judulAuto" type="button" hidden>Restore automatic text</button>
         <div class="row">
@@ -855,6 +861,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
       <div class="btns"><span>Print</span><button class="btn" id="btnSrPrint" disabled>Letter + attachments</button></div>
     </div>
     <div class="actions fxa" id="act-bayar" hidden>
+      <div id="payChk"></div>
       <div class="status" id="payStatus"></div>
       <div class="fxbar"><button class="btn" id="btnPay" type="button" disabled>Save receipt</button><span style="flex:1"></span>
         <button class="btn primary sub" id="btnPaySub" type="button" disabled><svg class="ic"><use href="#i-send"/></svg>Save &amp; submit for approval</button></div>
@@ -1252,7 +1259,7 @@ function call(fn, args, ok, fail) {
   var r = RUN.withSuccessHandler(BG_FN[fn] ? function (x) { ok(x); if (x && x.background) bgReports(); } : ok).withFailureHandler(function (e) { (fail || function (x) { alert(x.message || x); })(e); });
   r[fn].apply(r, args || []);
 }
-function confirmDlg(title, html, yes, onYes) { $('dlgT').textContent = title; $('dlgB').innerHTML = html; $('dlgYes').textContent = yes || 'Continue'; var d = $('dlg'); $('dlgYes').onclick = function () { d.close(); onYes(); }; $('dlgNo').onclick = function () { d.close(); }; d.showModal(); }
+function confirmDlg(title, html, yes, onYes, valid) { $('dlgT').textContent = title; $('dlgB').innerHTML = html; $('dlgYes').textContent = yes || 'Continue'; var d = $('dlg'); $('dlgYes').onclick = function () { if (valid && valid() === false) return; d.close(); onYes(); }; $('dlgNo').onclick = function () { d.close(); }; d.showModal(); }
 function pel() { return B.pelanggan.filter(function (p) { return p.nama === S.pelanggan; })[0] || null; }
 function pro() { return B.proyek.filter(function (p) { return p.npp === S.npp; })[0] || null; }
 function today() { return B ? B.today : new Date().toISOString().slice(0, 10); }
@@ -1390,9 +1397,31 @@ function update() {
   // info persen
   if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' of contract value' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' after amendments' : '');
   else $('pctInfo').textContent = '';
-  renderSummary(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
+  INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net }) : [];
+  renderSummary(); renderChecks(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
 }
 /** template yang menghitung PPN dari DPP sebelum retensi dipotong (retensi di akhir) */
+/* v2.8.8: pemeriksaan isian invoice — error menahan simpan, peringatan boleh dengan alasan */
+var INVCHK = [], WARN_WHY = '';
+var CHK_ICON = { E: '!', W: '!', I: 'i' }, CHK_LBL = { E: 'error', W: 'warning', I: 'info' };
+function renderChecks() {
+  var L = INVCHK || [], box = $('invChk'); if (!box) return;
+  document.querySelectorAll('#mode-buat .chkE,#mode-buat .chkW').forEach(function (el) { el.classList.remove('chkE', 'chkW'); });
+  L.forEach(function (x) { var el = x.f && $(x.f); if (el && x.lvl !== 'I') el.classList.add(x.lvl === 'E' ? 'chkE' : 'chkW'); });
+  if (!L.length) { box.innerHTML = pro() && CUR ? '<div class="ck ok"><span class="ic">✓</span><div><b>All checks passed</b></div></div>' : ''; return; }
+  var n = function (l) { return L.filter(function (x) { return x.lvl === l; }).length; };
+  box.innerHTML = '<div class="ckhd">Checks <span class="ckc E"' + (n('E') ? '' : ' hidden') + '>⛔ ' + plural(n('E'), 'error') + '</span><span class="ckc W"' + (n('W') ? '' : ' hidden') + '>⚠ ' + plural(n('W'), 'warning') + '</span><span class="ckc I"' + (n('I') ? '' : ' hidden') + '>ℹ ' + n('I') + ' info</span></div>' +
+    L.map(function (x, k) { return '<div class="ck ' + x.lvl + '"><span class="ic">' + CHK_ICON[x.lvl] + '</span><div><b>' + esc(x.t) + '</b>' + (x.m ? '<span>' + esc(x.m) + '</span>' : '') +
+      (x.fix ? '<button type="button" class="ckfix" data-ckfix="' + k + '">Use ' + nfDot(x.fix.v) + '</button>' : '') + (x.f && $(x.f) ? '<button type="button" class="ckgo" data-ckgo="' + esc(x.f) + '">→ Go to field</button>' : '') + '</div></div>'; }).join('') +
+    (n('W') ? '<div class="ckn">Warnings can be saved with a reason — it is recorded and printed on the approval sheet.</div>' : '');
+  box.querySelectorAll('[data-ckgo]').forEach(function (b) { b.onclick = function () { var el = $(b.dataset.ckgo); if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.focus(); } }; });
+  box.querySelectorAll('[data-ckfix]').forEach(function (b) { b.onclick = function () { var x = L[+b.dataset.ckfix]; if (!x || !x.fix) return; var el = $(x.fix.id); if (!el) return; el.value = el.classList.contains('num') ? nfDot(x.fix.v) : x.fix.v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); toast('Value applied.'); }; });
+}
+/** dialog: simpan dengan peringatan + alasan (wajib) */
+function warnDlg(W, ok) {
+  confirmDlg('Save with ' + plural(W.length, 'warning') + '?', '<ul style="margin:4px 0 8px;padding-left:18px;font-size:12.5px">' + W.map(function (x) { return '<li><b>' + esc(x.t) + '</b>' + (x.m ? ' — ' + esc(x.m) : '') + '</li>'; }).join('') + '</ul>Write the reason (stored with the invoice and shown to the Section Head on the approval sheet).<textarea id="dlgWarn" placeholder="e.g. DPP follows the tax invoice agreed with the customer…"></textarea>', 'Save with reason', function () { ok(WARN_WHY); }, function () {
+    WARN_WHY = (($('dlgWarn') || {}).value || '').trim(); if (WARN_WHY.length < 5) { toast('Enter a reason (at least 5 characters).'); return false; } });
+}
 function retAkhirPpn(p) { return !!(p && (p.template === 'IKK' || p.template === 'KIDOH') && +p.ret_pct > 0); }
 function renderSummary() {
   var c = CUR; if (!c) { $('sumTbl').innerHTML = '<tr><td>Select customer and project to see the calculation.</td><td></td></tr>'; return; }
@@ -1420,8 +1449,8 @@ function renderSummary() {
 /** penanda tahap form: selesai = hijau, tahap aktif = biru */
 function steps(id, done) { var cu = done.indexOf(false); $(id).querySelectorAll('span').forEach(function (el, k) { el.className = done[k] ? 'dn' : k === cu ? 'cu' : ''; }); }
 function buttons() {
-  var ok = !!(CUR && pro() && S.tgl && S.digit && CUR.bayar > 0);
-  $('btnSave').disabled = !ok; $('btnSaveSub').disabled = !ok || !!save._busy;
+  var ok = !!(CUR && pro() && S.tgl && S.digit && CUR.bayar > 0), nErr = (INVCHK || []).filter(function (x) { return x.lvl === 'E'; }).length;
+  $('btnSave').disabled = !ok || nErr > 0; $('btnSaveSub').disabled = !ok || nErr > 0 || !!save._busy;
   ['btnPInv', 'btnPKw', 'btnPBap', 'btnPAll', 'btnPrintM'].forEach(function (id) { $(id).disabled = !ok; });
   $('btnPkgInv').disabled = !(ok && SAVED);
   $('btnSave').textContent = existing() && !SAVED ? 'Save as revision' : (SAVED ? 'Save again (revision)' : 'Save');
@@ -1730,6 +1759,11 @@ function save(revisi) {
     return;
   }
   if (ex && !revisi) { revisi = true; }
+  var W = (INVCHK || []).filter(function (x) { return x.lvl === 'W'; });
+  if ((INVCHK || []).some(function (x) { return x.lvl === 'E'; })) { $('saveStatus').innerHTML = '<span style="color:var(--red)">Fix the errors shown in Checks first.</span>'; return; }
+  if (W.length && !save._warnOk) { warnDlg(W, function (why) { S.warn = { at: B.today, list: W.map(function (x) { return x.t + (x.m ? ' — ' + x.m : ''); }), reason: why }; save._warnOk = true; save(revisi); }); return; }
+  if (!W.length) delete S.warn;
+  save._warnOk = false;
   if (revisi && !String(S.alasan || '').trim()) { $('revBox').hidden = false; $('fAlasan').focus(); $('saveStatus').innerHTML = '<span style="color:var(--red)">Enter the revision reason first.</span>'; return; }
   save._busy = true; $('btnSave').disabled = true; $('btnSaveSub').disabled = true; $('saveStatus').textContent = 'Saving…';
   call('apiSaveInvoice', [payload(), { revisi: !!revisi, alasan: S.alasan, expectedRev: S._loadedRev, periodeAlasan: save._periode || '' }], function (r) {
@@ -1945,13 +1979,13 @@ function payChanged() {
 }
 function payPreview() {
   var rows = payRowsPayload(), my = ++PAY.seq;
-  if (!rows.length) { PAY.prev = null; if (PAY.mode === 'trf') renderPayRows(); renderPayView(); return; }
+  if (!rows.length) { PAY.prev = null; if (PAY.mode === 'trf') renderPayRows(); renderPayView(); renderPayChecks(); return; }
   $('payStatus').textContent = 'Calculating customer ledger preview…';
   call('apiPayPreview', [rows], function (r) {
     if (my !== PAY.seq) return;
     PAY.prev = r; $('payStatus').textContent = '';
     if (PAY.mode === 'trf') renderPayRows(); else if (PAY.mode === 'kom') komInfo();
-    renderPayView();
+    renderPayView(); renderPayChecks();
   }, function (e) { if (my === PAY.seq) $('payStatus').innerHTML = '<span style="color:var(--red)">Preview failed: ' + esc(e.message || e) + '</span>'; });
 }
 /** panel kanan saat mode Pembayaran: kartu piutang proyek yang terlibat, baris baru diberi warna */
@@ -1961,11 +1995,39 @@ function renderPayView() {
   if (!K.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">The project ledger appears here once an invoice is selected.<br>Yellow rows = payments to be recorded (not yet saved).</div>'; return; }
   w.innerHTML = '<div class="stackwrap">' + K.map(function (k) { return pgKartu(k, null, true); }).join('') + '</div>'; fitZoom();
 }
+/* v2.8.8: pemeriksaan penerimaan sebelum disimpan */
+function payChecks(rows) {
+  var out = [], add = function (lvl, t, m) { out.push({ lvl: lvl, t: t, m: m || '' }); }, td = B ? B.today : '';
+  rows = rows || payRowsPayload(); if (!rows.length) return out;
+  var tg0 = rows[0].tgl, pels = {};
+  if (!tg0) add('E', 'Payment date is empty');
+  else if (td && tg0 > td) add('E', 'Payment date is in the future', tg(tg0) + ' is after today.');
+  rows.forEach(function (r) { var i = invBy(r.inv); if (!i) return; pels[i.pelanggan] = 1;
+    if (r.nominal > 0 && i.tgl && tg0 && tg0 < i.tgl) add('E', 'Payment date before invoice date', short(i.nomor) + ' is dated ' + tg(i.tgl) + '.');
+    if (i.status_inv === 'BATAL') add('E', 'Invoice is cancelled', short(i.nomor)); });
+  if (Object.keys(pels).length > 1 && PAY.mode === 'trf') add('W', 'Invoices from different customers', Object.keys(pels).map(titleCaseS).join(', ') + ' in one transfer.');
+  if (PAY.mode === 'trf' && !String(rows[0].ref || '').trim()) add('W', 'Bank reference is empty', 'Fill it from the bank statement so the transfer can be traced.');
+  ((PAY.prev && PAY.prev.rows) || []).forEach(function (x) {
+    if (/^LEBIH BAYAR/.test(x.status)) add('W', 'Invoice would become over-paid', short(x.inv) + ': ' + String(x.status).toLowerCase() + '. Check the amount, or record the excess as an offset to another invoice.');
+    else if (x.status === 'LUNAS') add('I', short(x.inv) + ' becomes fully paid', '');
+    if (x.cek) add('W', short(x.inv) + ': data check', x.cek); });
+  return out;
+}
+function renderPayChecks() {
+  var box = $('payChk'); if (!box) return; var L = payChecks();
+  if (!L.length) { box.innerHTML = ''; return; }
+  box.innerHTML = L.map(function (x) { return '<div class="ck ' + x.lvl + '" style="margin:0 0 5px"><span class="ic">' + CHK_ICON[x.lvl] + '</span><div><b>' + esc(x.t) + '</b>' + (x.m ? '<span>' + esc(x.m) + '</span>' : '') + '</div></div>'; }).join('');
+}
 function savePay() {
   if (savePay._busy) return;
   var rows = payRowsPayload();
   if (!rows.length) { $('payStatus').innerHTML = '<span style="color:var(--red)">Complete the data first.</span>'; return; }
   if (PAY.mode === 'trf' && !payBalance()) { $('payStatus').innerHTML = '<span style="color:var(--red)">Select the receiving bank account; for a transfer covering several invoices enter the bank reference and transfer amount, and make sure the invoice amounts add up to the transfer amount.</span>'; return; }
+  var PC = payChecks(rows), PW = PC.filter(function (x) { return x.lvl === 'W'; });
+  if (PC.some(function (x) { return x.lvl === 'E'; })) { renderPayChecks(); $('payStatus').innerHTML = '<span style="color:var(--red)">Fix the errors shown above first.</span>'; return; }
+  if (PW.length && !savePay._warnOk) { warnDlg(PW, function (why) { savePay._why = why; savePay._warnOk = true; savePay(); }); return; }
+  if (PW.length && savePay._why) rows.forEach(function (r) { r.ket = ('[Peringatan diterima: ' + savePay._why + '] ' + (r.ket || '')).trim().slice(0, 300); });
+  savePay._warnOk = false; savePay._why = '';
   var request; try { request = paymentRequest(rows); } catch(e) { $('payStatus').textContent = e.message; showRecovery(); return; }
   savePay._busy = true; $('btnPay').disabled = true; $('btnPaySub').disabled = true; $('payStatus').textContent = 'Saving…';
   call('apiSavePayments', [rows, request.id, { periodeAlasan: savePay._periode || '' }], function (r) {
@@ -2457,6 +2519,9 @@ function pgPengesahan(pkg, hasBap, migr) {
   h += '<h3>Lampiran</h3><ul class="chk"><li' + (migr ? ' class="no"' : '') + '>Invoice' + (migr ? ' — hasil migrasi, lampirkan salinan arsip' : '') + '</li><li' + (migr ? ' class="no"' : '') + '>Kwitansi</li>' +
     (i.template === 'FAJARPUTERA' ? '<li' + (hasBap ? '' : ' class="no"') + '>Berita Acara Penagihan (Fajarputera)</li>' : '') +
     '<li>Kartu piutang proyek per ' + tg(pkg.kartu ? pkg.kartu.asOf : '') + '</li><li>Usulan jurnal SAP (FBVB · DR)</li><li>Draft faktur pajak Coretax (kode 04)</li></ul>';
+  var ck = pkg.cek || {};
+  if (ck.warn && ck.warn.list && ck.warn.list.length) h += '<h3>Catatan pemeriksaan saat input</h3><div class="warn" style="font-size:8.4pt">Disimpan dengan ' + ck.warn.list.length + ' peringatan:<br>' + ck.warn.list.map(function (t) { return '• ' + esc(t); }).join('<br>') + '<br><b>Alasan AR:</b> ' + esc(ck.warn.reason || '-') + '</div>';
+  if (ck.cq) h += '<div class="warn" style="font-size:8.4pt"><b>Konsistensi data:</b> ' + esc(ck.cq.why) + ' — PPN cocok dengan DPP ' + nd(ck.cq.dppOk) + ' (tercatat ' + nd(i.dpp) + ').</div>';
   if (a && a.status === 'DITOLAK') h += '<div class="warn"><b>Ditolak:</b> ' + esc(a.catatan) + '</div>';
   h += signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
   return h;

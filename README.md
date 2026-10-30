@@ -61,6 +61,11 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Pemeriksaan input (v2.8.8)**: form Issue Invoice & Cash Receipts menampilkan panel *Checks* — ⛔ error (simpan terkunci: progres kumulatif
+  > 100% kontrak, tanggal kosong/masa depan, retensi melebihi sisa, nilai 0, bayar sebelum tanggal invoice…), ⚠ peringatan (nomor progres melompat/ganda,
+  PPN ≠ 11% × DPP, uraian masih "…", invoice jadi lebih bayar, ref bank kosong…) yang boleh disimpan dengan **alasan** (tercatat di DATA FORM / KETERANGAN dan
+  tercetak di lembar pengesahan), ℹ info. Kolom bermasalah diberi bingkai merah/kuning dan tombol "Use …" mengisi nilai yang disarankan.
+  Data di sheet juga diperiksa: invoice yang PPN-nya tidak cocok dengan DPP (mis. DPP sudah dikurangi retensi/adjustment) muncul di Cek Data (KONSISTENSI).
 - **Menu Collection Plan** (Rencana Inkaso, layar penuh): pilih bulan, alur status (Draft → Submitted → Rejected/Approved), banner penolakan
   beserta alasannya, ringkasan ✓/◇/⏸/→ dengan bar terhadap target inkaso, cari & saring per kelompok (tunggakan, jatuh tempo bulan ini, …),
   centang beberapa invoice → *Set selected to*, Quick fill, bar bawah berisi total & tombol Save draft / Submit. Data & pengajuan sama dengan
