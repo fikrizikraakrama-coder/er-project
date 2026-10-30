@@ -3137,6 +3137,7 @@ function planRender() {
   if (pl.back && st === 1) h += '<div class="rp-ban r">↩ <b>' + esc(pl.back) + '</b></div>';
   if (st === 4 && a) h += '<div class="rp-ban g"><b>✓ RA Termin ' + esc(planBln(ref)) + ' disetujui ' + esc(tgJam(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + ' · cetak Lembar RA–RI untuk tanda tangan basah' + (role === 'sh' ? '<span class="sp"></span><button class="btn sm" type="button" id="rpRev">Revisi RA</button>' : '') + '</div>';
   if (PLAN.edit && st === 1) h += '<div class="rp-ban y">Anda menyusun <b>revisi</b>. RA yang sudah disetujui tetap berlaku sampai revisi disetujui.</div>';
+  if (st === 2 && role === 'ar') h += '<div class="rp-ban t">🔒 <span>Keputusan & cicilan sudah ditentukan Section Head dan terkunci — Anda cukup mengisi <b>tanggal rencana cair</b> untuk setiap ✓ RA.</span></div>';
   if (PLAN.note && st >= 2) h += '<div class="rp-ban t">✉️ <span><b>Catatan Section Head:</b> “' + esc(PLAN.note) + '”</span></div>';
   if (st === 3 && a) h += '<div class="rp-ban y"><b>⏳ Diajukan ' + esc(tgJam(a.waktu)) + '</b> · ' + esc(a.id) + ' oleh ' + esc(a.oleh_nama || a.oleh || 'AR') + (role === 'sh' ? ' · pilihan sama dengan yang Anda kirim; AR hanya menambah tanggal' : '') + '</div>';
   // daftar
@@ -3157,7 +3158,7 @@ function planRender() {
         : '<span class="rp-tg"><button type="button" class="on" disabled>' + (v.pct ? 'Cicilan ' + v.pct + '%' : sisaC ? 'Sisa cicilan' : 'Penuh') + '</button></span>';
       if (v.pct) sch += '<span class="rp-pb"><i><i style="width:' + Math.min(100, v.pct) + '%"></i></i><small>ke-' + v.ke + ' dari ' + v.kn + '</small></span>';
       var dec = eDec ? '<span class="rp-dc">' + ['C', 'S', 'H', 'N'].map(function (k) { return '<button type="button" data-rpd="' + nm + '" data-k="' + k + '" class="' + (v.u === k ? 'k' + k : '') + '" title="' + esc(raLbl(k)) + '">' + raShort(k).split(' ')[0] + '</button>'; }).join('') + '</span>'
-        : '<span class="rp-pill k' + (v.u || 'x') + '">' + esc(raShort(v.u)) + (st >= 2 && v.u ? ' · dipilih SH' : '') + '</span>';
+        : '<span class="rp-pill k' + (v.u || 'x') + '"' + (st >= 2 && v.u ? ' title="' + esc(raLbl(v.u)) + ' — pilihan Section Head (terkunci)"' : '') + '>' + esc(raShort(v.u)) + '</span>';
       var dt = eDate && (v.u === 'C' || v.u === 'S') ? '<input type="date" class="rp-date' + (badD ? ' bad' : '') + '" data-rpt="' + nm + '" value="' + esc(v.d) + '" min="' + P.start + '" max="' + P.end + '"><small>' + (needD ? 'wajib' : 'opsional') + '</small>'
         : v.u === 'C' || v.u === 'S' ? (v.d ? '<small class="rp-dt">cair 📅 ' + esc(tg(v.d)) + '</small>' : '<small class="rp-dt m">' + (st === 1 ? 'tgl: diisi AR' : 'tanggal belum ada') + '</small>') : '<small class="rp-dt m">' + (v.u === 'H' ? 'menunggu penyelesaian' : v.u === 'N' ? 'bulan berikutnya' : v.u === 'S' ? 'diupayakan cair' : '') + '</small>';
       var pjT = planPj(x, v), nt = v.u === 'H' ? (eDec ? '<input class="rp-in rs' + (!v.al ? ' need' : '') + '" data-rpa="' + nm + '" value="' + esc(v.al) + '" placeholder="Alasan (wajib) — mis. menunggu rekonsiliasi PPN">' : '<span class="rp-nt rs">⏸ ' + esc(v.al || '(alasan belum diisi)') + '</span>')
