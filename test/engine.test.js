@@ -386,3 +386,12 @@ test('Konsistensi data invoice di sheet: DPP sudah dikurangi retensi & adjustmen
   assert.ok(q); assert.strictEqual(q.dppOk, 4046418027); assert.match(q.why, /retensi & adjustment/);
   assert.strictEqual(ENGINE.invConsistency({ _a: { dpp: 4046418028, ppn: 445105983, ret: 217378745, retpos: 'AKHIR', adj: 133600618 } }), null);
 });
+
+test('Month-End AR Closing: 10 langkah, invoice lebih bayar menghambat (merah), siap dihitung', () => {
+  const input = fixture({ submit: '2026-09-21' });
+  input.log = [row(ENGINE.LOG, { idp: 'PNR-00001', tgl: '2026-10-05', ref: 'T1', inv: NOMOR, nominal: 200e6 })];
+  const ctx = ENGINE.compute(input).ctx, d = ENGINE.closingData(ctx, '2026-10');
+  assert.strictEqual(d.steps.length, 10);
+  const rc = d.steps.find(x => x.k === 'recon'); assert.strictEqual(rc.st, 'r'); assert.ok(d.blocking.includes('Customer reconciliation'));
+  assert.ok(d.ready < d.n); assert.ok(d.report.lebih > 0);
+});

@@ -980,6 +980,13 @@ function apiAnalisis(month, buat) {
   return { ada: true, tutup: tutup, id: String(r[0]), rev: Number(r[2]) || 0, waktu: String(r[4]), alasan: String(r[7] || ''), m: m, narasi: String(r[9] || ''), ai: String(r[10] || ''), aiStatus: String(r[11] || '') };
 }
 
+/** v2.8.8: checklist Month-End AR Closing (bulan yyyy-mm; kosong = bulan lalu bila sudah lewat tanggal tutup, selain itu bulan berjalan) */
+function apiClosing(month) {
+  arRequireAccess_(true);
+  month = String(month || ''); if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
+  var res = computeLight_('memo'); if (!month) month = res.ctx.today.substring(0, 7);
+  return plain_(ENGINE.closingData(res.ctx, month));
+}
 /** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
 function apiOverview(month) {
   arRequireAccess_(true);

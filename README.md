@@ -61,6 +61,10 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Month-End Close ▸ AR Closing Checklist (v2.8.8)**: 10 langkah tutup buku piutang diperiksa otomatis dari data — cut-off penagihan, nota kredit &
+  penyesuaian, penerapan penerimaan (termasuk penerimaan tanpa tanggal), rekonsiliasi per pelanggan (invoice lebih bayar / PPN ≠ 11% × DPP = merah),
+  umur piutang, sengketa & kurang bayar, CKPN, AR vs GL (Data LK), serah terima ke Akuntansi, laporan akhir & tutup buku. Cincin kesiapan, alur berwarna,
+  laporan akhir AR, tombol menuju perbaikan, **cetak checklist** untuk ditandatangani, dan tombol **Close <bulan>** yang hanya aktif bila tidak ada langkah merah.
 - **Pemeriksaan input (v2.8.8)**: form Issue Invoice & Cash Receipts menampilkan panel *Checks* — ⛔ error (simpan terkunci: progres kumulatif
   > 100% kontrak, tanggal kosong/masa depan, retensi melebihi sisa, nilai 0, bayar sebelum tanggal invoice…), ⚠ peringatan (nomor progres melompat/ganda,
   PPN ≠ 11% × DPP, uraian masih "…", invoice jadi lebih bayar, ref bank kosong…) yang boleh disimpan dengan **alasan** (tercatat di DATA FORM / KETERANGAN dan

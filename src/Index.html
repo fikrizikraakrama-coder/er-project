@@ -448,7 +448,23 @@ button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(25
 body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body.full #stage{display:none!important}
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 /* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
-#planWrap,#execWrap{flex:1;overflow:auto;background:#EEF2F6}
+#planWrap,#execWrap,#closeWrap{flex:1;overflow:auto;background:#EEF2F6}
+.cl{padding:16px 22px 0;max-width:1560px;margin:0 auto;color:#16263D}
+.cl-hero{background:linear-gradient(120deg,#14284B,#1D4E7A 60%,#0F6E78);color:#fff;border-radius:16px;padding:18px 22px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.cl-ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto}.cl-ring div{width:76px;height:76px;border-radius:50%;background:#173a63;display:grid;place-items:center;text-align:center}.cl-ring b{font-size:22px;display:block;line-height:1}.cl-ring small{font-size:10px;opacity:.8}
+.cl-ht h2{margin:0;font-size:21px}.cl-ht p{margin:4px 0 8px;opacity:.85;font-size:12.5px}.cl-tools{display:flex;gap:8px;flex-wrap:wrap}.cl-tools select{width:auto;padding:6px 10px;font-weight:700}.cl-tools .btn{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.35)}
+.cl-hk{display:flex;gap:10px;margin-left:auto;flex-wrap:wrap}.cl-hk div{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 12px;min-width:118px}.cl-hk small{display:block;font-size:10.5px;opacity:.8}.cl-hk b{font-size:16px}
+.cl-flow{display:flex;margin-top:14px;border-radius:12px;overflow:hidden;border:1px solid #DCE3EB}.cl-flow div{flex:1;padding:10px 6px 10px 16px;font-size:11px;font-weight:700;position:relative;text-align:center;color:#fff;cursor:pointer}
+.cl-flow .g{background:#2E9E5B}.cl-flow .y{background:#F0A21A}.cl-flow .r{background:#D9473F}.cl-flow .n{background:#9AA8B8}.cl-flow div:not(:last-child):after{content:"";position:absolute;right:-9px;top:0;bottom:0;width:18px;background:inherit;clip-path:polygon(0 0,50% 0,100% 50%,50% 100%,0 100%);z-index:2}
+.cl-grid{display:grid;grid-template-columns:1fr 330px;gap:14px;margin-top:14px}.cl-steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;align-content:start}
+.cl-st{background:#fff;border:1px solid #DCE3EB;border-radius:12px;padding:12px 14px 22px;position:relative;border-top:4px solid}.cl-st.g{border-top-color:#2E9E5B}.cl-st.y{border-top-color:#F0A21A}.cl-st.r{border-top-color:#D9473F}.cl-st.n{border-top-color:#9AA8B8}
+.cl-st h4{margin:0;font-size:13px;display:flex;align-items:center;gap:8px}.cl-st .no{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;color:#fff;font-weight:800;flex:0 0 auto}.cl-st.g .no{background:#2E9E5B}.cl-st.y .no{background:#F0A21A}.cl-st.r .no{background:#D9473F}.cl-st.n .no{background:#9AA8B8}
+.cl-st .badge{margin-left:auto;font-size:10px;font-weight:800;border-radius:10px;padding:2px 8px;white-space:nowrap}.cl-st.g .badge{background:#E6F4EA;color:#1E6B3A}.cl-st.y .badge{background:#FFF4DC;color:#8A5300}.cl-st.r .badge{background:#FDECEC;color:#B42318}.cl-st.n .badge{background:#EEF2F6;color:#5B6B80}
+.cl-st .m{font-size:19px;font-weight:800;margin:6px 0 2px}.cl-st .s{font-size:11.5px;color:#5B6B80}.cl-st ul{margin:6px 0 0;padding-left:16px;font-size:11.5px;color:#33475B}.cl-st li{margin:2px 0}.cl-st .act{margin-top:8px;border:0;background:none;padding:0;font-size:11.5px;font-weight:700;color:#0F6E78;cursor:pointer}.cl-st .auto{position:absolute;right:12px;bottom:6px;font-size:10px;color:#8696A8}
+.cl-card{margin-top:0;margin-bottom:12px}.cl-rep div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #E1E7EE;font-size:12.5px}.cl-rep div:last-child{border:0}.cl-rep b.r{color:#C62828}
+.cl-sign{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}.cl-sign div{border:1px dashed #C9D3DF;border-radius:8px;padding:8px;height:70px;font-size:11px;color:#5B6B80}.cl-sign b{display:block;color:#1D2B3A;margin-top:24px}
+.cl-bar{position:sticky;bottom:0;margin-top:14px;background:#14284B;color:#fff;display:flex;gap:22px;align-items:center;padding:10px 20px;border-radius:12px 12px 0 0;flex-wrap:wrap;z-index:4}.cl-bar small{display:block;opacity:.7;font-size:11px}.cl-bar b{font-size:14px}.cl-bar .sp{flex:1}.cl-why{font-size:12px;opacity:.85}.cl-bar .btn.primary{background:#2EC4C4;border-color:#2EC4C4;color:#0B2D3A}.cl-bar .btn:disabled{opacity:.5}
+@media (max-width:900px){.cl-grid{grid-template-columns:1fr}.cl-flow{display:none}}
 .chkE{border:2px solid #D32F2F!important;background:#FFF5F5!important}.chkW{border:2px solid #F59E0B!important;background:#FFFAEB!important}
 #invChk{margin-top:10px}.ckhd{display:flex;gap:6px;align-items:center;font-weight:700;font-size:12.5px;margin-bottom:6px}.ckc{border-radius:12px;padding:2px 9px;font-size:11px;font-weight:800}.ckc.E{background:#FDECEC;color:#B42318}.ckc.W{background:#FFF4DC;color:#8A5300}.ckc.I{background:#EAF1FD;color:#24478F}
 .ck{display:flex;gap:9px;border:1px solid;border-radius:9px;padding:8px 10px;margin-bottom:6px;font-size:12px}.ck .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;flex:0 0 auto;font-size:12px}.ck b{display:block}.ck span:not(.ic){display:block;color:#4A5A72;font-size:11.5px;margin-top:1px}
@@ -886,6 +902,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="ovWrap" hidden></div>
     <div id="planWrap" hidden></div>
     <div id="execWrap" hidden></div>
+    <div id="closeWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
@@ -2326,21 +2343,22 @@ function bindSurat() {
 
 /* ====================================================== mode */
 function setMode(m) {
-  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok'].indexOf(m) < 0) m = 'exec';
-  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec'].indexOf(m) < 0) m = 'setuju';
+  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close'].indexOf(m) < 0) m = 'exec';
+  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'dashboard', 'dok', 'exec', 'close'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
-  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec';
+  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close'); $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
   if (m === 'plan') planLoad();
   if (m === 'exec') execLoad();
+  if (m === 'close') closeLoad();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
@@ -3354,10 +3372,10 @@ var NAV_MAKER = [
   { g: 'pen', ic: 'doc', t: 'Billing', badge: 'penBadge', items: [['buat', 'doc', 'Issue Invoice', 'invoice, receipt, BAP, draft tax invoice'], ['buka', 'book', 'Invoice Register', 'search, revise, cancel, manual close'], ['surat', 'mail', 'Collection Letters', 'payment follow-up & escalation', 'srBadge']] },
   { g: 'pay', ic: 'bank', t: 'Cash Receipts', items: [['bayar', 'bank', 'Record Receipt', 'bank transfer, offset, compensation'], ['tbayar', 'book', 'Receipts Register', 'receipts per month, approval sheets, print']] },
   { id: 'plan', ic: 'cal', t: 'Collection Plan', badge: 'planBadge', y: 1 },
-  { id: 'dok', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1 },
+  { g: 'close', ic: 'fold', t: 'Month-End Close', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
-var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Month-End Close' }];
+var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Collection Plan' }, { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
 var NAV = NAV_MAKER;
 function ico(n) { return '<svg class="ic"><use href="#i-' + n + '"/></svg>'; }
 function buildNav(maker) {
@@ -3385,9 +3403,9 @@ function navShow(m) {
     b.classList.toggle('on', !!on);
   });
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
-  var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar' }[m] || m;
+  var grp = { buat: 'buka', surat: 'buka', tbayar: 'bayar', close: 'dok' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', dok: 'Month-End Close', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Issue Invoice', buka: 'Invoices', surat: 'Collection Letters', bayar: 'Cash Receipts', tbayar: 'Receipts Register', plan: 'Collection Plan', exec: 'Executive Summary', close: 'AR Closing', dok: 'Month-End Close', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -3688,6 +3706,60 @@ function applyAccess() {
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
   $('tbVer').textContent = 'Receivables Management · v' + String(E.VERSION).split(' ')[0];
   $('accessBadge').textContent = (viewer ? 'Management · View only' : maker ? 'Preparer · All menus' : 'Section Head · Document approvals') + ' · ' + ((B.user || {}).nama || '');
+}
+/* ====================================================== v2.8.8: Month-End AR Closing (checklist tutup buku, layar penuh) */
+var CL = { m: '', d: {}, seq: 0 };
+function closeMonths() { var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = []; for (var k = 0; k < 7; k++) { var mm = m - k, yy = y; while (mm < 1) { mm += 12; yy--; } o.push(yy + '-' + ('0' + mm).slice(-2)); } return o; }
+function closeLoad(m, force) {
+  if (!B) return; CL.m = m || CL.m || (+B.today.substring(8, 10) <= 10 ? E.prevMonthEnd(B.today).substring(0, 7) : B.today.substring(0, 7));
+  var w = $('closeWrap'), my = ++CL.seq, d = CL.d[CL.m];
+  if (d && !force) return closeRender(d);
+  w.innerHTML = '<div class="cl"><div class="skel" style="margin:30px auto"><div class="pg"><span class="spin"></span>Running month-end checks for ' + esc(monEn(CL.m)) + '…</div><div class="sk" style="width:60%"></div><div class="sk" style="height:140px;margin-top:14px"></div></div></div>';
+  call('apiClosing', [CL.m], function (r) { CL.d[CL.m] = r; r._at = new Date(); if (my === CL.seq && MODE === 'close') closeRender(r); },
+    function (e) { if (my === CL.seq) w.innerHTML = '<div class="cl"><div class="note err" style="margin-top:20px">Checks could not be run: ' + esc(e.message || e) + '</div></div>'; });
+}
+var CL_ST = { g: '✓ READY', y: '⚠ CHECK', r: '✕ BLOCKING', n: '— PENDING' };
+function closeRender(d) {
+  var w = $('closeWrap'), maker = !!(B.access && B.access.maker), pct = d.n ? d.ready / d.n : 0, R = d.report || {};
+  var opts = closeMonths().map(function (m) { return '<option value="' + m + '"' + (m === d.ref ? ' selected' : '') + '>' + esc(monEn(m)) + '</option>'; }).join('');
+  var openN = d.steps.filter(function (x) { return x.st === 'y' || x.st === 'r'; }).length, canClose = !d.blocking.length && d.end < B.today;
+  var closed = d.steps.some(function (x) { return x.k === 'close' && x.st === 'g'; });
+  var h = '<div class="cl"><div class="cl-hero"><div class="cl-ring" style="background:conic-gradient(#2EC4C4 0 ' + Math.round(pct * 100) + '%,rgba(255,255,255,.18) ' + Math.round(pct * 100) + '% 100%)"><div><b>' + d.ready + '/' + d.n + '</b><small>steps ready</small></div></div>' +
+    '<div class="cl-ht"><h2>Month-End AR Closing · ' + esc(monEn(d.ref)) + '</h2><p>Prove the AR balance is complete, accurate, collectible and reconciled before the period is closed.<br>Checks run automatically from the data · ' + 'last check ' + (d._at ? ('0' + d._at.getHours()).slice(-2) + '.' + ('0' + d._at.getMinutes()).slice(-2) : '') + '</p>' +
+    '<div class="cl-tools"><select id="clMon" aria-label="Closing month">' + opts + '</select><button class="btn" type="button" id="clRe">' + ico('cloud') + 'Re-run checks</button><button class="btn" type="button" id="clPrint">' + ico('print') + 'Print checklist</button></div></div>' +
+    '<div class="cl-hk"><div><small>Total AR</small><b>' + rpShort(R.total) + '</b></div><div><small>Overdue</small><b>' + rpShort(R.overdue) + '</b></div><div><small>Steps with issues</small><b>' + openN + '</b></div></div></div>';
+  h += '<div class="cl-flow">' + d.steps.map(function (x) { return '<div class="' + x.st + '" data-clgo="' + x.k + '">' + esc(x.t.replace(/ \(SAP\)| \/ ECL| & short payments| & adjustments/, '')) + '</div>'; }).join('') + '</div>';
+  h += '<div class="cl-grid"><div class="cl-steps">' + d.steps.map(function (x, k) {
+    return '<div class="cl-st ' + x.st + '" id="cl-' + x.k + '"><h4><span class="no">' + (k + 1) + '</span>' + esc(x.t) + '<span class="badge">' + CL_ST[x.st] + '</span></h4><div class="m">' + esc(x.m) + '</div><div class="s">' + esc(x.s) + '</div>' +
+      (x.items && x.items.length ? '<ul>' + x.items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>' : '') +
+      ((x.st === 'y' || x.st === 'r') && x.go ? '<button type="button" class="act" data-mgo2="' + x.go + '">→ Open ' + esc({ setuju: 'Approvals', buka: 'Invoice Register', tbayar: 'Receipts Register', dashboard: 'Overview', surat: 'Collection Letters', dok: 'Monthly documents' }[x.go] || x.go) + '</button>' : '') + '<span class="auto">' + esc(x.auto || '') + '</span></div>';
+  }).join('') + '</div><div>' +
+    '<div class="card cl-card"><h3>Final AR close report</h3><div class="cl-rep">' + [['Total AR', R.total], ['Current (not yet due)', R.current], ['Overdue', R.overdue], ['> 90 days', R.od90, 'r'], ['Over-paid / credit balances', R.lebih ? -R.lebih : 0, R.lebih ? 'r' : ''], ['Disputed / short-paid', R.disp], ['CKPN', R.ckpn], ['AR vs GL difference', R.gl === null ? 'LK not pasted' : R.gl, R.gl ? 'r' : '']].map(function (r) { return '<div><span>' + r[0] + '</span><b class="' + (r[2] || '') + '">' + (typeof r[1] === 'number' ? (r[1] < 0 ? '(' + nfDot(-r[1]) + ')' : nfDot(r[1])) : esc(r[1])) + '</b></div>'; }).join('') + '</div>' +
+    '<div class="note" style="margin-top:8px;font-size:11.5px">“What is our total AR, and why is every major balance still outstanding?” — per customer in the Monthly AR Analysis.</div></div>' +
+    '<div class="card cl-card"><h3>Sign-off <small>on the printed checklist</small></h3><div class="cl-sign"><div>Prepared by<b>' + esc(((B.roles || {}).PEMBUAT || {}).nama || 'AR Officer') + '</b></div><div>Approved by<b>' + esc(((B.roles || {}).PENYETUJU || {}).nama || 'Section Head') + '</b></div></div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn" type="button" data-mgo2="dok">Monthly documents &amp; handover</button></div></div></div></div>';
+  h += '<div class="cl-bar"><div><small>Readiness</small><b>' + d.ready + ' of ' + d.n + ' steps</b></div>' + (d.blocking.length ? '<div><small>Blocking</small><b style="color:#FFB4B4">' + esc(d.blocking.join(', ')) + '</b></div>' : '') + '<span class="sp"></span>' +
+    '<span class="cl-why">' + (closed ? 'Books are closed for ' + esc(monEn(d.ref)) + '.' : d.end >= B.today ? 'The month is still running — closing opens after ' + esc(tg(d.end)) + '.' : d.blocking.length ? 'Fix or explain the blocking items to enable closing.' : 'All blocking checks passed.') + '</span>' +
+    (closed ? '<span class="btn primary" style="opacity:.6">✓ Closed</span>' : (maker || (B.access && B.access.approver)) ? '<button class="btn primary" type="button" id="clClose"' + (canClose ? '' : ' disabled') + '>' + (canClose ? '' : '🔒 ') + 'Close ' + esc(monEn(d.ref)) + '</button>' : '') + '</div></div>';
+  w.innerHTML = h;
+  $('clMon').onchange = function () { closeLoad(this.value); };
+  $('clRe').onclick = function () { closeLoad(d.ref, true); };
+  $('clPrint').onclick = function () { printHtml(pgClosing(d)); };
+  if ($('clClose')) $('clClose').onclick = function () { confirmDlg('Close ' + esc(monEn(d.ref)) + '?', 'Transactions dated up to ' + esc(tg(d.end)) + ' will be locked (corrections need a reason and Section Head permission). Print the checklist and sign it as evidence.', 'Close the period', function () { periodeAksi('tutup', d.end, 'Checklist Month-End AR Closing ' + d.ready + '/' + d.n); delete CL.d[d.ref]; setTimeout(function () { closeLoad(d.ref, true); }, 1500); }); };
+  w.querySelectorAll('[data-clgo]').forEach(function (b) { b.onclick = function () { var el = $('cl-' + b.dataset.clgo); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; });
+  w.querySelectorAll('[data-mgo2]').forEach(function (b) { b.onclick = function () { setMode(b.dataset.mgo2); }; });
+}
+/** checklist tutup buku yang dicetak & ditandatangani (bahasa Indonesia) */
+function pgClosing(d) {
+  var ST = { g: 'SIAP', y: 'PERLU CEK', r: 'MENGHAMBAT', n: 'BELUM' }, R = d.report || {}, rl = B.roles || {};
+  var ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs GL (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
+  var h = '<div class="page pg-flow">' + docHead('CHECKLIST TUTUP BUKU PIUTANG (AR) — ' + esc(d.label).toUpperCase(), 'Bukti bahwa saldo piutang lengkap, akurat, tertagih dan sudah direkonsiliasi sebelum periode ditutup. Diperiksa otomatis oleh Sistem AR CSU.', 'Kesiapan ' + d.ready + '/' + d.n + '<br>' + esc(tglIndo(B.today)));
+  h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:45mm">Langkah</th><th style="width:22mm">Status</th><th>Hasil pemeriksaan</th><th style="width:16mm">Paraf</th></tr></thead><tbody>' +
+    d.steps.map(function (x, k) { return '<tr><td style="text-align:center">' + (k + 1) + '</td><td>' + esc(ID[x.k] || x.t) + '</td><td><b>' + ST[x.st] + '</b></td><td>' + esc(x.m) + ' · ' + esc(x.s) + (x.items && x.items.length ? '<br><span style="color:#5B6B80">' + x.items.map(esc).join('<br>') + '</span>' : '') + '</td><td></td></tr>'; }).join('') + '</tbody></table>';
+  h += '<h3>Ringkasan saldo</h3><table class="kv">' + [['Total piutang', R.total], ['Belum jatuh tempo', R.current], ['Lewat jatuh tempo', R.overdue], ['> 90 hari', R.od90], ['Lebih bayar / saldo kredit', R.lebih], ['Sengketa / kurang bayar', R.disp], ['CKPN', R.ckpn], ['Selisih AR vs GL', R.gl === null ? 'LK belum ditempel' : R.gl]].map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v" style="text-align:right">' + (typeof r[1] === 'number' ? nd(r[1]) : esc(r[1])) + '</td></tr>'; }).join('') + '</table>';
+  var cell = function (role, who) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ..................</div></div>'; };
+  h += '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Disetujui oleh,', rl.PENYETUJU || { jabatan: 'Section Head' }) + cell('Dibuat oleh,', rl.PEMBUAT || { jabatan: 'AR Officer' }) + '</div>';
+  return h + '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B.today)) + '</div></div>';
 }
 /* ====================================================== v2.8.7: Executive Summary — tampilan manajemen (peran MANAJEMEN (LIHAT), hanya membaca) */
 var EX_M = '';

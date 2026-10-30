@@ -3086,6 +3086,61 @@ var ENGINE = (function () {
     return out.sort(function(a, b) { return b[7] - a[7]; });
   }
   /** v2.8.5: data layar Overview aplikasi untuk satu bulan (ym 'yyyy-mm'; kosong = bulan berjalan). Posisi saldo = akhir bulan (bulan berjalan: hari ini). */
+  /** v2.8.8: Month-End AR Closing — 10 langkah, sebagian besar diperiksa otomatis dari data. st: g = siap · y = ada catatan · r = menghambat · n = belum berlaku */
+  function closingData(ctx, ym) {
+    var sel = parseMonthSel(ym, ctx.today, false), ref = sel.y + '-' + pad(sel.m, 2), s0 = sel.start, e0 = sel.end, short = function (n) { return S(n).replace(/^KU\.02\.02\/WB-4C\./, ''); };
+    var inMon = function (d) { return d && d >= s0 && d <= e0; }, steps = [], add = function (o) { steps.push(o); };
+    var apprOk = function (jenis, ref2, fp) { var r = ctx.latest(jenis, ref2); return !!(r && U(r.status) === 'DISETUJUI' && (!fp || S(r.sidik) === fp)); };
+    // 1 billing cut-off
+    var inv = ctx.invs.filter(function (i) { return !i._batal && inMon(i.tgl); }), noApp = inv.filter(function (i) { return !apprOk(DOC.INV, normInv(i.nomor), i._fp); });
+    var noTgl = ctx.invs.filter(function (i) { return !i._batal && !i.tgl; });
+    add({ k: 'billing', t: 'Billing cut-off', st: noTgl.length ? 'r' : noApp.length ? 'y' : 'g', m: plural0(inv.length, 'invoice'), s: 'Rp ' + fmtRp(sumBy(inv, function (i) { return i._a.total; })) + ' issued in ' + sel.label,
+      items: (noTgl.length ? [plural0(noTgl.length, 'invoice') + ' without invoice date: ' + noTgl.slice(0, 6).map(function (i) { return short(i.nomor); }).join(', ')] : []).concat(noApp.length ? [plural0(noApp.length, 'invoice') + ' not yet approved: ' + noApp.slice(0, 6).map(function (i) { return short(i.nomor); }).join(', ')] : ['All invoices approved']), go: noApp.length ? 'setuju' : 'buka', auto: 'auto' });
+    // 2 credit notes & adjustments
+    var adj = ctx.pays.filter(function (p) { return p._inv && p._nk && inMon(p.tgl); }), bat = ctx.invs.filter(function (i) { return i._batalInfo && inMon(i._batalInfo.tgl); }), batP = ctx.invs.filter(function (i) { return i._batalPend; });
+    var tutupP = ctx.invs.filter(function (i) { return U(i.tutup) === 'CLOSE MANUAL' && /^CLOSE MANUAL –/.test(i._res.status); });
+    add({ k: 'adj', t: 'Credit notes & adjustments', st: batP.length || tutupP.length ? 'y' : 'g', m: plural0(adj.length + bat.length, 'item'), s: adj.filter(function (p) { return p._kom; }).length + ' compensation · ' + adj.filter(function (p) { return p._pb && p.nominal > 0; }).length + ' offsets · ' + bat.length + ' cancellations',
+      items: [].concat(batP.length ? [plural0(batP.length, 'cancellation') + ' awaiting approval'] : []).concat(tutupP.length ? [plural0(tutupP.length, 'manual close') + ' awaiting submission / decision'] : []).concat(adj.filter(function (p) { return p._kom; }).slice(0, 3).map(function (p) { return 'Compensation ' + short(p._inv.nomor) + ' Rp ' + fmtRp(p.nominal) + ' — ' + S(p.ref); })), go: 'setuju', auto: 'auto' });
+    // 3 cash application
+    var rec = ctx.pays.filter(function (p) { return p._inv && !p._nk && p.nominal > 0 && inMon(p.tgl); }), noDate = ctx.pays.filter(function (p) { return p._inv && !p.tgl && p.nominal; });
+    var groupsNA = Object.keys(ctx.payGroups).filter(function (k) { var g = ctx.payGroups[k]; return g.some(function (p) { return inMon(p.tgl); }) && !apprOk(DOC.PAY, k, fpPayGroup(g)); });
+    var cek = rec.filter(function (p) { return p._cek && p._cek.length; });
+    add({ k: 'cash', t: 'Cash application', st: noDate.length ? 'r' : groupsNA.length || cek.length ? 'y' : 'g', m: 'Rp ' + fmtRp(sumBy(rec, function (p) { return p.nominal; })), s: plural0(rec.length, 'receipt row') + ' · all allocated to invoices',
+      items: [].concat(noDate.length ? [plural0(noDate.length, 'receipt') + ' without payment date: ' + noDate.slice(0, 6).map(function (p) { return p.idp || short(p.inv); }).join(', ')] : []).concat(groupsNA.length ? [plural0(groupsNA.length, 'receipt') + ' not yet approved'] : []).concat(cek.slice(0, 3).map(function (p) { return (p.idp || '') + ': ' + p._cek[0]; })), go: 'tbayar', auto: 'auto' });
+    // 4 customer reconciliation
+    var lebih = ctx.invs.filter(function (i) { return !i._batal && /^LEBIH BAYAR/.test(i._res.status); }), cq = ctx.invs.filter(function (i) { return i._cq; });
+    var lebihV = sumBy(lebih, function (i) { return -N(i._res.sisa); });
+    add({ k: 'recon', t: 'Customer reconciliation', st: lebih.length || cq.length ? 'r' : 'g', m: lebih.length ? 'Rp ' + fmtRp(lebihV) : 'No credit balances', s: lebih.length ? 'over-paid balances to explain' : 'every invoice balance follows its receipts',
+      items: [].concat(lebih.length ? [plural0(lebih.length, 'invoice') + ' over-paid: ' + lebih.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []).concat(cq.length ? [plural0(cq.length, 'invoice') + ' with VAT ≠ 11% × DPP (DPP probably wrong): ' + cq.slice(0, 8).map(function (i) { return short(i.nomor); }).join(', ')] : []), go: 'dashboard', auto: 'auto' });
+    // 5 aging
+    var C = e0 < ctx.today ? e0 : ctx.today, od90 = [], od365 = [];
+    ctx.invs.forEach(function (i) { if (i._batal || i._res.closed || !i._res.jt) return; var d = diffDays(C, i._res.jt); if (d > 90) od90.push(i); if (d > 365) od365.push(i); });
+    add({ k: 'aging', t: 'AR aging review', st: od365.length ? 'y' : 'g', m: 'Rp ' + fmtRp(sumBy(od90, function (i) { return Math.max(0, i._res.sisa); })) + ' > 90 days', s: plural0(od90.length, 'invoice') + ' > 90 days · ' + od365.length + ' > 1 year',
+      items: od365.slice(0, 5).map(function (i) { return short(i.nomor) + ' ' + titleCase(i.pelanggan) + ' — ' + S(i._res.status).toLowerCase(); }), go: 'surat', auto: 'auto + notes' });
+    // 6 disputes / short payments
+    var disp = ctx.invs.filter(function (i) { return !i._batal && /^KURANG BAYAR/.test(i._res.status); }), vd = (ctx.valDec || {})[ref], hold = vd ? Object.keys(vd.map).filter(function (k) { return vd.map[k].d === 'H'; }) : [];
+    add({ k: 'disp', t: 'Disputes & short payments', st: disp.length || hold.length ? 'y' : 'g', m: disp.length ? 'Rp ' + fmtRp(sumBy(disp, function (i) { return Math.max(0, i._res.sisa); })) : 'None open', s: plural0(disp.length, 'short-paid invoice') + ' · ' + hold.length + ' on HOLD in the collection plan',
+      items: disp.slice(0, 5).map(function (i) { return short(i.nomor) + ' ' + titleCase(i.pelanggan) + ' — sisa Rp ' + fmtRp(i._res.sisa) + (S(i.ba_no) ? ' · BA/memo ' + S(i.ba_no) : ''); }), go: 'dashboard', auto: 'auto' });
+    // 7 CKPN
+    var mv = null; try { mv = ckpnMovement(ctx, e0); } catch (e) { mv = null; }
+    var ck = mv ? sumBy(mv.groups, function (o) { return N(o.ckpn); }) : 0, ckp = mv ? sumBy(mv.groups, function (o) { return N(o.prev); }) : 0;
+    add({ k: 'ckpn', t: 'CKPN / ECL', st: mv ? 'g' : 'y', m: 'Rp ' + fmtRp(ck), s: (ck - ckp >= 0 ? '+' : '−') + ' Rp ' + fmtRp(Math.abs(ck - ckp)) + ' vs previous month · journal proposed', items: [], go: 'dok', auto: 'auto' });
+    // 8 AR vs GL
+    var R = null; try { R = rekon(ctx); } catch (e) { R = null; }
+    var lkOk = R && D(R.C) && D(R.C).substring(0, 7) === ref, sel8 = R ? sumBy(R.pu, function (r) { return N(r.sel); }) + sumBy(R.ppn, function (r) { return N(r.sel); }) : 0;
+    add({ k: 'gl', t: 'AR vs GL (SAP)', st: !lkOk ? 'y' : Math.abs(sel8) > 1 ? 'r' : 'g', m: lkOk ? 'Difference Rp ' + fmtRp(sel8) : 'LK not pasted', s: lkOk ? 'subledger vs Data LK per ' + tglPanjang(R.C) : 'paste the LK attachment for ' + sel.label + ' in "Data LK (Tempel)"', items: [], go: 'dok', auto: 'auto · Data LK' });
+    // 9 handover
+    var ho = handoverData(ctx), hoM = ho.pending.filter(function (x) { return inMon(x.tgl); });
+    add({ k: 'ho', t: 'Handover to Accounting', st: ho.pending.length ? 'y' : 'g', m: ho.pending.length ? plural0(ho.pending.length, 'document') + ' pending' : 'All handed over', s: hoM.length + ' of them from ' + sel.label, items: ho.pending.filter(function (x) { return x.umur > 3; }).length ? [ho.pending.filter(function (x) { return x.umur > 3; }).length + ' older than 3 days'] : [], go: 'dok', auto: 'auto' });
+    // 10 report & close
+    var tutup = periodeTutup(ctx.params, ctx.today), closed = tutup && tutup >= e0;
+    add({ k: 'close', t: 'Final report & close', st: closed ? 'g' : 'n', m: closed ? 'Closed' : e0 >= ctx.today ? 'Month in progress' : 'Not closed yet', s: closed ? 'books closed through ' + tglPanjang(tutup) : 'closes automatically on day ' + (Math.floor(N(ctx.params.TUTUP_BUKU_TANGGAL)) || 3) + ' of next month', items: [], go: 'dok', auto: 'auto' });
+    var ov = overview(ctx, ref), ready = steps.filter(function (x) { return x.st === 'g'; }).length;
+    return { ref: ref, label: sel.label, end: e0, steps: steps, ready: ready, n: steps.length, blocking: steps.filter(function (x) { return x.st === 'r'; }).map(function (x) { return x.t; }),
+      report: { total: ov.open, current: ov.aging[0] + ov.aging[1], overdue: ov.overdue, od90: rnd(sumBy(od90, function (i) { return Math.max(0, i._res.sisa); })), lebih: rnd(lebihV), disp: rnd(sumBy(disp, function (i) { return Math.max(0, i._res.sisa); })), ckpn: rnd(ck), gl: lkOk ? rnd(sel8) : null } };
+  }
+  function titleCase(x) { return S(x).toLowerCase().replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); }).replace(/\bPt\b/, 'PT').replace(/\bTbk\b/i, 'Tbk'); }
+  function plural0(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
   function overview(ctx, ym) {
     var today = ctx.today, mm = S(ym).match(/^(\d{4})-(\d{2})$/), y = mm ? +mm[1] : +today.substring(0, 4), m = mm ? +mm[2] : +today.substring(5, 7);
     if (y * 12 + m > +today.substring(0, 4) * 12 + +today.substring(5, 7)) { y = +today.substring(0, 4); m = +today.substring(5, 7); }
@@ -3155,7 +3210,7 @@ var ENGINE = (function () {
   }
 
   return {
-    tagihanProyekRows: tagihanProyekRows, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
+    tagihanProyekRows: tagihanProyekRows, closingData: closingData, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
