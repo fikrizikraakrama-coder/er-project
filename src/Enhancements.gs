@@ -1092,7 +1092,7 @@ function arExtendFilters_(ss) {
 
 // =====================================================================  v2.8.8: MASTER DATA (pelanggan, proyek, adendum) LEWAT APLIKASI
 var AR_MD_HIST_ = 'Riwayat Master Data';
-var AR_MD_TEXT_ = ['npwp', 'nitku', 'kode_bp', 'npp', 'kontrak', 'kode_jasa', 'npp_produk', 'npp_adendum'];
+var AR_MD_TEXT_ = ['npwp', 'nitku', 'kode_bp', 'npp', 'kontrak', 'kode_jasa', 'npp_produk', 'npp_adendum', 'pola_uraian', 'pola_kw'];
 function arMdRead_(ss) {
   var obj = function (sheetName, schema, alias) { var sh = ss.getSheetByName(sheetName); if (!sh) return [];
     return readSchema_(sh, schema, alias).map(function (r, i) { var o = { _row: schema.firstRow + i }; schema.cols.forEach(function (c, j) { o[c[0]] = r[j]; }); return o; })
@@ -1134,6 +1134,7 @@ function arMdSaveCore_(ss, all, kind, orig, data, reason, who, now, log) {
   var diff = ENGINE.masterDiff(kind, ex, data), sens = diff.filter(function (x) { return x.sens; });
   if (!diff.length) return { key: data[key], diff: [], sens: [] };
   if (sens.length && String(reason || '').trim().length < 5) throw new Error('Sensitive fields changed (' + sens.map(function (x) { return x.label; }).join(', ') + ') — enter the basis for the change (document / reason).');
+  if (kind === 'PRO' && (data.pola_uraian !== undefined || data.pola_kw !== undefined)) { var mpx = ss.getSheetByName('Master Proyek'); if (!colMap_(mpx, ENGINE.MPRO, ENGINE.MPRO_ALIAS).pola_uraian) ensureSchema_(mpx, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); }
   arMdWrite_(ss.getSheetByName(kind === 'PEL' ? 'Master Pelanggan' : 'Master Proyek'), schema, alias, ex ? ex._row : 0, data);
   diff.forEach(function (x) { log.push([now, who, kind === 'PEL' ? 'PELANGGAN' : 'PROYEK', data[key], x.label, ex ? x.from : '(baru)', x.to, x.sens ? 'YA' : '', reason || '']); });
   return { key: data[key], diff: diff, sens: sens, baru: !ex };

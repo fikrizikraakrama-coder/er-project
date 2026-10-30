@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.8.7
+## Pemasangan v2.8.8 (sama dengan v2.8.7)
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
 2. Setiap pengguna akan diminta izin baru (**kirim email atas nama Anda**) untuk notifikasi keputusan.
@@ -61,6 +61,11 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
 - Tanggal di kotak tanda tangan (Dibuat, Diperiksa & disetujui, Disetujui, Diterima Akuntansi, "Jakarta, …" di kartu piutang) terisi tanggal pengajuan.
 - Cetak kartu piutang lebih ringkas; kartu & jurnal landscape tercetak selebar halaman setelah lembar portrait.
 
+- **Issue Invoice bertahap (v2.8.8)**: 1 Customer & project · 2 Amount · 3 Wording · 4 Preview & save, dengan ringkasan angka yang selalu
+  terlihat (progres − UM = DPP + PPN − retensi − PPh = kas diterima). Langkah 3 = **pola uraian per proyek** dengan isian otomatis
+  `{jenis} {progres} {termin} {terminR} {deskripsi} {bapp} {tglbapp} {kumulatif}` (tombol sisip; "Save as this project's pattern" menyimpan ke
+  kolom baru POLA URAIAN INVOICE di Master Proyek, dibuat otomatis) dan **uraian kwitansi terpisah** bila perlu ("Untuk pembayaran …").
+  No./tgl BAPP bisa diisi di langkah 2. Langkah 4 = ringkasan & pemeriksaan sebelum Save / Save & submit.
 - **Master Data (v2.8.8)**: pelanggan, proyek & adendum diisi lewat aplikasi (tersimpan di Master Pelanggan / Master Proyek / Riwayat Adendum).
   Daftar dengan pencarian & saringan (berelasi / pihak ketiga / data belum lengkap), detail per pelanggan (profil, proyek, riwayat) dan per proyek (kontrak &
   syarat penagihan, adendum, riwayat). Pemeriksaan otomatis (NPWP 16 digit & ganda, nama mirip, NPP ganda, retensi/UM/tarif PPh wajar…). Kolom **sensitif**

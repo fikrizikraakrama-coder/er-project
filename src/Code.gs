@@ -257,6 +257,7 @@ function rebuildAll_(opt) {
     try { arExtendFilters_(ss); } catch (err) { }
     try { arRepairInvoiceDates_(ss); } catch (err) { }
     try { arRepairPayDates_(ss); } catch (err) { }
+    try { if (arProps_().getProperty('MPRO_POLA_V288') !== '1') { var mp8 = ss.getSheetByName('Master Proyek'); if (mp8) ensureSchema_(mp8, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); arProps_().setProperty('MPRO_POLA_V288', '1'); } } catch (err) { }
     if (opt.format) arFormatSourceSheets_(ss);
     else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
     // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)

@@ -11,7 +11,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.8.7 · 25-10-2026';
+  var VERSION = '2.8.8 · 31-10-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -89,7 +89,7 @@ var ENGINE = (function () {
       ['pic', 'PIC', 12], ['aktif', 'AKTIF', 7], ['catatan', 'CATATAN', 40],
       ['um_awal', 'UM SUDAH DIKEMBALIKAN SEBELUM SISTEM (Rp)', 18],
       ['nama_pe', 'NAMA PROYEK (P&E)', 50], ['npp_produk', 'NPP PRODUK (TAMPIL DI KARTU)', 34],
-      ['npp_adendum', 'NPP ADENDUM TERPISAH (TAGIHAN TETAP DI NPP INI)', 30]]
+      ['npp_adendum', 'NPP ADENDUM TERPISAH (TAGIHAN TETAP DI NPP INI)', 30], ['pola_uraian', 'POLA URAIAN INVOICE (APLIKASI)', 50], ['pola_kw', 'POLA URAIAN KWITANSI (APLIKASI)', 50]]
   };
   var MPRO_ALIAS = { nilai: ['NILAI KONTRAK (EXCL. PPN)'], nilai_ok: ['NILAI OK (OTOMATIS)'], addendum_lama: ['NILAI ADDENDUM TERAKHIR'] };
   var ADD = {
@@ -2773,7 +2773,7 @@ var ENGINE = (function () {
       adendum: p.adds.map(function (a) { return { ke: a.ke, nodok: a.nodok, tgl: a.tgl, jenis: a.jenis, nilai: a.nilai }; }),
       pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok,
       um: p.um, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
-      signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng,
+      signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng, pola_uraian: S(p.pola_uraian), pola_kw: S(p.pola_kw),
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,
       retDitahan: umr[p.npp] && umr[p.npp].ret ? umr[p.npp].ret[7] : 0, retBatas: umr[p.npp] ? umr[p.npp].batas : 0,
       prog: ctx.invs.filter(function (i) { return i.npp === p.npp && !i._batal && i._a.jenis === 'PROGRES'; }).map(function (i) { var m = S(i.invke).match(/(\d+)/); return [i.nomor, rnd(i._a.bruto), m ? +m[1] : 0, i.tgl]; }) }; });
