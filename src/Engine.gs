@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.9.1 · 31-10-2026';
+  var VERSION = '2.9.2 · 02-11-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)

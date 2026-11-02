@@ -72,7 +72,7 @@ function dailyRebuild(e) { if (!arFromTrigger_(e)) arRequireMaker_();
   try { arPEResetCutoff_(); } catch (x1) { }
   rebuildAll_({ format: true }); arMonthlyAuto_(); try { arPropsCleanup_(); } catch (x) { } }
 /** jadwal 5 menit: menyelesaikan pembaruan yang ditandai saat sistem sibuk */
-function rebuildIfDirty(e) { if (!arFromTrigger_(e)) arRequireMaker_(); arRebuildIfDirty_(25000); }
+function rebuildIfDirty(e) { var tr = arFromTrigger_(e); if (!tr) arRequireMaker_(); var t0 = Date.now(); if (arRebuildIfDirty_(25000, tr ? 90000 : 0)) arPerfLog_('update laporan', Date.now() - t0, 'jadwal'); }
 
 function onEditInstalled(e) {
   // installable trigger berjalan sebagai pemilik trigger; Session.getActiveUser() pengedit sering kosong, jadi tidak memakai cek akses per pengguna
@@ -925,7 +925,8 @@ function email_() { var e = ''; try { e = Session.getActiveUser().getEmail(); } 
 /** data aplikasi: hitungan ringan (tanpa laporan) + cache 5 menit per pengguna; cache otomatis gugur setiap ada penyimpanan (arBootBust_) */
 function apiBootstrap() {
   var access = arRequireAccess_(true), em = email_(), key = arBootKey_(em), hit = arCacheGet_(key);
-  if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; return b0; }
+  var t0 = Date.now();
+  if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; arPerfLog_('buka aplikasi', Date.now() - t0, 'cache'); return b0; }
   var input = readAll_(); input.light = true;
   var res = ENGINE.compute(input), b = ENGINE.bootstrap(res, em);
   b.appUrl = arAppUrl_().url;
@@ -934,7 +935,7 @@ function apiBootstrap() {
   // v2.9: status Rencana Termin bulan berjalan & bulan depan (notifikasi Section Head / AR)
   var nyM = +b.today.slice(5, 7) + 1, nyY = +b.today.slice(0, 4); if (nyM > 12) { nyM = 1; nyY++; }
   b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '' }; });
-  var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300);
+  var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('buka aplikasi', Date.now() - t0, 'hitung');
   return out;
 }
 function apiGetInvoice(nomor) { arRequireAccess_();
@@ -947,7 +948,8 @@ function apiGetInvoice(nomor) { arRequireAccess_();
   return plain_(o);
 }
 /** p = data register dari aplikasi; opt = {revisi: bool, alasan: string} */
-function apiSaveInvoice(p, opt) { arRequireMaker_();
+function apiSaveInvoice(p, opt) { var t0 = Date.now(), r = apiSaveInvoice_(p, opt); arPerfLog_('simpan invoice', Date.now() - t0, ''); return r; }
+function apiSaveInvoice_(p, opt) { arRequireMaker_();
   opt = opt || {};
   arValidateInvoice_(p);
   var lock = arLock_(); lock.waitLock(28000);
@@ -1056,7 +1058,7 @@ function checkPayRows_(rows) {
   if (pbs.length && Math.abs(pbs.reduce(function (t, p) { return t + Number(p.nominal); }, 0)) > 1) throw new Error('Offset / reclass does not balance: rows must sum to 0 (source negative, target positive).');
 }
 /** simpan beberapa baris sekaligus (satu transfer untuk beberapa invoice, atau pindah buku) */
-function apiSavePayments(rows, requestId, opt) { return arSavePayments_(rows, requestId, opt); }
+function apiSavePayments(rows, requestId, opt) { var t0 = Date.now(), r = arSavePayments_(rows, requestId, opt); arPerfLog_('simpan penerimaan', Date.now() - t0, ''); return r; }
 /** pembayaran tunggal (kompatibel versi 2.0) */
 function apiSavePayment(p) { var r = apiSavePayments([p]); return plain_({ ok: true, saved: true, reportPending: r.reportPending, warnings:r.warnings, duplicate:r.duplicate, invoice: (r.invoices || [])[0] || null, payment: (r.payments || []).slice(-1)[0] || null }); }
 /** pratinjau tanpa menyimpan: kartu piutang & alokasi bila baris-baris ini dicatat */
@@ -1101,14 +1103,15 @@ function verifyAppr_(a) {
   return a;
 }
 function apiPackage(kind, ref) { arRequireAccess_(true);
+  return arCached_('lembar ' + kind + '|' + ref, function () { // v2.9.2: disimpan 5 menit, gugur setiap ada penyimpanan
   var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
   if (!d) throw new Error('Data not found: ' + kind + ' ' + ref);
   if (kind === 'VAL') { d.draft = valDraft_(d.ref); d.plan = raPlan_(d.ref); }
   if (d.appr) verifyAppr_(d.appr);
   d.user = ENGINE.userBy(res.params, email_()) || { email: email_() };
-  return plain_(d);
+  return plain_(d); });
 }
-function apiSubmit(kind, ref, extra) { arRequireMaker_();
+function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
   var lock = arLock_(); lock.waitLock(28000);
   var out;
   try {
@@ -1171,7 +1174,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_();
     if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'WAIT'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; raPlanSet_(String(d.ref), rp2); }
   } finally { lock.releaseLock(); }
   // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
-  out.background = arQueueAfterSave_().background;
+  out.background = arQueueAfterSave_().background; arPerfLog_('ajukan ' + kind, Date.now() - tP, '');
   return out;
 }
 function arBasah_(rec, now) {
@@ -1205,7 +1208,7 @@ function arSahkanTtdBasah() { arRequireMaker_();
   ui.alert('Selesai', r.n + ' pengajuan disahkan (TTD basah).' + (r.ubah ? '\n' + r.ubah + ' dilewati karena datanya berubah — ajukan ulang dari aplikasi.' : ''), ui.ButtonSet.OK);
 }
 function apiSahkanTtdBasah() { arRequireMaker_(); var r = arSahkanCore_(false); r.background = true; return r; }
-function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
+function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_(); var tP = Date.now();
   if (['SETUJU','TOLAK'].indexOf(String(keputusan).toUpperCase()) < 0) throw new Error('Invalid decision.');
   var lock = arLock_(); lock.waitLock(28000);
   var out;
@@ -1268,6 +1271,7 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_();
   // v2.8.6: laporan diperbarui di latar belakang; koreksi periode tertutup tetap langsung (snapshot analisis bulanan ikut direvisi)
   if (kTglD && out.status === 'DISETUJUI') rebuildAll(); else out.background = arQueueAfterSave_().background;
   if (kTglD && out.status === 'DISETUJUI') { var rf = arRefreshClosedMonths_([kTglD], out.id + ' ' + (notif.r.catatan || notif.r.label || '')); out.warnings = out.warnings.concat(rf.warnings); out.snapshots = rf.ids; }
+  arPerfLog_('keputusan', Date.now() - tP, '');
   return out;
 }
 /** menu: lokal file Indonesia (ketikan 05/10/2026 = 5 Oktober) + validasi "harus tanggal" di kolom tanggal yang diisi manual */
@@ -2204,7 +2208,7 @@ function raPlanRole_(P, me, today) {
 function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
   ref = String(ref || ''); if (!/^\d{4}-\d{2}$/.test(ref)) throw new Error('Invalid month.');
   pl = pl || {}; action = String(action || '');
-  var lock = arLock_(); lock.waitLock(28000); var out;
+  var lock = arLock_(), tP = Date.now(); lock.waitLock(28000); var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), R = raPlanRole_(P, me, res.ctx.today), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
     var pend = res.ctx.appr.filter(function (r) { return r.jenis === ENGINE.DOC.VAL && String(r.ref) === ref && r.status === 'MENUNGGU'; })[0];
@@ -2235,6 +2239,7 @@ function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
     raPlanSet_(ref, rp);
     out = { ok: true, at: now, plan: rp };
   } finally { lock.releaseLock(); }
+  arPerfLog_('rencana termin ' + action, Date.now() - tP, '');
   out.background = arQueueAfterSave_().background;
   return plain_(out);
 }
@@ -2249,9 +2254,10 @@ function moveValPdfs_(P, ref) {
 
 // =====================================================================  v2.8.7: SERAH TERIMA DOKUMEN KE AKUNTANSI
 function apiHandoverData() { arRequireAccess_();
+  return arCached_('handover', function () {
   var res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), R = ENGINE.roles(res.params);
   d.penerima = R.PENERIMA ? R.PENERIMA.nama : ''; d.nextNo = { INV: ENGINE.hoNextNo(res.ctx, 'INV'), PAY: ENGINE.hoNextNo(res.ctx, 'PAY') };
-  return plain_(d);
+  return plain_(d); });
 }
 /** catat satu lembar tanda terima untuk dokumen terpilih (hanya yang sudah disahkan & belum diserahkan) */
 function apiHandoverCreate(items, opt) { var acc = arRequireMaker_(); opt = opt || {};

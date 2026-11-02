@@ -4702,17 +4702,25 @@ function dfReadFp(file) {
 
 /** v2.8.4: simpan cepat — laporan & file turunan diperbarui di latar belakang; pengguna bisa langsung lanjut bekerja */
 var BG_RUN = false, BG_AGAIN = false;
-function bgReports() {
+/** v2.9.2: laporan sheet diperbarui 90 detik setelah penyimpanan TERAKHIR (simpan beruntun digabung) — penyimpanan berikutnya tidak antre di belakang
+ *  pembaruan laporan yang memegang kunci. Aplikasi menghitung langsung dari data, jadi layar tetap benar. Bila aplikasi ditutup, jadwal 5 menit yang menyelesaikan. */
+var BG_TIMER = null;
+function bgReports(now) {
+  if (!now) {
+    clearTimeout(BG_TIMER); BG_TIMER = setTimeout(function () { BG_TIMER = null; bgReports(true); }, 90000);
+    var c0 = $('bgChip'); if (!BG_RUN && c0) { c0.hidden = false; c0.innerHTML = '🕒 Saved · sheet reports update automatically in ~2 min'; clearTimeout(bgReports.h); bgReports.h = setTimeout(function () { if (!BG_RUN) c0.hidden = true; }, 4000); }
+    return;
+  }
   if (BG_RUN) { BG_AGAIN = true; return; } // satu pembaruan sekaligus; klik beruntun (Approve & next) digabung
   BG_RUN = true; BG_AGAIN = false;
   var c = $('bgChip'); c.hidden = false; c.innerHTML = '<span class="bgspin"></span>Updating reports in the background…';
   var hide = function (ms) { setTimeout(function () { c.hidden = true; }, ms); };
-  var done = function () { BG_RUN = false; if (BG_AGAIN) { BG_AGAIN = false; bgReports(); } };
+  var done = function () { BG_RUN = false; if (BG_AGAIN) { BG_AGAIN = false; bgReports(true); } };
   call('apiAfterSave', [], function (r) {
     if (BG_AGAIN) return done(); // ada perubahan baru selama pembaruan: langsung jalankan sekali lagi
     if (r && r.reportPending) { var why = (r.warnings || []).join(' · ');
       c.innerHTML = '⚠ Reports not fully updated · <a href="#" style="color:#9FE3E8" id="bgRetry">retry</a>' + (why ? '<div style="font-size:11px;opacity:.85;margin-top:3px;max-width:420px;white-space:normal">' + esc(why.slice(0, 300)) + '<br>The system retries automatically within 5 minutes.</div>' : '');
-      $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(); }; hide(25000); }
+      $('bgRetry').onclick = function (e) { e.preventDefault(); bgReports(true); }; hide(25000); }
     else { c.innerHTML = '✓ Reports updated'; hide(3500); }
     done();
   }, function (e) { c.innerHTML = '⚠ ' + esc(e.message || e); hide(8000); done(); });

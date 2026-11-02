@@ -19,7 +19,7 @@ function arLock_() {
   var held = false;
   return {
     // v2.8.7: tunggu sampai 90 detik — pembaruan laporan (pengguna lain / jadwal 5 menit) bisa memegang kunci lebih dari 28 detik
-    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); } catch (e) { AR28_NATIVE_LOCK_ = null; throw new Error('The system is busy updating reports. Nothing was saved by this step — try again in a minute.'); } } AR28_LOCK_DEPTH_++; held = true; },
+    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, ''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('The system is busy updating reports. Nothing was saved by this step — try again in a minute.'); } } AR28_LOCK_DEPTH_++; held = true; },
     tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
     releaseLock: function() { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; arBootBust_(); } } }
   };
@@ -36,8 +36,12 @@ function arProps_() {
   };
 }
 function arParameters_() {
-  var p = sheet_('Parameter');
-  return ENGINE.readParams(rangeVals_(p,'A4:C120'), [], [], [], rangeVals_(p,'U4:Y40'), [], []);
+  // v2.9.2: isi Parameter untuk cek akses disimpan 2 menit (setiap klik tidak lagi membaca sheet); gugur saat ada penyimpanan
+  var key = 'ACCPAR_' + (PropertiesService.getScriptProperties().getProperty('BOOT_VER') || '0'), c = null, raw = null;
+  try { c = CacheService.getScriptCache(); raw = c.get(key); } catch (e) { }
+  var v = raw ? JSON.parse(raw) : null;
+  if (!v) { var p = sheet_('Parameter'); v = [rangeVals_(p,'A4:C120'), rangeVals_(p,'U4:Y40')]; try { c.put(key, JSON.stringify(v), 120); } catch (e) { } }
+  return ENGINE.readParams(v[0], [], [], [], v[1], [], []);
 }
 /** view: true untuk API yang hanya membaca — peran MANAJEMEN (LIHAT) boleh, selain itu ditolak (tidak bisa mengubah apa pun) */
 function arRequireAccess_(view) {
@@ -197,7 +201,25 @@ function arTglBackup_(pairs) {
 /** catatan diagnosa singkat (Script Properties DIAG_LOG, 30 terakhir) */
 function arDiag_(tag,msg) { var pr=arProps_(),L=[]; try{L=JSON.parse(pr.getProperty('DIAG_LOG')||'[]');}catch(e){} L.push(arNow_()+' '+tag+' '+String(msg).slice(0,300)); try{pr.setProperty('DIAG_LOG',JSON.stringify(L.slice(-30)));}catch(e){} }
 function arLihatDiagnosa() { arRequireMaker_(); var L=[]; try{L=JSON.parse(arProps_().getProperty('DIAG_LOG')||'[]');}catch(e){}
-  SpreadsheetApp.getUi().alert('Catatan diagnosa', L.length ? L.slice().reverse().join('\n') : 'Belum ada catatan. Bila tanggal bayar sempat tidak tertulis, kejadiannya dicatat di sini.', SpreadsheetApp.getUi().ButtonSet.OK); }
+  SpreadsheetApp.getUi().alert('Catatan diagnosa', arPerfText_() + '\n\n— Catatan tanggal bayar —\n' + (L.length ? L.slice().reverse().join('\n') : 'Belum ada catatan. Bila tanggal bayar sempat tidak tertulis, kejadiannya dicatat di sini.'), SpreadsheetApp.getUi().ButtonSet.OK); }
+// ---------------- v2.9.2: kinerja — catatan waktu per layar/aksi, cache hasil hitungan, cache parameter akses
+/** catat satu kejadian (maks. 90 terakhir) di Script Properties PERF_LOG: [waktu, akun, fungsi, ms, sumber] */
+function arPerfLog_(fn, ms, src) { try { var pr = PropertiesService.getScriptProperties(), L = []; try { L = JSON.parse(pr.getProperty('PERF_LOG') || '[]'); } catch (e) { } L.push([arNow_().slice(5, 16), (email_() || '-').split('@')[0].slice(0, 14), String(fn).slice(0, 24), Math.round(ms), src || '']); pr.setProperty('PERF_LOG', JSON.stringify(L.slice(-90))); } catch (e) { } }
+function arPerfText_() {
+  var L = []; try { L = JSON.parse(PropertiesService.getScriptProperties().getProperty('PERF_LOG') || '[]'); } catch (e) { }
+  if (!L.length) return '— Kecepatan aplikasi —\nBelum ada catatan.';
+  var G = {}; L.forEach(function (x) { var k = x[2] + (x[4] === 'cache' ? ' (cache)' : ''), g = G[k] || (G[k] = { n: 0, t: 0, mx: 0 }); g.n++; g.t += x[3]; g.mx = Math.max(g.mx, x[3]); });
+  var s = function (ms) { return (ms / 1000).toFixed(1).replace('.', ',') + ' dtk'; };
+  return '— Kecepatan aplikasi (' + L.length + ' kejadian terakhir) —\n' + Object.keys(G).sort(function (a, b) { return G[b].t / G[b].n - G[a].t / G[a].n; }).map(function (k) { var g = G[k]; return k + ': rata-rata ' + s(g.t / g.n) + ' · terlama ' + s(g.mx) + ' · ' + g.n + '×'; }).join('\n') +
+    '\n\n— 12 terakhir —\n' + L.slice(-12).reverse().map(function (x) { return x[0] + ' ' + x[1] + ' · ' + x[2] + ' ' + s(x[3]) + (x[4] ? ' · ' + x[4] : ''); }).join('\n');
+}
+/** hasil layar baca-saja disimpan 5 menit per akun; gugur otomatis setiap ada penyimpanan (BOOT_VER ikut berubah) */
+function arCached_(name, fn, ttl) {
+  var t0 = Date.now(), key = arBootKey_(email_() + '|' + name + '|' + arToday_()), hit = arCacheGet_(key);
+  if (hit) { arPerfLog_(name, Date.now() - t0, 'cache'); return JSON.parse(hit); }
+  var out = fn(); try { arCachePut_(key, JSON.stringify(out), ttl || 300); } catch (e) { }
+  arPerfLog_(name, Date.now() - t0, 'hitung'); return out;
+}
 /** TANGGAL BAYAR kosong pada baris dari aplikasi → diisi dari cadangan (dipanggil rebuildAll_) */
 function arRepairPayDates_(ss) {
   var sh=ss.getSheetByName('Log Penerimaan'); if(!sh) return 0; var map=colMap_(sh,ENGINE.LOG), f0=ENGINE.LOG.firstRow, last=sh.getLastRow();
@@ -236,7 +258,7 @@ function apiAfterSave() {
   try{q=JSON.parse(pr.getProperty('AFTER_SAVE')||'null');}catch(e){}
   if(!q&&!t)return {reportPending:false,warnings:[],skipped:true}; // sudah diperbarui oleh panggilan lain
   pr.deleteProperty('AFTER_SAVE');
-  var out=arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null,!acc.maker);
+  var t0=Date.now(),out=arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null,!acc.maker); arPerfLog_('update laporan',Date.now()-t0,'latar');
   if(!out.reportPending&&t&&pr.getProperty(AR_DIRTY_KEY_)===t)pr.deleteProperty(AR_DIRTY_KEY_);
   return out;
 }
@@ -611,9 +633,11 @@ function arInstallTriggers_(ss) {
 }
 function arMarkDirty_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); arBootBust_(); }
 /** kerjakan bila ditandai; bila lock dipegang proses lain, tanda dibiarkan untuk jadwal 5 menit (tidak ada "Lock timeout" bagi pengedit) */
-function arRebuildIfDirty_(waitMs) {
+function arRebuildIfDirty_(waitMs, quietMs) {
   var sp = PropertiesService.getScriptProperties();
-  if (!sp.getProperty(AR_DIRTY_KEY_)) return false;
+  var t0 = sp.getProperty(AR_DIRTY_KEY_); if (!t0) return false;
+  // v2.9.2: jadwal 5 menit menunggu 90 detik tenang setelah penyimpanan terakhir (simpan beruntun tidak antre di belakang pembaruan laporan)
+  if (quietMs && Date.now() - (+String(t0).split('-')[0] || 0) < quietMs) return false;
   var lock = arLock_(); if (!lock.tryLock(waitMs)) return false;
   try {
     var t = sp.getProperty(AR_DIRTY_KEY_); if (!t) return false;
@@ -986,19 +1010,18 @@ function apiAnalisis(month, buat) {
 function apiClosing(month) {
   arRequireAccess_(true);
   month = String(month || ''); if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
-  var res = computeLight_('memo'); if (!month) month = res.ctx.today.substring(0, 7);
-  return plain_(ENGINE.closingData(res.ctx, month));
+  return arCached_('closing|' + month, function () { var res = computeLight_('memo'), m = month || res.ctx.today.substring(0, 7); return plain_(ENGINE.closingData(res.ctx, m)); });
 }
 /** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
 function apiOverview(month) {
   arRequireAccess_(true);
   month = String(month || '');
   if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
-  var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key);
-  if (hit) return JSON.parse(hit);
+  var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key), t0 = Date.now();
+  if (hit) { arPerfLog_('overview', Date.now() - t0, 'cache'); return JSON.parse(hit); }
   var res = computeLight_(true), o = ENGINE.overview(res.ctx, month);
   o.reportTime = ''; try { o.reportTime = arProps_().getProperty('REPORT_TIME') || ''; } catch (e) {}
-  var out = plain_(o); arCachePut_(key, JSON.stringify(out), 300);
+  var out = plain_(o); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('overview', Date.now() - t0, 'hitung');
   return out;
 }
 
@@ -1111,9 +1134,10 @@ function arMdHistSheet_(ss) {
 function arMdLog_(ss, rows) { if (!rows.length) return; var sh = arMdHistSheet_(ss), r = Math.max(sh.getLastRow() + 1, 2); roomFor_(sh, r + rows.length); sh.getRange(r, 1, rows.length, 9).setNumberFormat('@').setValues(rows.map(function (x) { return x.map(function (v) { return String(v === null || v === undefined ? '' : v).slice(0, 500); }); })); }
 function apiMasterData() {
   arRequireMaker_();
+  return arCached_('masterdata', function () {
   var ss = arSpreadsheet_(), d = arMdRead_(ss), hs = ss.getSheetByName(AR_MD_HIST_), hist = [];
   if (hs && hs.getLastRow() > 1) { var n = Math.min(hs.getLastRow() - 1, 400); hist = hs.getRange(hs.getLastRow() - n + 1, 1, n, 9).getDisplayValues().reverse(); }
-  return plain_({ pel: d.pel, pro: d.pro, add: d.add, hist: hist, sens: ENGINE.MD_SENS });
+  return plain_({ pel: d.pel, pro: d.pro, add: d.add, hist: hist, sens: ENGINE.MD_SENS }); });
 }
 /** tulis satu baris master (baru = baris setelah data terakhir) */
 function arMdWrite_(sh, schema, alias, row, data) {
