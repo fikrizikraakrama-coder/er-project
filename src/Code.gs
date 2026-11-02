@@ -1133,6 +1133,11 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
       // v2.7: usulan AR dari aplikasi disimpan dulu, lalu diperiksa (tanggal rencana cair wajib untuk ✓ / ◇)
       writeUsulan_(extra);
       res = computeLight_('memo'); d = ENGINE.packageFor(res.ctx, kind, ref, { fresh: true, sh: raSh });
+      if (raSh) { // v2.9.2: tanggal dari AR dipakai langsung (tidak bergantung pada pembacaan ulang kolom RENCANA TGL CAIR); selisih dicatat untuk diagnosa
+        var dm = {}, miss = []; (extra.items || []).forEach(function (x) { if (/^\d{4}-\d{2}-\d{2}$/.test(String(x.d || ''))) dm[ENGINE.normInv(x.nomor)] = String(x.d); });
+        d.items.forEach(function (x) { var v = dm[ENGINE.normInv(x.nomor)]; if (v && x.rtgl !== v) { miss.push(x.nomor); x.rtgl = v; } });
+        if (miss.length) arDiag_('RA', miss.length + ' tanggal rencana cair tidak terbaca dari kolom RENCANA TGL CAIR saat mengajukan ' + d.ref + ' (dipakai dari aplikasi): ' + miss.slice(0, 5).join(', '));
+      }
       var ue = ENGINE.valCheckUsulan(d, extra); if (ue) throw new Error(ue);
     }
     // tutup buku: pembatalan invoice & lembar validasi periode tertutup hanya dengan izin koreksi; alasan wajib & ditandai
@@ -2163,7 +2168,9 @@ function applyV26() { arRequireMaker_();
 function valDraft_(ref) { try { return JSON.parse(arProps_().getProperty('VALDRAFT_' + ref) || 'null'); } catch (e) { return null; } }
 /** tulis usulan AR (USULAN, RENCANA TGL CAIR, CATATAN AR) ke Monitoring Invoice sekaligus; tanda rapat pusat & dasar revisi disimpan sebagai draf */
 function writeUsulan_(pl) {
-  var sh = sheet_('Monitoring Invoice'), R = ENGINE.REG, map = colMap_(sh, R, ENGINE.REG_ALIAS), last = lastDataRow_(sh, R.firstRow, [map.nomor]);
+  var sh = sheet_('Monitoring Invoice'), R = ENGINE.REG, map = colMap_(sh, R, ENGINE.REG_ALIAS);
+  if (!map.validasi || !map.rencana) { ensureSchema_(sh, R, ENGINE.REG_ALIAS, null); map = colMap_(sh, R, ENGINE.REG_ALIAS); } // v2.9.2: kolom USULAN / RENCANA TGL CAIR hilang → dibuat lagi
+  var last = lastDataRow_(sh, R.firstRow, [map.nomor]);
   if (last < R.firstRow) return 0;
   var n = last - R.firstRow + 1, nos = sh.getRange(R.firstRow, map.nomor, n, 1).getValues().map(function (r) { return ENGINE.normInv(r[0]); }), idx = {};
   nos.forEach(function (k, i) { if (k) idx[k] = i; });
