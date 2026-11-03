@@ -6,7 +6,7 @@ System AR Develop — Sistem AR CSU (Google Apps Script).
 - `src/Engine.gs` adalah **sumber tunggal** perhitungan. `src/EngineClient.html` dibuat darinya: `npm run sync-engine`.
 - `test/` — uji ENGINE di luar Sheets: `npm test` (Node 18+, tanpa dependensi).
 
-## Pemasangan v2.9.2 (sama dengan v2.8.7)
+## Pemasangan v2.9.3 (sama dengan v2.8.7)
 > v2.9.1: isi **Parameter ▸ Pengguna & Peran** satu baris peran `MENGETAHUI` = Yusqi Audah Firdaus · Manager of Concrete Service Unit (dipakai di Lembar RA–RI; bila kosong nama ini dipakai sebagai bawaan).
 1. Salin semua berkas `src/` ke proyek Apps Script, lalu **Terapkan ▸ Kelola deployment ▸ Versi baru**.
    Aplikasi menampilkan peringatan merah bila versi Engine server dan aplikasi berbeda.
@@ -83,6 +83,10 @@ Baris yang hilang (dihapus / ID diubah) terdeteksi pada pembaruan berikutnya. Pe
   RI = **seluruh uang masuk** bulan itu (nominal cair apa adanya, termasuk PPN, termasuk cadangan & yang cair di luar RA; pindah buku & kompensasi tidak dihitung),
   **Pencapaian = TOTAL RI ÷ RA FINAL** — sama dengan persentase yang dilaporkan unit ke pusat (contoh Oktober: 28,88 M ÷ 32,07 M = 90,07%). Berlaku di laporan
   RA-RI Termin (kolom RA kas & persen per baris dihapus), Overview, Executive Summary, tile Dashboard dan Analisis Bulanan. RI dari item RA tetap tampil sebagai info.
+- **Rencana Termin v2.9.3 — 3 langkah tanpa persetujuan ulang**: Section Head memilih invoice & cicilan → AR mengisi tanggal lalu **Finalkan RA**
+  (langsung berlaku, tercatat DISETUJUI di Log Persetujuan atas nama Section Head yang memilih, catatan `[DISAHKAN PILIHAN SECTION HEAD]`) → cetak Lembar RA–RI
+  untuk TTD basah. Pengajuan alur lama yang masih MENUNGGU difinalkan otomatis saat Rencana Termin dibuka. Invoice yang netto-nya lunas & tinggal PPN
+  ditandai **Sisa PPN** (nilai PPN tampil, tidak masuk nilai RA DPP − PPh).
 - **Kecepatan (v2.9.2)**: laporan sheet diperbarui **90 detik setelah penyimpanan terakhir** (simpan beruntun digabung; bila aplikasi ditutup, jadwal 5 menit
   menunggu 90 detik tenang) sehingga simpan → ajukan → simpan berikutnya tidak antre di belakang pembaruan laporan. Lembar pengesahan, AR Closing, Handover,
   Master Data & Overview disimpan sementara 5 menit per akun (gugur otomatis setiap ada penyimpanan). Isi Parameter untuk cek akses disimpan 2 menit.

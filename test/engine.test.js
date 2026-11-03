@@ -457,3 +457,8 @@ test('v2.9 Rencana Termin alur Section Head: cicilan 50% = (DPP − PPh) × 50%,
   assert.match(ENGINE.valCheckUsulan(d2, { flow: 'SH', plan: { al: {} } }), /alasan/);
   assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 12', net0: 40, full: 100 }, 0, 0), 'Sisa Cicilan Prog 12');
 });
+
+test('v2.9.3 penjelasan "Sisa PPN" bila netto sudah lunas dan tinggal PPN', () => {
+  assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 3', net0: 0, full: 100, sisa0: 11 }, 0, 0), 'Sisa PPN Prog 3');
+  assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 3', net0: 100, full: 100, sisa0: 111 }, 0, 0), 'Prog 3');
+});

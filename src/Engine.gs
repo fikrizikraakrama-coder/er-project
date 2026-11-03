@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.9.2 · 02-11-2026';
+  var VERSION = '2.9.3 · 03-11-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -2479,6 +2479,7 @@ var ENGINE = (function () {
   function raPlanPj(x, pct, ke) {
     var l = S(x.invke).replace(/^PROGRES\s*/i, 'Prog ').replace(/^Uang Muka.*/i, 'UM').replace(/^Pelepasan\s+/i, '');
     if (pct > 0) return 'Cicilan ' + (ke || 1) + ' ' + l + ' (' + pct + '%)';
+    if (N(x.net0 || x.nilai) <= 0.5 && N(x.sisa0) > 0.5) return 'Sisa PPN ' + l; // v2.9.3: netto lunas, tinggal PPN (tidak masuk nilai RA DPP − PPh)
     if (N(x.full) > 0 && N(x.net0 || x.nilai) < N(x.full) - 1) return 'Sisa Cicilan ' + l;
     return l;
   }

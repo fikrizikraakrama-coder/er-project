@@ -934,7 +934,7 @@ function apiBootstrap() {
   b.access = access; b.summary = arDashboard_(res.ctx); b.sheetUrl = arSpreadsheet_().getUrl();
   // v2.9: status Rencana Termin bulan berjalan & bulan depan (notifikasi Section Head / AR)
   var nyM = +b.today.slice(5, 7) + 1, nyY = +b.today.slice(0, 4); if (nyM > 12) { nyM = 1; nyY++; }
-  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '' }; });
+  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', finalAt: p.finalAt || '' }; });
   var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('buka aplikasi', Date.now() - t0, 'hitung');
   return out;
 }
@@ -1103,6 +1103,7 @@ function verifyAppr_(a) {
   return a;
 }
 function apiPackage(kind, ref) { arRequireAccess_(true);
+  if (kind === 'VAL' && /^\d{4}-\d{2}$/.test(String(ref || ''))) { try { raAutoFinal_(String(ref)); } catch (e) { arDiag_('RA', 'Finalisasi otomatis ' + ref + ' gagal: ' + e.message); } }
   return arCached_('lembar ' + kind + '|' + ref, function () { // v2.9.2: disimpan 5 menit, gugur setiap ada penyimpanan
   var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
   if (!d) throw new Error('Data not found: ' + kind + ' ' + ref);
@@ -1170,13 +1171,14 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
     // v2.8.7: jenis yang disahkan lewat tanda tangan basah Section Head (Parameter PERSETUJUAN_TTD_BASAH) langsung tercatat DISETUJUI;
     // tidak atas nama Section Head secara elektronik (PUTUS OLEH kosong, tanpa cap elektronik) — bukti persetujuan = tanda tangan basah di lembar cetak
     if (ENGINE.basahKinds(P).indexOf(kind) >= 0) arBasah_(rec, now);
+    if (raSh) { var rpF = raPlan_(String(d.ref)) || {}; raFinal_(rec, snap, rpF, now); raMarkReplaced_(A, rec, String(d.ref)); } // v2.9.3: RA langsung final saat AR mengajukan
     var lc = Math.max(A.sh.getLastColumn(), ENGINE.APPR.cols.length), arr = []; for (var k = 0; k < lc; k++) arr.push('');
     ENGINE.APPR.cols.forEach(function (c) { var j = A.map[c[0]]; if (j) arr[j - 1] = rec[c[0]]; });
     var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1; roomFor_(A.sh, row);
     A.sh.getRange(row, 1, 1, lc).setNumberFormat('@').setValues([arr]);
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
     out = { ok: true, id: rec.id, label: rec.label, status: rec.status, basah: rec.status === 'DISETUJUI' };
-    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'WAIT'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; raPlanSet_(String(d.ref), rp2); }
+    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'DONE'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; rp2.finalAt = now; rp2.back = ''; raPlanSet_(String(d.ref), rp2); }
   } finally { lock.releaseLock(); }
   // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
   out.background = arQueueAfterSave_().background; arPerfLog_('ajukan ' + kind, Date.now() - tP, '');
@@ -2210,6 +2212,38 @@ function raPlanSet_(ref, o) { arProps_().setProperty('RAPLAN_' + ref, JSON.strin
 function raPlanRole_(P, me, today) {
   var u = ENGINE.userBy(P, me), pr = u ? String(u.peran || '') : '';
   return { sh: pr.indexOf('PENYETUJU') === 0 || !!ENGINE.delegasiFor(P, me, 'VAL', today), ar: pr.indexOf('PEMBUAT') === 0 || (!P.users.length), u: u };
+}
+/** v2.9.3: RA alur Section Head final tanpa langkah persetujuan — keputusan = pilihan Section Head, disahkan atas nama Section Head yang memilih,
+ *  bukti tertulis = TTD basah di Lembar RA–RI. rec & snap diubah di tempat (status DISETUJUI, sidik data/keputusan, kode). */
+function raFinal_(rec, snap, rp, now) {
+  var err = ENGINE.valApplyDecisions(snap, (snap.items || []).map(function (it) { return { nomor: it.nomor, d: it.u || 'N', a: it.alasan || '' }; }));
+  if (err) throw new Error(err);
+  rec.sidik = ENGINE.valSidik(snap.fp0 || String(rec.sidik).split('/')[0], snap.items); rec.nilai = Math.round(snap.nilai || 0); rec.data = JSON.stringify(snap);
+  rec.status = 'DISETUJUI'; rec.putus_oleh = String(rp.shBy || ''); rec.putus_waktu = now;
+  rec.catatan = '[DISAHKAN PILIHAN SECTION HEAD] dipilih ' + (rp.shBy || 'Section Head') + (rp.sentAt ? ' ' + rp.sentAt : '') + ' · tanggal rencana cair oleh AR · bukti tertulis: TTD basah Lembar RA–RI';
+  rec.kode = sign_({ id: rec.id, jenis: String(rec.jenis).toUpperCase(), ref: rec.ref, sidik: rec.sidik, putus_oleh: rec.putus_oleh, putus_waktu: now, status: 'DISETUJUI' });
+  return rec;
+}
+/** revisi sebelumnya untuk bulan yang sama tetap sah sebagai riwayat, ditandai digantikan */
+function raMarkReplaced_(A, rec, ref) {
+  A.rows.filter(function (x) { return x.id !== rec.id && String(x.jenis).toUpperCase() === ENGINE.DOC.VAL && String(x.ref) === ref && String(x.status).toUpperCase() === 'DISETUJUI'; })
+    .forEach(function (x) { if (!/DIGANTI oleh/.test(String(x.catatan))) A.sh.getRange(x._row, A.map.catatan).setNumberFormat('@').setValue((String(x.catatan || '') + ' · DIGANTI oleh ' + rec.id).replace(/^ · /, '')); });
+}
+/** pengajuan RA alur Section Head yang dibuat sebelum v2.9.3 dan masih MENUNGGU → difinalkan otomatis saat Rencana Termin dibuka */
+function raAutoFinal_(ref) {
+  var A = apprRows_(), r = A.rows.filter(function (x) { return String(x.jenis).toUpperCase() === ENGINE.DOC.VAL && String(x.ref) === ref && String(x.status).toUpperCase() === 'MENUNGGU'; }).pop();
+  if (!r) return false; var data = null; try { data = JSON.parse(String(r.data || '')); } catch (e) { } if (!data || data.flow !== 'SH') return false;
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), rp = raPlan_(ref) || {};
+    raFinal_(r, data, rp, now);
+    ['status', 'putus_oleh', 'putus_waktu', 'catatan', 'kode', 'sidik', 'data'].forEach(function (k) { if (A.map[k]) A.sh.getRange(r._row, A.map[k]).setNumberFormat('@').setValue(r[k]); });
+    if (A.map.nilai) A.sh.getRange(r._row, A.map.nilai).setNumberFormat(NUMF.money).setValue(r.nilai);
+    raMarkReplaced_(A, r, ref);
+    rp.st = 'DONE'; rp.finalAt = now; rp.apv = r.id; raPlanSet_(ref, rp);
+  } finally { lock.releaseLock(); }
+  arQueueAfterSave_(); arDiag_('RA', 'Pengajuan ' + r.id + ' (' + ref + ') difinalkan otomatis (alur v2.9.3, tanpa langkah persetujuan)');
+  return true;
 }
 /** action: sh-save · sh-send (Section Head) · ar-save · ar-back (AR). pl: { items:[{nomor,u}|{nomor,d}], cic:{key:{pct,ke,kn}}, al:{key:alasan}, pj:{key:teks}, note } */
 function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
