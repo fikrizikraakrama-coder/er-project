@@ -843,7 +843,6 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <div><label for="fTgl">Invoice date</label><input id="fTgl" type="date"></div>
         </div>
         <div class="note" id="noNote" hidden></div>
-        <div id="revBox" hidden><label for="fAlasan">Reason for revision (required)</label><input id="fAlasan" placeholder="e.g. progress value corrected by owner"></div>
       </fieldset>
       <fieldset class="stp" data-ivstep="2">
         <legend><i>2</i>Billing amount</legend>
@@ -1017,6 +1016,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
       <div class="pkgbar"><button class="btn" id="btnPkgSubmit" hidden>Submit to Section Head</button><button class="btn green" id="btnPkgOk" hidden>Approve</button><button class="btn red" id="btnPkgNo" hidden>Reject</button></div>
     </div>
     <div class="actions fxa" id="act-buat">
+      <!-- v2.9.3: alasan revisi di bar simpan (selalu terlihat, di langkah mana pun) -->
+      <div id="revBox" hidden style="margin-bottom:8px"><label for="fAlasan" style="font-weight:700;color:#8A5300">✏️ Reason for revision (required)</label><input id="fAlasan" placeholder="e.g. DPP corrected per BAPP / retention position fixed"></div>
       <div class="status" id="saveStatus"></div>
       <div class="fxbar"><button class="btn" id="btnSave" type="button">Save</button>
         <div class="prm"><button class="btn" id="btnPrintM" type="button">Print ▾</button><div class="prm-dd" id="prmDd" hidden><button type="button" id="btnPInv">Invoice</button><button type="button" id="btnPKw">Receipt (kwitansi)</button><button type="button" id="btnPBap">BAP</button><button type="button" id="btnPAll">All documents</button></div></div>
