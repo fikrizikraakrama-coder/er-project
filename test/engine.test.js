@@ -462,3 +462,9 @@ test('v2.9.3 penjelasan "Sisa PPN" bila netto sudah lunas dan tinggal PPN', () =
   assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 3', net0: 0, full: 100, sisa0: 11 }, 0, 0), 'Sisa PPN Prog 3');
   assert.strictEqual(ENGINE.raPlanPj({ invke: 'Progres 3', net0: 100, full: 100, sisa0: 111 }, 0, 0), 'Prog 3');
 });
+
+test('v2.9.3 invoice WIKA-WITON (jasa manajemen) tanpa nilai kontrak tidak dianggap error', () => {
+  const base = { c: { bayar: 1e8, total: 1.11e8 }, jenis: 'PROGRES', tgl: '2026-11-02', today: '2026-11-03', kontrak: 0 };
+  assert.ok(!ENGINE.invoiceChecks(Object.assign({ pro: { template: 'WIKA-WITON', tarif: 0.02 } }, base)).some(w => /Contract value/.test(w.t)));
+  assert.ok(ENGINE.invoiceChecks(Object.assign({ pro: { template: 'UMUM', tarif: 0.02 } }, base)).some(w => /Contract value/.test(w.t)));
+});

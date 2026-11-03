@@ -2893,7 +2893,8 @@ var ENGINE = (function () {
     var self = normInv(x.nomor || ''), prog = (p.prog || []).filter(function (r) { return normInv(r[0]) !== self; });
     if (!x.tgl) add('E', 'fTgl', 'Invoice date is empty');
     else if (x.today && x.tgl > x.today) add('E', 'fTgl', 'Invoice date is in the future', tglPanjang(x.tgl) + ' is after today.');
-    if (!(N(x.kontrak) > 0) && x.jenis === 'PROGRES') add('E', 'fPro', 'Contract value is empty', 'Fill the contract value in Master Proyek first.');
+    // v2.9.3: WIKA-WITON (jasa manajemen berjalan, ditagih per bulan dari rincian jasa) memang tidak punya nilai kontrak
+    if (!(N(x.kontrak) > 0) && x.jenis === 'PROGRES' && U(p.template) !== 'WIKA-WITON') add('E', 'fPro', 'Contract value is empty', 'Fill the contract value in Master Proyek first.');
     if (c && x.jenis === 'PROGRES' && N(x.kontrak) > 0 && N(c.progres) > 0) {
       var before = sumBy(prog, function (r) { return N(r[1]); }), cum = before + N(c.progres), pc = cum / N(x.kontrak);
       if (pc > 1.0005) add('E', 'fProgres', 'Progress exceeds the contract', 'Cumulative becomes ' + pctTxt(pc) + ' of contract ' + fmtRp(x.kontrak) + ' (billed before: ' + fmtRp(before) + '). Maximum this invoice: ' + fmtRp(Math.max(0, N(x.kontrak) - before)) + '.', { id: 'fProgres', v: Math.max(0, rnd(N(x.kontrak) - before)) });
