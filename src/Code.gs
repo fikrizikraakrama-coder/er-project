@@ -811,6 +811,8 @@ function renameNpp() { arRequireMaker_();
     r.setValues(v);
   });
   var kp = ss.getSheetByName('Kartu Piutang'); if (kp && String(kp.getRange('C5').getValue()).trim() === oldN) kp.getRange('C5').setValue(newN);
+  // v2.9.3: catat penggantian agar tab kartu di file P&E ikut diganti (riwayatnya tetap, tidak membuat tab baru yang kosong)
+  try { var rm = JSON.parse(arProps_().getProperty('NPP_RENAME') || '{}'); rm[oldN] = newN; arProps_().setProperty('NPP_RENAME', JSON.stringify(rm)); } catch (e) { }
   rebuildAll();
   ui.alert(n + ' sel NPP diganti dari ' + oldN + ' menjadi ' + newN + '.');
 }

@@ -444,6 +444,7 @@ function arPushPE_(res,npps,onlyName) {
     writeReport_(rs,sum,'RINGKASAN',{key:'PE28_'+ss.getId()+'_RINGKASAN'});rs.setFrozenRows(7); rs.setHiddenGridlines(true);
   }
   var all=ss.getSheets(),list=ENGINE.proyekAR(res.ctx).sort(),names=['RINGKASAN'],count=0,start=Date.now();
+  arPERenamed_(ss,res,all);
   list.forEach(function(n,ix){
     var p=res.ctx.M.pro[n];if(!p)return;
     var name=(n+' '+p.singkat).replace(/[\[\]*?\/\\:']/g,'-').slice(0,90),sh=all.filter(function(s){return s.getName().indexOf(n)===0;})[0];
@@ -472,6 +473,16 @@ function arPushPE_(res,npps,onlyName) {
   if(arsipN.length)ss.getSheets().forEach(function(sheet){var nm=sheet.getName();if(arsipN.some(function(n){return nm.indexOf(n)===0;})&&!sheet.isSheetHidden()){try{sheet.hideSheet();}catch(e){}}});
   arOrderNamed_(ss,names);dropDefaultSheet_(ss);
   return count;
+}
+/** v2.9.3: NPP yang diganti (menu Ganti NPP proyek / diketik di Master Proyek) — tab kartu NPP lama diganti nama ke NPP baru bila tab baru belum ada;
+ *  tab NPP yang tidak ada lagi di Master Proyek diberi tanda jelas (tidak diperbarui) dan disembunyikan, supaya P&E tidak membaca kartu yang berhenti */
+function arPERenamed_(ss,res,all){
+  var rm={};try{rm=JSON.parse(arProps_().getProperty('NPP_RENAME')||'{}');}catch(e){}
+  var pro=res.ctx.M.pro||{},arsip=res.ctx.M.arsip||{},nppOf=function(nm){var m=String(nm).match(/^(\d{3}[A-Z] \d{4} [A-Z]{2})/);return m?m[1]:'';};
+  Object.keys(rm).forEach(function(o){var n=rm[o],p=pro[n];if(!p)return;var so=all.filter(function(s){return nppOf(s.getName())===o;})[0],sn=all.filter(function(s){return nppOf(s.getName())===n;})[0];
+    if(so&&!sn){try{so.setName((n+' '+p.singkat).replace(/[\[\]*?\/\\:']/g,'-').slice(0,90));arProps_().deleteProperty('PE28_'+ss.getId()+'_'+o);}catch(e){}}});
+  all.forEach(function(s){var n=nppOf(s.getName());if(!n||pro[n]||arsip[n])return;
+    try{s.getRange('A3').setValue('⚠ NPP '+n+' TIDAK ADA LAGI DI MASTER PROYEK'+(rm[n]?' — sudah diganti menjadi '+rm[n]+', lihat tab '+rm[n]:' (kemungkinan NPP diganti)')+' · tab ini tidak diperbarui lagi').setFontColor('#B42318').setFontWeight('bold');if(!s.isSheetHidden())s.hideSheet();}catch(e){}});
 }
 function arEnablePE() {
   arRequireOwner_();var lock=arLock_();lock.waitLock(28000);try {
