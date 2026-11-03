@@ -1065,7 +1065,7 @@ function arPushPajak_(res,opt) {
   if(ss.getSpreadsheetTimeZone()!==TZ)ss.setSpreadsheetTimeZone(TZ);
   var put=function(name,rep,t1,t2,idx){
     var sh=ss.getSheetByName(name);if(!sh)sh=ss.insertSheet(name,Math.min(idx,ss.getSheets().length));names.push(name);
-    var key='PJ285_'+ss.getId()+'_'+name,dg=ENGINE.hash(JSON.stringify(rep.blocks.map(function(b){return b.rows;}))+'|'+ENGINE.VERSION);
+    var key='PJ285_'+ss.getId()+'_'+name,dg=ENGINE.hash(JSON.stringify(rep.blocks.map(function(b){return b.rows;}))+'|'+ENGINE.VERSION+'|RT1');
     sh.getRange('A3').setValue('Diperbarui '+stamp+' WIB · Sistem AR CSU v'+ENGINE.VERSION+' · isi file ini ditimpa sistem, jangan diubah manual.');
     if(arProps_().getProperty(key)===dg&&sh.getLastRow()>6)return;
     sh.getRange('A1').setValue(t1).setFontSize(14).setFontWeight('bold').setFontColor(C.navy);

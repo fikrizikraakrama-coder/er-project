@@ -353,6 +353,19 @@ function cellLen_(v, f) {
 }
 /** posisi kolom fisik untuk kolom logis j (kolom pertama blok ber-"span" menempati beberapa kolom yang digabung) */
 function physCol_(b, j) { return b.c + (j === 0 || !(b.span > 1) ? j : j + b.span - 1); }
+/** v2.9.3: sel =HYPERLINK("url","teks") ditulis ulang sebagai teks bertautan (rich text) — rumus lewat setValues
+ *  bisa gagal dibaca (#ERROR!) bila locale file memakai pemisah argumen lain (mis. file turunan Pajak). */
+function arLinkCells_(rg, vals) {
+  var re = /^=HYPERLINK\("([^"]+)","([^"]*)"\)$/, nc = vals.length ? vals[0].length : 0;
+  for (var j = 0; j < nc; j++) {
+    var any = false, allText = true;
+    for (var i = 0; i < vals.length; i++) { var v = vals[i][j]; if (typeof v === 'string' && re.test(v)) any = true; else if (v !== '' && typeof v !== 'string') allText = false; }
+    if (!any) continue;
+    var rt = function (v) { var m = typeof v === 'string' ? re.exec(v) : null; var b = SpreadsheetApp.newRichTextValue(); return m ? b.setText(m[2]).setLinkUrl(m[1]).build() : b.setText(String(v)).build(); };
+    if (allText) { rg.offset(0, j, vals.length, 1).setRichTextValues(vals.map(function (r) { return [rt(r[j])]; })); continue; }
+    for (var i2 = 0; i2 < vals.length; i2++) if (typeof vals[i2][j] === 'string' && re.test(vals[i2][j])) rg.offset(i2, j, 1, 1).setRichTextValue(rt(vals[i2][j]));
+  }
+}
 function writeReport_(sh, rep, name, opt) {
   opt = opt || {};
   var from = rep.from, maxR = sh.getMaxRows(), maxC = sh.getMaxColumns(), need = from;
@@ -393,7 +406,7 @@ function writeReport_(sh, rep, name, opt) {
       }
     });
     var rg = sh.getRange(b.r, b.c, vals.length, pw);
-    rg.setNumberFormats(fmts); rg.setValues(vals);
+    rg.setNumberFormats(fmts); rg.setValues(vals); arLinkCells_(rg, vals);
     arAlignBlock_(sh, b, vals, pw, fmts);
     lastRow = Math.max(lastRow, b.r + vals.length - 1);
     if (span > 1) {
