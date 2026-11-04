@@ -788,6 +788,94 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 #mode-buka table.list td{overflow-wrap:anywhere}
 #mode-tbayar table.list{table-layout:fixed}#mode-tbayar table.list th:nth-child(1){width:30%}#mode-tbayar table.list th:nth-child(3){width:30%}#mode-tbayar table.list td{overflow-wrap:anywhere}#mode-tbayar tr[data-open]{cursor:pointer}#mode-tbayar td .num{white-space:nowrap}#mode-tbayar tr[data-open]:hover td{background:#F2F7FA}#mode-tbayar tr.sel td{background:#E3F1F2}
 .pnpp{font-size:11.5px;font-weight:600;color:#24478F}.pho{display:inline-block;margin-top:2px;font-size:11px;font-weight:600}.pho.n{color:#B45309}.pho.y{color:#0F6E78}
+/* v2.9.4: menu Kartu Piutang (layar penuh, AR Officer · Section Head · manajemen) */
+#kpWrap{flex:1;overflow:hidden;background:#F1F4F8}
+.kp{display:grid;grid-template-columns:320px minmax(0,1fr);height:100%;min-height:0;font-size:13px;color:#14213D}
+.kp .num{font-variant-numeric:tabular-nums}
+.kp-side{background:#fff;border-right:1px solid #E3E9F0;display:flex;flex-direction:column;min-height:0}
+.kp-sh{padding:16px 16px 10px;border-bottom:1px solid #E3E9F0}
+.kp-sh h2{margin:0;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}.kp-sh h2 small{font-weight:600;color:#5B6B82;font-size:12px}
+.kp-tot{margin:6px 0 10px;font-size:21px;font-weight:700;letter-spacing:-.01em}.kp-tot small{display:block;font-size:11.5px;font-weight:400;color:#5B6B82;letter-spacing:0}
+.kp-q{width:100%;border:1px solid #CBD4DF;border-radius:9px;padding:7px 10px;background:#FAFBFD;font:inherit}
+.kp-seg{display:flex;background:#EEF2F6;border-radius:9px;padding:3px;margin-top:10px;gap:2px}
+.kp-seg button{flex:1;border:0;background:none;font:inherit;font-size:11.8px;font-weight:600;color:#5B6B82;padding:5px 0;border-radius:7px;cursor:pointer;white-space:nowrap}
+.kp-seg button i{display:block;font-style:normal;font-size:10.5px;font-weight:700;color:#8A97A8;line-height:1.1}.kp-seg button.on i{color:#147F89}.kp-seg button.on{background:#fff;color:#14213D;box-shadow:0 1px 2px rgba(20,33,61,.12)}
+.kp-list{overflow:auto;flex:1;padding:4px 10px 16px}
+.kp-g{display:flex;align-items:center;gap:8px;padding:12px 6px 5px}.kp-g b{font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kp-g span.num{font-size:11.5px;color:#5B6B82;font-weight:600}
+.kp-av{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+.kp-it{position:relative;display:block;width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit;padding:9px 10px 9px 12px;border-radius:10px;margin:1px 0;cursor:pointer}
+.kp-it:hover{background:#F5F8FB}.kp-it.on{background:#E3F3F4}.kp-it.on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:2px;background:#147F89}
+.kp-it .r1,.kp-it .r2{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.kp-it .r1 b{font-size:12.5px}
+.kp-it .r2{font-size:11.5px;color:#5B6B82;margin-top:2px}.kp-it .r2 .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.kp-mini{height:4px;border-radius:2px;background:#E8EDF3;margin-top:6px;display:flex;overflow:hidden}.kp-mini i{display:block;height:100%}
+.kp-st{display:inline-flex;align-items:center;gap:4px;font-size:10.8px;font-weight:600;white-space:nowrap}.kp-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.kp-st.ok{color:#2F7D4F}.kp-st.wt{color:#A36A00}.kp-st.no{color:#8A97A8}.kp-st.bk{color:#C0362C}
+.kp-od{color:#C0362C;font-weight:700;font-size:10.8px;white-space:nowrap}
+.kp-main{overflow:auto;padding:20px 24px 40px;min-width:0}
+.kp-card{background:#fff;border:1px solid #E3E9F0;border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(20,33,61,.04)}
+.kp-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.kp-crumb{font-size:12px;color:#5B6B82;display:flex;gap:6px;align-items:center}.kp-crumb .kp-av{width:20px;height:20px;font-size:9px;border-radius:6px}
+.kp h1{margin:4px 0 2px;font-size:20px;letter-spacing:-.01em;line-height:1.25}.kp h1 .npp{color:#0F5F67}
+.kp-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.kp-pill{font-size:11.5px;background:#F1F4F8;color:#5B6B82;border-radius:6px;padding:2px 8px}.kp-pill b{color:#14213D;font-weight:600}
+.kp-tools{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+.kp-asof{display:flex;align-items:center;background:#F1F4F8;border-radius:9px;padding:3px;gap:2px}
+.kp-asof button{border:0;background:none;font:inherit;font-size:12px;font-weight:600;color:#5B6B82;padding:5px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}.kp-asof button.on{background:#fff;color:#14213D;box-shadow:0 1px 2px rgba(20,33,61,.12)}
+.kp-asof input{width:128px;border:0;background:transparent;font:inherit;font-size:12px;padding:4px 6px;color:#14213D}
+.kp-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.kp-comp{margin-top:18px}.kp-comp .klbl{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#5B6B82;margin-bottom:6px}.kp-comp .klbl b{color:#14213D}
+.kp-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#E8EDF3}.kp-bar i{display:block;height:100%}
+.kp-leg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.kp-lg{border-left:3px solid;padding:2px 0 2px 10px;min-width:0}.kp-lg small{display:block;color:#5B6B82;font-size:11.5px}.kp-lg b{font-size:17px;display:block;letter-spacing:-.01em}.kp-lg em{font-style:normal;font-size:11.5px;color:#5B6B82}
+.kp-row2{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-top:14px}
+.kp-pan{background:#fff;border:1px solid #E3E9F0;border-radius:14px;padding:14px 16px}
+.kp-pan h3{margin:0 0 10px;font-size:12px;color:#5B6B82;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between}.kp-pan h3 span{text-transform:none;letter-spacing:0;font-weight:600;color:#14213D}
+.kp-age{display:grid;grid-template-columns:76px 1fr 120px;gap:8px;align-items:center;margin:7px 0;font-size:12px}
+.kp-age .tr{height:8px;background:#EEF2F6;border-radius:4px;overflow:hidden}.kp-age .tr i{display:block;height:100%;border-radius:4px}.kp-age .v{text-align:right;font-weight:600}
+.kp-ap{display:flex;flex-direction:column;justify-content:space-between;border-radius:14px;padding:14px 16px;border:1px solid;gap:10px}
+.kp-ap.a{background:linear-gradient(180deg,#FFF8E6,#FFF3D4);border-color:#F2DA94}.kp-ap.g{background:linear-gradient(180deg,#EEF8F1,#E4F4EA);border-color:#B4DEC2}.kp-ap.n{background:#fff;border-color:#E3E9F0}.kp-ap.rr{background:#FDF1EF;border-color:#F3C3BC}
+.kp-ap .h{display:flex;gap:10px;align-items:flex-start}.kp-ap .ic2{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;flex:none;font-size:14px}
+.kp-ap.a .ic2{background:#E0A100}.kp-ap.g .ic2{background:#2F7D4F}.kp-ap.n .ic2{background:#B6C1CE}.kp-ap.rr .ic2{background:#C0362C}
+.kp-ap b{display:block;font-size:13px}.kp-ap p{margin:2px 0 0;font-size:12px;color:#5B6B82}
+.kp-steps{display:flex;gap:6px;font-size:11px}.kp-steps span{flex:1;text-align:center;padding:4px 0;border-radius:6px;background:rgba(255,255,255,.75);color:#5B6B82;font-weight:600;border:1px solid rgba(20,33,61,.06)}.kp-steps span.d{background:#2F7D4F;color:#fff}.kp-steps span.c{background:#E0A100;color:#fff}
+.kp-ap .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.kp-sec{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 8px;gap:10px}.kp-sec h2{margin:0;font-size:15px}
+.kp-tabs{display:flex;gap:2px;background:#E8EDF3;border-radius:9px;padding:3px}.kp-tabs button{border:0;background:none;font:inherit;padding:5px 11px;border-radius:7px;font-weight:600;font-size:12px;color:#5B6B82;cursor:pointer;white-space:nowrap}.kp-tabs button.on{background:#fff;color:#14213D;box-shadow:0 1px 2px rgba(20,33,61,.12)}
+.kp-inv{background:#fff;border:1px solid #E3E9F0;border-radius:12px;margin-bottom:8px;overflow:hidden}
+.kp-ih{display:grid;grid-template-columns:16px minmax(0,1.7fr) 1fr 1fr 1fr 138px;gap:10px;align-items:center;padding:11px 14px;cursor:pointer;width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left}
+.kp-ih:hover{background:#FAFBFD}.kp-ih .car{color:#8A97A8;font-size:11px}
+.kp-ih .t{min-width:0}.kp-ih .t b{display:block;font-size:13px}.kp-ih .t small{display:block;color:#5B6B82;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kp-c small{display:block;font-size:10.5px;color:#8A97A8;text-transform:uppercase;letter-spacing:.04em}.kp-c span{font-weight:600}.kp-c.sal span{color:#0F5F67;font-size:14px;font-weight:700}
+.kp-bd{justify-self:end;font-size:11px;font-weight:700;border-radius:20px;padding:3px 10px;white-space:nowrap}
+.kp-bd.rr{background:#FDEDEB;color:#C0362C}.kp-bd.a{background:#FFF5DC;color:#A36A00}.kp-bd.g{background:#E4F4EA;color:#2F7D4F}.kp-bd.n{background:#EEF2F6;color:#5B6B82}
+.kp-pb{height:3px;background:#EEF2F6}.kp-pb i{display:block;height:100%;background:#2F7D4F}
+.kp-tl{border-top:1px solid #E3E9F0;background:#FBFCFD;padding:6px 14px 10px 40px}
+.kp-ev{display:grid;grid-template-columns:14px 74px minmax(0,1fr) 120px 120px 120px;gap:10px;align-items:start;padding:6px 0;font-size:12.3px;position:relative}
+.kp-ev .dt{width:10px;height:10px;border-radius:50%;border:2px solid #14213D;background:#fff;margin-top:4px}
+.kp-ev:not(:last-child) .dt::after{content:"";position:absolute;left:4px;top:22px;bottom:-6px;width:2px;background:#E3E9F0}
+.kp-ev .d{color:#5B6B82}.kp-ev .s{color:#8A97A8;font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.kp-ev .k{text-align:right;font-weight:600}.kp-ev .bal{text-align:right;color:#5B6B82}
+.kp-ev .ku small{display:block;color:#8A97A8;font-size:11px}
+.kp-ev.cr .dt{border-color:#2F7D4F}.kp-ev.cr .k{color:#2F7D4F}.kp-ev.pt .dt{border-color:#A36A00}.kp-ev.pt .k{color:#A36A00}
+.kp-ev.end .dt{border-color:#147F89;background:#147F89}.kp-ev.end{font-weight:700}.kp-ev.end .bal{color:#0F5F67}
+.kp-new{font-size:9.5px;font-weight:700;background:#147F89;color:#fff;border-radius:4px;padding:0 5px;margin-left:5px;vertical-align:1px}
+.kp-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#12294A;color:#fff;border-radius:12px;padding:12px 16px;margin-top:10px}
+.kp-foot small{color:#9FB3CC;display:block;font-size:11px}.kp-foot b{font-size:15px}.kp-foot .g3{display:flex;gap:28px;text-align:right}
+.kp-more{display:block;width:100%;border:1px dashed #CBD4DF;background:#fff;border-radius:10px;padding:9px;font:inherit;font-weight:600;color:#5B6B82;cursor:pointer;margin:4px 0 8px}
+.kp-ta{width:100%;border-collapse:collapse;font-size:12.3px;background:#fff;border:1px solid #E3E9F0;border-radius:12px;overflow:hidden}
+.kp-ta th{background:#F6F8FB;text-align:left;font-weight:600;color:#5B6B82;font-size:11px;padding:8px 10px;border-bottom:1px solid #E3E9F0;white-space:nowrap}.kp-ta td{padding:8px 10px;border-bottom:1px solid #EEF1F5}.kp-ta .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kp-ta tr.t td{font-weight:700;background:#F6F8FB}
+.kp-empty{padding:40px 20px;text-align:center;color:#5B6B82}
+.kp-sk{background:linear-gradient(90deg,#EEF2F6 25%,#F6F8FB 50%,#EEF2F6 75%);background-size:200% 100%;animation:kpsk 1.2s infinite;border-radius:10px}
+@keyframes kpsk{to{background-position:-200% 0}}
+.kp-mpick{display:none}
+@media(max-width:1250px){.kp{grid-template-columns:270px minmax(0,1fr)}.kp-leg{grid-template-columns:repeat(2,minmax(0,1fr))}.kp-row2{grid-template-columns:1fr}.kp-ih{grid-template-columns:16px minmax(0,1.5fr) 1fr 1fr 118px}.kp-ih .kp-c.rc{display:none}.kp-ev{grid-template-columns:14px 70px minmax(0,1fr) 110px 110px}.kp-ev .s{display:none}}
+@media(max-width:700px){#kpWrap{overflow:auto}.kp{display:block;height:auto}.kp-side{display:none;border-right:0}.kp.mlist .kp-side{display:flex}.kp.mlist .kp-main{display:none}.kp-list{overflow:visible}
+ .kp-main{padding:12px 12px 90px;overflow:visible}.kp-mpick{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E3E9F0;border-radius:12px;padding:10px 12px;margin-bottom:10px;gap:10px}.kp-mpick small{color:#5B6B82;display:block}
+ .kp-card{padding:14px}.kp-top{flex-direction:column}.kp-tools{align-items:stretch;width:100%}.kp-asof button{flex:1}.kp-asof input{width:auto;flex:1.4}.kp-btns{justify-content:stretch}.kp-btns .btn{flex:1}
+ .kp-sec{flex-direction:column;align-items:stretch}.kp-tabs button{flex:1;padding:5px 4px}
+ .kp-ih{grid-template-columns:minmax(0,1fr) auto;gap:4px}.kp-ih .car,.kp-ih .kp-c:not(.sal){display:none}.kp-ih .kp-bd{grid-column:1;justify-self:start}.kp-ih .sal{grid-row:1;grid-column:2;text-align:right}
+ .kp-tl{padding:6px 12px 10px}.kp-ev{grid-template-columns:12px minmax(0,1fr) auto;row-gap:0}.kp-ev .d{grid-column:2;font-size:11px}.kp-ev .ku{grid-column:2}.kp-ev .k{grid-column:3;grid-row:1/3}.kp-ev .bal,.kp-ev .s{display:none}
+ .kp-foot .g3{gap:14px}.kp-foot .g3 div:not(:last-child){display:none}.kp-ta{display:block;overflow-x:auto}}
+@media(max-width:1500px){#tbNav .tb-it>svg{display:none}#tbNav .tb-it{padding:7px 10px}}
 </style>
 </head>
 <body>
@@ -861,7 +949,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <div class="hint" id="pctInfo"></div>
         </div>
         <div id="grpDpp" hidden>
-          <label for="fDpp" id="lblDpp">Amount billed / tax base (IDR)</label><input id="fDpp" inputmode="decimal" class="num">
+          <div class="row" id="dppRow"><div><label for="fDpp" id="lblDpp">Amount billed / tax base (IDR)</label><input id="fDpp" inputmode="decimal" class="num"></div><div id="umPctWrap" hidden><label for="fUmPct">or % of contract</label><input id="fUmPct" inputmode="decimal" placeholder="%"></div></div>
+          <div class="hint" id="umPctInfo" hidden></div>
           <div class="inline" id="ppnOnWrap" style="margin-top:6px"><input type="checkbox" id="fPpnOn" checked><label for="fPpnOn" style="margin:0">Charge VAT</label></div>
           <input id="fPpnRetAls" style="margin-top:6px" placeholder="written basis for VAT on retention (required when ticked)" hidden>
         </div>
@@ -1065,6 +1154,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="closeWrap" hidden></div>
     <div id="mdWrap" hidden></div>
     <div id="custWrap" hidden></div>
+    <div id="kpWrap" hidden></div>
     <div id="pkgBar" hidden></div>
   </main>
 </div>
@@ -1487,7 +1577,7 @@ function resetForm() {
 function toForm() {
   $('fPel').value = S.pelanggan; if (S.pelanggan) { var keep = S.npp; fillProyek(); if (keep) { S.npp = keep; $('fPro').value = keep; } } else $('fPro').innerHTML = '';
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
-  $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
+  $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
   $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fBapSpk').value = S.bapSpk || ''; $('fBapSpkTgl').value = S.bapSpkTgl || ''; $('fAlasan').value = S.alasan || '';
   $('fBappNo').value = S.bappNo || ''; $('fBappTgl').value = S.bappTgl || ''; $('fKwBeda').checked = !!S.kwBeda; $('kwBox').hidden = !S.kwBeda; $('fJudulKw').value = S.judulKw || ''; $('fPola').value = S.pola || '';
   fillSigner(); renderItems();
@@ -1579,6 +1669,11 @@ function update() {
   $('grpProgres').hidden = !(isProg && (tpl === 'UMUM' || tpl === 'IKK' || tpl === 'KIDOH'));
   $('grpDpp').hidden = !(tpl === 'FAJARPUTERA' || (!isProg && tpl !== 'WIKA-WITON'));
   $('ppnOnWrap').hidden = tpl === 'FAJARPUTERA';
+  // v2.9.4: uang muka — isian persen dari nilai kontrak (mengisi nilai tagihan), dan sebaliknya persen ditampilkan dari nilai yang diketik
+  var umOn = S.jenis === 'UANG MUKA' && tpl !== 'FAJARPUTERA' && tpl !== 'WIKA-WITON', kNet = p ? kontrak(p).net : 0;
+  $('umPctWrap').hidden = !umOn; $('umPctInfo').hidden = !umOn;
+  if (umOn) $('umPctInfo').innerHTML = !p ? '' : !kNet ? '<span style="color:var(--amber)">Contract value is empty in Master Proyek — fill it to bill the down payment by %.</span>'
+    : 'Contract value (incl. addenda) Rp ' + nfDot(kNet) + (num(S.dpp) ? ' · this down payment = <b>' + (Math.round(num(S.dpp) / kNet * 10000) / 100).toString().replace('.', ',') + '%</b> of contract' : '');
   $('fPpnRetAls').hidden = !(retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false);
   $('lblDpp').textContent = tpl === 'FAJARPUTERA' ? 'Current billing (IDR, excl. VAT)' : (S.jenis === 'RETENSI' ? 'Retention amount billed (IDR)' : 'Amount billed / tax base (IDR)');
   $('grpBap').hidden = tpl !== 'FAJARPUTERA' || IVSTEP !== 2; $('tabBap').hidden = tpl !== 'FAJARPUTERA'; $('btnPBap').hidden = tpl !== 'FAJARPUTERA';
@@ -2542,16 +2637,16 @@ function bindSurat() {
 
 /* ====================================================== mode */
 function setMode(m) {
-  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'exec';
-  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'plan', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim'].indexOf(m) < 0) m = 'setuju';
+  if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim', 'kp'].indexOf(m) < 0) m = 'exec';
+  if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'plan', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim', 'kp'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
-  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim'); $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
+  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'kp'); $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('kpWrap').hidden = m !== 'kp'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
   $('act-buat').hidden = m !== 'buat' || STACK; $('act-bayar').hidden = m !== 'bayar' || STACK;
   if (m === 'buka') renderList();
-  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
+  $('tabsBar').hidden = STACK || m === 'bayar' || m === 'tbayar' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'kp' || m === 'setuju' || m === 'dashboard' || m === 'surat' || m === 'dok';
   navShow(m);
   if (m === 'surat') { renderSuratList(); srPreview(); }
   if (m === 'dashboard') renderDashboard();
@@ -2560,6 +2655,7 @@ function setMode(m) {
   if (m === 'close') closeLoad();
   if (m === 'md') { if (MD.d) mdRender(); mdLoad(); }
   if (m === 'bal' || m === 'lim') custRender();
+  if (m === 'kp') kpRender();
   if (m === 'bayar' && !STACK) renderPayView();
   if ((m === 'buat' || m === 'buka') && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Select ' + (B && B.access && B.access.maker ? 'an item in the list on the left to view its approval sheet and submit it.' : 'a request in the list on the left to review and decide.') + '</div>'; }
@@ -2595,7 +2691,8 @@ function bind() {
   $('fProgres').oninput = function () { S.progres = num(this.value); S.pct = ''; $('fPct').value = ''; touched(); update(); };
   $('fProgres').onblur = function () { if (S.progres) this.value = nfDot(S.progres); };
   $('fPct').oninput = function () { var p = pro(), v = num(this.value); S.pct = this.value; if (p && kontrak(p).net && v) { S.progres = kontrak(p).net * v / 100; $('fProgres').value = nfDot(S.progres); } touched(); update(); };
-  $('fDpp').oninput = function () { S.dpp = num(this.value); touched(); update(); };
+  $('fDpp').oninput = function () { S.dpp = num(this.value); S.umPct = ''; $('fUmPct').value = ''; touched(); update(); };
+  $('fUmPct').oninput = function () { var p = pro(), v = num(this.value); S.umPct = this.value; if (p && kontrak(p).net && v) { S.dpp = Math.round(kontrak(p).net * v / 100); $('fDpp').value = nfDot(S.dpp); } touched(); update(); };
   $('fDpp').onblur = function () { if (S.dpp) this.value = nfDot(S.dpp); };
   $('fPpnOn').onchange = function () { S.ppnOn = this.checked; touched(); update(); };
   $('fPpnRetAls').oninput = function () { S.ppnRetensiAlasan = this.value; touched(); };
@@ -3031,6 +3128,13 @@ document.addEventListener('change', function (e) {
   else if (t.name === 'vdasar') { VUS.dasar = t.value; vRender(true); }
   else if (t.id === 'vRapat') { VUS.tglRapat = t.value; }
 });
+/* v2.9.4: tahun 2 digit di kolom tanggal (mis. diketik 29/10/26 → Chrome membacanya 0026) dibetulkan ke 20xx saat kolom ditinggalkan */
+document.addEventListener('focusout', function (e) {
+  var t = e.target; if (!t || t.type !== 'date' || !t.value) return;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t.value); if (!m || +m[1] >= 1000) return;
+  t.value = String(2000 + (+m[1] % 100)) + '-' + m[2] + '-' + m[3];
+  t.dispatchEvent(new Event('input', { bubbles: true })); t.dispatchEvent(new Event('change', { bubbles: true }));
+}, true);
 document.addEventListener('input', function (e) { if (!PKG || PKG._mode !== 'usul' || !VUS) return; var t = e.target; if (t.dataset && t.dataset.uc !== undefined) VUS.items[t.dataset.uc].c = t.value; });
 /* ---------- v2.7: pembatalan lembar validasi satu bulan ---------- */
 function pgValX(pkg) {
@@ -3711,15 +3815,16 @@ function pgPayReg() {
 var NAV_MAKER = [
   { id: 'dashboard', ic: 'home', t: 'Overview' },
   { g: 'cust', ic: 'users', t: 'Customers', items: [['md', 'book', 'Customer Master', 'customers, projects & addenda', '', 'BP'], ['bal', 'users', 'Customer Balances', 'open items & aging per customer, ledger', '', 'FD10N']] },
+  { id: 'kp', ic: 'book', t: 'Kartu Piutang' },
   { g: 'pen', ic: 'doc', t: 'Invoices', items: [['buat', 'doc', 'Create Invoice', 'invoice, receipt, BAP, draft tax invoice', '', 'FB70'], ['buka', 'book', 'Invoice List', 'search, revise, document filing, manual close', '', 'FBL5N'], ['act:xinv', 'xd', 'Cancel Invoice', 'cancel with Section Head approval', '', 'FB08']] },
   { g: 'pay', ic: 'bank', t: 'Payments', items: [['bayar', 'bank', 'Post Incoming Payment', 'bank transfer, offset, compensation', '', 'F-28'], ['tbayar', 'book', 'Payment List', 'receipts per month, approval sheets, print'], ['act:rev', 'rev', 'Reverse Payment', 'reverse a posted receipt (with approval)', '', 'FBRA']] },
   { g: 'col', ic: 'cal', t: 'Collections', badge: 'colBadge', y: 1, items: [['plan', 'cal', 'Rencana Termin (RA)', 'Section Head selects · AR fills dates → final', 'planBadge'], ['surat', 'mail', 'Dunning Letters', 'letters for overdue invoices, escalation', 'srBadge', 'F150'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { g: 'close', ic: 'fold', t: 'Month-End', badge: 'dokBadge', y: 1, items: [['close', 'chk', 'AR Closing Checklist', '10-step month-end check, sign-off, close period'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, handover to Accounting, ledgers']] },
   { id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }];
-var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin', badge: 'planBadge', y: 1 }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' },
+var NAV_APPR = [{ id: 'setuju', ic: 'shield', t: 'Approvals', badge: 'apBadge' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin', badge: 'planBadge', y: 1 }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'kp', ic: 'book', t: 'Kartu Piutang' },
   { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { g: 'close', ic: 'fold', t: 'Month-End', items: [['close', 'chk', 'AR Closing Checklist', 'month-end check & sign-off'], ['dok', 'fold', 'Documents & Handover', 'monthly summary, analysis, ledgers']] }];
-var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin' },
+var NAV_VIEW = [{ id: 'exec', ic: 'home', t: 'Executive Summary' }, { id: 'dashboard', ic: 'grid', t: 'Overview' }, { id: 'plan', ic: 'cal', t: 'Rencana Termin' }, { id: 'kp', ic: 'book', t: 'Kartu Piutang' },
   { g: 'cust', ic: 'users', t: 'Customers', items: [['bal', 'users', 'Customer Balances', 'open items & aging per customer', '', 'FD10N'], ['lim', 'lim', 'Credit Limits', 'limit vs exposure per customer', '', 'UKM_BP']] },
   { id: 'close', ic: 'chk', t: 'AR Closing' }, { id: 'dok', ic: 'fold', t: 'Reports' }];
 var NAV = NAV_MAKER;
@@ -3731,8 +3836,8 @@ function buildNav(maker) {
       '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { return '<button type="button" data-mode="' + it[0] + '"><i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + (it[5] ? '<em class="tc" title="SAP equivalent">' + esc(it[5]) + '</em>' : '') + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + '</button>'; }).join('') + '</div></div>';
     return '<button type="button" class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</button>';
   }).join('');
-  var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['plan', 'cal', 'Plan'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
-    : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['plan', 'cal', 'RA'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
+  var MN = maker ? [['dashboard', 'home', 'Overview'], ['buka', 'doc', 'Invoices'], ['bayar', 'bank', 'Receipts'], ['plan', 'cal', 'Plan'], ['kp', 'book', 'Kartu'], ['setuju', 'shield', 'Approvals', 'apBadgeM'], ['dok', 'fold', 'Close', 'dokBadgeM']]
+    : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['kp', 'book', 'Kartu'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['plan', 'cal', 'RA'], ['kp', 'book', 'Kartu'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
   $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
   document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (/^act:/.test(b.dataset.mode)) { navAct(b.dataset.mode.substring(4)); return; } if (STACK) closePackage(); setMode(b.dataset.mode); }; });
   document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
@@ -3751,7 +3856,7 @@ function navShow(m) {
   document.querySelectorAll('.tb-dd [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === m); });
   var grp = { buat: 'buka', surat: 'plan', tbayar: 'bayar', close: 'dok', md: 'dashboard', bal: 'dashboard', lim: 'plan' }[m] || m;
   document.querySelectorAll('#mNav [data-mode]').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === grp); });
-  var T = { dashboard: 'Overview', buat: 'Create Invoice', buka: 'Invoice List', surat: 'Dunning Letters', bayar: 'Post Incoming Payment', tbayar: 'Payment List', plan: 'Rencana Termin', exec: 'Executive Summary', close: 'AR Closing', md: 'Customer Master', bal: 'Customer Balances', lim: 'Credit Limits', dok: 'Documents & Handover', setuju: 'Approvals' };
+  var T = { dashboard: 'Overview', buat: 'Create Invoice', buka: 'Invoice List', surat: 'Dunning Letters', bayar: 'Post Incoming Payment', tbayar: 'Payment List', plan: 'Rencana Termin', exec: 'Executive Summary', close: 'AR Closing', md: 'Customer Master', bal: 'Customer Balances', kp: 'Kartu Piutang', lim: 'Credit Limits', dok: 'Documents & Handover', setuju: 'Approvals' };
   if ($('mTitle')) $('mTitle').textContent = T[m] || '';
 }
 function isPhone() { return !!(window.matchMedia && window.matchMedia('(max-width:700px)').matches); }
@@ -4547,7 +4652,190 @@ function custRender() {
   if ($('cuPrint')) $('cuPrint').onclick = function () { printHtml($('custWrap').innerHTML.replace('class="cu"', 'class="cu cup"')); };
   $('custWrap').querySelectorAll('[data-cumd]').forEach(function (r) { r.onclick = function () { MD.tab = 'PEL'; MD.sel = r.dataset.cumd; MD.edit = false; MD.q = ''; setMode('md'); }; });
   $('custWrap').querySelectorAll('[data-cuo]').forEach(function (r) { r.onclick = function () { CU.open = CU.open === r.dataset.cuo ? '' : r.dataset.cuo; custRender(); }; });
-  $('custWrap').querySelectorAll('[data-cukp]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); setMode('dok'); openPackage('KP', b.dataset.cukp + '|' + B.today); }; });
+  $('custWrap').querySelectorAll('[data-cukp]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); KP.npp = b.dataset.cukp; KP.asOf = ''; KP.open = {}; KP.tab = 'mut'; KP.mlist = false; setMode('kp'); }; });
+}
+/* ====================================================== v2.9.4: menu Kartu Piutang (daftar proyek + kartu interaktif; cetak A4 resmi tetap lewat paket KP) */
+var KP = { npp: '', asOf: '', q: '', f: 'saldo', cache: {}, bref: null, open: {}, tab: 'mut', lunas: false, mlist: false, seq: 0 };
+var KP_COL = ['#1F5FA8', '#C47A12', '#2F7D4F', '#7A4FB0', '#B0413E', '#147F89', '#5B6B82', '#8A6D1F'];
+function kpEom(ym) { var y = +ym.slice(0, 4), m = +ym.slice(5, 7); return ym.slice(0, 7) + '-' + ('0' + new Date(Date.UTC(y, m, 0)).getUTCDate()).slice(-2); }
+function kpPrevEom(d, k) { var y = +d.slice(0, 4), m = +d.slice(5, 7) - k; while (m < 1) { m += 12; y--; } return kpEom(y + '-' + ('0' + m).slice(-2)); }
+function kpTglS(d) { if (!d) return ''; var p = String(d).slice(0, 10).split('-'), B3 = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']; return +p[2] + ' ' + B3[+p[1] - 1] + ' ' + p[0].slice(2); }
+function kpTglL(d) { if (!d) return ''; var p = String(d).slice(0, 10).split('-'), BL = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']; return +p[2] + ' ' + BL[+p[1] - 1] + ' ' + p[0]; }
+function kpRp(v) { v = Math.round(+v || 0); return (v < 0 ? '−' : '') + nfDot(Math.abs(v)); }
+function kpM(v) { v = +v || 0; return v >= 1e9 ? (v / 1e9).toFixed(2).replace('.', ',') + ' M' : v >= 1e6 ? Math.round(v / 1e6) + ' jt' : nfDot(Math.round(v)); }
+function kpIni(n) { var w = String(n || '').replace(/^PT\.?\s+|\s+(TBK|\(PERSERO\))\.?$/gi, '').replace(/\(PERSERO\)/i, '').trim().split(/\s+/); return ((w[0] || '?')[0] + ((w[1] || '')[0] || '')).toUpperCase(); }
+function kpCol(n) { var h = 0; String(n).split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 997; }); return KP_COL[h % KP_COL.length]; }
+/** status TTD kartu per NPP dari daftar persetujuan (tanpa memanggil server) */
+function kpAppr(npp) {
+  var L = (B.approvals || []).filter(function (a) { return a.jenis === B.DOC.KP && String(a.ref).indexOf(npp + '|') === 0 && a.status !== 'DIBATALKAN'; });
+  return L.length ? L[L.length - 1] : null;
+}
+/** ringkasan per proyek dari data aplikasi yang sudah dimuat (cepat; kartu lengkap diambil saat proyek dibuka) */
+function kpRows() {
+  var T = B.today, M = {};
+  B.proyek.forEach(function (p) { M[p.npp] = { npp: p.npp, pel: p.pelanggan, nm: p.singkat || p.npp, p: p, saldo: 0, kas: 0, terima: 0, n: 0, od: 0, odV: 0, selesai: !!p.selesai, aktif: p.aktif }; });
+  B.invoices.forEach(function (i) {
+    if (i.status_inv === 'BATAL') return; var x = M[i.npp]; if (!x) return;
+    var s = i.closed ? 0 : Math.max(0, (+i.netto || 0) + (+i.ppn || 0) - (+i.keN || 0) - (+i.keP || 0) - (+i.pot_pph || 0)); x.kas += i.closed ? 0 : Math.max(0, +i.sisa || 0); x.terima += Math.max(0, +i.diterima || 0);
+    if (s > 0.5) { x.saldo += s; x.n++; if (i.jt) { var d = dayDiff(i.jt, T); if (d > 0) { x.od = Math.max(x.od, d); x.odV += s; } } }
+  });
+  var eomPrev = kpPrevEom(T, 1);
+  return Object.keys(M).map(function (k) {
+    var x = M[k], a = kpAppr(k), ap = a ? String(a.ref).split('|')[1] || '' : '';
+    var net = +x.p.nilai_ok || 0, billed = (x.p.prog || []).reduce(function (t, r) { return t + (+r[1] || 0); }, 0);
+    x.ap = a; x.apTgl = ap; x.st = !a ? 'no' : a.status === 'MENUNGGU' ? 'wt' : a.status === 'DISETUJUI' ? (a.berubah ? 'bk' : 'ok') : 'bk';
+    x.stTx = !a ? 'Belum diajukan' : a.status === 'MENUNGGU' ? 'Menunggu SH · per ' + kpTglS(ap) : a.status === 'DISETUJUI' ? (a.berubah ? 'Berubah sejak TTD ' + kpTglS(ap) : 'TTD per ' + kpTglS(ap)) : 'Dikembalikan SH';
+    x.ttdBulan = !!(a && a.status === 'DISETUJUI' && !a.berubah && ap >= eomPrev);
+    var bil = net ? Math.min(1, billed / net) : (x.saldo + x.terima ? 1 : 0), paidSh = x.saldo + x.terima ? x.terima / (x.saldo + x.terima) : 0;
+    x.mini = [bil * paidSh * 100, bil * (1 - paidSh) * 100];
+    return x;
+  });
+}
+function kpFilter(R) {
+  var q = KP.q.trim().toUpperCase(), f = KP.f;
+  return R.filter(function (x) {
+    if (f === 'saldo' && !(x.saldo > 0.5)) return false;
+    if (f === 'od' && !(x.odV > 0.5)) return false;
+    if (f === 'ttd' && !(x.saldo > 0.5 && !x.ttdBulan)) return false;
+    if (f === 'all' && x.selesai && !(x.saldo > 0.5)) return false;
+    return !q || (x.npp + ' ' + x.nm + ' ' + x.pel + ' ' + (x.p.pekerjaan || '')).toUpperCase().indexOf(q) >= 0;
+  });
+}
+function kpRender() {
+  if (KP.bref !== B) { KP.cache = {}; KP.bref = B; }
+  var R = kpRows(), L = kpFilter(R), tot = R.reduce(function (t, x) { return t + x.saldo; }, 0), nS = R.filter(function (x) { return x.saldo > 0.5; }).length;
+  if (!KP.npp || !R.some(function (x) { return x.npp === KP.npp; })) { var f0 = L.slice().sort(function (a, b) { return b.saldo - a.saldo; })[0]; KP.npp = f0 ? f0.npp : ''; }
+  var G = {}; L.forEach(function (x) { (G[x.pel] || (G[x.pel] = { pel: x.pel, v: 0, L: [] })).L.push(x); G[x.pel].v += x.saldo; });
+  var GL = Object.keys(G).map(function (k) { return G[k]; }).sort(function (a, b) { return b.v - a.v || (a.pel < b.pel ? -1 : 1); });
+  var cnt = { saldo: nS, od: R.filter(function (x) { return x.odV > 0.5; }).length, ttd: R.filter(function (x) { return x.saldo > 0.5 && !x.ttdBulan; }).length };
+  var seg = [['saldo', 'Bersaldo'], ['od', 'Lewat JT'], ['ttd', 'Belum TTD'], ['all', 'Semua']].map(function (s) { return '<button type="button" data-kpf="' + s[0] + '" class="' + (KP.f === s[0] ? 'on' : '') + '" title="' + (s[0] === 'ttd' ? 'Bersaldo dan belum disetujui Section Head per akhir bulan lalu' : '') + '">' + s[1] + '<i>' + (cnt[s[0]] !== undefined ? cnt[s[0]] : '&nbsp;') + '</i></button>'; }).join('');
+  var list = GL.length ? GL.map(function (g) {
+    return '<div class="kp-g"><span class="kp-av" style="background:' + kpCol(g.pel) + '">' + esc(kpIni(g.pel)) + '</span><b title="' + esc(g.pel) + '">' + esc(g.pel) + '</b><span class="num">' + (g.v > 0.5 ? kpM(g.v) : '–') + '</span></div>' +
+      g.L.sort(function (a, b) { return b.saldo - a.saldo || (a.npp < b.npp ? -1 : 1); }).map(function (x) {
+        return '<button type="button" class="kp-it' + (x.npp === KP.npp ? ' on' : '') + '" data-kpn="' + esc(x.npp) + '"><span class="r1"><b>' + esc(x.npp) + '</b><b class="num">' + (x.saldo > 0.5 ? kpRp(x.saldo) : '0') + '</b></span>' +
+          '<span class="r2"><span class="nm">' + esc(x.nm) + '</span>' + (x.od ? '<span class="kp-od">' + x.od + ' hr</span>' : '') + '</span>' +
+          '<span class="kp-mini"><i style="width:' + x.mini[0].toFixed(1) + '%;background:#2F7D4F"></i><i style="width:' + x.mini[1].toFixed(1) + '%;background:#147F89"></i></span>' +
+          '<span class="r2" style="margin-top:5px"><span class="kp-st ' + x.st + '">' + esc(x.stTx) + '</span></span></button>';
+      }).join('');
+  }).join('') : '<div class="kp-empty">Tidak ada proyek pada filter ini.</div>';
+  var w = $('kpWrap');
+  w.innerHTML = '<div class="kp' + (KP.mlist ? ' mlist' : '') + '"><div class="kp-side"><div class="kp-sh"><h2>Kartu Piutang <small>' + nS + ' proyek bersaldo</small></h2>' +
+    '<div class="kp-tot num">' + rpShort(tot) + '<small>saldo kartu piutang (termasuk PPN &amp; PPh yang nanti dipotong) per ' + esc(kpTglL(B.today)) + '</small></div>' +
+    '<input class="kp-q" id="kpQ" placeholder="Cari NPP, proyek, pelanggan…" value="' + esc(KP.q) + '"><div class="kp-seg">' + seg + '</div></div><div class="kp-list" id="kpList">' + list + '</div></div>' +
+    '<div class="kp-main" id="kpMain"></div></div>';
+  $('kpQ').oninput = function () { KP.q = this.value; var p = this.selectionStart, sc = $('kpList').scrollTop; kpRender(); var n = $('kpQ'); n.focus(); n.setSelectionRange(p, p); $('kpList').scrollTop = sc; };
+  w.querySelectorAll('[data-kpf]').forEach(function (b) { b.onclick = function () { KP.f = b.dataset.kpf; kpRender(); }; });
+  w.querySelectorAll('[data-kpn]').forEach(function (b) { b.onclick = function () { if (KP.npp !== b.dataset.kpn) { KP.npp = b.dataset.kpn; KP.open = {}; KP.lunas = false; KP.tab = 'mut'; } KP.mlist = false; w.querySelectorAll('.kp-it').forEach(function (x) { x.classList.toggle('on', x === b); }); w.querySelector('.kp').classList.remove('mlist'); kpLoad(); if (isPhone()) window.scrollTo(0, 0); }; });
+  kpLoad();
+}
+function kpAsOf() { return KP.asOf || B.today; }
+function kpLoad() {
+  var m = $('kpMain'); if (!m) return;
+  if (!KP.npp) { m.innerHTML = '<div class="kp-empty">Pilih proyek di daftar kiri.</div>'; return; }
+  var key = KP.npp + '|' + kpAsOf(), hit = KP.cache[key];
+  if (hit) return kpDetail(hit);
+  m.innerHTML = '<div class="kp-card"><div class="kp-sk" style="height:18px;width:40%"></div><div class="kp-sk" style="height:26px;width:70%;margin-top:10px"></div><div class="kp-sk" style="height:12px;margin-top:22px"></div><div class="kp-sk" style="height:46px;margin-top:14px"></div></div><div class="kp-sk" style="height:150px;margin-top:14px;border-radius:14px"></div><div class="kp-sk" style="height:60px;margin-top:14px"></div><div class="kp-sk" style="height:60px;margin-top:8px"></div>';
+  var my = ++KP.seq;
+  call('apiKartu', [KP.npp, kpAsOf()], function (k) { KP.cache[key] = k || { none: true }; if (my === KP.seq && MODE === 'kp') kpDetail(KP.cache[key]); },
+    function (e) { if (my === KP.seq) m.innerHTML = '<div class="kp-empty">Kartu tidak dapat dimuat: ' + esc(e.message || e) + ' <button class="btn sm" type="button" id="kpRetry">Coba lagi</button></div>'; if ($('kpRetry')) $('kpRetry').onclick = kpLoad; });
+}
+function kpDetail(k) {
+  var m = $('kpMain'), npp = KP.npp, p = B.proyek.filter(function (x) { return x.npp === npp; })[0] || {}, A = kpAsOf(), isToday = A === B.today;
+  if (!k || k.none) { m.innerHTML = '<div class="kp-empty">Kartu ' + esc(npp) + ' tidak ditemukan.</div>'; return; }
+  var acc = B.access || {}, maker = !!acc.maker, appr = !!acc.approver, T = k.T || {}, IV = {}; B.invoices.forEach(function (i) { IV[i.nomor] = i; });
+  // per invoice: ditagih, diterima (kas + pindah buku + potongan), saldo, umur per tanggal posisi
+  var inv = (k.groups || []).map(function (g, ix) {
+    var a = (k.A || [])[ix] || {}, deb = 0, kas = 0, pot = 0, run = 0, ev = [];
+    g.rows.forEach(function (r) {
+      if (r.kind === 'sisa') return; deb += r.kind === 'inv' ? r.debit : 0; if (r.kind === 'pot' || r.kind === 'adj') pot += r.kredit - r.debit; else if (r.kind !== 'inv') kas += r.kredit - r.debit;
+      run += (r.debit || 0) - (r.kredit || 0); ev.push({ r: r, run: run });
+    });
+    var sis = g.rows.filter(function (r) { return r.kind === 'sisa'; })[0] || {}, iv = IV[g.nomor] || {}, jt = iv.jt || '', sal = Math.abs(g.saldo) <= 1 ? 0 : g.saldo, dd = jt ? dayDiff(jt, A) : null;
+    var bd = sal <= 0 ? (sal < 0 ? ['a', 'Lebih bayar'] : ['g', /CLOSE/.test(g.status) ? 'Ditutup' : 'Lunas']) : jt === '' ? ['n', 'Tanpa JT'] : dd > 0 ? ['rr', 'Lewat ' + dd + ' hari'] : dd >= -7 ? ['a', dd === 0 ? 'JT hari ini' : 'JT ' + (-dd) + ' hari lagi'] : ['n', 'JT ' + kpTglS(jt)];
+    return { g: g, a: a, nomor: g.nomor, label: a.invke || iv.invke || '', tgl: a.tgl || iv.tgl, jt: jt, dd: dd, deb: deb, terima: kas + pot, sal: sal, bd: bd, ev: ev, ket: sis.ket || '', rb: g.rows.some(function (r) { return r.baru; }) };
+  });
+  var open = inv.filter(function (x) { return x.sal !== 0; }), done = inv.filter(function (x) { return x.sal === 0; });
+  if (!Object.keys(KP.open).length && open.length) { var nw = open.filter(function (x) { return x.rb; })[0] || open.slice().sort(function (a, b) { return (b.dd || -1e9) - (a.dd || -1e9); })[0]; if (nw) KP.open[nw.nomor] = 1; }
+  // umur saldo per tanggal posisi
+  var age = [0, 0, 0, 0, 0]; open.forEach(function (x) { if (x.sal < 0) return; if (x.dd === null) age[4] += x.sal; else if (x.dd <= 0) age[0] += x.sal; else if (x.dd <= 30) age[1] += x.sal; else if (x.dd <= 90) age[2] += x.sal; else age[3] += x.sal; });
+  var sal = T.saldo || 0, agMax = Math.max.apply(null, age.concat([1]));
+  var net = +k.nilai_ok || 0, bruto = T.brutoProg || 0, belum = k.sisaKontrak || 0, ret = T.ret || 0, terima = (T.kredit || 0) - 0, deb = T.debit || 0;
+  var pctB = net ? Math.min(100, bruto / net * 100) : 0, shP = deb ? Math.min(1, terima / deb) : 0;
+  var bar = net ? [pctB * shP, pctB * (1 - shP), net ? Math.min(100 - pctB, ret / net * 100) : 0] : [0, 0, 0];
+  var top = p.top ? p.top + ' hari' : '', dp = String(p.dasar_pph || '').toLowerCase();
+  var pills = [k.kontrak ? 'Kontrak <b>' + esc(k.kontrak) + '</b>' + (k.tgl_kontrak ? ' · ' + esc(kpTglS(k.tgl_kontrak)) : '') : '', k.tarif ? 'PPh <b>' + String(Math.round(k.tarif * 10000) / 100).replace('.', ',') + '%</b>' + (dp ? ' ' + esc(dp) : '') : '',
+    k.ret_pct ? 'Retensi <b>' + String(Math.round(k.ret_pct * 10000) / 100).replace('.', ',') + '%</b> ' + esc(String(k.ret_pos || '').toLowerCase()) : '', top ? 'TOP <b>' + top + '</b>' : '', k.kode_bp ? 'BP <b>' + esc(k.kode_bp) + '</b>' : ''].filter(String);
+  var eom1 = kpPrevEom(B.today, 1), eom2 = kpPrevEom(B.today, 2), qk = [['', 'Hari ini'], [eom1, kpTglS(eom1).replace(/ \d+$/, '')], [eom2, kpTglS(eom2).replace(/ \d+$/, '')]];
+  var asofH = '<div class="kp-asof">' + qk.map(function (q) { return '<button type="button" data-kpd="' + q[0] + '" class="' + (KP.asOf === q[0] ? 'on' : '') + '">' + esc(q[1]) + '</button>'; }).join('') +
+    '<input type="date" id="kpTgl" max="' + B.today + '" value="' + (KP.asOf && qk.every(function (q) { return q[0] !== KP.asOf; }) ? KP.asOf : '') + '" title="Tanggal posisi lain"></div>';
+  // persetujuan
+  var ap = kpAppr(npp), apD = ap ? String(ap.ref).split('|')[1] || '' : '', apH;
+  var step = function (a, b, c) { return '<div class="kp-steps"><span class="' + a + '">Diajukan AR</span><span class="' + b + '">Periksa SH</span><span class="' + c + '">Disetujui</span></div>'; };
+  if (ap && ap.status === 'MENUNGGU') apH = '<div class="kp-ap a"><div class="h"><span class="ic2">!</span><div><b>' + (appr ? 'Menunggu persetujuan Anda' : 'Menunggu persetujuan Section Head') + '</b><p>Diajukan ' + esc(ap.oleh_nama || '') + ' · ' + esc(kpTglS(String(ap.waktu).slice(0, 10))) + ' · posisi per ' + esc(kpTglL(apD)) + '</p></div></div>' + step('d', 'c', '') +
+    '<div class="acts">' + (appr ? '<button class="btn g" type="button" data-kpa="dec" data-ref="' + esc(ap.ref) + '">✓ Periksa &amp; setujui</button>' : '<button class="btn" type="button" data-kpa="see" data-ref="' + esc(ap.ref) + '">Lihat lembar</button>') + '</div></div>';
+  else if (ap && ap.status === 'DISETUJUI') apH = '<div class="kp-ap ' + (ap.berubah ? 'a' : 'g') + '"><div class="h"><span class="ic2">' + (ap.berubah ? '!' : '✓') + '</span><div><b>Disetujui ' + esc(ap.putus_nama || 'Section Head') + ' · ' + esc(kpTglS(String(ap.putus_waktu || ap.waktu).slice(0, 10))) + '</b><p>Posisi per ' + esc(kpTglL(apD)) + '.' +
+    (ap.berubah ? ' Data kartu per tanggal itu berubah setelah disetujui — ajukan ulang.' : apD < kpPrevEom(B.today, 1) ? ' Kartu akhir bulan lalu belum diajukan.' : '') + '</p></div></div>' + step('d', 'd', 'd') +
+    '<div class="acts"><button class="btn" type="button" data-kpa="see" data-ref="' + esc(ap.ref) + '">Lihat lembar TTD</button>' + (maker && (ap.berubah || apD < kpPrevEom(B.today, 1)) ? '<button class="btn p" type="button" data-kpa="sub">Ajukan TTD per ' + esc(kpTglS(A)) + '</button>' : '') + '</div></div>';
+  else apH = '<div class="kp-ap ' + (ap ? 'rr' : 'n') + '"><div class="h"><span class="ic2">' + (ap ? '↩' : '–') + '</span><div><b>' + (ap ? 'Dikembalikan Section Head' : 'Belum pernah diajukan') + '</b><p>' + (ap ? esc(ap.catatan || 'Periksa catatan pada lembar, perbaiki, lalu ajukan lagi.') : 'Kartu piutang proyek ditandatangani AR Officer & Section Head, biasanya per akhir bulan.') + '</p></div></div>' + step(ap ? 'd' : '', '', '') +
+    '<div class="acts">' + (ap ? '<button class="btn" type="button" data-kpa="see" data-ref="' + esc(ap.ref) + '">Lihat lembar</button>' : '') + (maker ? '<button class="btn p" type="button" data-kpa="sub">Ajukan TTD per ' + esc(kpTglS(A)) + '</button>' : '') + '</div></div>';
+  var ageRows = [['Belum JT', '#2F7D4F', age[0]], ['1–30 hr', '#7FC3C9', age[1]], ['31–90 hr', '#E0A100', age[2]], ['&gt; 90 hr', '#C0362C', age[3]]].concat(age[4] > 0.5 ? [['Tanpa JT', '#B6C1CE', age[4]]] : []);
+  var h = '<div class="kp-mpick"><div><small>Proyek</small><b>' + esc(npp) + ' · ' + esc(k.proyek || '') + '</b></div><button class="btn sm" type="button" id="kpPick">Ganti ▾</button></div>' +
+    '<div class="kp-card"><div class="kp-top"><div style="min-width:0"><div class="kp-crumb"><span class="kp-av" style="background:' + kpCol(k.pelanggan) + '">' + esc(kpIni(k.pelanggan)) + '</span>' + esc(k.pelanggan || '') + '</div>' +
+    '<h1><span class="npp">' + esc(npp) + '</span> · ' + esc(k.pekerjaan || k.proyek || '') + '</h1><div class="kp-meta">' + pills.map(function (x) { return '<span class="kp-pill">' + x + '</span>'; }).join('') + '</div></div>' +
+    '<div class="kp-tools">' + asofH + '<div class="kp-btns"><button class="btn" type="button" data-kpa="print">' + ico('print') + ' Cetak / PDF</button></div></div></div>' +
+    '<div class="kp-comp"><div class="klbl"><span>Nilai kontrak termasuk adendum <b class="num">' + (net ? 'Rp ' + nfDot(net) : '— belum diisi') + '</b></span><span>' + (net ? Math.round(pctB) + '% sudah ditagih (progres)' : '') + '</span></div>' +
+    '<div class="kp-bar"><i style="width:' + bar[0].toFixed(2) + '%;background:#2F7D4F"></i><i style="width:' + bar[1].toFixed(2) + '%;background:#147F89"></i><i style="width:' + bar[2].toFixed(2) + '%;background:#7FC3C9"></i></div>' +
+    '<div class="kp-leg"><div class="kp-lg" style="border-color:#2F7D4F"><small>Sudah diterima</small><b class="num">' + kpRp(terima) + '</b><em>kas, pindah buku &amp; PPh dipotong</em></div>' +
+    '<div class="kp-lg" style="border-color:#147F89"><small>Saldo piutang</small><b class="num" style="color:#0F5F67">' + kpRp(sal) + '</b><em>' + open.length + ' invoice terbuka' + (isToday ? ' · kas yang akan diterima Rp ' + kpRp(B.invoices.reduce(function (t, i) { return t + (i.npp === npp && i.status_inv !== 'BATAL' && !i.closed ? Math.max(0, +i.sisa || 0) : 0); }, 0)) + ' (setelah PPh)' : ' · termasuk PPN') + '</em></div>' +
+    '<div class="kp-lg" style="border-color:#7FC3C9"><small>Retensi tertahan</small><b class="num">' + kpRp(ret) + '</b><em>belum ditagih · cair saat serah terima</em></div>' +
+    '<div class="kp-lg" style="border-color:#C3CEDB"><small>Belum ditagih (DPP)</small><b class="num">' + kpRp(belum) + '</b><em>sisa nilai kontrak</em></div></div></div></div>' +
+    '<div class="kp-row2"><div class="kp-pan"><h3>Umur saldo per ' + esc(kpTglS(A)) + ' <span class="num">Rp ' + kpRp(sal) + '</span></h3>' + ageRows.map(function (r) { return '<div class="kp-age"><span>' + r[0] + '</span><span class="tr"><i style="width:' + (r[2] > 0 ? Math.max(1.5, r[2] / agMax * 100) : 0).toFixed(1) + '%;background:' + r[1] + '"></i></span><span class="v num">' + kpRp(r[2]) + '</span></div>'; }).join('') + '</div>' + apH + '</div>' +
+    '<div class="kp-sec"><h2>Invoice &amp; mutasi</h2><div class="kp-tabs">' + [['mut', 'Per invoice'], ['A', 'Rincian tagihan'], ['ttd', 'Riwayat TTD']].map(function (t) { return '<button type="button" data-kpt="' + t[0] + '" class="' + (KP.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+  if (KP.tab === 'A') h += kpTabA(k);
+  else if (KP.tab === 'ttd') h += kpTabTtd(npp);
+  else {
+    var card = function (x) {
+      var on = !!KP.open[x.nomor], pc = x.deb ? Math.max(0, Math.min(100, x.terima / x.deb * 100)) : 0;
+      return '<div class="kp-inv"><button type="button" class="kp-ih" data-kpo="' + esc(x.nomor) + '"><span class="car">' + (on ? '▾' : '▸') + '</span><span class="t"><b>INV ' + esc(String(x.nomor).replace(/^.*4C\./, '')) + '</b><small>' + esc([x.label, kpTglS(x.tgl), x.jt ? 'JT ' + kpTglS(x.jt) : ''].filter(String).join(' · ')) + '</small></span>' +
+        '<span class="kp-c"><small>Ditagih</small><span class="num">' + kpRp(x.deb) + '</span></span><span class="kp-c rc"><small>Diterima</small><span class="num">' + kpRp(x.terima) + '</span></span><span class="kp-c sal"><small>Saldo</small><span class="num">' + kpRp(x.sal) + '</span></span><span class="kp-bd ' + x.bd[0] + '">' + esc(x.bd[1]) + '</span></button>' +
+        '<div class="kp-pb"><i style="width:' + pc.toFixed(1) + '%"></i></div>' +
+        (on ? '<div class="kp-tl">' + x.ev.map(function (e) { var r = e.r, cr = r.kind !== 'inv' && r.kredit, cls = r.kind === 'inv' ? 'db' : r.kind === 'pot' || r.kind === 'adj' ? 'pt' : 'cr';
+          return '<div class="kp-ev ' + cls + '"><span class="dt"></span><span class="d">' + esc(kpTglS(r.tgl)) + '</span><span class="ku">' + esc(r.uraian) + (r.baru ? '<span class="kp-new">BARU</span>' : '') + (r.ket ? '<small>' + esc(r.ket) + '</small>' : '') + '</span><span class="s" title="' + esc([r.ref, r.sap ? 'SAP ' + r.sap : ''].filter(String).join(' · ')) + '">' + esc(r.sap ? 'SAP ' + r.sap : r.ref || '') + '</span><span class="k num">' + (r.kind === 'inv' ? kpRp(r.debit) : (cr ? '− ' + kpRp(r.kredit) : '+ ' + kpRp(r.debit))) + '</span><span class="bal num">' + kpRp(e.run) + '</span></div>'; }).join('') +
+          '<div class="kp-ev end"><span class="dt"></span><span class="d"></span><span class="ku">Sisa tagihan' + (x.ket ? '<small style="font-weight:400">' + esc(x.ket) + '</small>' : '') + '</span><span class="s"></span><span class="k"></span><span class="bal num">' + kpRp(x.sal) + '</span></div></div>' : '') + '</div>';
+    };
+    h += open.length ? open.map(card).join('') : '<div class="kp-empty" style="background:#fff;border:1px solid #E3E9F0;border-radius:12px">Tidak ada invoice terbuka per ' + esc(kpTglL(A)) + '.</div>';
+    if (done.length) h += KP.lunas ? done.map(card).join('') + '<button type="button" class="kp-more" data-kpl="0">Sembunyikan invoice lunas</button>' : '<button type="button" class="kp-more" data-kpl="1">Tampilkan ' + done.length + ' invoice lunas / ditutup</button>';
+    h += '<div class="kp-foot"><div><small>Total per ' + esc(kpTglL(A)) + '</small><b>' + inv.length + ' invoice · ' + open.length + ' terbuka</b></div><div class="g3"><div><small>Debit</small><b class="num">' + kpRp(T.debit) + '</b></div><div><small>Kredit</small><b class="num">' + kpRp(T.kredit) + '</b></div><div><small>Saldo</small><b class="num">' + kpRp(sal) + '</b></div></div></div>';
+  }
+  if (!isToday) h = '<div class="note y" style="margin:0 0 10px;font-size:12px">Posisi per <b>' + esc(kpTglL(A)) + '</b> — mutasi sesudah tanggal ini tidak ditampilkan. <a href="#" id="kpToday">Kembali ke hari ini</a></div>' + h;
+  m.innerHTML = h;
+  m.querySelectorAll('[data-kpd]').forEach(function (b) { b.onclick = function () { KP.asOf = b.dataset.kpd; KP.open = {}; kpLoad(); }; });
+  $('kpTgl').onchange = function () { var v = this.value; if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || +v.slice(0, 4) < 2000) return; KP.asOf = v >= B.today ? '' : v; KP.open = {}; kpLoad(); };
+  if ($('kpToday')) $('kpToday').onclick = function (e) { e.preventDefault(); KP.asOf = ''; KP.open = {}; kpLoad(); };
+  if ($('kpPick')) $('kpPick').onclick = function () { KP.mlist = true; document.querySelector('.kp').classList.add('mlist'); window.scrollTo(0, 0); };
+  m.querySelectorAll('[data-kpt]').forEach(function (b) { b.onclick = function () { KP.tab = b.dataset.kpt; kpDetail(k); }; });
+  m.querySelectorAll('[data-kpo]').forEach(function (b) { b.onclick = function () { var n = b.dataset.kpo; if (KP.open[n]) delete KP.open[n]; else KP.open[n] = 1; var sc = m.scrollTop; kpDetail(k); m.scrollTop = sc; }; });
+  m.querySelectorAll('[data-kpl]').forEach(function (b) { b.onclick = function () { KP.lunas = b.dataset.kpl === '1'; var sc = m.scrollTop; kpDetail(k); m.scrollTop = sc; }; });
+  m.querySelectorAll('[data-kpa]').forEach(function (b) { b.onclick = function () {
+    var a = b.dataset.kpa;
+    if (a === 'print' || a === 'sub') { setMode('dok'); openPackage('KP', npp + '|' + A); return; }
+    if (a === 'dec') { setMode('setuju'); openPackage('KP', b.dataset.ref); return; }
+    if (a === 'see') { setMode(maker || appr ? 'setuju' : 'dok'); openPackage('KP', b.dataset.ref); }
+  }; });
+}
+function kpTabA(k) {
+  var L = k.A || [], t = { progres: 0, umk: 0, ret: 0, dpp: 0, ppn: 0, total: 0 };
+  L.forEach(function (a) { Object.keys(t).forEach(function (x) { t[x] += +a[x] || 0; }); });
+  return '<table class="kp-ta"><tr><th>Invoice</th><th>Tanggal</th><th>Uraian</th><th class="n">Nilai progres</th><th class="n">Pot. UM</th><th class="n">Retensi</th><th class="n">DPP</th><th class="n">PPN</th><th class="n">Total</th></tr>' +
+    (L.length ? L.map(function (a) { return '<tr><td><b>' + esc(String(a.nomor).replace(/^.*4C\./, '')) + '</b></td><td>' + esc(kpTglS(a.tgl)) + '</td><td>' + esc(a.invke || a.jenis || '') + (a.fp ? '<br><small style="color:#8A97A8">FP ' + esc(a.fp) + '</small>' : '') + '</td><td class="n">' + (a.progres ? kpRp(a.progres) : '–') + '</td><td class="n">' + (a.umk ? kpRp(a.umk) : '–') + '</td><td class="n">' + (a.ret ? kpRp(a.ret) + (a.retpos ? ' <small style="color:#8A97A8">' + esc(String(a.retpos).toLowerCase()) + '</small>' : '') : '–') + '</td><td class="n">' + kpRp(a.dpp) + '</td><td class="n">' + kpRp(a.ppn) + '</td><td class="n"><b>' + kpRp(a.total) + '</b></td></tr>'; }).join('') : '<tr><td colspan="9" class="kp-empty">Belum ada invoice.</td></tr>') +
+    '<tr class="t"><td colspan="3">Total</td><td class="n">' + kpRp(t.progres) + '</td><td class="n">' + kpRp(t.umk) + '</td><td class="n">' + kpRp(t.ret) + '</td><td class="n">' + kpRp(t.dpp) + '</td><td class="n">' + kpRp(t.ppn) + '</td><td class="n">' + kpRp(t.total) + '</td></tr></table>';
+}
+function kpTabTtd(npp) {
+  var L = (B.approvals || []).filter(function (a) { return a.jenis === B.DOC.KP && String(a.ref).indexOf(npp + '|') === 0; }).slice().reverse();
+  return '<table class="kp-ta"><tr><th>Posisi per</th><th>Diajukan</th><th>Oleh</th><th>Status</th><th>Diputuskan</th><th></th></tr>' + (L.length ? L.map(function (a) {
+    var st = a.status === 'DISETUJUI' ? (a.berubah ? '<span class="kp-bd a">Disetujui · data berubah</span>' : '<span class="kp-bd g">Disetujui</span>') : a.status === 'MENUNGGU' ? '<span class="kp-bd a">Menunggu</span>' : '<span class="kp-bd ' + (a.status === 'DIBATALKAN' ? 'n' : 'rr') + '">' + esc(String(a.status || '').toLowerCase()) + '</span>';
+    return '<tr><td><b>' + esc(kpTglL(String(a.ref).split('|')[1])) + '</b></td><td>' + esc(kpTglS(String(a.waktu).slice(0, 10))) + '</td><td>' + esc(a.oleh_nama || a.oleh || '') + '</td><td>' + st + '</td><td>' + esc(a.putus_nama || '') + (a.putus_waktu ? ' · ' + esc(kpTglS(String(a.putus_waktu).slice(0, 10))) : '') + '</td><td><button class="btn sm" type="button" data-kpa="see" data-ref="' + esc(a.ref) + '">Buka</button></td></tr>';
+  }).join('') : '<tr><td colspan="6" class="kp-empty">Belum ada pengajuan TTD kartu untuk proyek ini.</td></tr>') + '</table>';
 }
 /** exposure pelanggan (saldo invoice aktif selain invoice yang sedang dibuat) untuk peringatan batas kredit */
 function custExpo(nama, selfNo) { var k = selfNo ? E.normInv(selfNo) : ''; return B.invoices.reduce(function (t, i) { return t + (i.pelanggan === nama && i.status_inv !== 'BATAL' && E.normInv(i.nomor) !== k ? Math.max(0, +i.sisa || 0) : 0); }, 0); }
