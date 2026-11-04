@@ -1800,7 +1800,7 @@ function rowsCalc(d) {
   if (c.jenis === 'UANG MUKA' && d.k && d.k.net) {
     // v2.9.4: uang muka — persen & dasar perkalian tercetak di kolom persentase (seperti baris PPh); susunan berjenjang format lama
     var pc = function (x) { return pctf(x).replace(/\.00%$/, '%').replace(/(\.\d)0%$/, '$1%'); }, umP = num(S.umPct) ? num(S.umPct) / 100 : c.dpp / d.k.net;
-    var u1 = L(); pr({ no: u1, lbl: 'Uang Muka Pekerjaan (Advance Payment)', lblH: 'Uang Muka Pekerjaan (<i>Advance Payment</i>)', colon: true, pctC: pc(umP) + ' X Nilai Kontrak', eqM: true, rp1: c.dpp });
+    var u1 = L(); pr({ no: u1, lbl: 'Uang Muka Pekerjaan (Advance Payment)', lblH: 'Uang Muka Pekerjaan (<i>Advance Payment</i>)', colon: true, pctC: pc(umP) + ' X ' + nf(d.k.net), eqM: true, rp1: c.dpp });
     var u2 = L(); pr({ no: u2, lbl: 'PPN 12%', colon: true, pctC: '11/12 x 12% X (' + u1 + ')', eqM: true, rp1: c.ppn, ul1: true, suf1: '(+)', sufP: true });
     var u3 = L(); pr({ no: u3, lbl: 'Tagihan Saat ini + PPN', colon: true, rp1: c.total });
     if (c.showPPh) { var u4 = L(); pr({ no: u4, lbl: (T === 'KIDOH' ? 'PPh 4 ayat 2' : 'PPh ' + pc(c.tarif)), colon: true, pctC: pc(c.tarif) + ' X (' + u1 + ')', eqM: true, rp1: c.pph, ul1: true, suf1: '(-)', sufP: true });
