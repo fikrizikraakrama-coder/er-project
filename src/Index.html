@@ -1797,6 +1797,16 @@ function rowsCalc(d) {
   // menghasilkan baris tabel kalkulasi sesuai template (UMUM / IKK / KIDOH)
   var c = d.c, p = d.p, T = c.template, R = [], n = 0, L = function () { n++; return '1.' + n; };
   var pPct = pctf(c.pct), pr = function (o) { R.push(o); return o; };
+  if (c.jenis === 'UANG MUKA' && d.k && d.k.net) {
+    // v2.9.4: uang muka — persen & dasar perkalian tercetak di kolom persentase (seperti baris PPh); susunan berjenjang format lama
+    var pc = function (x) { return pctf(x).replace(/\.00%$/, '%').replace(/(\.\d)0%$/, '$1%'); }, umP = num(S.umPct) ? num(S.umPct) / 100 : c.dpp / d.k.net;
+    var u1 = L(); pr({ no: u1, lbl: 'Uang Muka Pekerjaan (Advance Payment)', lblH: 'Uang Muka Pekerjaan (<i>Advance Payment</i>)', colon: true, pctC: pc(umP) + ' X Nilai Kontrak', eqM: true, rp1: c.dpp });
+    var u2 = L(); pr({ no: u2, lbl: 'PPN 12%', colon: true, pctC: '11/12 x 12% X (' + u1 + ')', eqM: true, rp1: c.ppn, ul1: true, suf1: '(+)', sufP: true });
+    var u3 = L(); pr({ no: u3, lbl: 'Tagihan Saat ini + PPN', colon: true, rp1: c.total });
+    if (c.showPPh) { var u4 = L(); pr({ no: u4, lbl: (T === 'KIDOH' ? 'PPh 4 ayat 2' : 'PPh ' + pc(c.tarif)), colon: true, pctC: pc(c.tarif) + ' X (' + u1 + ')', eqM: true, rp1: c.pph, ul1: true, suf1: '(-)', sufP: true });
+      pr({ gap: true }); pr({ no: L(), lbl: 'Total Tagihan Saat ini - PPh (' + u3 + ' - ' + u4 + ')', eq: true, rp2: c.bayar, ul2: true }); }
+    return R;
+  }
   if (c.jenis !== 'PROGRES') {
     var k1 = L(); pr({ no: k1, lbl: (c.jenis === 'UANG MUKA' ? 'Tagihan Uang Muka' : c.jenis === 'RETENSI' ? 'Tagihan Pelepasan Retensi' : 'Tagihan Saat ini'), colon: true, rp1: c.dpp });
     var k2 = L(); pr({ no: k2, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
@@ -1851,10 +1861,10 @@ function calcTable(d, widths) {
     var colon = r.colon ? ':' : '', long = !r.colon && !r.pct && !r.pctC;
     return '<tr>' +
       '<td>' + esc(r.no || '') + '</td>' +
-      '<td' + (long ? ' colspan="7"' : '') + '>' + esc(r.lbl) + '</td>' +
-      (long ? '' : '<td class="c">' + colon + '</td><td class="r">' + esc(r.pct || r.pctC || '') + '</td><td class="c">' + (r.x ? 'X' : '') + '</td>' +
+      '<td' + (long ? ' colspan="7"' : '') + '>' + (r.lblH || esc(r.lbl)) + '</td>' +
+      (long ? '' : '<td class="c">' + colon + '</td><td class="r">' + esc(r.pct || r.pctC || '') + '</td><td class="c">' + (r.x ? 'X' : r.eqM ? '=' : '') + '</td>' +
         '<td>' + (r.rp1 !== undefined && !r.noRp1 ? 'Rp.' : '') + '</td><td class="r num' + (r.ul1 ? ' ul' : '') + '">' + (r.rp1 !== undefined ? nf(r.rp1) : '') + '</td><td class="c">' + (r.suf1 ? '' : '') + '</td>') +
-      '<td class="c">' + (r.eq ? '=' : (r.suf1 ? '<span style="margin-left:-5mm">' + r.suf1 + '</span>' : '')) + '</td>' +
+      '<td class="c">' + (r.eq ? '=' : (r.suf1 ? (r.sufP ? '<span style="margin-left:1.6mm">' + r.suf1 + '</span>' : '<span style="margin-left:-5mm">' + r.suf1 + '</span>') : '')) + '</td>' +
       '<td>' + (r.rp2 !== undefined ? 'Rp.' : '') + '</td><td class="r num' + (r.ul2 ? ' ul' : '') + '">' + (r.rp2 !== undefined ? nf(r.rp2) : '') + '</td>' +
       '<td style="padding-left:1.2mm">' + (r.suf2 || '') + '</td></tr>';
   }).join('');
@@ -1884,7 +1894,7 @@ function invTahoma(d) {
     '<div class="desc j">' + esc(d.judul) + '</div>' +
     '<div style="padding:1.6mm 0 0 0">' +
     kontrakTahoma(d) +
-    calcTable(d, [6.2, 51.4, 3, 13.6, 5.2, 6.2, 31, 4.4, 4.6, 6.2, 34.4, 8.4]) +
+    calcTable(d, c.jenis === 'UANG MUKA' && d.k && d.k.net ? [6.2, 66, 2.6, 33, 4, 7, 21, 0, 4, 6, 20.6, 4.2] : [6.2, 51.4, 3, 13.6, 5.2, 6.2, 31, 4.4, 4.6, 6.2, 34.4, 8.4]) +
     '<div style="display:grid;grid-template-columns:1fr 47mm;align-items:center;margin:5mm 3.6mm 0 0"><div class="b c" style="padding-right:12mm">' + esc(payLabel(c)) + '</div>' +
     '<div class="paybox" style="height:10.2mm"><span>Rp.</span><span class="num">' + nf(c.bayar) + '</span></div></div>' +
     '<div class="terb" style="margin:4mm 3.6mm 2.6mm 5.6mm;min-height:10.8mm"><span style="font-size:9pt">Terbilang :</span><span>' + esc(E.terbilang(c.bayar)) + ' Rupiah</span></div>' +
