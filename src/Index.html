@@ -268,7 +268,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.t.km{font-size:7.2pt;line-height:1.22}
 .pg-flow table.t.km th{padding:.9mm 1mm}
 .pg-flow table.t.km td{padding:.55mm 1mm}
-.pg-flow table.t.kmb td:nth-child(3){word-break:break-all}.pg-flow table.t.km td:first-child{white-space:nowrap}
+.pg-flow table.t.kmb td:nth-child(3){word-break:break-all}.pg-flow table.t.kmb{table-layout:fixed}.pg-flow table.t.kmb tr.ktail td{white-space:normal}.pg-flow table.t.kmb .kx{display:block;font-weight:400;color:#4A5A72;font-size:6.8pt;margin-top:.3mm}.pg-flow table.t.kmb tr.sisa td{font-weight:400}.pg-flow table.t.kmb tr.sisa td.n{font-weight:700}.pg-flow table.t.kmb tr.sisa .ks{font-weight:700}.pg-flow table.t.km td:first-child{white-space:nowrap}
 .pg-flow .ksign .nm{font-weight:700;text-decoration:underline}
 .pg-flow .ksign .stamp{max-width:62mm}
 .paywrap{display:grid;gap:10px}
@@ -2870,7 +2870,7 @@ function pgPengesahan(pkg, hasBap, migr) {
   h += signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
   return h;
 }
-function kartuHead() { return '<thead><tr><th style="width:16mm">Tanggal</th><th>Uraian</th><th style="width:31mm">Ref / Bukti</th><th style="width:16mm">No. Dok SAP</th><th style="width:21mm">Debit</th><th style="width:21mm">Kredit</th><th style="width:21mm">Saldo</th><th style="width:68mm">Keterangan</th></tr></thead>'; }
+function kartuHead() { return '<thead><tr><th style="width:16mm">Tanggal</th><th>Uraian</th><th style="width:30mm">Ref / Bukti</th><th style="width:17mm">No. Dok SAP</th><th style="width:21mm">Debit</th><th style="width:21mm">Kredit</th><th style="width:21mm">Saldo</th><th style="width:60mm">Keterangan</th></tr></thead>'; }
 /** tail: catatan + tanda tangan — v2.8.7: ikut di dalam tabel bersama kelompok invoice terakhir & TOTAL (satu blok tak terpecah),
  *  sehingga tanda tangan tidak pernah tercetak sendirian di halaman baru */
 function kartuTable(k, tail) {
@@ -2881,8 +2881,11 @@ function kartuTable(k, tail) {
     var rows = '';
     g.rows.forEach(function (r) {
       var cls = r.kind === 'inv' ? ' class="band"' : r.kind === 'sisa' ? ' class="sisa"' : r.baru ? ' class="baru"' : r.kind === 'pb' || r.kind === 'adj' ? ' class="pb"' : '';
-      rows += '<tr' + cls + '><td>' + tg(r.tgl) + '</td><td>' + esc(r.uraian) + '</td><td>' + esc(r.ref) + '</td><td>' + esc(r.sap) + '</td>' +
-        '<td class="n">' + z(r.debit) + '</td><td class="n">' + z(r.kredit) + '</td><td class="n">' + (r.kind === 'sisa' ? nd(r.saldo) : '') + '</td><td>' + esc(r.ket) + '</td></tr>';
+      var ur = esc(r.uraian), kt = esc(r.ket), mU = r.kind === 'inv' && /^(.*?) \((DPP .*)\)$/.exec(r.uraian), mK = r.kind === 'sisa' && /^(.*?)( — [\s\S]*)$/.exec(r.ket || '');
+      if (mU) ur = esc(mU[1]) + '<span class="kx">' + esc(mU[2]) + '</span>'; // v2.9.4: rincian DPP/PPN di baris kedua, tidak tebal
+      if (r.kind === 'sisa') { ur = 'Sisa tagihan'; kt = mK ? '<span class="ks">' + esc(mK[1]) + '</span>' + esc(mK[2]) : '<span class="ks">' + esc(r.ket) + '</span>'; }
+      rows += '<tr' + cls + '><td>' + tg(r.tgl) + '</td><td>' + ur + '</td><td>' + esc(r.ref) + '</td><td>' + esc(r.sap) + '</td>' +
+        '<td class="n">' + z(r.debit) + '</td><td class="n">' + z(r.kredit) + '</td><td class="n">' + (r.kind === 'sisa' ? nd(r.saldo) : '') + '</td><td>' + kt + '</td></tr>';
     });
     if (tail !== undefined && gi === ng - 1) rows += tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr>';
     body += '<tbody class="grp">' + rows + '</tbody>';
