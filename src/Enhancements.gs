@@ -743,7 +743,7 @@ function arCheckInvoiceNumbers_(p, nomor) {
   if (!pr) throw new Error('NPP ' + p.npp + ' not found in Master Proyek.');
   if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Form entries do not match the invoice data. Reload the app.');
   var ex = b.invoices.filter(function(i){return ENGINE.normInv(i.nomor)===nomor;})[0];
-  var c = ENGINE.calcInvoice(ENGINE.invoiceInput(pr, Object.assign({}, p.form, { tgl: p.tgl, jenis: p.jenis }), ex ? ex.umk : 0));
+  var c = ENGINE.calcInvoice(ENGINE.invoiceInput(pr, Object.assign({}, p.form, { tgl: p.tgl, jenis: p.jenis }), ex ? ex.umk : 0, nomor));
   var want = { bruto: c.bruto, umk: c.umk || 0, retensi: c.retensi || 0, dpp: c.dpp, ppn: c.ppn, tagih: c.bayar }, beda = [];
   Object.keys(want).forEach(function(k) { if (Math.abs((Number(p[k]) || 0) - (Number(want[k]) || 0)) > 1) beda.push(k.toUpperCase() + ' in app Rp ' + ENGINE.fmtRp(Number(p[k]) || 0) + ' ≠ server Rp ' + ENGINE.fmtRp(Number(want[k]) || 0)); });
   if (beda.length) throw new Error('Invoice amounts differ from the server calculation (' + beda.join('; ') + '). Project data or the remaining down payment may have changed — reload the app and check again.');

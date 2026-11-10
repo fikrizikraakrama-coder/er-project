@@ -2853,11 +2853,11 @@ var ENGINE = (function () {
       nama_pe: p.nama_pe, produk: nppListTxt(p.produk), selesai: !!p.selesai,
       adendum: p.adds.map(function (a) { return { ke: a.ke, nodok: a.nodok, tgl: a.tgl, jenis: a.jenis, nilai: a.nilai }; }),
       pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok,
-      um: p.um, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
+      um: p.um, um_awal: p.um_awal || 0, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
       signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng, pola_uraian: S(p.pola_uraian), pola_kw: S(p.pola_kw),
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,
       retDitahan: umr[p.npp] && umr[p.npp].ret ? umr[p.npp].ret[7] : 0, retBatas: umr[p.npp] ? umr[p.npp].batas : 0,
-      prog: ctx.invs.filter(function (i) { return i.npp === p.npp && !i._batal && i._a.jenis === 'PROGRES'; }).map(function (i) { var m = S(i.invke).match(/(\d+)/); return [i.nomor, rnd(i._a.bruto), m ? +m[1] : 0, i.tgl]; }) }; });
+      prog: ctx.invs.filter(function (i) { return i.npp === p.npp && !i._batal && i._a.jenis === 'PROGRES'; }).map(function (i) { var m = S(i.invke).match(/(\d+)/); return [i.nomor, rnd(i._a.bruto), m ? +m[1] : 0, i.tgl, rnd(i._a.umk)]; }) }; });
     var params = {}; Object.keys(P).forEach(function (k) { if (['signers', 'targets', 'akun', 'users', 'ckpn'].indexOf(k) < 0) params[k] = P[k]; });
     var pendTutup = ctx.invs.filter(function (i) { return U(i.tutup) === 'CLOSE MANUAL' && /^CLOSE MANUAL –/.test(i._res.status); }).map(function (i) { return { nomor: i.nomor, pelanggan: i.pelanggan, sisa: i._res.sisa, alasan: S(i.alasan_tutup), status: i._res.status }; });
     var y = +ctx.today.substring(0, 4), m = +ctx.today.substring(5, 7), months = [];
@@ -2879,10 +2879,14 @@ var ENGINE = (function () {
   function numForm(v) { if (isNum(v)) return v; var s = S(v); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
   /** input calcInvoice dari data proyek (bentuk bootstrap) + isian form; dipakai aplikasi (pratinjau) dan server (pemeriksaan saat simpan)
    *  exUmk = potongan UM invoice yang sedang direvisi (dikembalikan ke sisa UM) */
-  function invoiceInput(p, form, exUmk) {
+  function invoiceInput(p, form, exUmk, selfNo) {
     var umSisa = (p.umLengkap === false || p.umSisa === '' || p.umSisa === null || p.umSisa === undefined) ? undefined : (+p.umSisa || 0) + (+exUmk || 0);
     var k = kontrakAt({ nilai_awal: p.nilai, adds: p.adendum || [], nilai_ok: p.nilai_ok }, form.tgl);
-    return { umSisa: umSisa, template: p.template, jenis: form.jenis, nilaiKontrak: k.net, progres: numForm(form.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
+    // v2.9.4: pengembalian UM kumulatif — progres & potongan UM invoice progres sebelumnya (sampai tanggal invoice ini, tanpa invoice ini sendiri).
+    //  Hanya bila riwayat lengkap (tanpa UM dikembalikan sebelum sistem / invoice lama tanpa nilai progres); selain itu rumus lama per termin.
+    var me = selfNo ? normInv(selfNo) : '', tg = D(form.tgl) || '9999-12-31', lalu = (p.prog || []).filter(function (r) { return normInv(r[0]) !== me && (!r[3] || r[3] <= tg); });
+    var kumOk = form.jenis === 'PROGRES' && p.umLengkap !== false && !(+p.um_awal > 0) && lalu.every(function (r) { return +r[1] > 0 && r[4] !== undefined; });
+    return { progLalu: kumOk ? sumBy(lalu, function (r) { return +r[1] || 0; }) : undefined, umLalu: kumOk ? sumBy(lalu, function (r) { return +r[4] || 0; }) : undefined, umSisa: umSisa, template: p.template, jenis: form.jenis, nilaiKontrak: k.net, progres: numForm(form.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
       dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: (form.items || []).map(function (x) { return { uraian: x.uraian, nilai: numForm(x.nilai), bulan: numForm(x.bulan) }; }), dpp: numForm(form.dpp), ppnOn: form.ppnOn };
   }
   /** v2.8.8: pemeriksaan isian invoice sebelum disimpan — E = error (tidak bisa simpan) · W = peringatan (boleh dengan alasan) · I = info.
@@ -3006,8 +3010,16 @@ var ENGINE = (function () {
     var hasCap = f.umSisa !== undefined && f.umSisa !== null && f.umSisa !== '' && UM > 0, cap = hasCap ? Math.max(0, N(f.umSisa)) : Infinity;
     var capUM = function (x) { if (x > cap + 0.5) { o.umCapped = true; o.umAsli = ROUND(x); return cap; } return x; };
     o.umSisa = hasCap ? cap : '';
+    // v2.9.4: potongan UM = (progres kumulatif / nilai kontrak berlaku x UM) - UM yang sudah dipotong; progres 100% -> seluruh sisa UM.
+    //  Sama dengan per termin selama kontrak tidak berubah; setelah adendum, kekurangan potongan termin lalu ikut tertagih (tidak tertinggal).
+    var umRaw = pct * UM;
+    if (f.progLalu !== undefined && f.umLalu !== undefined && UM > 0 && K > 0) {
+      var pk = N(f.progLalu) + prog, fin = pk >= K - 5, tgt = fin ? UM : ROUND(pk / K * UM), kum = Math.max(0, tgt - N(f.umLalu));
+      if (Math.abs(kum - umRaw) > 1) { o.umKum = { pct: pk / K, target: tgt, lalu: ROUND(N(f.umLalu)), fin: fin, perTermin: ROUND(umRaw) }; o.umLbl = fin ? 'Pengembalian Sisa Uang Muka' : 'Pengembalian Uang Muka (kumulatif)'; }
+      umRaw = kum;
+    }
     if (T === 'IKK') {
-      var umPct = K ? UM / K : 0, k19 = capUM(umPct * prog), h21 = prog - k19, h22 = ppnOf(h21), h23 = ROUND(h21 + h22), h24 = rp * prog;
+      var umPct = K ? UM / K : 0, k19 = capUM(umRaw), h21 = prog - k19, h22 = ppnOf(h21), h23 = ROUND(h21 + h22), h24 = rp * prog;
       o.umPct = umPct; o.umk = ROUND(k19); o.dpp = ROUND(h21); o.ppn = h22; o.total = h23; o.retensi = ROUND(h24); o.retPos = rp ? 'AKHIR' : 'TIDAK ADA';
       o.netto = o.dpp - o.retensi;
       var baseI = U(f.dasar) === 'SEBELUM RETENSI' ? o.dpp : o.netto;
@@ -3015,7 +3027,7 @@ var ENGINE = (function () {
       o.bayar = h23 - o.retensi; return o;
     }
     if (T === 'KIDOH') {
-      var k23 = capUM(pct * UM), h25 = prog - k23, h26 = ppnOf(h25), h27 = h25 + h26, h28 = prog * rp, h29 = flo(tarif * h25);
+      var k23 = capUM(umRaw), h25 = prog - k23, h26 = ppnOf(h25), h27 = h25 + h26, h28 = prog * rp, h29 = flo(tarif * h25);
       o.umk = ROUND(k23); o.dpp = ROUND(h25); o.ppn = h26; o.total = ROUND(h27); o.retensi = ROUND(h28); o.retPos = rp ? 'AKHIR' : 'TIDAK ADA';
       o.netto = o.dpp - o.retensi;
       o.showPPh = U(f.tampilPPh) !== 'TIDAK';
@@ -3023,7 +3035,7 @@ var ENGINE = (function () {
       o.bayar = flo(h27 - h28 - (o.showPPh ? o.pph : 0)); return o;
     }
     // UMUM / MIP — retensi dipotong di awal (sebelum DPP)
-    var k19u = prog * rp, k20 = prog - k19u, k23u = capUM(pct * UM), h25u = k20 - k23u, h26u = ppnOf(h25u), h27u = h25u + h26u, h28u = ROUND(tarif * h25u);
+    var k19u = prog * rp, k20 = prog - k19u, k23u = capUM(umRaw), h25u = k20 - k23u, h26u = ppnOf(h25u), h27u = h25u + h26u, h28u = ROUND(tarif * h25u);
     o.retensi = ROUND(k19u); o.retPos = rp ? 'AWAL' : 'TIDAK ADA'; o.progNet = ROUND(k20); o.umk = ROUND(k23u);
     o.dpp = ROUND(h25u); o.ppn = h26u; o.total = ROUND(h27u); o.netto = o.dpp; o.pph = h28u;
     o.showPPh = U(f.tampilPPh) !== 'TIDAK';

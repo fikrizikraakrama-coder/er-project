@@ -1648,7 +1648,7 @@ function compute() {
   var tpl = p.template;
   var ex = existing();
   // input disusun ENGINE agar server memeriksa angka yang sama saat menyimpan
-  return E.calcInvoice(E.invoiceInput(p, S, ex && E.normInv(ex.nomor) === E.normInv(nomorStr()) ? ex.umk : 0));
+  return E.calcInvoice(E.invoiceInput(p, S, ex && E.normInv(ex.nomor) === E.normInv(nomorStr()) ? ex.umk : 0, nomorStr()));
 }
 /** isian SPK khusus BAP: placeholder dari Master Proyek; tandai bila berbeda */
 function bapSpkNote() {
@@ -1750,6 +1750,7 @@ function renderSummary() {
   var p = pro(), n = [];
   if (retAkhirPpn(p) && S.jenis === 'RETENSI' && String(p.dasar_pph || '').toUpperCase() === 'SEBELUM RETENSI') n.push('<div class="note ok">WHT on retention was already withheld by the customer on the progress invoices (WHT basis <b>SEBELUM RETENSI</b>, on the full amount in the tax invoice) — this retention release carries <b>no WHT</b>.</div>');
   if (retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false) n.push('<div class="note err"><b>Risk of double VAT.</b> This project uses end-of-contract retention (AKHIR, template ' + esc(p.template) + '): VAT on retention was already billed on the progress invoices. Untick "Charge VAT" unless there is a written basis from Tax / Accounting.</div>');
+  if (c.umKum) n.push('<div class="note"><b>Down payment deduction is cumulative.</b> Progress to date ' + pctf(c.umKum.pct) + ' of the current contract value' + (c.umKum.fin ? ' (final progress — the whole remaining DP is deducted)' : '') + ': target Rp ' + nfDot(c.umKum.target) + ' − already deducted Rp ' + nfDot(c.umKum.lalu) + ' = <b>Rp ' + nfDot(c.umk) + '</b>. The per-term formula would give Rp ' + nfDot(c.umKum.perTermin) + ' (differs because the contract value changed after earlier invoices).</div>');
   if (c.umCapped) n.push('<div class="note warn"><b>Down payment deduction capped.</b> Normal calculation Rp ' + nfDot(c.umAsli) + ', but the project DP balance is only Rp ' + nfDot(c.umSisa) + ' — only that balance is deducted (see the Monitoring UM &amp; Retensi sheet).</div>');
   else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap !== false && c.umSisa !== '' && c.umSisa <= 0) n.push('<div class="note ok">This project down payment has been fully recovered — no DP deduction.</div>');
   else if (p && S.jenis === 'PROGRES' && p.um > 0 && p.umLengkap === false) n.push('<div class="note warn">Project DP balance cannot be checked yet: legacy (migrated) invoices did not store the DP deduction. Fill the <b>UM SUDAH DIKEMBALIKAN SEBELUM SISTEM</b> column in Master Proyek so the DP deduction is capped automatically.</div>');
@@ -1820,7 +1821,7 @@ function rowsCalc(d) {
     var kNet = kProg;
     if (c.retensi) { var kR = L(); pr({ no: kR, lbl: 'Retensi', colon: true, pct: pctf(c.retPct), x: true, rp1: c.progres, eq: true, rp2: c.retensi, ul2: true });
       kNet = L(); pr({ no: kNet, lbl: 'Progres - Retensi (' + kProg + ' - ' + kR + ')', eq: true, rp2: c.progNet }); }
-    var kU = null; if (c.umk) { pr({ gap: true }); kU = L(); pr(c.umCapped ? { no: kU, lbl: 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk } : { no: kU, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }); }
+    var kU = null; if (c.umk) { pr({ gap: true }); kU = L(); pr(c.umCapped || c.umLbl ? { no: kU, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk } : { no: kU, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }); }
     pr({ gap: true });
     var kT = L(); pr({ no: kT, lbl: 'Tagihan Saat ini (' + kNet + (kU ? ' - ' + kU : '') + ' )', colon: true, rp1: c.dpp });
     var kP = L(); pr({ no: kP, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true });
@@ -1831,7 +1832,7 @@ function rowsCalc(d) {
   }
   if (T === 'IKK') {
     var kU2 = null;
-    if (c.umk) { kU2 = L(); pr(c.umCapped ? { no: kU2, lbl: 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU2, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
+    if (c.umk) { kU2 = L(); pr(c.umCapped || c.umLbl ? { no: kU2, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU2, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
     pr({ gap: true });
     var kT2 = L(); pr({ no: kT2, lbl: 'Tagihan Saat ini ( ' + kProg + (kU2 ? ' - ' + kU2 : '') + ' )', colon: true, rp1: c.dpp });
     var kP2 = L(); pr({ no: kP2, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
@@ -1842,7 +1843,7 @@ function rowsCalc(d) {
   }
   // KIDOH
   var kU3 = null;
-  if (c.umk) { kU3 = L(); pr(c.umCapped ? { no: kU3, lbl: 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU3, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
+  if (c.umk) { kU3 = L(); pr(c.umCapped || c.umLbl ? { no: kU3, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU3, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
   pr({ gap: true });
   var kT3 = L(); pr({ no: kT3, lbl: 'Tagihan Saat ini (' + kProg + (kU3 ? ' - ' + kU3 : '') + ' )', colon: true, rp1: c.dpp });
   var kP3 = L(); pr({ no: kP3, lbl: 'PPN 12% (DPP x 11/12 x 12%', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });

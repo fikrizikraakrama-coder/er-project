@@ -64,7 +64,7 @@ test('invoiceInput = susunan input lama di aplikasi (server & aplikasi menghitun
   const p = { template: 'IKK', nilai: 1e9, adendum: [{ ke: 1, tgl: '2026-08-01', jenis: 'TAMBAH', nilai: 1e8 }], nilai_ok: 1e9, um: 1e8, ret_pct: 0.05, ret_pos: 'AKHIR', tarif: 0.0265, dasar_pph: '', tampil_pph: 'YA', umLengkap: true, umSisa: 4e7 };
   const S = { tgl: '2026-10-01', jenis: 'PROGRES', progres: '250.000.000', items: [{ uraian: 'a', nilai: '1.000', bulan: '2' }], dpp: '', ppnOn: true };
   const num = ENGINE.numForm, k = ENGINE.kontrakAt({ nilai_awal: p.nilai, adds: p.adendum, nilai_ok: p.nilai_ok }, S.tgl);
-  const old = { umSisa: (+p.umSisa || 0) + 5e6, template: p.template, jenis: S.jenis, nilaiKontrak: k.net, progres: num(S.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
+  const old = { progLalu: 0, umLalu: 0, umSisa: (+p.umSisa || 0) + 5e6, template: p.template, jenis: S.jenis, nilaiKontrak: k.net, progres: num(S.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
     dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: S.items.map(x => ({ uraian: x.uraian, nilai: num(x.nilai), bulan: num(x.bulan) })), dpp: num(S.dpp), ppnOn: S.ppnOn };
   assert.deepStrictEqual(ENGINE.invoiceInput(p, S, 5e6), old);
   const c = ENGINE.calcInvoice(old);
@@ -467,4 +467,24 @@ test('v2.9.3 invoice WIKA-WITON (jasa manajemen) tanpa nilai kontrak tidak diang
   const base = { c: { bayar: 1e8, total: 1.11e8 }, jenis: 'PROGRES', tgl: '2026-11-02', today: '2026-11-03', kontrak: 0 };
   assert.ok(!ENGINE.invoiceChecks(Object.assign({ pro: { template: 'WIKA-WITON', tarif: 0.02 } }, base)).some(w => /Contract value/.test(w.t)));
   assert.ok(ENGINE.invoiceChecks(Object.assign({ pro: { template: 'UMUM', tarif: 0.02 } }, base)).some(w => /Contract value/.test(w.t)));
+});
+
+test('pengembalian UM kumulatif setelah adendum kurang (kasus NPP 254C 1092 JT, cocok BAT)', () => {
+  // kontrak awal lebih besar; adendum kurang → nilai kontrak 2.067.813.621. Prog 1 sudah memotong UM 124.025.053 (90,29% kontrak lama).
+  const p = { template: 'UMUM', nilai: 2067813621, adendum: [], nilai_ok: 2067813621, um: 137363000, um_awal: 0, ret_pct: 0.05, ret_pos: 'AWAL', tarif: 0.0265, dasar_pph: '', tampil_pph: 'YA',
+    umLengkap: true, umSisa: 137363000 - 124025053, prog: [['KU.02.02/WB-4C.0060/2026', 1991279135, 1, '2026-06-01', 124025053]] };
+  const S = { tgl: '2026-11-05', jenis: 'PROGRES', progres: '76534486', items: [], dpp: '', ppnOn: true };
+  const c = ENGINE.calcInvoice(ENGINE.invoiceInput(p, S, 0, 'KU.02.02/WB-4C.0250/2026'));
+  assert.strictEqual(c.umk, 13337947, 'potongan UM = sisa UM (progres kumulatif 100%)');
+  assert.strictEqual(c.retensi, 3826724);
+  assert.strictEqual(c.dpp, 59369815);
+  assert.ok(Math.abs(c.total - 65900495) <= 2, 'total sesuai BAT (selisih pembulatan ≤ Rp2): ' + c.total);
+  assert.ok(c.umKum && c.umKum.fin && c.umLbl === 'Pengembalian Sisa Uang Muka');
+  // revisi Prog 1 sendiri tidak ikut dihitung sebagai "lalu"; riwayat tidak lengkap (UM sebelum sistem) → rumus lama per termin
+  const c2 = ENGINE.calcInvoice(ENGINE.invoiceInput(Object.assign({}, p, { um_awal: 1e6 }), S, 0, 'X'));
+  assert.strictEqual(c2.umk, Math.round(76534486 / 2067813621 * 137363000));
+  // tanpa adendum hasil kumulatif = per termin (invoice lama tidak berubah)
+  const u1 = Math.round(500000000 / 2067813621 * 137363000), p3 = Object.assign({}, p, { umSisa: 137363000 - u1, prog: [['A', 500000000, 1, '2026-06-01', u1]] });
+  const c3 = ENGINE.calcInvoice(ENGINE.invoiceInput(p3, Object.assign({}, S, { progres: '300000000' }), 0, 'B'));
+  assert.ok(Math.abs(c3.umk - 300000000 / 2067813621 * 137363000) <= 1 && !c3.umKum);
 });
