@@ -1816,12 +1816,21 @@ function rowsCalc(d) {
       pr({ gap: true }); pr({ no: L(), lbl: 'Total Tagihan Saat ini - PPh (' + k3 + ' - ' + k4 + ')', eq: true, rp2: c.bayar, ul2: true }); }
     return R;
   }
+  // v2.9.4: baris pengembalian UM — kumulatif (setelah adendum) tetap tercetak "persen x UM" seperti termin sebelumnya
+  var umR = function (ex) {
+    var o = function (x) { Object.keys(ex || {}).forEach(function (k) { x[k] = ex[k]; }); return x; }, k;
+    k = L();
+    if (c.umKum && c.umDiterima) { var pu = Math.round(c.umk / c.umDiterima * 10000) / 10000;
+      if (Math.abs(Math.round(pu * c.umDiterima) - c.umk) <= 1) { pr(o({ no: k, lbl: 'Pengembalian Uang Muka', colon: true, pct: pctf(pu), x: true, rp1: c.umDiterima, eq: true, rp2: c.umk })); return k; } }
+    pr(o(c.umCapped || c.umLbl ? { no: k, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk } : { no: k, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }));
+    return k;
+  };
   var kProg = L(); pr({ no: kProg, lbl: 'Nilai Progres Saat ini', colon: true, pct: pPct, x: true, rp1: d.k.net, eq: true, rp2: c.progres });
   if (T === 'UMUM') {
     var kNet = kProg;
     if (c.retensi) { var kR = L(); pr({ no: kR, lbl: 'Retensi', colon: true, pct: pctf(c.retPct), x: true, rp1: c.progres, eq: true, rp2: c.retensi, ul2: true });
       kNet = L(); pr({ no: kNet, lbl: 'Progres - Retensi (' + kProg + ' - ' + kR + ')', eq: true, rp2: c.progNet }); }
-    var kU = null; if (c.umk) { pr({ gap: true }); kU = L(); pr(c.umCapped || c.umLbl ? { no: kU, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk } : { no: kU, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }); }
+    var kU = null; if (c.umk) { pr({ gap: true }); kU = umR(); }
     pr({ gap: true });
     var kT = L(); pr({ no: kT, lbl: 'Tagihan Saat ini (' + kNet + (kU ? ' - ' + kU : '') + ' )', colon: true, rp1: c.dpp });
     var kP = L(); pr({ no: kP, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true });
@@ -1832,7 +1841,7 @@ function rowsCalc(d) {
   }
   if (T === 'IKK') {
     var kU2 = null;
-    if (c.umk) { kU2 = L(); pr(c.umCapped || c.umLbl ? { no: kU2, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU2, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
+    if (c.umk) { kU2 = umR({ ul2: true, suf2: '(-)' }); }
     pr({ gap: true });
     var kT2 = L(); pr({ no: kT2, lbl: 'Tagihan Saat ini ( ' + kProg + (kU2 ? ' - ' + kU2 : '') + ' )', colon: true, rp1: c.dpp });
     var kP2 = L(); pr({ no: kP2, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
@@ -1843,7 +1852,7 @@ function rowsCalc(d) {
   }
   // KIDOH
   var kU3 = null;
-  if (c.umk) { kU3 = L(); pr(c.umCapped || c.umLbl ? { no: kU3, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk, ul2: true, suf2: '(-)' } : { no: kU3, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk, ul2: true, suf2: '(-)' }); }
+  if (c.umk) { kU3 = umR({ ul2: true, suf2: '(-)' }); }
   pr({ gap: true });
   var kT3 = L(); pr({ no: kT3, lbl: 'Tagihan Saat ini (' + kProg + (kU3 ? ' - ' + kU3 : '') + ' )', colon: true, rp1: c.dpp });
   var kP3 = L(); pr({ no: kP3, lbl: 'PPN 12% (DPP x 11/12 x 12%', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
