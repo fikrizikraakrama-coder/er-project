@@ -127,6 +127,7 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       // BG perpanjangan / perubahan terbit → BG lama otomatis DIPERPANJANG
       if (x.bg_lama) bgRows_().forEach(function (r) { if (r.id !== id && String(r.no_bg).trim() && String(r.no_bg).trim() === String(x.bg_lama).trim() && r.status === 'AKTIF') bgWrite_(sh, r._row, { status: 'DIPERPANJANG', tgl_selesai: o.tgl_terbit || today, ket: (String(r.ket || '') + (r.ket ? ' · ' : '') + 'diganti ' + id + ' (' + o.no_bg + ')').slice(0, 500) }); });
     }
+    else if (act === 'NPP') { var np = String(p.npp || '').trim(); if (!np) throw new Error('Select the NPP.'); o.npp = np; var dd = x.d || {}; dd.npp = np; o.data = dd; }
     else if (act === 'SCAN') { saveScan(); if (!o.scan) throw new Error('Select the scanned BG file.'); }
     else if (act === 'SELESAI') { if (st !== 'AKTIF') throw new Error('Only an active BG can be returned / released.'); o.status = p.hasil === 'ROYA' ? 'ROYA' : 'DIKEMBALIKAN'; o.tgl_selesai = /^\d{4}-\d{2}-\d{2}$/.test(String(p.tgl || '')) ? p.tgl : today; if (p.catatan) o.ket = ket(String(p.catatan).slice(0, 200)); }
     else if (act === 'BATAL') { if (['DRAF', 'DIKIRIM KE PUSAT'].indexOf(st) < 0) throw new Error('Only a draft / sent request can be cancelled.'); if (String(p.alasan || '').trim().length < 5) throw new Error('Enter the cancellation reason.'); o.status = 'BATAL'; o.ket = ket('Batal: ' + String(p.alasan).trim().slice(0, 200)); }
