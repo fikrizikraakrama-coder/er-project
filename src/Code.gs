@@ -1382,6 +1382,17 @@ function docFileName_(inv, kind, ext) {
 }
 /** unggah berkas tagihan ber-TTD (PACK) atau PDF faktur pajak (FP) untuk satu invoice.
  *  m = { b64, mime, size, fp: { no, tgl, ref, harga, ppn } (hasil baca PDF Coretax di aplikasi), force } */
+/** v2.9.10 isi berkas invoice ber-TTD / faktur pajak (link_inv / link_fp di Monitoring Invoice) untuk dilampirkan di paket penerimaan. Hanya berkas yang tercatat di register. */
+function apiDocFile(nomor, kind) { arRequireAccess_();
+  var res = computeLight_(), k = ENGINE.normInv(nomor), inv = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; })[0];
+  if (!inv) throw new Error('Invoice ' + nomor + ' not found.');
+  var url = String(kind === 'FP' ? inv.link_fp || '' : inv.link_inv || ''), id = (/[-\w]{25,}/.exec(url) || [])[0];
+  if (!id) return { none: true };
+  var f = DriveApp.getFileById(id), b = f.getBlob(), mime = b.getContentType() || '';
+  if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('The filed document is not a PDF or image.');
+  if (f.getSize() > 15 * 1024 * 1024) throw new Error('The filed document is larger than 15 MB.');
+  return { b64: Utilities.base64Encode(b.getBytes()), mime: mime, name: f.getName(), url: url };
+}
 function apiFileDoc(nomor, kind, m) {
   arRequireMaker_(); m = m || {};
   if (['PACK', 'FP'].indexOf(kind) < 0) throw new Error('Unknown document type.');

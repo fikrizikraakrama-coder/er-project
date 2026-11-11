@@ -12,7 +12,7 @@ var BG_SCHEMA_ = {
     ['tgl_selesai', 'TGL KEMBALI / ROYA', 'auto', 12, 'date'], ['memo', 'LINK MEMO PDF', 'auto', 22], ['scan', 'LINK SCAN BG', 'auto', 22], ['ket', 'KETERANGAN', 'auto', 34],
     ['oleh', 'DIBUAT OLEH', 'auto', 22], ['ubah', 'DIUBAH', 'auto', 15], ['data', 'DATA MEMO (JANGAN DIUBAH)', 'auto', 12]]
 };
-var BG_ST_ = ['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF', 'DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG', 'BATAL'];
+var BG_ST_ = ['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF', 'DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG', 'DICAIRKAN', 'BATAL'];
 function bgSheet_(create) {
   var ss = arSpreadsheet_(), sh = ss.getSheetByName(BG_SCHEMA_.sheet);
   if (!sh && create) {
@@ -21,6 +21,8 @@ function bgSheet_(create) {
     try { bgRules_(sh); } catch (e) { }
   }
   if (sh) ensureSchema_(sh, BG_SCHEMA_, null, null);
+  if (sh) try { var pr = arProps_(); if (!pr.getProperty('BG_RULE_CAIR')) { var m = colMap_(sh, BG_SCHEMA_), rg = sh.getRange(BG_SCHEMA_.firstRow, 1, sh.getMaxRows() - BG_SCHEMA_.firstRow + 1, BG_SCHEMA_.cols.length), rules = sh.getConditionalFormatRules();
+    rules.unshift(SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=$' + xColA_(m.status) + BG_SCHEMA_.firstRow + '="DICAIRKAN"').setBackground('#F8C9C4').setFontColor('#8A1C12').setBold(true).setRanges([rg]).build()); sh.setConditionalFormatRules(rules); pr.setProperty('BG_RULE_CAIR', '1'); } } catch (e) { }
   return sh;
 }
 /** warna baris: AKTIF berakhir ≤ 14 hari merah, ≤ 30 hari kuning; selesai abu-abu */
@@ -106,6 +108,8 @@ function apiBgSave(D) { arRequireMaker_();
         provisi: bgProvisi_(nilai, d.mulai, d.sampai), bg_lama: d.bgLama || '', ket: [d.jwTxt ? 'Masa berlaku: ' + d.jwTxt : '', d.ket || ''].filter(String).join(' · ').slice(0, 500), data: d };
       if (L.length > 1) o.ket = (o.ket + (o.ket ? ' · ' : '') + 'dibuat bersama ' + L.length + ' jaminan').slice(0, 500);
       if (!x) { o.status = 'DRAF'; o.oleh = me; }
+      var now0 = arNow_().slice(0, 16); if (x) { var xd = x.d || {}; ['h', 'prev', 'memoRev', 'amd', 'amdLinks', 'klaim', 'klaimLink'].forEach(function (k) { if (xd[k] !== undefined) d[k] = xd[k]; }); }
+      bgHist_(d, x ? 'EDIT' : 'BARU', x ? 'Memo diubah' + (d.memoRev ? ' (Rev.' + ('0' + d.memoRev).slice(-2) + ')' : '') : 'Draf memo dibuat' + (L.length > 1 ? ' (bersama ' + L.length + ' jaminan)' : ''), me, now0); o.data = d;
       bgWrite_(sh, row, o); ids.push(id);
     });
   } finally { lock.releaseLock(); }
@@ -123,39 +127,106 @@ function apiBgMemoPdf(ids, b64, name) { arRequireMaker_();
   var lock = bgLock_(); try { var sh = bgSheet_(true); X.forEach(function (x) { bgWrite_(sh, x._row, { memo: f.getUrl() }); }); } finally { lock.releaseLock(); }
   return { ok: true, url: f.getUrl(), name: f.getName(), folder: folder.getName() };
 }
-/** perubahan status: KIRIM · TERBIT {no_bg, bank, tgl_terbit, mulai, sampai, scan:{b64,name,mime}} · SELESAI {hasil: DIKEMBALIKAN|ROYA, tgl} · PERPANJANG · BATAL {alasan} · SCAN {scan} */
+/** v2.9.10 riwayat & langkah terakhir disimpan di DATA MEMO: d.h = [{t, a, by, n}] · d.prev = salinan kolom sebelum perubahan status (untuk "Batalkan langkah terakhir") */
+var BG_SNAP_ = ['status', 'tgl_kirim', 'tgl_selesai', 'no_bg', 'bank', 'penerbit', 'tgl_terbit', 'mulai', 'sampai', 'nilai', 'provisi', 'scan', 'ket'];
+function bgHist_(d, a, n, me, now) { d.h = (d.h || []).concat([{ t: now, a: a, by: me, n: String(n || '').slice(0, 300) }]).slice(-60); return d; }
+function bgIsD_(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')); }
+/** perubahan status / kendali BG (semua oleh AR):
+ *  KIRIM {tgl} · TERBIT {penerbit,no_bg,bank,tgl_terbit,mulai,sampai,nilai,biaya,scan} · SCAN {scan} · NPP {npp}
+ *  SELESAI {hasil DIKEMBALIKAN|ROYA, tgl, catatan} · BATAL {alasan} (draf / di pusat / aktif) · PUSAT {alasan} (dikembalikan pusat → draf, memo Rev+1)
+ *  AMEND {tgl, mulai, sampai, nilai, scan, ket} (amandemen: nomor sama) · KLAIM {tgl, nilai, alasan, scan} · KOREKSI {field..., alasan} · UNDO {alasan} */
 function apiBgStatus(id, act, p) { arRequireMaker_();
   p = p || {}; act = String(act || '').toUpperCase();
   var res = { params: arParameters_(), ctx: { today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') } }, lock = bgLock_(), out = { ok: true };
   try {
-    var sh = bgSheet_(true), x = bgRows_().filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('BG ' + id + ' not found.');
-    var st = String(x.status), o = {}, today = res.ctx.today, ket = function (t) { return (String(x.ket || '') + (x.ket ? ' · ' : '') + t).slice(0, 500); };
-    var saveScan = function () {
-      if (!p.scan || !p.scan.b64) return;
-      var no = p.no_bg || x.no_bg || id, pen = p.bank || x.bank || '';
-      o.scan = bgSaveScan_(res.params, p.tgl_terbit || x.tgl_terbit || x.tgl || today, bgFileBase_(no, x.kepada, x.jenis, pen), p.scan);
+    var sh = bgSheet_(true), all = bgRows_(), x = all.filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('BG ' + id + ' not found.');
+    var st = String(x.status), o = {}, today = res.ctx.today, me = email_(), now = arNow_().slice(0, 16), d = x.d || {}, ket = function (t) { return (String(x.ket || '') + (x.ket ? ' · ' : '') + t).slice(0, 500); };
+    var why = function (min) { var a = String(p.alasan || '').trim(); if (a.length < (min || 5)) throw new Error('Enter the reason (at least ' + (min || 5) + ' characters).'); return a.slice(0, 300); };
+    var snap = function () { var s0 = { at: now, act: act }; BG_SNAP_.forEach(function (k) { s0[k] = x[k] === undefined ? '' : x[k]; }); d.prev = s0; };
+    var base = function (no, pen, suf) { return bgFileBase_(no || x.no_bg || id, x.kepada, x.jenis, pen || x.bank || '') + (suf || ''); };
+    var saveScan = function (suf) {
+      if (!p.scan || !p.scan.b64) return '';
+      return bgSaveScan_(res.params, p.tgl_terbit || x.tgl_terbit || x.tgl || today, base(p.no_bg, p.bank, suf), p.scan);
     };
-    if (act === 'KIRIM') { if (st !== 'DRAF') throw new Error('Only a draft can be marked as sent.'); o.status = 'DIKIRIM KE PUSAT'; o.tgl_kirim = /^\d{4}-\d{2}-\d{2}$/.test(String(p.tgl || '')) ? p.tgl : today; }
+    var hist = '';
+    if (act === 'KIRIM') { if (st !== 'DRAF') throw new Error('Only a draft can be marked as sent.'); snap(); o.status = 'DIKIRIM KE PUSAT'; o.tgl_kirim = bgIsD_(p.tgl) ? p.tgl : today; hist = 'Memo dikirim ke pusat (' + o.tgl_kirim + ')'; }
+    else if (act === 'PUSAT') {
+      if (st !== 'DIKIRIM KE PUSAT') throw new Error('Only a memo that was sent to head office can be returned.');
+      var a0 = why(5); snap(); o.status = 'DRAF'; d.memoRev = (+d.memoRev || 0) + 1; hist = 'Dikembalikan pusat untuk revisi memo (Rev.' + ('0' + d.memoRev).slice(-2) + '): ' + a0;
+    }
     else if (act === 'TERBIT') {
       if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' is ' + st + '.');
       if (!String(p.no_bg || '').trim()) throw new Error('Fill in the BG number.');
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.sampai || ''))) throw new Error('Fill in the BG expiry date.');
-      o.status = 'AKTIF'; o.no_bg = String(p.no_bg).trim(); o.bank = String(p.bank || '').trim(); o.penerbit = p.penerbit === 'ASURANSI' ? 'ASURANSI' : 'BANK'; o.tgl_terbit = p.tgl_terbit || ''; o.mulai = p.mulai || x.mulai; o.sampai = p.sampai;
+      if (!bgIsD_(p.sampai)) throw new Error('Fill in the BG expiry date.');
+      snap(); o.status = 'AKTIF'; o.no_bg = String(p.no_bg).trim(); o.bank = String(p.bank || '').trim(); o.penerbit = p.penerbit === 'ASURANSI' ? 'ASURANSI' : 'BANK'; o.tgl_terbit = p.tgl_terbit || ''; o.mulai = p.mulai || x.mulai; o.sampai = p.sampai;
       if (p.nilai) o.nilai = bgNum_(p.nilai); o.provisi = +p.biaya > 0 ? bgNum_(p.biaya) : bgProvisi_(o.nilai || +x.nilai, o.mulai, o.sampai); if (!x.tgl_kirim) o.tgl_kirim = o.tgl_terbit || today;
-      saveScan();
+      var sc = saveScan(); if (sc) o.scan = sc;
+      hist = (o.penerbit === 'ASURANSI' ? 'Jaminan' : 'BG') + ' terbit ' + o.no_bg + ' · ' + o.bank + (sc ? ' · scan diupload' : '');
       // BG perpanjangan / perubahan terbit → BG lama otomatis DIPERPANJANG
-      if (x.bg_lama) bgRows_().forEach(function (r) { if (r.id !== id && String(r.no_bg).trim() && String(r.no_bg).trim() === String(x.bg_lama).trim() && r.status === 'AKTIF') bgWrite_(sh, r._row, { status: 'DIPERPANJANG', tgl_selesai: o.tgl_terbit || today, ket: (String(r.ket || '') + (r.ket ? ' · ' : '') + 'diganti ' + id + ' (' + o.no_bg + ')').slice(0, 500) }); });
+      if (x.bg_lama) all.forEach(function (r) { if (r.id !== id && String(r.no_bg).trim() && String(r.no_bg).trim() === String(x.bg_lama).trim() && r.status === 'AKTIF') { var dd = bgHist_(r.d || {}, 'DIPERPANJANG', 'Diganti ' + id + ' (' + o.no_bg + ')', me, now); bgWrite_(sh, r._row, { status: 'DIPERPANJANG', tgl_selesai: o.tgl_terbit || today, ket: (String(r.ket || '') + (r.ket ? ' · ' : '') + 'diganti ' + id + ' (' + o.no_bg + ')').slice(0, 500), data: dd }); } });
     }
-    else if (act === 'NPP') { var np = String(p.npp || '').trim(); if (!np) throw new Error('Select the NPP.'); o.npp = np; var dd = x.d || {}; dd.npp = np; o.data = dd; }
-    else if (act === 'SCAN') { saveScan(); if (!o.scan) throw new Error('Select the scanned BG file.'); }
-    else if (act === 'SELESAI') { if (st !== 'AKTIF') throw new Error('Only an active BG can be returned / released.'); o.status = p.hasil === 'ROYA' ? 'ROYA' : 'DIKEMBALIKAN'; o.tgl_selesai = /^\d{4}-\d{2}-\d{2}$/.test(String(p.tgl || '')) ? p.tgl : today; if (p.catatan) o.ket = ket(String(p.catatan).slice(0, 200)); }
-    else if (act === 'BATAL') { if (['DRAF', 'DIKIRIM KE PUSAT'].indexOf(st) < 0) throw new Error('Only a draft / sent request can be cancelled.'); if (String(p.alasan || '').trim().length < 5) throw new Error('Enter the cancellation reason.'); o.status = 'BATAL'; o.ket = ket('Batal: ' + String(p.alasan).trim().slice(0, 200)); }
+    else if (act === 'NPP') { var np = String(p.npp || '').trim(); if (!np) throw new Error('Select the NPP.'); o.npp = np; d.npp = np; hist = 'NPP dihubungkan: ' + np; }
+    else if (act === 'SCAN') { o.scan = saveScan(); if (!o.scan) throw new Error('Select the scanned BG file.'); hist = x.scan ? 'Scan diganti' : 'Scan diupload'; }
+    else if (act === 'SELESAI') { if (st !== 'AKTIF') throw new Error('Only an active BG can be returned / released.'); snap(); o.status = p.hasil === 'ROYA' ? 'ROYA' : 'DIKEMBALIKAN'; o.tgl_selesai = bgIsD_(p.tgl) ? p.tgl : today; if (p.catatan) o.ket = ket(String(p.catatan).slice(0, 200)); hist = titleCase_(o.status) + ' (' + o.tgl_selesai + ')' + (p.catatan ? ': ' + p.catatan : ''); }
+    else if (act === 'BATAL') {
+      if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' is ' + st + ' and cannot be cancelled.');
+      var a1 = why(5); snap(); o.status = 'BATAL'; o.ket = ket('Batal: ' + a1); hist = 'Catatan dibatalkan: ' + a1;
+    }
+    else if (act === 'AMEND') {
+      if (st !== 'AKTIF') throw new Error('Only an active BG can be amended.');
+      var ch = [];
+      if (bgIsD_(p.mulai) && p.mulai !== x.mulai) { o.mulai = p.mulai; ch.push('mulai ' + (x.mulai || '-') + ' → ' + p.mulai); }
+      if (bgIsD_(p.sampai) && p.sampai !== x.sampai) { o.sampai = p.sampai; ch.push('s/d ' + (x.sampai || '-') + ' → ' + p.sampai); }
+      if (+p.nilai > 0 && bgNum_(p.nilai) !== bgNum_(x.nilai)) { o.nilai = bgNum_(p.nilai); ch.push('nilai ' + bgNum_(x.nilai) + ' → ' + o.nilai); }
+      if (!ch.length) throw new Error('Nothing changed — fill in the new expiry date or value.');
+      if ((o.mulai || x.mulai) && (o.sampai || x.sampai) < (o.mulai || x.mulai)) throw new Error('Expiry date is before the start date.');
+      snap(); d.amd = (+d.amd || 0) + 1; var tag = 'Amd.' + ('0' + d.amd).slice(-2);
+      var url = saveScan('_' + tag.replace('.', '')); if (url) { d.amdLinks = (d.amdLinks || []).concat([url]); }
+      o.provisi = bgProvisi_(o.nilai || +x.nilai, o.mulai || x.mulai, o.sampai || x.sampai);
+      o.ket = ket(tag + (bgIsD_(p.tgl) ? ' ' + p.tgl : '') + ': ' + ch.join(', '));
+      hist = tag + (bgIsD_(p.tgl) ? ' (' + p.tgl + ')' : '') + ': ' + ch.join(', ') + (p.ket ? ' · ' + p.ket : '') + (url ? ' · surat amandemen diupload' : '');
+    }
+    else if (act === 'KLAIM') {
+      if (st !== 'AKTIF') throw new Error('Only an active BG can be claimed.');
+      var a2 = why(5); snap(); o.status = 'DICAIRKAN'; o.tgl_selesai = bgIsD_(p.tgl) ? p.tgl : today;
+      var url2 = saveScan('_KLAIM'); if (url2) d.klaimLink = url2; d.klaim = { tgl: o.tgl_selesai, nilai: bgNum_(p.nilai) || bgNum_(x.nilai), alasan: a2 };
+      o.ket = ket('DICAIRKAN ' + o.tgl_selesai + ' Rp ' + d.klaim.nilai + ': ' + a2); hist = 'Diklaim / dicairkan bouwheer Rp ' + d.klaim.nilai + ' (' + o.tgl_selesai + '): ' + a2;
+    }
+    else if (act === 'KOREKSI') {
+      if (st === 'BATAL') throw new Error('A cancelled record cannot be corrected.');
+      var a3 = why(5), ch2 = [], F = { no_bg: 'no. BG', bank: 'penerbit', penerbit: 'jenis penerbit', kepada: 'ditujukan kepada', npp: 'NPP', tgl_terbit: 'tgl terbit', mulai: 'mulai', sampai: 's/d', nilai: 'nilai', provisi: 'provisi / premi' };
+      Object.keys(F).forEach(function (k) {
+        if (p[k] === undefined || p[k] === null) return; var v = ['nilai', 'provisi'].indexOf(k) >= 0 ? bgNum_(p[k]) : String(p[k]).trim(), old = ['nilai', 'provisi'].indexOf(k) >= 0 ? bgNum_(x[k]) : String(x[k] || '').trim();
+        if (['tgl_terbit', 'mulai', 'sampai'].indexOf(k) >= 0 && v && !bgIsD_(v)) throw new Error('Date "' + F[k] + '" is not valid.');
+        if (k === 'penerbit') v = v === 'ASURANSI' ? 'ASURANSI' : 'BANK';
+        if (v !== old) { o[k] = v; ch2.push(F[k] + ' ' + (old || '-') + ' → ' + (v || '-')); if (k === 'npp' || k === 'kepada') d[k] = v; }
+      });
+      if (!ch2.length) throw new Error('Nothing changed.');
+      if ((o.no_bg !== undefined || o.bank !== undefined || o.kepada !== undefined) && x.scan) {
+        try { var fid = (/[-\w]{25,}/.exec(String(x.scan)) || [])[0], f = DriveApp.getFileById(fid), ext = (/\.(\w{2,5})$/.exec(f.getName()) || [0, 'pdf'])[1];
+          f.setName(bgFileBase_(o.no_bg !== undefined ? o.no_bg : x.no_bg, o.kepada !== undefined ? o.kepada : x.kepada, x.jenis, o.bank !== undefined ? o.bank : x.bank) + '.' + ext); ch2.push('nama file scan disesuaikan'); } catch (e) { }
+      }
+      hist = 'Koreksi data: ' + ch2.join(', ') + ' · alasan: ' + a3;
+    }
+    else if (act === 'UNDO') {
+      var pv = d.prev; if (!pv) throw new Error('There is no step to undo.');
+      var age = (Date.parse(now.replace(' ', 'T')) - Date.parse(String(pv.at).replace(' ', 'T'))) / 864e5; if (!(age <= 7)) throw new Error('The last step is older than 7 days and can no longer be undone. Use "Koreksi data".');
+      var a4 = why(5); BG_SNAP_.forEach(function (k) { if (k in pv) o[k] = pv[k]; });
+      if (pv.act === 'PUSAT') d.memoRev = Math.max(0, (+d.memoRev || 0) - 1);
+      if (pv.act === 'AMEND') d.amd = Math.max(0, (+d.amd || 0) - 1);
+      if (pv.act === 'KLAIM') delete d.klaim;
+      // terbit perpanjangan dibatalkan → BG lama aktif kembali
+      if (pv.act === 'TERBIT' && x.bg_lama) all.forEach(function (r) { if (r.status === 'DIPERPANJANG' && String(r.no_bg).trim() === String(x.bg_lama).trim() && String(r.ket || '').indexOf('diganti ' + id) >= 0) { var dd = bgHist_(r.d || {}, 'UNDO', 'Aktif kembali — terbit ' + id + ' dibatalkan', me, now); bgWrite_(sh, r._row, { status: 'AKTIF', tgl_selesai: '', data: dd }); } });
+      delete d.prev; hist = 'Langkah terakhir dibatalkan (' + String(pv.act || '').toLowerCase() + ', status kembali ' + String(pv.status || '').toLowerCase() + '): ' + a4;
+    }
     else throw new Error('Unknown action.');
+    o.data = bgHist_(d, act, hist, me, now);
     bgWrite_(sh, x._row, o); out.status = o.status || st; out.scan = o.scan || '';
   } finally { lock.releaseLock(); }
   try { arBootBust_(); } catch (e) { }
   return out;
 }
+function titleCase_(s) { return String(s || '').toLowerCase().replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
 /** jaminan yang sudah terbit tanpa memo dari aplikasi (BG lama / terbit langsung dari pusat) → baris AKTIF. Satu jaminan per panggilan (scan bisa besar). */
 function apiBgImport(it) { arRequireMaker_();
   it = it || {}; var s = function (k) { return String(it[k] === undefined || it[k] === null ? '' : it[k]).trim(); }, isD = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(v); };
@@ -172,7 +243,7 @@ function apiBgImport(it) { arRequireMaker_();
     var o = { id: id, tgl: '', jenis: s('jenis').toUpperCase(), npp: s('npp'), kepada: s('kepada'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak'), omzet: '', pct: '', nilai: nilai,
       mulai: s('mulai'), sampai: s('sampai'), perlu: '', status: 'AKTIF', no_bg: s('no_bg'), bank: s('bank'), penerbit: pen, tgl_terbit: tt,
       provisi: +it.biaya > 0 ? bgNum_(it.biaya) : bgProvisi_(nilai, s('mulai') || tt, s('sampai')), ket: ['Diinput sebagai jaminan terbit (tanpa memo aplikasi)', s('ket')].filter(String).join(' · ').slice(0, 500), oleh: email_(),
-      data: { imp: 1, jenis: s('jenis').toUpperCase(), kepada: s('kepada'), npp: s('npp'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak') } };
+      data: bgHist_({ imp: 1, jenis: s('jenis').toUpperCase(), kepada: s('kepada'), npp: s('npp'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak') }, 'BARU', 'Dicatat sebagai jaminan terbit' + (it.scan && it.scan.b64 ? ' · scan diupload' : ''), email_(), arNow_().slice(0, 16)) };
     if (it.scan && it.scan.b64) o.scan = bgSaveScan_(res.params, tt || res.today, bgFileBase_(o.no_bg, o.kepada, o.jenis, o.bank), it.scan);
     bgWrite_(sh, row, o);
   } finally { lock.releaseLock(); }
@@ -204,6 +275,7 @@ function bgSummary_(today) {
     var t = Date.parse(today), A = rows.filter(function (r) { return r.status === 'AKTIF'; }), exp = [];
     A.forEach(function (r) { var s = Date.parse(r.sampai); if (!isNaN(s)) { var d = Math.round((s - t) / 864e5); if (d <= 30) exp.push({ id: r.id, jenis: r.jenis, kepada: r.kepada, nilai: +r.nilai || 0, sampai: r.sampai, sisa: d, no_bg: r.no_bg }); } });
     exp.sort(function (a, b) { return a.sisa - b.sisa; });
-    return { aktif: A.length, nilai: A.reduce(function (s, r) { return s + (+r.nilai || 0); }, 0), exp: exp, proses: rows.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length, draf: rows.filter(function (r) { return r.status === 'DRAF'; }).length };
+    var tanpaScan = A.filter(function (r) { return !String(r.scan || '').trim(); }).length;
+    return { tanpaScan: tanpaScan, aktif: A.length, nilai: A.reduce(function (s, r) { return s + (+r.nilai || 0); }, 0), exp: exp, proses: rows.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length, draf: rows.filter(function (r) { return r.status === 'DRAF'; }).length };
   } catch (e) { return null; }
 }
