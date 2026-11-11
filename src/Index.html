@@ -3521,7 +3521,8 @@ function raDownload(kind, btn) {
   makePdf(pgRaTermin(D), D.name).then(function (b64) { saveFile(b64Blob(b64, 'application/pdf'), D.name + '.pdf'); end(true); }).catch(function (e) { end(false, e); });
 }
 /* ---------- penulis .xlsx mini (tanpa pustaka luar): zip STORE + CRC32, inline string, gaya, gabung sel, pengaturan cetak */
-var CRC_T = null;
+// catatan: tanda pembuka/penutup scriptlet Apps Script tidak boleh tertulis utuh di file ini (template HtmlService)
+var CRC_T = null, XHD = '<' + '?xml version="1.0" encoding="UTF-8" standalone="yes"?' + '>';
 function crc32(u) { if (!CRC_T) { CRC_T = []; for (var n = 0; n < 256; n++) { var c = n; for (var k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; CRC_T[n] = c >>> 0; } } var r = 0xFFFFFFFF; for (var i = 0; i < u.length; i++) r = CRC_T[(r ^ u[i]) & 0xFF] ^ (r >>> 8); return (r ^ 0xFFFFFFFF) >>> 0; }
 function zipStore(files) {
   var enc = new TextEncoder(), parts = [], cen = [], off = 0, d = new Date(), dt = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF, dd = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
@@ -3548,7 +3549,7 @@ function xSheet() {
 }
 function xSheetXml(S, o) {
   var rows = Object.keys(S.cells).map(Number).concat(Object.keys(S.hts).map(Number)).filter(function (v, i, A) { return A.indexOf(v) === i; }).sort(function (a, b) { return a - b; });
-  var x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+  var x = XHD + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
     '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="100">' + (o.freeze ? '<pane ySplit="' + (o.freeze - 1) + '" topLeftCell="A' + o.freeze + '" activePane="bottomLeft" state="frozen"/>' : '') + '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/>' +
     '<cols>' + o.widths.map(function (w, i) { return '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>'; }).join('') + '</cols><sheetData>';
   rows.forEach(function (r) {
@@ -3569,7 +3570,7 @@ function xSheetXml(S, o) {
   return x;
 }
 function xlsxBook(sheetXml, sheetName, printTitles) {
-  var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+  var styles = XHD + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
     '<numFmts count="3"><numFmt numFmtId="164" formatCode="#,##0"/><numFmt numFmtId="165" formatCode="dd\\-mm\\-yyyy"/><numFmt numFmtId="166" formatCode="0.00%"/></numFmts>' +
     '<fonts count="8"><font><sz val="9"/><name val="Arial"/></font><font><b/><sz val="13"/><color rgb="FF1F3864"/><name val="Arial"/></font><font><sz val="9"/><color rgb="FF4A5A72"/><name val="Arial"/></font><font><b/><sz val="9"/><color rgb="FF1F3864"/><name val="Arial"/></font>' +
     '<font><b/><u/><sz val="9"/><name val="Arial"/></font><font><sz val="7.5"/><color rgb="FF4A5A72"/><name val="Arial"/></font><font><b/><sz val="10"/><color rgb="FF1F3864"/><name val="Arial"/></font><font><b/><sz val="9"/><name val="Arial"/></font></fonts>' +
@@ -3588,10 +3589,10 @@ function xlsxBook(sheetXml, sheetName, printTitles) {
     '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
   var sn = xEsc(sheetName);
   return zipStore([
-    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
-    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
-    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="' + sn + '" sheetId="1" r:id="rId1"/></sheets>' + (printTitles ? '<definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">\'' + sn.replace(/'/g, "''") + '\'!' + printTitles + '</definedName></definedNames>' : '') + '</workbook>'],
-    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+    ['[Content_Types].xml', XHD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+    ['_rels/.rels', XHD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', XHD + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="' + sn + '" sheetId="1" r:id="rId1"/></sheets>' + (printTitles ? '<definedNames><definedName name="_xlnm.Print_Titles" localSheetId="0">\'' + sn.replace(/'/g, "''") + '\'!' + printTitles + '</definedName></definedNames>' : '') + '</workbook>'],
+    ['xl/_rels/workbook.xml.rels', XHD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
     ['xl/styles.xml', styles], ['xl/worksheets/sheet1.xml', sheetXml]
   ]);
 }
