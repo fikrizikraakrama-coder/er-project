@@ -912,7 +912,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .bgx-more{margin-top:10px;border:1px dashed #CBD5E1;border-radius:10px;padding:6px 10px}.bgx-more summary{cursor:pointer;font-weight:700;font-size:12px;color:#0F6E78}
 .bgx-calc{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:12px}.bgx-calc div{display:flex;justify-content:space-between;padding:2px 0}
 .bgx-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}.bgx-act .btn.red{color:#B42318}
-.bgx-tip{background:#F1F8F8;border:1px dashed #9CCFD1;border-radius:9px;padding:7px 10px;font-size:11.5px;color:#24505A;margin-top:8px}.bgx-nonpp{font-style:normal;background:#FFF1D6;color:#9A6200;border-radius:6px;padding:0 5px;font-size:10.5px;font-weight:700}.bgx-sub p.s{margin:0 0 6px;color:#6A7A8E;font-size:11.5px}
+.bgx-tip{background:#F1F8F8;border:1px dashed #9CCFD1;border-radius:9px;padding:7px 10px;font-size:11.5px;color:#24505A;margin-top:8px}.bgx-nonpp{white-space:nowrap;font-style:normal;background:#FFF1D6;color:#9A6200;border-radius:6px;padding:0 5px;font-size:10.5px;font-weight:700}.bgx-sub p.s{margin:0 0 6px;color:#6A7A8E;font-size:11.5px}
 .bgx-sec{margin-top:12px;border-top:1px dashed #DCE3EB;padding-top:8px}.bgx-sec>b{font-size:12.5px;color:#14284B}.bgx-sec p.s{margin:4px 0 0}
 .bgx-form .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.bgx-form .g2b{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
 .bgx-jm{border:1.5px solid #D5E3EA;border-radius:12px;margin-top:10px;overflow:hidden}.bgx-jm .hd{display:flex;align-items:center;gap:10px;padding:7px 12px;font-weight:800;font-size:13px;color:#fff}.bgx-jm .hd small{font-weight:600;opacity:.88;font-size:11.5px}.bgx-jm .hd i{flex:1}.bgx-jm .bd{padding:2px 12px 12px}
@@ -936,6 +936,28 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .pg-bgm .bgm-kop{display:flex;justify-content:space-between}.pg-bgm .bgm-kop .up{margin-right:14mm}
 .pg-bgm .bgm-t{text-align:center;font:bold 21pt "Baskerville Old Face","Libre Baskerville",Baskerville,Georgia,"Times New Roman",serif;margin:3.5mm 0 3mm;letter-spacing:.5pt}
 .pg-bgm table{border-collapse:collapse;font:inherit;color:inherit}.pg-bgm td{padding:0;vertical-align:top;font:inherit;line-height:inherit}
+/* v2.9.8 draf memo langsung · penerbit · input jaminan terbit */
+.bgd{background:#fff;border:1px solid #DFE6EE;border-radius:14px;position:sticky;top:0;overflow:hidden}
+.bgd-hd{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid #EEF2F6}.bgd-hd>b{font-size:14px;margin-right:4px}.bgd-hd i{flex:1}.bgd-hd .btn{padding:5px 10px;font-size:12px}
+.bgd-tab{border:0;border-radius:16px;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;background:#F1F4F8;color:#4A5A6E;cursor:pointer}.bgd-tab.on{background:#14284B;color:#fff}
+.bgd-note{font-size:11.5px;color:#6A7A8E;padding:6px 12px 0}
+.bgd-sc{padding:8px 7px 10px;max-height:calc(100vh - 150px);overflow:auto;background:#EEF2F6;margin:6px 0 0}.bgd-sc .page{margin:0 auto}
+.bgm-e{background:#FFE98A;border-radius:2px;padding:0 2px;box-shadow:0 0 0 1px #F2C94C}
+.bgx-pf{display:inline-flex;gap:3px;margin-left:auto;padding-left:6px;border-left:1px solid #E5EAF0}.bgx-pf button{font-size:11.5px!important;padding:4px 9px!important}
+.bgx-dbk{background:#7C3AED!important;color:#fff!important}
+.bgx-pn{display:inline-block;border-radius:8px;padding:0 6px;font-size:10.5px;font-weight:800;white-space:nowrap}.bgx-pn.bk{background:#E4EEFA;color:#1F5BA8}.bgx-pn.as{background:#FDF0DC;color:#9A5B00}
+.bgx-pseg button{flex:1}.bgx-pseg button.on{background:#0F6E78!important;border-color:#0F6E78!important;color:#fff!important}
+.bgx-fn{margin-top:9px;background:#14284B;color:#fff;border-radius:9px;padding:7px 10px;font:11.5px "Liberation Mono",Consolas,monospace;word-break:break-all}.bgx-fn small{display:block;font:10.5px Arial,sans-serif;color:#A9B8CF;margin-bottom:3px}
+.bgx-fn i,.bgx-fnm i{font-style:normal;padding:0 3px;border-radius:3px}.bgf1{background:#2F5597}.bgf2{background:#1E9E5A}.bgf3{background:#B7791F}.bgf4{background:#7C3AED}.bgx-fn i.bgf0{opacity:.45}
+.bgx-fnm{font:11px "Liberation Mono",Consolas,monospace;color:#14284B}.bgx-fnm i{color:#fff}.bgx-fnm i.bgf0{opacity:.4}
+.bgx-imp .bgi-hd{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}.bgx-imp .bgi-hd .sp{flex:1}.bgi-xl{cursor:pointer}
+.bgi-sc{overflow-x:auto;margin-top:10px}.bgi-t{width:100%;border-collapse:collapse;font-size:12px;min-width:1180px}.bgi-t th{color:#6A7A8E;font-size:10px;text-transform:uppercase;text-align:left;padding:6px 5px;border-bottom:1px solid #E5EAF0;white-space:nowrap}.bgi-t th.n{text-align:right}
+.bgi-t td{padding:5px 4px 2px;vertical-align:top}.bgi-t td.c{color:#6A7A8E;font-weight:700;padding-top:10px}.bgi-t input,.bgi-t select{width:100%;border:1px solid #CBD5E1;border-radius:7px;padding:5px 6px;font:inherit;font-size:12px;background:#fff;margin-bottom:3px}.bgi-t input.num{text-align:right}.bgi-t td.w{min-width:200px}
+.bgi-t tr.bgi-fn td{padding:0 4px 8px;border-bottom:1px solid #EEF2F6;font-size:11px}.bgi-t tr.ok td{background:#EAF7EF}.bgi-t tr.er td{background:#FFF5F4}.bgi-t tr.bgi-fn.er td{color:#B42318;font-weight:700}.bgi-t tr.bgi-fn.ok td{color:#17733F;font-weight:700}
+.bgi-f{display:inline-block;border:1px dashed #9CCFD1;border-radius:7px;padding:5px 8px;font-size:11.5px;color:#0F6E78;font-weight:700;cursor:pointer;white-space:nowrap;margin-top:1px}.bgi-f.on{border-style:solid;background:#F1F8F8}
+.bgi-t select[data-bik="jenis"]{min-width:132px}.bgi-t select[data-bik="pen"]{min-width:112px}.bgi-t input[type=date]{min-width:128px}.bgx-imp .bgi-hd .btn{align-self:center}
+.bgi-x{border:0;background:none;color:#B42318;font-size:18px;cursor:pointer;padding:4px 6px}
+.bgi-ft{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.bgi-ft .sp{flex:1}.bgi-ft .tg{max-width:620px}
 #bgPrev{position:fixed;inset:0;z-index:60;background:rgba(20,30,50,.6);overflow:auto;padding:70px 20px 30px}#bgPrev[hidden]{display:none}
 #bgPrev .bgp-bar{position:fixed;left:0;right:0;top:0;height:56px;background:#14284B;color:#fff;display:flex;align-items:center;gap:12px;padding:0 20px;z-index:2}#bgPrev .bgp-bar span{opacity:.7;font-size:12px}#bgPrev .bgp-bar i{flex:1}#bgPrev .bgp-bar .btn{background:#fff;color:#14284B;border:0}#bgPrev .bgp-bar .btn.primary{background:#2EC4C4;color:#0B2D3A}
 #bgPrev .bgp-pg .page{margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -5139,7 +5161,7 @@ function kpTabTtd(npp) {
   }).join('') : '<tr><td colspan="6" class="kp-empty">Belum ada pengajuan TTD kartu untuk proyek ini.</td></tr>') + '</table>';
 }
 /* ====================================================== v2.9.6: Bank Garansi — permohonan jaminan ke pusat (memo PDF siap TTD) → BG terbit → dipantau di sheet Monitoring BG */
-var BG = { rows: null, def: null, sel: '', f: 'all', q: '', form: null, busy: false, act: '', sheetUrl: '' };
+var BG = { rows: null, def: null, sel: '', f: 'all', q: '', form: null, busy: false, act: '', sheetUrl: '', pen: 'all', penSel: 'BANK', dTab: 0, showList: false, imp: null };
 var BG_JENIS = [['TENDER', 'a) Jaminan Tender'], ['PENAWARAN', 'b) Penawaran'], ['PELAKSANAAN', 'c) Pelaksanaan'], ['UANG MUKA', 'd) Uang Muka'], ['PEMELIHARAAN', 'e) Pemeliharaan'], ['PERUBAHAN', 'f) Perubahan/Perpanjangan Jaminan : Pelaksanaan / Uang Muka / Pemeliharaan.']];
 var BG_LAMP = [['a', 'Dokumen Tender (Untuk Jaminan Penawaran)'], ['b', 'Copy SPK / Letter Of Intent (Untuk Jaminan Pelaksana)'], ['c', 'Copy Kontrak/ SPK (Untuk Jaminan Uang Muka)'], ['d', 'Copy Berita Acara Penyerahan barang (Untuk Jaminan Pemeliharaan)'], ['e', 'Tender Documents ( Untuk Jaminan Tender)'], ['f', 'Surat Penawaran'], ['g', 'Surat Perintah Mulai Kerja (SPMK)']];
 var BG_STC = { 'DRAF': 'pz', 'DIKIRIM KE PUSAT': 'pb', 'AKTIF': 'pg', 'DIKEMBALIKAN': 'pp', 'ROYA': 'pp', 'DIPERPANJANG': 'pp', 'BATAL': 'pz' };
@@ -5269,7 +5291,8 @@ function bgDispRows() {
   return L.filter(function (r) {
     var s = r.status, d = bgDays(r.sampai, B.today);
     var ok = BG.f === 'all' ? true : BG.f === 'aktif' ? s === 'AKTIF' : BG.f === 'exp' ? s === 'AKTIF' && d !== null && d <= 30 : BG.f === 'pusat' ? s === 'DIKIRIM KE PUSAT' : BG.f === 'draf' ? s === 'DRAF' : ['DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG', 'BATAL'].indexOf(s) >= 0;
-    return ok && (!q || (r.id + ' ' + r.jenis + ' ' + r.npp + ' ' + r.kepada + ' ' + r.pekerjaan + ' ' + r.no_bg).toUpperCase().indexOf(q) >= 0);
+    if (BG.pen !== 'all' && (!r.no_bg || (r.penerbit === 'ASURANSI' ? 'ASURANSI' : 'BANK') !== BG.pen)) return false;
+    return ok && (!q || (r.id + ' ' + r.jenis + ' ' + r.npp + ' ' + r.kepada + ' ' + r.pekerjaan + ' ' + r.no_bg + ' ' + r.bank).toUpperCase().indexOf(q) >= 0);
   }).sort(function (a, b) { return String(b.id).localeCompare(String(a.id)); });
 }
 function bgRender() {
@@ -5278,55 +5301,253 @@ function bgRender() {
   var prov = R.filter(function (r) { return r.status !== 'BATAL' && r.status !== 'DRAF' && String(r.tgl_terbit || r.tgl || '').slice(0, 4) === B.today.slice(0, 4); }).reduce(function (t, r) { return t + (+r.provisi || 0); }, 0);
   var cnt = function (k) { var s = BG.f; BG.f = k; var n = bgDispRows().length; BG.f = s; return n; };
   var h = '<div class="bgx"><div class="bgx-hd"><div><h2>Bank Garansi (BG)</h2><p>Permohonan jaminan ke pusat (memo PDF siap tanda tangan) · monitoring BG terbit sampai dikembalikan / roya</p></div><span class="sp"></span>' +
-    (BG.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(BG.sheetUrl) + '">' + ico('grid') + 'Sheet Monitoring BG</a>' : '') + (maker ? '<button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>';
-  h += '<div class="bgx-k"><div><small>BG aktif</small><b>' + A.length + ' BG</b><span>Rp ' + nfDot(A.reduce(function (t, r) { return t + (+r.nilai || 0); }, 0)) + '</span></div>' +
+    (BG.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(BG.sheetUrl) + '">' + ico('grid') + 'Sheet Monitoring BG</a>' : '') + (maker ? '<button class="btn" type="button" data-bga="imp">⤒ Input jaminan terbit</button><button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>';
+  h += '<div class="bgx-k"><div><small>BG / jaminan aktif</small><b>' + A.length + ' BG</b><span>Rp ' + nfDot(A.reduce(function (t, r) { return t + (+r.nilai || 0); }, 0)) + '</span></div>' +
     '<div><small>Berakhir ≤ 30 hari</small><b class="' + (exp.length ? 'bgred' : '') + '">' + exp.length + ' BG</b><span>perpanjang / kembalikan</span></div>' +
     '<div><small>Menunggu terbit di pusat</small><b>' + R.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length + ' memo</b><span>' + R.filter(function (r) { return r.status === 'DRAF'; }).length + ' draf belum dikirim</span></div>' +
-    '<div><small>Perkiraan provisi ' + B.today.slice(0, 4) + '</small><b>Rp ' + nfDot(prov) + '</b><span>nilai × 0,125% × hari ÷ 91</span></div>' +
+    '<div><small>Provisi / premi ' + B.today.slice(0, 4) + '</small><b>Rp ' + nfDot(prov) + '</b><span>' + A.filter(function (r) { return r.penerbit === 'ASURANSI'; }).length + ' asuransi · ' + A.filter(function (r) { return r.penerbit !== 'ASURANSI'; }).length + ' bank aktif</span></div>' +
     '<div><small>Selesai (kembali / roya / perpanjang)</small><b>' + R.filter(function (r) { return ['DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG'].indexOf(r.status) >= 0; }).length + ' BG</b><span>tersimpan sebagai arsip</span></div></div>';
   h += '<div class="bgx-flow">' + [['Draf memo', 'AR isi form · data proyek otomatis dari NPP'], ['Memo dikirim ke pusat', 'unduh memo PDF · TTD Manager'], ['BG terbit', 'isi no. BG, bank, masa berlaku · upload scan'], ['Aktif · dipantau', 'pengingat ≤ 30 hari di Overview'], ['Selesai', 'dikembalikan / roya / diperpanjang']].map(function (x, i) { return (i ? '<hr>' : '') + '<div><i>' + (i + 1) + '</i><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></div>'; }).join('') + '</div>';
+  if (BG.imp) { w.innerHTML = h + '<div style="margin-top:12px">' + bgImpHtml() + '</div></div>'; return bgBind(); }
   var L = bgDispRows();
-  h += '<div class="bgx-lay"><div class="bgx-main"><div class="bgx-tb"><input id="bgQ" placeholder="Cari jenis, NPP, bouwheer, no. BG…" value="' + esc(BG.q) + '">' +
-    [['all', 'Semua'], ['aktif', 'Aktif'], ['exp', 'Berakhir ≤30 hr'], ['pusat', 'Proses pusat'], ['draf', 'Draf'], ['done', 'Selesai']].map(function (x) { return '<button type="button" class="' + (BG.f === x[0] ? 'on' : '') + '" data-bgf="' + x[0] + '">' + x[1] + ' <em>' + cnt(x[0]) + '</em></button>'; }).join('') + '</div>';
-  h += L.length ? '<table class="bgx-t"><tr><th>ID · jenis · proyek</th><th>Ditujukan kepada</th><th class="n">Nilai jaminan</th><th>No. BG · bank</th><th>Masa berlaku</th><th>Status</th></tr>' + L.map(function (r) {
+  h += '<div class="bgx-lay">' + (BG.form && !BG.showList ? bgDraftHtml(BG.form) + '<div class="bgx-main" hidden>' : '<div class="bgx-main">') + '<div class="bgx-tb"><input id="bgQ" placeholder="Cari jenis, NPP, bouwheer, no. BG, penerbit…" value="' + esc(BG.q) + '">' +
+    [['all', 'Semua'], ['aktif', 'Aktif'], ['exp', 'Berakhir ≤30 hr'], ['pusat', 'Proses pusat'], ['draf', 'Draf'], ['done', 'Selesai']].map(function (x) { return '<button type="button" class="' + (BG.f === x[0] ? 'on' : '') + '" data-bgf="' + x[0] + '">' + x[1] + ' <em>' + cnt(x[0]) + '</em></button>'; }).join('') +
+    '<span class="bgx-pf">' + [['all', 'Semua penerbit'], ['BANK', '🏦 Bank'], ['ASURANSI', '🛡 Asuransi']].map(function (x) { return '<button type="button" class="' + (BG.pen === x[0] ? 'on' : '') + '" data-bgpf="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</span>' +
+    (BG.form ? '<button type="button" class="bgx-dbk" data-bga="list">Draf memo ›</button>' : '') + '</div>';
+  h += L.length ? '<table class="bgx-t"><tr><th>ID · jenis · proyek</th><th>Ditujukan kepada</th><th class="n">Nilai jaminan</th><th>No. BG · penerbit</th><th>Masa berlaku</th><th>Status</th></tr>' + L.map(function (r) {
     var d = bgDays(r.sampai, B.today), st = r.status === 'AKTIF' && d !== null && d <= 30 ? '<span class="pill ' + (d <= 14 ? 'pr' : 'py') + '">' + (d < 0 ? 'lewat ' + (-d) + ' hari' : 'berakhir ' + d + ' hari') + '</span>' : '<span class="pill ' + (BG_STC[r.status] || 'pz') + '">' + esc(String(r.status || '').toLowerCase()) + (r.status === 'DIKIRIM KE PUSAT' && r.tgl_kirim ? ' · ' + Math.max(0, bgDays(B.today, r.tgl_kirim) || 0) + ' hr' : '') + '</span>';
     return '<tr class="' + (BG.sel === r.id ? 'on' : '') + '" data-bgs="' + esc(r.id) + '"><td><b>' + esc(titleCaseS(r.jenis)) + '</b> · ' + (r.npp ? esc(r.npp) : '<i class="bgx-nonpp">belum ada NPP</i>') + '<small>' + esc(r.id) + ' · ' + esc(String(r.pekerjaan || '').split(' — ')[0]) + '</small></td><td>' + esc(r.kepada) + '</td><td class="n">' + nfDot(r.nilai) + (r.pct ? '<small>' + (Math.round(r.pct * 10000) / 100) + '% × ' + nfDot(r.omzet) + '</small>' : '') + '</td>' +
-      '<td>' + (r.no_bg ? esc(r.no_bg) + '<small>' + esc(r.bank || '') + '</small>' : '—') + '</td><td>' + (r.mulai || r.sampai ? esc(tg(r.mulai)) + ' s/d ' + esc(tg(r.sampai)) : '') + (r.status === 'DRAF' || r.status === 'DIKIRIM KE PUSAT' ? '<small>diperlukan ' + esc(tg(r.perlu)) + '</small>' : r.tgl_selesai ? '<small>' + esc(String(r.status).toLowerCase()) + ' ' + esc(tg(r.tgl_selesai)) + '</small>' : '') + '</td><td>' + st + '</td></tr>';
+      '<td>' + (r.no_bg ? esc(r.no_bg) + '<small>' + bgPenBadge(r) + '</small>' : '—') + '</td><td>' + (r.mulai || r.sampai ? esc(tg(r.mulai)) + ' s/d ' + esc(tg(r.sampai)) : '') + (r.status === 'DRAF' || r.status === 'DIKIRIM KE PUSAT' ? '<small>diperlukan ' + esc(tg(r.perlu)) + '</small>' : r.tgl_selesai ? '<small>' + esc(String(r.status).toLowerCase()) + ' ' + esc(tg(r.tgl_selesai)) + '</small>' : '') + '</td><td>' + st + '</td></tr>';
   }).join('') + '</table>' : '<div class="bgx-empty">' + (R.length ? 'Tidak ada BG untuk saringan ini.' : 'Belum ada permohonan BG. Klik <b>+ Permohonan BG baru</b> untuk membuat memo ke pusat.') + '</div>';
   h += '</div><div class="bgx-side">' + (BG.form ? bgFormHtml(BG.form) : BG.sel ? bgDetailHtml(R.filter(function (r) { return r.id === BG.sel; })[0]) : '<div class="bgx-card bgx-hint"><h3>Pilih BG di daftar</h3><p>untuk melihat rincian, mengunduh memo, atau mencatat BG terbit / dikembalikan.</p>' + (maker ? '<button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>') + '</div></div></div>';
-  w.innerHTML = h; bgBind();
+  w.innerHTML = h; bgBind(); bgDraftZoom();
 }
 function bgDetailHtml(r) {
   if (!r) return '';
-  var maker = !!(B.access && B.access.maker), s = r.status, d = bgDays(r.sampai, B.today), act = BG.act;
+  var maker = !!(B.access && B.access.maker), s = r.status, d = bgDays(r.sampai, B.today), act = BG.act, imp = !!(r.d && r.d.imp), asr = r.penerbit === 'ASURANSI';
   var row = function (a, b) { return '<div><span>' + a + '</span><b>' + b + '</b></div>'; };
   var h = '<div class="bgx-card"><h3>' + esc(titleCaseS(r.jenis)) + ' · ' + esc(r.id) + ' <span class="pill ' + (BG_STC[s] || 'pz') + '">' + esc(s.toLowerCase()) + '</span></h3><p class="s">' + esc(r.pekerjaan || '') + '</p><div class="bgx-dl">' +
     row('Ditujukan kepada', esc(r.kepada)) + row('NPP · kontrak', esc((r.npp || '—') + ' · ' + (r.kontrak || '—'))) + row('Nilai jaminan', 'Rp ' + nfDot(r.nilai) + (r.pct ? ' <small>(' + (Math.round(r.pct * 10000) / 100) + '% × ' + nfDot(r.omzet) + ')</small>' : '')) +
     row('Masa berlaku', (r.mulai ? esc(tglIndo(r.mulai)) : '—') + ' s/d ' + (r.sampai ? esc(tglIndo(r.sampai)) : '—') + (s === 'AKTIF' && d !== null ? ' <small class="' + (d <= 30 ? 'bgred' : '') + '">(' + (d < 0 ? 'lewat ' + (-d) : 'sisa ' + d) + ' hari)</small>' : '')) +
-    row('Diperlukan / memo', esc(tg(r.perlu)) + ' · memo ' + esc(tg(r.tgl))) + (r.tgl_kirim ? row('Dikirim ke pusat', esc(tg(r.tgl_kirim))) : '') + (r.no_bg ? row('No. BG · bank', esc(r.no_bg + ' · ' + (r.bank || '—'))) + row('Tanggal terbit', esc(tg(r.tgl_terbit))) : '') +
-    (r.bg_lama ? row('BG lama', esc(r.bg_lama)) : '') + row('Perkiraan provisi', 'Rp ' + nfDot(r.provisi)) + (r.tgl_selesai ? row(esc(titleCaseS(s)), esc(tg(r.tgl_selesai))) : '') + (r.ket ? row('Catatan', esc(r.ket)) : '') + '</div>';
-  h += '<div class="bgx-links">' + (r.memo ? '<a target="_blank" href="' + esc(r.memo) + '">📄 Memo PDF (arsip)</a>' : '') + (r.scan ? '<a target="_blank" href="' + esc(r.scan) + '">🛡 Scan BG</a>' : '') + '</div>';
+    (imp ? row('Asal data', 'input jaminan terbit (tanpa memo)') : row('Diperlukan / memo', esc(tg(r.perlu)) + ' · memo ' + esc(tg(r.tgl)))) + (r.tgl_kirim ? row('Dikirim ke pusat', esc(tg(r.tgl_kirim))) : '') + (r.no_bg ? row('No. ' + (asr ? 'jaminan' : 'BG'), esc(r.no_bg)) + row('Penerbit', bgPenBadge(r) + ' <small>' + (asr ? 'asuransi (surety bond)' : 'bank garansi') + '</small>') + row('Tanggal terbit', esc(tg(r.tgl_terbit) || '—')) : '') +
+    (r.bg_lama ? row('BG lama', esc(r.bg_lama)) : '') + row(r.no_bg ? (asr ? 'Premi asuransi' : 'Biaya provisi') : 'Perkiraan provisi', 'Rp ' + nfDot(r.provisi)) + (r.tgl_selesai ? row(esc(titleCaseS(s)), esc(tg(r.tgl_selesai))) : '') + (r.ket ? row('Catatan', esc(r.ket)) : '') + '</div>';
+  h += '<div class="bgx-links">' + (imp ? '' : '<a href="#" data-bga="lihat">👁 Lihat memo</a>') + (r.memo ? '<a target="_blank" href="' + esc(r.memo) + '">📄 Memo PDF (arsip)</a>' : '') + (r.scan ? '<a target="_blank" href="' + esc(r.scan) + '">🛡 Scan ' + (asr ? 'jaminan' : 'BG') + '</a>' : (s === 'AKTIF' ? '<span class="bgred">scan belum diupload</span>' : '')) + '</div>';
   if (maker) {
     var b = function (k, t, c) { return '<button class="btn' + (c ? ' ' + c : '') + '" type="button" data-bga="' + k + '">' + t + '</button>'; };
-    h += '<div class="bgx-act">' + b('pdf', ico('download') + 'Memo PDF (siap TTD)') +
+    h += '<div class="bgx-act">' + (imp ? '' : b('pdf', ico('download') + 'Memo PDF (siap TTD)')) +
       (s === 'DRAF' ? b('edit', 'Ubah draf') + b('kirim', 'Tandai sudah dikirim ke pusat →', 'primary') : '') +
       (s === 'DIKIRIM KE PUSAT' ? b('edit', 'Ubah memo') + b('terbit', '✓ BG sudah terbit', 'primary') : '') +
-      (s === 'AKTIF' ? b('scan', 'Upload / ganti scan BG') + b('perpanjang', 'Perpanjang') + b('selesai', 'Dikembalikan / roya', 'primary') : '') +
+      (s === 'AKTIF' ? b('scan', r.scan ? 'Ganti scan' : 'Upload scan', r.scan ? '' : 'primary') + b('perpanjang', 'Perpanjang') + b('selesai', 'Dikembalikan / roya', 'primary') : '') +
       (s === 'DRAF' || s === 'DIKIRIM KE PUSAT' ? b('batal', 'Batalkan', 'red') : '') + (!r.npp && s !== 'BATAL' ? b('npp', 'Hubungkan NPP') : '') + '</div>';
     if (act === 'npp') { var p0k = function (p) { return String(r.kepada).toUpperCase().indexOf(String(p.pelanggan).toUpperCase().replace(/^PT\.?\s+/, '').split(' ')[0]) >= 0 ? 0 : 1; }, pl0 = (B.proyek || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b2) { return p0k(a) - p0k(b2) || (a.npp < b2.npp ? -1 : 1); });
       h += '<div class="bgx-sub"><h4>Hubungkan NPP</h4><p class="s">NPP proyek yang terbit setelah memo BG dibuat. Sheet Monitoring BG ikut diperbarui.</p><select id="bgNpp"><option value="">— pilih NPP —</option>' + pl0.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(p.npp + ' · ' + titleCaseS(p.pelanggan).replace(/^PT\s+/, '') + ' · ' + (p.singkat || '')) + '</option>'; }).join('') + '</select><div class="bgx-act">' + b('x', 'Batal') + b('nppOk', 'Simpan', 'primary') + '</div></div>'; }
-    if (act === 'terbit' || act === 'scan') h += '<div class="bgx-sub"><h4>' + (act === 'terbit' ? 'Catat BG terbit' : 'Upload scan BG') + '</h4>' + (act === 'terbit' ? '<div class="g2"><div><label>No. BG</label><input id="bgNo" value="' + esc(r.no_bg || '') + '"></div><div><label>Bank penerbit</label><input id="bgBank" value="' + esc(r.bank || 'Bank Mandiri') + '"></div></div>' +
+    if (act === 'terbit' || act === 'scan') { var ps = BG.penSel;
+      h += '<div class="bgx-sub"><h4>' + (act === 'terbit' ? '✓ Jaminan sudah terbit' : 'Upload scan ' + (asr ? 'jaminan' : 'BG')) + '</h4>' + (act === 'terbit' ? '<label>Penerbit jaminan</label>' + bgPenSeg(ps) + bgPenList('bgPenL', ps) +
+      '<div class="g2"><div><label id="bgBankL">' + (ps === 'ASURANSI' ? 'Perusahaan asuransi' : 'Bank penerbit') + '</label><input id="bgBank" list="bgPenL" value="' + esc(r.bank || (ps === 'ASURANSI' ? '' : 'Bank Mandiri')) + '" placeholder="pilih / ketik"></div><div><label>No. BG / no. jaminan</label><input id="bgNo" value="' + esc(r.no_bg || '') + '"></div></div>' +
       '<div class="g3"><div><label>Tanggal terbit</label><input type="date" id="bgTt" value="' + esc(r.tgl_terbit || B.today) + '"></div><div><label>Berlaku dari</label><input type="date" id="bgM" value="' + esc(r.mulai || '') + '"></div><div><label>Berlaku s/d</label><input type="date" id="bgS" value="' + esc(r.sampai || '') + '"></div></div>' +
-      '<div><label>Nilai di BG (Rp) — kosongkan bila sama</label><input id="bgN" class="num" placeholder="' + nfDot(r.nilai) + '"></div>' : '') +
-      '<div><label>Scan BG (PDF / gambar)' + (act === 'terbit' ? ' — opsional, bisa menyusul' : '') + '</label><input type="file" id="bgF" accept="application/pdf,image/*"></div><div class="bgx-act">' + b('x', 'Batal') + b(act === 'terbit' ? 'terbitOk' : 'scanOk', 'Simpan', 'primary') + '</div></div>';
+      '<div class="g2"><div><label>Nilai jaminan (Rp) — kosongkan bila sama</label><input id="bgN" class="num" placeholder="' + nfDot(r.nilai) + '"></div><div><label id="bgByL">' + (ps === 'ASURANSI' ? 'Premi asuransi (Rp)' : 'Biaya provisi (Rp)') + '</label><input id="bgBy" class="num" placeholder="kosong = perkiraan ' + nfDot(r.provisi) + '"></div></div>' : '') +
+      '<div><label>Scan ' + (act === 'terbit' ? 'BG / jaminan (PDF / gambar) — opsional, bisa menyusul' : (asr ? 'jaminan' : 'BG') + ' (PDF / gambar)') + '</label><input type="file" id="bgF" accept="application/pdf,image/*"></div>' +
+      '<div class="bgx-fn" id="bgFn"></div><div class="bgx-act">' + b('x', 'Batal') + b(act === 'terbit' ? 'terbitOk' : 'scanOk', act === 'terbit' ? '✓ Simpan · jaminan aktif' : 'Simpan', 'primary') + '</div></div>'; }
     if (act === 'selesai') h += '<div class="bgx-sub"><h4>BG selesai</h4><div class="g3"><div><label>Hasil</label><select id="bgH"><option value="DIKEMBALIKAN">Dikembalikan</option><option value="ROYA">Roya</option></select></div><div><label>Tanggal</label><input type="date" id="bgTs" value="' + B.today + '"></div><div><label>Catatan</label><input id="bgC" placeholder="opsional"></div></div><div class="bgx-act">' + b('x', 'Batal') + b('selesaiOk', 'Simpan', 'primary') + '</div></div>';
   }
   return h + '<div class="bgx-msg" id="bgMsg"></div></div>';
 }
+/* ---------- v2.9.8: penerbit bank / asuransi · nama file scan otomatis · input jaminan terbit tanpa memo · draf memo langsung */
+var BG_PEN = { BANK: ['Bank Mandiri', 'BRI', 'BNI', 'BTN', 'BSI', 'BCA', 'Bank DKI'], ASURANSI: ['Jasindo', 'Askrindo', 'Jamkrindo', 'Jasaraharja Putera', 'Asuransi Tugu Kresna Pratama'] };
+var BG_IMPJ = ['UANG MUKA', 'PELAKSANAAN', 'PEMELIHARAAN', 'PENAWARAN', 'TENDER'];
+function bgKode(j) { j = String(j || '').toUpperCase(); return /UANG MUKA/.test(j) ? 'JAMUM' : /PELAKSANA/.test(j) ? 'JAMPEL' : /PEMELIHARAAN/.test(j) ? 'JAMPEM' : /PENAWARAN|TENDER/.test(j) ? 'JAMPEN' : 'JAMINAN'; }
+/** sama persis dengan bgFileBase_ di server: NomorBG_NAMAPELANGGAN_JENIS_PENERBIT */
+function bgFileParts(no, kepada, jenis, pen) {
+  var cl = function (s) { return String(s || '').replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim(); }, up = function (s) { return String(s || '').toUpperCase().replace(/[.,]/g, ' ').replace(/\(\s*PERSERO\s*\)|\bPERSERO\b|\bTBK\b/g, ' '); };
+  var p = up(pen); for (var i = 0; i < 3; i++) p = p.replace(/^\s*(PT|BANK|ASURANSI)\s+/, '');
+  return [cl(no), cl(up(kepada).replace(/^\s*(PT|CV|UD|PD)\s+/, '')), bgKode(jenis), cl(p)];
+}
+function bgFileHtml(parts, ext) { var c = ['bgf1', 'bgf2', 'bgf3', 'bgf4'], ph = ['NOMOR BG', 'PELANGGAN', 'JENIS', 'PENERBIT']; return parts.map(function (x, i) { return '<i class="' + c[i] + (x ? '' : ' bgf0') + '">' + esc(x || ph[i]) + '</i>'; }).join('_') + '.' + esc(ext || 'pdf'); }
+function bgExt(f) { var m = /\.(\w{2,5})$/.exec(f && f.name || ''); return m ? m[1].toLowerCase() : 'pdf'; }
+function bgIsAs(name) { return /ASURANSI|JASINDO|ASKRINDO|JAMKRINDO|JASARAHARJA|SURETY|TUGU|ASKRIDA|BUMIDA|RAKSA/i.test(String(name || '')); }
+function bgPenBadge(r) { return r.no_bg ? '<span class="bgx-pn ' + (r.penerbit === 'ASURANSI' ? 'as' : 'bk') + '">' + (r.penerbit === 'ASURANSI' ? '🛡 ' : '🏦 ') + esc(r.bank || (r.penerbit === 'ASURANSI' ? 'Asuransi' : 'Bank')) + '</span>' : ''; }
+/* penerbit & nama file di form "BG sudah terbit" / "upload scan" */
+function bgPenSeg(sel) { return '<div class="bgx-seg bgx-pseg">' + [['BANK', '🏦 Bank Garansi'], ['ASURANSI', '🛡 Asuransi (Surety Bond)']].map(function (x) { return '<button type="button" data-bgpen="' + x[0] + '" class="' + (sel === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>'; }
+function bgPenList(id, sel) { return '<datalist id="' + id + '">' + BG_PEN[sel].map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>'; }
+function bgFnUpd() {
+  var r = (BG.rows || []).filter(function (x) { return x.id === BG.sel; })[0], el = $('bgFn'); if (!r || !el) return;
+  var f = $('bgF') && $('bgF').files && $('bgF').files[0];
+  el.innerHTML = '<small>Nama file otomatis · Drive › Bank Garansi › tahun terbit › Scan Jaminan Terbit</small>' + bgFileHtml(bgFileParts($('bgNo') ? $('bgNo').value : r.no_bg, r.kepada, r.jenis, $('bgBank') ? $('bgBank').value : r.bank), f ? bgExt(f) : 'pdf');
+}
+function bgPenBind(w) {
+  w.querySelectorAll('[data-bgpen]').forEach(function (b) { b.onclick = function () {
+    var v = b.dataset.bgpen, old = BG.penSel; BG.penSel = v;
+    w.querySelectorAll('[data-bgpen]').forEach(function (x) { x.classList.toggle('on', x === b); });
+    var bk = $('bgBank'); if (bk && (!bk.value.trim() || (old && BG_PEN[old].indexOf(bk.value) >= 0))) bk.value = v === 'ASURANSI' ? '' : 'Bank Mandiri';
+    var dl = $('bgPenL'); if (dl) dl.outerHTML = bgPenList('bgPenL', v);
+    var lb = $('bgByL'); if (lb) lb.textContent = v === 'ASURANSI' ? 'Premi asuransi (Rp)' : 'Biaya provisi (Rp)';
+    var nl = $('bgBankL'); if (nl) nl.textContent = v === 'ASURANSI' ? 'Perusahaan asuransi' : 'Bank penerbit';
+    if (bk) bk.focus(); bgFnUpd();
+  }; });
+  ['bgNo', 'bgBank'].forEach(function (k) { if ($(k)) $(k).addEventListener('input', bgFnUpd); });
+  if ($('bgF')) $('bgF').addEventListener('change', bgFnUpd);
+  bgFnUpd();
+}
+/* ---------- draf memo langsung di kolom kiri saat form diisi */
+function bgDraftHtml(F) {
+  var L = F.list.length ? bgMemos(F) : [], i = Math.max(0, Math.min(BG.dTab || 0, L.length - 1));
+  return '<div class="bgd"><div class="bgd-hd"><b>Draf memo</b>' + (L.length > 1 ? L.map(function (m, k) { return '<button type="button" data-bgdt="' + k + '" class="bgd-tab' + (k === i ? ' on' : '') + '">Memo ' + (k + 1) + ' · ' + esc(titleCaseS(bgJenisTxt(m))) + '</button>'; }).join('') : '') +
+    '<i></i><button type="button" class="btn" data-bga="preview"' + (L.length ? '' : ' disabled') + '>Perbesar</button><button type="button" class="btn" data-bga="list">‹ Daftar BG</button></div>' +
+    '<div class="bgd-note">Berubah langsung saat form di kanan diisi · <span class="bgm-e">kuning</span> = belum diisi</div><div class="bgd-sc" id="bgDraft">' + (L.length ? bgMemoHtml(L[i], true) : '<div class="bgx-empty">Pilih jenis jaminan di form.</div>') + '</div></div>';
+}
+function bgDraftUpd() {
+  var el = $('bgDraft'); if (!el || !BG.form) return;
+  var L = BG.form.list.length ? bgMemos(BG.form) : [], i = Math.max(0, Math.min(BG.dTab || 0, L.length - 1));
+  el.innerHTML = L.length ? bgMemoHtml(L[i], true) : '<div class="bgx-empty">Pilih jenis jaminan di form.</div>'; bgDraftZoom();
+}
+function bgDraftZoom() { var el = $('bgDraft'); if (!el) return; var pg = el.querySelector('.page'); if (pg) pg.style.zoom = Math.max(.3, Math.min(1, (el.clientWidth - 14) / 794)).toFixed(3); }
+window.addEventListener('resize', function () { clearTimeout(bgDraftZoom.t); bgDraftZoom.t = setTimeout(bgDraftZoom, 120); });
+/* ---------- input jaminan terbit tanpa memo (BG lama / terbit langsung dari pusat) */
+function bgImpRow(o) { var r = { pen: 'BANK', bank: 'Bank Mandiri', no: '', kepada: '', npp: '', jenis: 'PELAKSANAAN', nilai: 0, mulai: '', sampai: '', terbit: '', biaya: 0, pekerjaan: '', kontrak: '', file: null, st: '', ok: false }; if (o) Object.keys(o).forEach(function (k) { r[k] = o[k]; }); return r; }
+function bgImpParts(x) { return bgFileParts(x.no, x.kepada, x.jenis, x.bank); }
+function bgImpHtml() {
+  var I = BG.imp, pel = (B.pelanggan || []).map(function (p) { return p.inv || p.nama; }).filter(function (v, i, A) { return v && A.indexOf(v) === i; }).sort();
+  var pro = (B.proyek || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.npp < b.npp ? -1 : 1; });
+  var h = '<div class="bgx-card bgx-imp"><div class="bgi-hd"><div><h3>⤒ Input jaminan terbit <em>tanpa memo / BG lama</em></h3><p class="s">Untuk BG atau jaminan asuransi yang sudah terbit sebelum memakai aplikasi, atau terbit langsung dari pusat. Langsung tercatat <b>AKTIF</b> dan dipantau. Scan boleh menyusul.</p></div><span class="sp"></span>' +
+    '<button class="btn" type="button" data-bga="imptpl">' + ico('download') + 'Unduh template Excel</button><label class="btn bgi-xl">⤒ Isi dari Excel<input type="file" id="bgImpX" accept=".xlsx" hidden></label><button class="btn" type="button" data-bga="impx">Tutup</button></div>';
+  h += '<datalist id="bgPelL">' + pel.map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist><datalist id="bgNppL">' + pro.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(titleCaseS(p.pelanggan) + ' · ' + (p.singkat || '')) + '</option>'; }).join('') + '</datalist>' + bgPenList('bgPenLB', 'BANK') + bgPenList('bgPenLA', 'ASURANSI');
+  h += '<div class="bgi-sc"><table class="bgi-t"><tr><th>#</th><th>Penerbit</th><th>No. BG / jaminan</th><th>Pelanggan (ditujukan kepada) · NPP</th><th>Jenis</th><th class="n">Nilai (Rp)</th><th>Berlaku dari</th><th>Berlaku s/d</th><th>Tgl terbit</th><th class="n">Provisi / premi</th><th>Scan</th><th></th></tr>';
+  I.rows.forEach(function (x, i) {
+    var a = ' data-bir="' + i + '"', inp = function (k, v, ex) { return '<input' + a + ' data-bik="' + k + '" value="' + esc(v === undefined || v === null ? '' : v) + '"' + (ex || '') + '>'; };
+    h += '<tr class="' + (x.ok ? 'ok' : x.st ? 'er' : '') + '"><td class="c">' + (i + 1) + '</td>' +
+      '<td><select' + a + ' data-bik="pen"><option value="BANK"' + (x.pen === 'BANK' ? ' selected' : '') + '>🏦 Bank</option><option value="ASURANSI"' + (x.pen === 'ASURANSI' ? ' selected' : '') + '>🛡 Asuransi</option></select>' + inp('bank', x.bank, ' list="' + (x.pen === 'ASURANSI' ? 'bgPenLA' : 'bgPenLB') + '" placeholder="nama penerbit"') + '</td>' +
+      '<td>' + inp('no', x.no, ' placeholder="nomor di BG"') + '</td>' +
+      '<td class="w">' + inp('kepada', x.kepada, ' list="bgPelL" placeholder="nama pelanggan"') + inp('npp', x.npp, ' list="bgNppL" placeholder="NPP (opsional)"') + '</td>' +
+      '<td><select' + a + ' data-bik="jenis">' + BG_IMPJ.map(function (j) { return '<option' + (x.jenis === j ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></td>' +
+      '<td>' + inp('nilai', x.nilai ? nfDot(x.nilai) : '', ' class="num"') + '</td><td>' + inp('mulai', x.mulai, ' type="date"') + '</td><td>' + inp('sampai', x.sampai, ' type="date"') + '</td><td>' + inp('terbit', x.terbit, ' type="date"') + '</td>' +
+      '<td>' + inp('biaya', x.biaya ? nfDot(x.biaya) : '', ' class="num" placeholder="otomatis"') + '</td>' +
+      '<td><label class="bgi-f' + (x.file ? ' on' : '') + '">' + (x.file ? '📄 ' + esc(x.file.name.length > 16 ? x.file.name.slice(0, 14) + '…' : x.file.name) : '+ pilih') + '<input type="file"' + a + ' data-bik="file" accept="application/pdf,image/*" hidden></label></td>' +
+      '<td><button type="button" class="bgi-x" data-bgid="' + i + '" title="hapus baris">×</button></td></tr>' +
+      '<tr class="bgi-fn' + (x.ok ? ' ok' : x.st ? ' er' : '') + '"><td></td><td colspan="11">' + (x.ok ? '✓ tersimpan ' + esc(x.st) : x.st ? '⚠ ' + esc(x.st) : '<span class="tg">nama file:</span> <span class="bgx-fnm" id="bgImpN' + i + '">' + bgFileHtml(bgImpParts(x), x.file ? bgExt(x.file) : 'pdf') + '</span>') + '</td></tr>';
+  });
+  h += '</table></div><div class="bgi-ft"><button class="btn" type="button" data-bga="impadd">＋ Tambah baris</button><span class="tg">Kode jenis di nama file: JAMUM (uang muka) · JAMPEL (pelaksanaan) · JAMPEM (pemeliharaan) · JAMPEN (penawaran / tender). Provisi / premi kosong = perkiraan 0,125% per 3 bulan.</span><span class="sp"></span>' +
+    '<button class="btn primary" type="button" data-bga="impgo"' + (I.busy ? ' disabled' : '') + '>' + (I.busy ? '<span class="spin"></span>Menyimpan…' : '⤒ Simpan ' + I.rows.filter(function (x) { return !x.ok && x.no; }).length + ' jaminan') + '</button></div><div class="bgx-msg" id="bgMsg"></div></div>';
+  return h;
+}
+function bgImpBind(w) {
+  var I = BG.imp;
+  w.querySelectorAll('[data-bik]').forEach(function (el) {
+    var i = +el.dataset.bir, k = el.dataset.bik, x = I.rows[i];
+    var upd = function () { var n = $('bgImpN' + i); if (n) n.innerHTML = bgFileHtml(bgImpParts(x), x.file ? bgExt(x.file) : 'pdf'); };
+    if (k === 'file') { el.onchange = function () { x.file = el.files[0] || null; bgRender(); }; return; }
+    var h = function () {
+      var v = el.value;
+      if (k === 'nilai' || k === 'biaya') x[k] = num(v); else x[k] = v;
+      if (k === 'pen') { if (!x.bank || BG_PEN[v === 'ASURANSI' ? 'BANK' : 'ASURANSI'].indexOf(x.bank) >= 0) x.bank = v === 'ASURANSI' ? '' : 'Bank Mandiri'; bgRender(); return; }
+      if (k === 'bank' && bgIsAs(v) && x.pen !== 'ASURANSI') { x.pen = 'ASURANSI'; var s = el.parentNode.querySelector('select'); if (s) s.value = 'ASURANSI'; }
+      if (k === 'npp' && v) { var p = bgPro(v); if (p) { var pl = bgPel(p.pelanggan) || {}; if (!x.kepada) { x.kepada = pl.inv || p.pelanggan; var kk = el.parentNode.querySelector('[data-bik="kepada"]'); if (kk) kk.value = x.kepada; } if (!x.pekerjaan) x.pekerjaan = p.pekerjaan || p.singkat || ''; if (!x.kontrak) x.kontrak = p.kontrak || ''; } }
+      x.st = ''; upd();
+    };
+    if (el.tagName === 'SELECT' || el.type === 'date' || el.classList.contains('num')) el.onchange = h; else el.oninput = h;
+  });
+  w.querySelectorAll('[data-bgid]').forEach(function (b) { b.onclick = function () { I.rows.splice(+b.dataset.bgid, 1); if (!I.rows.length) I.rows.push(bgImpRow()); bgRender(); }; });
+  var xf = $('bgImpX'); if (xf) xf.onchange = function () { var f = xf.files[0]; if (f) bgImpXls(f); };
+}
+function bgImpCheck(x) {
+  var m = [];
+  if (!String(x.no).trim()) m.push('no. BG'); if (!String(x.bank).trim()) m.push('nama penerbit'); if (!String(x.kepada).trim()) m.push('pelanggan');
+  if (!(x.nilai > 0)) m.push('nilai'); if (!x.sampai) m.push('berlaku s/d'); else if (x.mulai && x.sampai < x.mulai) m.push('berlaku s/d sebelum tanggal mulai');
+  return m.length ? 'Lengkapi: ' + m.join(', ') : '';
+}
+function bgImpGo() {
+  var I = BG.imp; if (I.busy) return;
+  var L = I.rows.filter(function (x) { return !x.ok && (x.no || x.kepada || x.nilai); });
+  if (!L.length) return bgMsg('Belum ada baris yang diisi.', true);
+  var bad = 0; L.forEach(function (x) { x.st = bgImpCheck(x); if (x.st) bad++; });
+  if (bad) { bgRender(); return bgMsg(bad + ' baris belum lengkap — lihat tanda ⚠.', true); }
+  I.busy = true; bgRender(); var ok = 0, k = 0;
+  var next = function () {
+    if (k >= L.length) {
+      I.busy = false; I.rows = I.rows.filter(function (x) { return !x.ok; }); if (!I.rows.length) BG.imp = null;
+      toast(ok + ' jaminan tercatat AKTIF' + (BG.imp ? ' · ' + I.rows.length + ' baris gagal, periksa tanda ⚠' : '') + '.');
+      if (!BG.imp) BG.f = 'aktif';
+      return bgLoad(function () { if (window.refreshAll) try { refreshAll(); } catch (e) { } });
+    }
+    var x = L[k++], p = { penerbit: x.pen, bank: x.bank.trim(), no_bg: x.no.trim(), kepada: x.kepada.trim(), npp: x.npp.trim(), jenis: x.jenis, nilai: x.nilai, mulai: x.mulai, sampai: x.sampai, tgl_terbit: x.terbit, biaya: x.biaya || '', pekerjaan: x.pekerjaan, kontrak: x.kontrak };
+    var send = function () { bgMsg('<span class="spin"></span>Menyimpan ' + k + ' dari ' + L.length + ' · ' + esc(p.no_bg) + '…'); call('apiBgImport', [p], function (r) { x.ok = true; x.st = r.id; ok++; next(); }, function (e) { x.st = String(e.message || e); next(); }); };
+    if (!x.file) return send();
+    if (x.file.size > 15 * 1024 * 1024) { x.st = 'File scan terlalu besar (maks 15 MB).'; return next(); }
+    var rd = new FileReader(); rd.onload = function () { p.scan = { b64: String(rd.result).split(',')[1], name: x.file.name, mime: x.file.type || 'application/pdf' }; send(); }; rd.readAsDataURL(x.file);
+  };
+  next();
+}
+var BG_IMPH = [['pen', 'JENIS PENERBIT (BANK / ASURANSI)', 14], ['bank', 'NAMA PENERBIT', 16], ['no', 'NO. BG / NO. JAMINAN', 22], ['kepada', 'PELANGGAN (DITUJUKAN KEPADA)', 30], ['npp', 'NPP (OPSIONAL)', 12],
+  ['jenis', 'JENIS JAMINAN', 15], ['nilai', 'NILAI JAMINAN (Rp)', 16], ['mulai', 'BERLAKU DARI', 12], ['sampai', 'BERLAKU S/D', 12], ['terbit', 'TGL TERBIT', 12], ['biaya', 'BIAYA PROVISI / PREMI (Rp)', 15], ['pekerjaan', 'PEKERJAAN / PROYEK (OPSIONAL)', 28], ['kontrak', 'NO. KONTRAK / SPK (OPSIONAL)', 20]];
+function bgImpTpl() {
+  var S = xSheet(), n = BG_IMPH.length;
+  S.set(1, 1, 'TEMPLATE INPUT JAMINAN TERBIT (BANK GARANSI / ASURANSI) · Sistem AR CSU', 1); S.merge(1, 1, 1, n); S.height(1, 20);
+  S.set(2, 1, 'Isi mulai baris 5, satu baris per jaminan. JENIS PENERBIT: BANK atau ASURANSI. JENIS JAMINAN: UANG MUKA / PELAKSANAAN / PEMELIHARAAN / PENAWARAN / TENDER. Tanggal format dd-mm-yyyy. Provisi / premi boleh kosong (dihitung perkiraan). Setelah diupload, pilih file scan per baris di aplikasi (boleh menyusul).', 2); S.merge(2, 1, 2, n); S.height(2, 36);
+  BG_IMPH.forEach(function (c, i) { S.set(4, i + 1, c[1], 5); }); S.height(4, 30);
+  for (var r = 5; r <= 40; r++) BG_IMPH.forEach(function (c, i) { S.set(r, i + 1, null, ['mulai', 'sampai', 'terbit'].indexOf(c[0]) >= 0 ? 10 : ['nilai', 'biaya'].indexOf(c[0]) >= 0 ? 9 : 7); });
+  saveFile(xlsxBook(xSheetXml(S, { widths: BG_IMPH.map(function (c) { return c[2]; }), freeze: 5, label: 'Template input jaminan terbit' }), 'Jaminan Terbit', '$4:$4'), 'Template Input Jaminan Terbit (BG - Asuransi).xlsx');
+}
+/** baca .xlsx (sheet pertama) tanpa pustaka luar: zip (store / deflate) → baris [kolom] */
+function xlsxReadRows(buf) {
+  var u = new Uint8Array(buf), dv = new DataView(buf), e = -1, td = new TextDecoder();
+  for (var i = u.length - 22; i >= Math.max(0, u.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) return Promise.reject(new Error('File bukan Excel .xlsx.'));
+  var n = dv.getUint16(e + 10, true), off = dv.getUint32(e + 16, true), ent = {};
+  for (var k = 0; k < n; k++) { var nl = dv.getUint16(off + 28, true); ent[td.decode(u.subarray(off + 46, off + 46 + nl))] = { m: dv.getUint16(off + 10, true), cs: dv.getUint32(off + 20, true), lo: dv.getUint32(off + 42, true) }; off += 46 + nl + dv.getUint16(off + 30, true) + dv.getUint16(off + 32, true); }
+  var get = function (nm) {
+    var x = ent[nm]; if (!x) return Promise.resolve('');
+    var st = x.lo + 30 + dv.getUint16(x.lo + 26, true) + dv.getUint16(x.lo + 28, true), d = u.slice(st, st + x.cs);
+    if (x.m === 0) return Promise.resolve(td.decode(d));
+    if (typeof DecompressionStream === 'undefined') return Promise.reject(new Error('Browser ini belum bisa membaca Excel — pakai Chrome / Edge terbaru.'));
+    return new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  };
+  var sn = Object.keys(ent).filter(function (k2) { return /^xl\/worksheets\/sheet\d+\.xml$/.test(k2); }).sort(function (a, b) { return parseInt(a.replace(/\D/g, ''), 10) - parseInt(b.replace(/\D/g, ''), 10); })[0];
+  if (!sn) return Promise.reject(new Error('Sheet tidak ditemukan di file Excel.'));
+  return Promise.all([get('xl/sharedStrings.xml'), get(sn)]).then(function (r) {
+    var P = new DOMParser(), ss = [], tx = function (el) { return Array.prototype.map.call(el.getElementsByTagNameNS('*', 't'), function (t) { return t.textContent; }).join(''); }, rows = [];
+    if (r[0]) Array.prototype.forEach.call(P.parseFromString(r[0], 'application/xml').getElementsByTagNameNS('*', 'si'), function (si) { ss.push(tx(si)); });
+    Array.prototype.forEach.call(P.parseFromString(r[1], 'application/xml').getElementsByTagNameNS('*', 'c'), function (c) {
+      var mm = /^([A-Z]+)(\d+)$/.exec(c.getAttribute('r') || ''); if (!mm) return;
+      var col = 0; for (var j = 0; j < mm[1].length; j++) col = col * 26 + mm[1].charCodeAt(j) - 64;
+      var t = c.getAttribute('t'), v = c.getElementsByTagNameNS('*', 'v')[0], val = t === 's' ? ss[+(v && v.textContent)] : t === 'inlineStr' ? tx(c) : v ? (t === 'str' || t === 'b' || t === 'e' ? v.textContent : Number(v.textContent)) : '';
+      (rows[+mm[2]] || (rows[+mm[2]] = []))[col - 1] = val;
+    });
+    return rows;
+  });
+}
+function bgXDate(v) {
+  if (typeof v === 'number' && v > 20000) return new Date(Math.round((v - 25569) * 864e5)).toISOString().slice(0, 10);
+  var s = String(v || '').trim(), m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(s); if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+  m = /^(\d{1,2})[-\/. ](\d{1,2})[-\/. ](\d{2,4})$/.exec(s); if (m) return (m[3].length === 2 ? '20' + m[3] : m[3]) + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+  return '';
+}
+function bgXJenis(v) { v = String(v || '').toUpperCase(); return /UANG MUKA|JAMUM|\bUM\b/.test(v) ? 'UANG MUKA' : /PEMELIHARAAN|JAMPEM/.test(v) ? 'PEMELIHARAAN' : /TENDER/.test(v) ? 'TENDER' : /PENAWARAN|JAMPEN/.test(v) ? 'PENAWARAN' : 'PELAKSANAAN'; }
+function bgImpXls(f) {
+  bgMsg('<span class="spin"></span>Membaca ' + esc(f.name) + '…');
+  f.arrayBuffer().then(xlsxReadRows).then(function (R) {
+    var hr = -1, map = {};
+    for (var i = 1; i < Math.min(R.length, 30); i++) if (R[i] && R[i].some(function (c) { return /NO\.?\s*(BG|JAMINAN)/i.test(String(c || '')); })) { hr = i; break; }
+    if (hr < 0) throw new Error('Judul kolom "NO. BG" tidak ditemukan — pakai template dari tombol Unduh template Excel.');
+    var T = [[/JENIS\s+PENERBIT/, 'pen'], [/NAMA\s+PENERBIT|^BANK|^PENERBIT/, 'bank'], [/TGL.*TERBIT|TANGGAL\s+TERBIT/, 'terbit'], [/NO\.?\s*(BG|JAMINAN)/, 'no'], [/JENIS\s+JAMINAN|^JENIS$/, 'jenis'], [/PELANGGAN|DITUJUKAN|BOUWHEER/, 'kepada'], [/NPP/, 'npp'], [/BIAYA|PREMI|PROVISI/, 'biaya'], [/NILAI/, 'nilai'], [/DARI|MULAI/, 'mulai'], [/S\/D|SAMPAI|BERAKHIR/, 'sampai'], [/PEKERJAAN|PROYEK/, 'pekerjaan'], [/KONTRAK|SPK/, 'kontrak']];
+    R[hr].forEach(function (c, j) { var s = String(c || '').toUpperCase().trim(); for (var t = 0; t < T.length; t++) if (T[t][0].test(s) && map[T[t][1]] === undefined) { map[T[t][1]] = j; break; } });
+    var out = [];
+    for (var r = hr + 1; r < R.length; r++) {
+      var row = R[r]; if (!row) continue; var g = function (k) { return map[k] === undefined ? '' : row[map[k]]; };
+      if (!String(g('no') || '').trim() && !String(g('kepada') || '').trim()) continue;
+      var bank = String(g('bank') || '').trim(), pen = /ASURANSI|SURETY/i.test(String(g('pen') || '')) || (!g('pen') && bgIsAs(bank)) ? 'ASURANSI' : 'BANK';
+      out.push(bgImpRow({ pen: pen, bank: bank, no: String(g('no') || '').trim(), kepada: String(g('kepada') || '').trim(), npp: String(g('npp') || '').trim(), jenis: bgXJenis(g('jenis')),
+        nilai: typeof g('nilai') === 'number' ? Math.round(g('nilai')) : num(g('nilai')), mulai: bgXDate(g('mulai')), sampai: bgXDate(g('sampai')), terbit: bgXDate(g('terbit')),
+        biaya: typeof g('biaya') === 'number' ? Math.round(g('biaya')) : num(g('biaya')), pekerjaan: String(g('pekerjaan') || '').trim(), kontrak: String(g('kontrak') || '').trim() }));
+    }
+    if (!out.length) throw new Error('Tidak ada baris jaminan di file.');
+    var I = BG.imp; I.rows = I.rows.filter(function (x) { return x.no || x.kepada || x.nilai; }).concat(out);
+    bgRender(); toast(out.length + ' baris dari Excel dimuat — periksa, pilih file scan, lalu Simpan.');
+  }).catch(function (e) { bgMsg(esc(e.message || e), true); });
+}
 function bgMsg(t, err) { var m = $('bgMsg'); if (m) { m.className = 'bgx-msg' + (err ? ' e' : ''); m.innerHTML = t; } if (err) toast(String(t).replace(/<[^>]+>/g, '')); }
 /* ---------- memo PDF — format memo permohonan jaminan yang selama ini dikirim ke pusat */
-function bgMemoHtml(f) {
+function bgMemoHtml(f, hl) {
   var B0 = function (on, t) { return on ? '<b>' + t + '</b>' : t; }, nl = function (s) { return esc(s || '').replace(/\n/g, '<br>'); };
+  var E = function (ok, t) { return ok || !hl ? t : '<span class="bgm-e">' + (String(t || '').replace(/<[^>]+>|&nbsp;|[\s.…]/g, '') ? t : '……………………') + '</span>'; };
   var jen = f.jenis, perih = BG_JENIS.map(function (x) { return '<div>' + B0(jen === x[0], esc(x[1])) + '</div>'; }).join('') + (jen === 'LAIN' && f.lainTxt ? '<div><b>g) ' + esc(f.lainTxt) + '</b></div>' : '');
   var R = function (no, lbl, val, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' + (cls === 'w' ? '<td class="lb" colspan="2">' : '<td class="no">' + (no ? no + '.' : '') + '</td><td class="lb">') + lbl + '</td><td class="cl">:</td><td class="vl">' + val + '</td></tr>'; };
   var gap = '<tr class="gp"><td colspan="4"></td></tr>';
@@ -5338,14 +5559,14 @@ function bgMemoHtml(f) {
     '<div class="bgm-pr">' + perih + '</div>' +
     '<div class="bgm-p">Dengan hormat,</div>' +
     '<table class="bgm-i">' + R('', 'Untuk kepentingan kami, mohon dapat diproses Jaminan', esc(bgJenisTxt(f)), 'w') + R('', 'Perubahan / Perpanjangan jaminan Nomor', esc(f.bgLama || ''), 'w') + gap +
-    R(1, 'Jenis Pekerjaan', nl(f.pekerjaan)) + R('', 'Proyek', nl(f.proyek)) + gap +
-    R(2, esc(f.omzetLbl || 'Omzet Kontrak'), '<span class="bgm-rp"><b>Rp.</b></span><b class="bgm-am">' + nf(f.omzet) + '</b> &nbsp;( ' + esc(f.ppn) + ' )') + gap +
-    R(3, 'No. Kontrak / SPK Intent / SPPH / PO / No. Penawaran' + (f.kontrakLbl ? ' / <b>' + esc(f.kontrakLbl) + '</b>' : ''), '<b>' + esc(f.kontrak) + '</b>') + gap +
-    R('', 'Tanggal', esc(f.tglKontrak ? tglIndo(f.tglKontrak) : '')) + gap +
-    R(4, 'Ditujukan kepada', esc(f.kepada)) + gap + R(5, 'Alamat ( Bouwheer )', nl(f.alamat)) + gap +
-    R(6, 'Jangka waktu', esc((f.mulai ? tglIndo(f.mulai) : '…') + ' s/d ' + (f.sampai ? tglIndo(f.sampai) : '…'))) + gap +
-    R(7, 'Nilai Jaminan', '<span class="bgm-rp">Rp.</span><b class="bgm-am">' + nf(f.nilai) + '</b>' + (f.nilaiKet ? ' &nbsp;' + esc(f.nilaiKet) : '')) + gap +
-    R(8, 'Diperlukan tanggal', esc(f.perlu ? tglIndo(f.perlu, true) : '')) + R(9, 'Tanggal penerbitan', esc(f.terbit ? tglIndo(f.terbit, true) : '')) + gap +
+    R(1, 'Jenis Pekerjaan', E(String(f.pekerjaan || '').trim(), nl(f.pekerjaan))) + R('', 'Proyek', nl(f.proyek)) + gap +
+    R(2, esc(f.omzetLbl || 'Omzet Kontrak'), E(+f.omzet > 0, '<span class="bgm-rp"><b>Rp.</b></span><b class="bgm-am">' + nf(f.omzet) + '</b>') + ' &nbsp;( ' + esc(f.ppn) + ' )') + gap +
+    R(3, 'No. Kontrak / SPK Intent / SPPH / PO / No. Penawaran' + (f.kontrakLbl ? ' / <b>' + esc(f.kontrakLbl) + '</b>' : ''), E(String(f.kontrak || '').trim(), '<b>' + esc(f.kontrak) + '</b>')) + gap +
+    R('', 'Tanggal', E(f.tglKontrak, esc(f.tglKontrak ? tglIndo(f.tglKontrak) : ''))) + gap +
+    R(4, 'Ditujukan kepada', E(String(f.kepada || '').trim(), esc(f.kepada))) + gap + R(5, 'Alamat ( Bouwheer )', E(String(f.alamat || '').trim(), nl(f.alamat))) + gap +
+    R(6, 'Jangka waktu', E(f.mulai, esc(f.mulai ? tglIndo(f.mulai) : '…')) + ' s/d ' + E(f.sampai, esc(f.sampai ? tglIndo(f.sampai) : '…'))) + gap +
+    R(7, 'Nilai Jaminan', E(+f.nilai > 0, '<span class="bgm-rp">Rp.</span><b class="bgm-am">' + nf(f.nilai) + '</b>') + (f.nilaiKet ? ' &nbsp;' + esc(f.nilaiKet) : '')) + gap +
+    R(8, 'Diperlukan tanggal', E(f.perlu, esc(f.perlu ? tglIndo(f.perlu, true) : ''))) + R(9, 'Tanggal penerbitan', E(f.terbit, esc(f.terbit ? tglIndo(f.terbit, true) : ''))) + gap +
     R(10, 'Pemohon Jaminan', nl(f.pemohon)) + gap + R(11, 'Dibuat dalam bahasa', 'Indonesia') + gap +
     R(12, 'Sesuai dengan Form', B0(f.formBank === 'a', 'a). Bank Mandiri') + '<br>' + B0(f.formBank === 'b', 'b). Khusus dari ' + (f.formBank === 'b' && f.formB ? esc(f.formB) : '……………………………………')) + '<br>' + B0(f.formBank === 'c', 'c). Terlampir (Form Khusus)')) + '</table>' +
     '<div class="bgm-l"><div>Untuk keperluan tersebut kami lampirkan :</div><table>' + lampOn.map(function (x, i) { var on = !!f.lamp[x[0]]; return '<tr><td class="st">' + (i ? '' : '*)') + '</td><td class="k">' + B0(on, x[0] + ').') + '</td><td>' + B0(on, esc(x[1])) + '</td></tr>'; }).join('') +
@@ -5417,30 +5638,37 @@ function bgFormFrom(r) {
   F.it[j] = { pct: pct, nilai: nil, nilaiManual: Math.abs(Math.round(omz * pct / 100) - nil) > 1, nilaiKet: d.nilaiKet || '', perlu: d.perlu || r.perlu || B.today, terbit: d.terbit || bgAddDays(d.perlu || r.perlu || B.today, 1), terbitManual: true, lamp: d.lamp || bgDefLamp(j), jw: null };
   return F;
 }
-function bgPrevShow(L, title, onPdf) {
+function bgPrevShow(L, title, onPdf, pdfLbl) {
   var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
-  ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + 'Simpan &amp; unduh memo PDF</button>' : '') + '</div><div class="bgp-pg">' + L.map(bgMemoHtml).join('') + '</div>';
+  ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + (pdfLbl || 'Simpan &amp; unduh memo PDF') + '</button>' : '') + '</div><div class="bgp-pg">' + L.map(bgMemoHtml).join('') + '</div>';
   ov.hidden = false; ov.scrollTop = 0; $('bgPrevX').onclick = function () { ov.hidden = true; }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
   ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; };
 }
 function bgAct(k) {
   var r = (BG.rows || []).filter(function (x) { return x.id === BG.sel; })[0];
-  if (k === 'new') { BG.form = bgNewForm(); BG.sel = ''; BG.act = ''; return bgRender(); }
-  if (k === 'cancel') { BG.form = null; return bgRender(); }
+  if (k === 'new') { BG.form = bgNewForm(); BG.sel = ''; BG.act = ''; BG.imp = null; BG.showList = false; BG.dTab = 0; return bgRender(); }
+  if (k === 'cancel') { BG.form = null; BG.showList = false; return bgRender(); }
+  if (k === 'list') { BG.showList = !BG.showList; return bgRender(); }
+  if (k === 'imp') { if (BG.form && !confirm('Tutup form permohonan yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.imp = BG.imp || { rows: [bgImpRow()], busy: false }; return bgRender(); }
+  if (k === 'impx') { if (BG.imp.rows.some(function (x) { return x.no && !x.ok; }) && !confirm('Tutup tanpa menyimpan baris yang sudah diisi?')) return; BG.imp = null; return bgRender(); }
+  if (k === 'impadd') { var lr = BG.imp.rows[BG.imp.rows.length - 1] || {}; BG.imp.rows.push(bgImpRow({ pen: lr.pen || 'BANK', bank: lr.bank || 'Bank Mandiri', kepada: lr.kepada || '', npp: lr.npp || '', pekerjaan: lr.pekerjaan || '', kontrak: lr.kontrak || '' })); return bgRender(); }
+  if (k === 'imptpl') return bgImpTpl();
+  if (k === 'impgo') return bgImpGo();
   if (k === 'preview') { var L = bgMemos(BG.form); return bgPrevShow(L, 'Pratinjau ' + (L.length > 1 ? L.length + ' memo' : 'memo'), function () { bgSave(BG.form, true); }); }
   if (k === 'save') return bgSave(BG.form, false);
   if (k === 'savepdf') return bgSave(BG.form, true);
   if (!r) return;
   if (k === 'pdf') return bgPdf(bgMemos(bgFormFrom(r)), [r.id]);
-  if (k === 'edit') { BG.form = bgFormFrom(r); return bgRender(); }
+  if (k === 'edit') { BG.form = bgFormFrom(r); BG.showList = false; BG.dTab = 0; return bgRender(); }
+  if (k === 'lihat') { var LL = bgMemos(bgFormFrom(r)); return bgPrevShow(LL, 'Memo ' + r.id + ' · ' + titleCaseS(r.jenis), function () { bgPdf(LL, [r.id]); }, 'Unduh memo PDF'); }
   if (k === 'kirim') return confirmDlg('Memo ' + esc(r.id) + ' sudah dikirim ke pusat?', 'Status menjadi <b>Dikirim ke pusat</b>. Pastikan memo PDF sudah ditandatangani Manager.<label style="margin-top:8px">Tanggal kirim</label><input type="date" id="dlgTk" value="' + B.today + '">', 'Tandai dikirim', function () { bgStatus(r.id, 'KIRIM', { tgl: ($('dlgTk') || {}).value }, 'Memo ' + r.id + ' ditandai dikirim ke pusat.'); });
   if (k === 'batal') return confirmDlg('Batalkan permohonan ' + esc(r.id) + '?', 'Baris tidak dihapus dari sheet, hanya berstatus BATAL.<textarea id="dlgNote" placeholder="Alasan (wajib)"></textarea>', 'Batalkan', function () { bgStatus(r.id, 'BATAL', { alasan: ($('dlgNote').value || '').trim() }, 'Permohonan ' + r.id + ' dibatalkan.'); }, function () { if (($('dlgNote').value || '').trim().length < 5) { toast('Isi alasan (min. 5 karakter).'); return false; } });
-  if (k === 'terbit' || k === 'scan' || k === 'selesai' || k === 'npp') { BG.act = k; return bgRender(); }
+  if (k === 'terbit' || k === 'scan' || k === 'selesai' || k === 'npp') { BG.act = k; BG.penSel = r.penerbit === 'ASURANSI' || bgIsAs(r.bank) ? 'ASURANSI' : 'BANK'; return bgRender(); }
   if (k === 'nppOk') { var nv = $('bgNpp').value; if (!nv) return bgMsg('Pilih NPP.', true); return bgStatus(r.id, 'NPP', { npp: nv }, 'NPP ' + nv + ' dihubungkan ke ' + r.id + '.'); }
   if (k === 'x') { BG.act = ''; return bgRender(); }
-  if (k === 'terbitOk') { var p = { no_bg: $('bgNo').value.trim(), bank: $('bgBank').value.trim(), tgl_terbit: $('bgTt').value, mulai: $('bgM').value, sampai: $('bgS').value, nilai: num($('bgN').value) || '' };
-    if (!p.no_bg || !p.sampai) return bgMsg('Isi nomor BG dan tanggal berlaku s/d.', true);
-    return bgReadFile(function (sc) { if (sc) p.scan = sc; bgStatus(r.id, 'TERBIT', p, 'BG ' + p.no_bg + ' dicatat aktif.'); }); }
+  if (k === 'terbitOk') { var p = { penerbit: BG.penSel, no_bg: $('bgNo').value.trim(), bank: $('bgBank').value.trim(), tgl_terbit: $('bgTt').value, mulai: $('bgM').value, sampai: $('bgS').value, nilai: num($('bgN').value) || '', biaya: num($('bgBy').value) || '' };
+    if (!p.no_bg || !p.sampai || !p.bank) return bgMsg('Isi nama penerbit, nomor BG / jaminan, dan tanggal berlaku s/d.', true);
+    return bgReadFile(function (sc) { if (sc) p.scan = sc; bgStatus(r.id, 'TERBIT', p, (p.penerbit === 'ASURANSI' ? 'Jaminan ' : 'BG ') + p.no_bg + ' dicatat aktif.'); }); }
   if (k === 'scanOk') return bgReadFile(function (sc) { if (!sc) return bgMsg('Pilih file scan BG.', true); bgStatus(r.id, 'SCAN', { scan: sc }, 'Scan BG tersimpan.'); });
   if (k === 'selesaiOk') return bgStatus(r.id, 'SELESAI', { hasil: $('bgH').value, tgl: $('bgTs').value, catatan: $('bgC').value }, 'BG ' + (r.no_bg || r.id) + ' ditandai ' + $('bgH').value.toLowerCase() + '.');
   if (k === 'perpanjang') {
@@ -5452,12 +5680,17 @@ function bgAct(k) {
 }
 function bgBind() {
   var w = $('bgWrap');
-  w.querySelectorAll('[data-bga]').forEach(function (b) { b.onclick = function () { bgAct(b.dataset.bga); }; });
+  w.querySelectorAll('[data-bga]').forEach(function (b) { b.onclick = function (e) { if (b.tagName === 'A') e.preventDefault(); bgAct(b.dataset.bga); }; });
+  w.querySelectorAll('[data-bgpf]').forEach(function (b) { b.onclick = function () { BG.pen = b.dataset.bgpf; bgRender(); }; });
+  w.querySelectorAll('[data-bgdt]').forEach(function (b) { b.onclick = function () { BG.dTab = +b.dataset.bgdt; w.querySelectorAll('[data-bgdt]').forEach(function (x) { x.classList.toggle('on', x === b); }); bgDraftUpd(); }; });
+  if (BG.imp) return bgImpBind(w);
+  if (BG.act === 'terbit' || BG.act === 'scan') bgPenBind(w);
   w.querySelectorAll('[data-bgf]').forEach(function (b) { b.onclick = function () { BG.f = b.dataset.bgf; bgRender(); }; });
-  w.querySelectorAll('[data-bgs]').forEach(function (t) { t.onclick = function () { if (BG.form && !confirm('Tutup form yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.sel = t.dataset.bgs; bgRender(); }; });
+  w.querySelectorAll('[data-bgs]').forEach(function (t) { t.onclick = function () { if (BG.form && !confirm('Tutup form yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.showList = false; BG.sel = t.dataset.bgs; bgRender(); }; });
   if ($('bgQ')) $('bgQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(bgBind.t); bgBind.t = setTimeout(function () { BG.q = v; bgRender(); var i = $('bgQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
   var F = BG.form; if (!F) return;
   var keep = function (fn) { var sy = w.scrollTop; fn(); bgRender(); w.scrollTop = sy; };
+  var side = w.querySelector('.bgx-side'); if (side) { var du = function () { clearTimeout(du.t); du.t = setTimeout(bgDraftUpd, 120); }; side.addEventListener('input', du); side.addEventListener('change', du); }
   w.querySelectorAll('[data-bgj]').forEach(function (b) { b.onclick = function () { keep(function () {
     var j = b.dataset.bgj, multi = BG_MULTI.indexOf(j) >= 0;
     if (F.lock) return;

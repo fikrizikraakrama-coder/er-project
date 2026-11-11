@@ -1,4 +1,4 @@
-// =====================================================================  v2.9.6: BANK GARANSI (BG)
+// =====================================================================  v2.9.6: BANK GARANSI (BG) · v2.9.8: penerbit bank / asuransi, nama file scan otomatis, input jaminan terbit tanpa memo
 // Permohonan jaminan ke pusat (memo PDF siap tanda tangan Manager) → BG terbit → dipantau sampai dikembalikan / roya / diperpanjang.
 // Data: sheet "Monitoring BG" (satu baris per permohonan). Kolom DATA MEMO menyimpan isian memo agar PDF bisa dibuat ulang persis.
 var BG_SCHEMA_ = {
@@ -7,7 +7,7 @@ var BG_SCHEMA_ = {
     ['kepada', 'DITUJUKAN KEPADA (BOUWHEER)', 'auto', 30], ['pekerjaan', 'JENIS PEKERJAAN / PROYEK', 'auto', 36], ['kontrak', 'NO. KONTRAK / SPK', 'auto', 26],
     ['omzet', 'OMZET / NILAI DASAR (Rp)', 'auto', 16, 'money'], ['pct', 'PERSEN JAMINAN', 'auto', 9, 'pct'], ['nilai', 'NILAI JAMINAN (Rp)', 'auto', 16, 'money'],
     ['mulai', 'BERLAKU DARI', 'auto', 12, 'date'], ['sampai', 'BERLAKU S/D', 'auto', 12, 'date'], ['perlu', 'DIPERLUKAN TANGGAL', 'auto', 12, 'date'],
-    ['status', 'STATUS', 'auto', 16], ['sisa', 'SISA HARI', 'auto', 9, 'int'], ['no_bg', 'NO. BG', 'auto', 22], ['bank', 'BANK PENERBIT', 'auto', 16], ['tgl_terbit', 'TGL TERBIT', 'auto', 12, 'date'],
+    ['status', 'STATUS', 'auto', 16], ['sisa', 'SISA HARI', 'auto', 9, 'int'], ['no_bg', 'NO. BG', 'auto', 22], ['bank', 'BANK PENERBIT', 'auto', 16], ['penerbit', 'JENIS PENERBIT (BANK / ASURANSI)', 'auto', 12], ['tgl_terbit', 'TGL TERBIT', 'auto', 12, 'date'],
     ['provisi', 'PERKIRAAN PROVISI (Rp)', 'auto', 14, 'money'], ['bg_lama', 'NO. BG LAMA (PERUBAHAN / PERPANJANGAN)', 'auto', 20], ['tgl_kirim', 'TGL KIRIM KE PUSAT', 'auto', 12, 'date'],
     ['tgl_selesai', 'TGL KEMBALI / ROYA', 'auto', 12, 'date'], ['memo', 'LINK MEMO PDF', 'auto', 22], ['scan', 'LINK SCAN BG', 'auto', 22], ['ket', 'KETERANGAN', 'auto', 34],
     ['oleh', 'DIBUAT OLEH', 'auto', 22], ['ubah', 'DIUBAH', 'auto', 15], ['data', 'DATA MEMO (JANGAN DIUBAH)', 'auto', 12]]
@@ -72,6 +72,20 @@ function bgWrite_(sh, row, o) {
   });
   if (m.sisa && m.sampai && m.status) sh.getRange(row, m.sisa).setNumberFormat('0').setFormula('=IF(AND(' + xColA_(m.status) + row + '="AKTIF",' + xColA_(m.sampai) + row + '<>""),' + xColA_(m.sampai) + row + '-TODAY(),"")');
 }
+function bgNextId_(rows, tgl, extra) { var y = String(tgl).slice(0, 4), mx = 0; rows.concat((extra || []).map(function (k) { return { id: k }; })).forEach(function (r) { var k = String(r.id).match(/^BG-(\d{4})-(\d+)$/); if (k && k[1] === y) mx = Math.max(mx, +k[2]); }); return 'BG-' + y + '-' + ('00' + (mx + 1)).slice(-3); }
+/* ---------- v2.9.8 nama file scan jaminan terbit: NomorBG_NAMAPELANGGAN_JENIS_PENERBIT (sama dengan bgFileName di aplikasi) */
+function bgKode_(jenis) { var j = String(jenis || '').toUpperCase(); return /UANG MUKA/.test(j) ? 'JAMUM' : /PELAKSANA/.test(j) ? 'JAMPEL' : /PEMELIHARAAN/.test(j) ? 'JAMPEM' : /PENAWARAN|TENDER/.test(j) ? 'JAMPEN' : 'JAMINAN'; }
+function bgClean_(s) { return String(s || '').replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim(); }
+function bgPelName_(s) { return bgClean_(String(s || '').toUpperCase().replace(/[.,]/g, ' ').replace(/\(\s*PERSERO\s*\)|\bPERSERO\b|\bTBK\b/g, ' ').replace(/^\s*(PT|CV|UD|PD)\s+/, '')); }
+function bgPenName_(s) { var t = String(s || '').toUpperCase().replace(/[.,]/g, ' ').replace(/\(\s*PERSERO\s*\)|\bPERSERO\b|\bTBK\b/g, ' '); for (var i = 0; i < 3; i++) t = t.replace(/^\s*(PT|BANK|ASURANSI)\s+/, ''); return bgClean_(t); }
+function bgFileBase_(no, kepada, jenis, penerbit) { return [bgClean_(no), bgPelName_(kepada), bgKode_(jenis), bgPenName_(penerbit)].filter(String).join('_').slice(0, 180); }
+/** folder scan: <arsip>/Bank Garansi/<tahun terbit>/Scan Jaminan Terbit — file lama dengan nama sama dipindah ke "Revisi lama" */
+function bgSaveScan_(P, tgl, base, scan) {
+  var mf = archiveFolder_(P, 'BG', String(tgl).slice(0, 7)), yf = mf.getParents().next(), it = yf.getFoldersByName('Scan Jaminan Terbit'), f = it.hasNext() ? it.next() : yf.createFolder('Scan Jaminan Terbit');
+  var ext = (/\.(\w{2,5})$/.exec(scan.name || '') || [0, 'pdf'])[1].toLowerCase(), files = f.getFiles(), old = null;
+  while (files.hasNext()) { var f0 = files.next(); if (String(f0.getName()).replace(/\.\w{2,5}$/, '') === base) { if (!old) { var i2 = f.getFoldersByName('Revisi lama'); old = i2.hasNext() ? i2.next() : f.createFolder('Revisi lama'); } f0.moveTo(old); } }
+  return f.createFile(Utilities.newBlob(Utilities.base64Decode(scan.b64), scan.mime || 'application/pdf', base + '.' + ext)).getUrl();
+}
 function bgNum_(x) { return Math.round(Number(x) || 0); }
 function bgProvisi_(nilai, mulai, sampai) { var a = Date.parse(mulai), b = Date.parse(sampai); if (!(nilai > 0) || isNaN(a) || isNaN(b) || b < a) return 0; return Math.round(nilai * 0.00125 * (Math.round((b - a) / 864e5) + 1) / 91); }
 /** simpan permohonan (baru / ubah draf). D = isian memo dari aplikasi, atau daftar isian (beberapa jaminan sekaligus → satu baris BG per jaminan) */
@@ -85,7 +99,7 @@ function apiBgSave(D) { arRequireMaker_();
       var x = d.id ? rows.filter(function (r) { return r.id === d.id; })[0] : null;
       if (d.id && !x) throw new Error('BG ' + d.id + ' not found.');
       if (x && ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(String(x.status)) < 0) throw new Error('BG ' + x.id + ' is already ' + x.status + ' — the memo can no longer be changed.');
-      var id = x ? x.id : (function () { var y = String(d.tglMemo || bgDefaults_().today).slice(0, 4), mx = 0; rows.concat(ids.map(function (k) { return { id: k }; })).forEach(function (r) { var k = String(r.id).match(/^BG-(\d{4})-(\d+)$/); if (k && k[1] === y) mx = Math.max(mx, +k[2]); }); return 'BG-' + y + '-' + ('00' + (mx + 1)).slice(-3); })();
+      var id = x ? x.id : bgNextId_(rows, d.tglMemo || bgDefaults_().today, ids);
       var row = x ? x._row : nextRow++; roomFor_(sh, row);
       var nilai = bgNum_(d.nilai), o = { id: id, tgl: d.tglMemo || '', jenis: String(d.jenisTxt).toUpperCase(), npp: d.npp || '', kepada: d.kepada, pekerjaan: [d.pekerjaan, d.proyek].filter(String).join(' — '),
         kontrak: d.kontrak || '', omzet: bgNum_(d.omzet), pct: d.pct ? Number(d.pct) / 100 : '', nilai: nilai, mulai: d.mulai || '', sampai: d.sampai || '', perlu: d.perlu || '',
@@ -118,16 +132,16 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
     var st = String(x.status), o = {}, today = res.ctx.today, ket = function (t) { return (String(x.ket || '') + (x.ket ? ' · ' : '') + t).slice(0, 500); };
     var saveScan = function () {
       if (!p.scan || !p.scan.b64) return;
-      var folder = archiveFolder_(res.params, 'BG', String(p.tgl_terbit || x.tgl || today).slice(0, 7)), nm = (id + ' - Scan BG ' + (p.no_bg || x.no_bg || '') + ' - ' + (x.kepada || '')).replace(/[\\\/:*?"<>|]/g, '-').slice(0, 150) + (/\.(\w+)$/.exec(p.scan.name || '') ? /\.(\w+)$/.exec(p.scan.name)[0] : '.pdf');
-      o.scan = folder.createFile(Utilities.newBlob(Utilities.base64Decode(p.scan.b64), p.scan.mime || 'application/pdf', nm)).getUrl();
+      var no = p.no_bg || x.no_bg || id, pen = p.bank || x.bank || '';
+      o.scan = bgSaveScan_(res.params, p.tgl_terbit || x.tgl_terbit || x.tgl || today, bgFileBase_(no, x.kepada, x.jenis, pen), p.scan);
     };
     if (act === 'KIRIM') { if (st !== 'DRAF') throw new Error('Only a draft can be marked as sent.'); o.status = 'DIKIRIM KE PUSAT'; o.tgl_kirim = /^\d{4}-\d{2}-\d{2}$/.test(String(p.tgl || '')) ? p.tgl : today; }
     else if (act === 'TERBIT') {
       if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' is ' + st + '.');
       if (!String(p.no_bg || '').trim()) throw new Error('Fill in the BG number.');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(String(p.sampai || ''))) throw new Error('Fill in the BG expiry date.');
-      o.status = 'AKTIF'; o.no_bg = String(p.no_bg).trim(); o.bank = String(p.bank || '').trim(); o.tgl_terbit = p.tgl_terbit || ''; o.mulai = p.mulai || x.mulai; o.sampai = p.sampai;
-      if (p.nilai) o.nilai = bgNum_(p.nilai); o.provisi = bgProvisi_(o.nilai || +x.nilai, o.mulai, o.sampai); if (!x.tgl_kirim) o.tgl_kirim = o.tgl_terbit || today;
+      o.status = 'AKTIF'; o.no_bg = String(p.no_bg).trim(); o.bank = String(p.bank || '').trim(); o.penerbit = p.penerbit === 'ASURANSI' ? 'ASURANSI' : 'BANK'; o.tgl_terbit = p.tgl_terbit || ''; o.mulai = p.mulai || x.mulai; o.sampai = p.sampai;
+      if (p.nilai) o.nilai = bgNum_(p.nilai); o.provisi = +p.biaya > 0 ? bgNum_(p.biaya) : bgProvisi_(o.nilai || +x.nilai, o.mulai, o.sampai); if (!x.tgl_kirim) o.tgl_kirim = o.tgl_terbit || today;
       saveScan();
       // BG perpanjangan / perubahan terbit → BG lama otomatis DIPERPANJANG
       if (x.bg_lama) bgRows_().forEach(function (r) { if (r.id !== id && String(r.no_bg).trim() && String(r.no_bg).trim() === String(x.bg_lama).trim() && r.status === 'AKTIF') bgWrite_(sh, r._row, { status: 'DIPERPANJANG', tgl_selesai: o.tgl_terbit || today, ket: (String(r.ket || '') + (r.ket ? ' · ' : '') + 'diganti ' + id + ' (' + o.no_bg + ')').slice(0, 500) }); });
@@ -141,6 +155,29 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
   } finally { lock.releaseLock(); }
   try { arBootBust_(); } catch (e) { }
   return out;
+}
+/** jaminan yang sudah terbit tanpa memo dari aplikasi (BG lama / terbit langsung dari pusat) → baris AKTIF. Satu jaminan per panggilan (scan bisa besar). */
+function apiBgImport(it) { arRequireMaker_();
+  it = it || {}; var s = function (k) { return String(it[k] === undefined || it[k] === null ? '' : it[k]).trim(); }, isD = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(v); };
+  if (!s('no_bg')) throw new Error('Fill in the BG / guarantee number.'); if (!s('kepada')) throw new Error('Fill in the customer (ditujukan kepada).');
+  if (!s('jenis')) throw new Error('Select the guarantee type.'); if (!(+it.nilai > 0)) throw new Error('Fill in the guarantee value.');
+  if (!isD(s('sampai'))) throw new Error('Fill in the expiry date (berlaku s/d).'); if (s('mulai') && !isD(s('mulai'))) throw new Error('Start date is not valid.');
+  if (s('mulai') && s('sampai') < s('mulai')) throw new Error('Expiry date is before the start date.');
+  var res = { params: arParameters_(), today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') }, lock = bgLock_(), id;
+  try {
+    var sh = bgSheet_(true), rows = bgRows_(), dup = rows.filter(function (r) { return r.status !== 'BATAL' && String(r.no_bg).trim().toUpperCase() === s('no_bg').toUpperCase(); })[0];
+    if (dup) throw new Error('BG number ' + s('no_bg') + ' is already recorded (' + dup.id + ').');
+    var tt = isD(s('tgl_terbit')) ? s('tgl_terbit') : '', pen = s('penerbit').toUpperCase() === 'ASURANSI' ? 'ASURANSI' : 'BANK', nilai = bgNum_(it.nilai);
+    id = bgNextId_(rows, tt || res.today); var row = lastDataRow_(sh, BG_SCHEMA_.firstRow, [colMap_(sh, BG_SCHEMA_).id || 1]) + 1; roomFor_(sh, row);
+    var o = { id: id, tgl: '', jenis: s('jenis').toUpperCase(), npp: s('npp'), kepada: s('kepada'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak'), omzet: '', pct: '', nilai: nilai,
+      mulai: s('mulai'), sampai: s('sampai'), perlu: '', status: 'AKTIF', no_bg: s('no_bg'), bank: s('bank'), penerbit: pen, tgl_terbit: tt,
+      provisi: +it.biaya > 0 ? bgNum_(it.biaya) : bgProvisi_(nilai, s('mulai') || tt, s('sampai')), ket: ['Diinput sebagai jaminan terbit (tanpa memo aplikasi)', s('ket')].filter(String).join(' · ').slice(0, 500), oleh: email_(),
+      data: { imp: 1, jenis: s('jenis').toUpperCase(), kepada: s('kepada'), npp: s('npp'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak') } };
+    if (it.scan && it.scan.b64) o.scan = bgSaveScan_(res.params, tt || res.today, bgFileBase_(o.no_bg, o.kepada, o.jenis, o.bank), it.scan);
+    bgWrite_(sh, row, o);
+  } finally { lock.releaseLock(); }
+  try { arBootBust_(); } catch (e) { }
+  return { ok: true, id: id };
 }
 /** ringkas untuk Overview / lonceng (dibaca saat bootstrap; ringan) */
 function bgSummary_(today) {
