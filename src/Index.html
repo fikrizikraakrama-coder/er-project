@@ -1018,7 +1018,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <!-- ===================== MODE BAYAR -->
     <div class="scroll fx" id="mode-bayar" hidden>
       <div class="fx-hd"><h2>Post Incoming Payment<em class="ap-tc">F-28</em></h2><p>Incoming customer payment, applied to open invoices (VAT first, then net)</p></div>
-      <div class="fx-steps" id="stPay"><span>1 · Bank details</span><span>2 · Apply to invoices</span><span>3 · Review &amp; save</span></div>
+      <div class="fx-steps" id="stPay"><span>1 · Bank details</span><span>2 · Apply to invoices</span><span>3 · Review &amp; save</span></div><div class="note ok" id="payDone" hidden style="margin:0 0 10px"></div>
       <div class="seg" role="group" aria-label="Receipt type"><button type="button" data-pj="trf" aria-pressed="true">Bank transfer</button><button type="button" data-pj="pb" aria-pressed="false">Offset / reclass</button><button type="button" data-pj="kom" aria-pressed="false">Compensation</button></div>
       <div id="pjTrf">
         <fieldset class="stp">
@@ -2377,7 +2377,13 @@ function savePay() {
     savePay._busy = false; savePay._periode = ''; clearPaymentRequest(); showSavedNotice(r, SUBMIT_AFTER && !!r.key);
     var tw = (r.warnings || []).filter(function (w) { return /Payment date/.test(w); }); if (tw.length) setTimeout(function () { toast(tw[0]); }, 2500);
     $('payStatus').innerHTML = '<span style="color:var(--green)">Saved: ' + rows.length + ' row(s). ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ') + '</span>';
-    LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY; steps('stPay', [true, true, true]);
+    LASTPAY = r.key || null; $('btnPayPkg').disabled = !LASTPAY;
+    // v2.9.5: kembali ke langkah 1 untuk input penerimaan berikutnya (tanggal & rekening tetap)
+    var dn = $('payDone'), sumTxt = rows.length + ' row(s) · Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' · ' + (r.invoices || []).map(function (i) { return esc(short(i.nomor)) + ' → ' + esc(i.status); }).join(' · ');
+    if (dn) { dn.hidden = false; dn.innerHTML = '<b>✓ Saved' + (r.key ? ' · ' + esc(r.key) : '') + '</b> ' + sumTxt + '<br><span>Ready for the next receipt — value date and receiving account are kept.' + (LASTPAY ? ' <a href="#" id="payDonePkg">Open approval sheet</a>' : '') + '</span>'; if ($('payDonePkg')) $('payDonePkg').onclick = function (ev) { ev.preventDefault(); $('btnPayPkg').click(); }; }
+    steps('stPay', [false, false, false]);
+    setTimeout(function () { var sc = $('mode-bayar'); if (sc && sc.scrollTo) sc.scrollTo({ top: 0, behavior: 'smooth' }); try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e2) { }
+      var f = PAY.mode === 'pb' ? $('bFrom') : PAY.mode === 'kom' ? $('cInv') : $('pTrf'); if (f) setTimeout(function () { try { f.focus({ preventScroll: true }); } catch (e3) { } }, 400); }, 150);
     var subNow = SUBMIT_AFTER && LASTPAY; SUBMIT_AFTER = false; if (subNow) submitAfterSave('PAY', LASTPAY, 'payStatus');
     toast(PAY.mode === 'pb' ? 'Offset saved.' : PAY.mode === 'kom' ? 'Compensation saved (not counted as cash).' : 'Payment of Rp ' + nfDot(rows.reduce(function (t, x) { return t + x.nominal; }, 0)) + ' recorded.');
     var keep = rows.map(function (x) { return x.inv; });
