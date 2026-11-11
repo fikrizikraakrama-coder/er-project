@@ -924,7 +924,10 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .pg-bgm .bgm-box{position:absolute;left:10mm;right:10mm;top:20mm;bottom:6mm;border:2.4pt double #000;padding:3.5mm 4mm 0 4mm}
 .pg-bgm .bgm-kop{display:flex;justify-content:space-between}.pg-bgm .bgm-kop .up{margin-right:14mm}
 .pg-bgm .bgm-t{text-align:center;font:bold 21pt "Baskerville Old Face","Libre Baskerville",Baskerville,Georgia,"Times New Roman",serif;margin:3.5mm 0 3mm;letter-spacing:.5pt}
-.pg-bgm table{border-collapse:collapse}.pg-bgm td{padding:0;vertical-align:top}
+.pg-bgm table{border-collapse:collapse;font:inherit;color:inherit}.pg-bgm td{padding:0;vertical-align:top;font:inherit;line-height:inherit}
+#bgPrev{position:fixed;inset:0;z-index:60;background:rgba(20,30,50,.6);overflow:auto;padding:70px 20px 30px}#bgPrev[hidden]{display:none}
+#bgPrev .bgp-bar{position:fixed;left:0;right:0;top:0;height:56px;background:#14284B;color:#fff;display:flex;align-items:center;gap:12px;padding:0 20px;z-index:2}#bgPrev .bgp-bar span{opacity:.7;font-size:12px}#bgPrev .bgp-bar i{flex:1}#bgPrev .bgp-bar .btn{background:#fff;color:#14284B;border:0}#bgPrev .bgp-bar .btn.primary{background:#2EC4C4;color:#0B2D3A}
+#bgPrev .bgp-pg .page{margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 .pg-bgm .bgm-h td:nth-child(1){width:17mm}.pg-bgm .bgm-h td:nth-child(2){width:6mm}
 .pg-bgm .bgm-pr{margin:0 0 3.5mm 52mm}
 .pg-bgm .bgm-p{margin:2.2mm 0 0}
@@ -5318,7 +5321,11 @@ function bgAct(k) {
   var r = (BG.rows || []).filter(function (x) { return x.id === BG.sel; })[0];
   if (k === 'new') { BG.form = bgNewForm(); BG.sel = ''; BG.act = ''; return bgRender(); }
   if (k === 'cancel') { BG.form = null; return bgRender(); }
-  if (k === 'preview') { var w = window.open('', '_blank'); if (!w) return bgMsg('Pratinjau diblokir browser — izinkan pop-up, atau langsung unduh PDF.', true); w.document.write('<html><head><title>Pratinjau memo BG</title><style>' + document.querySelector('style').textContent + ' body{background:#888;padding:20px}</style></head><body>' + bgMemoHtml(BG.form) + '</body></html>'); w.document.close(); return; }
+  if (k === 'preview') { // pratinjau di dalam aplikasi (sama persis dengan PDF)
+    var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
+    ov.innerHTML = '<div class="bgp-bar"><b>Pratinjau memo</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button><button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + 'Simpan &amp; unduh memo PDF</button></div><div class="bgp-pg">' + bgMemoHtml(BG.form) + '</div>';
+    ov.hidden = false; $('bgPrevX').onclick = function () { ov.hidden = true; }; $('bgPrevPdf').onclick = function () { ov.hidden = true; bgSave(BG.form, true); };
+    ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; }; return; }
   if (k === 'save') return bgSave(BG.form, false);
   if (k === 'savepdf') return bgSave(BG.form, true);
   if (!r) return;
