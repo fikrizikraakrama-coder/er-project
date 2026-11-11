@@ -950,6 +950,7 @@ function apiBootstrap() {
   // v2.9: status Rencana Termin bulan berjalan & bulan depan (notifikasi Section Head / AR)
   var nyM = +b.today.slice(5, 7) + 1, nyY = +b.today.slice(0, 4); if (nyM > 12) { nyM = 1; nyY++; }
   b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', subAt: p.subAt || '', finalAt: p.finalAt || '', rev: !!p.rev, revAt: p.revAt || '', revDasar: p.revDasar || '' }; });
+  b.bg = bgSummary_(b.today); // v2.9.6: Bank Garansi aktif & berakhir ≤ 30 hari
   var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('buka aplikasi', Date.now() - t0, 'hitung');
   return out;
 }
@@ -1345,7 +1346,7 @@ function archiveFolder_(P, kind, month) {
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
-  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak' }[kind] || 'Lainnya';
+  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak', BG: 'Bank Garansi' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
   return sub(sub(f, y), ('0' + mm).slice(-2) + ' ' + ENGINE.MONTHS[mm - 1] + ' ' + y);
 }
