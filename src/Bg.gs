@@ -74,34 +74,39 @@ function bgWrite_(sh, row, o) {
 }
 function bgNum_(x) { return Math.round(Number(x) || 0); }
 function bgProvisi_(nilai, mulai, sampai) { var a = Date.parse(mulai), b = Date.parse(sampai); if (!(nilai > 0) || isNaN(a) || isNaN(b) || b < a) return 0; return Math.round(nilai * 0.00125 * (Math.round((b - a) / 864e5) + 1) / 91); }
-/** simpan permohonan (baru / ubah draf). d = isian memo dari aplikasi */
-function apiBgSave(d) { arRequireMaker_();
-  d = d || {}; if (!String(d.jenisTxt || '').trim()) throw new Error('Select the guarantee type.');
-  if (!String(d.kepada || '').trim()) throw new Error('Fill in "Ditujukan kepada".');
-  var lock = bgLock_(), out;
+/** simpan permohonan (baru / ubah draf). D = isian memo dari aplikasi, atau daftar isian (beberapa jaminan sekaligus → satu baris BG per jaminan) */
+function apiBgSave(D) { arRequireMaker_();
+  var L = Array.isArray(D) ? D : [D || {}]; if (!L.length) throw new Error('Select the guarantee type.');
+  L.forEach(function (d) { if (!String(d.jenisTxt || '').trim()) throw new Error('Select the guarantee type.'); if (!String(d.kepada || '').trim()) throw new Error('Fill in "Ditujukan kepada".'); });
+  var lock = bgLock_(), ids = [];
   try {
-    var sh = bgSheet_(true), rows = bgRows_(), me = email_(), x = d.id ? rows.filter(function (r) { return r.id === d.id; })[0] : null;
-    if (d.id && !x) throw new Error('BG ' + d.id + ' not found.');
-    if (x && ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(String(x.status)) < 0) throw new Error('BG ' + x.id + ' is already ' + x.status + ' — the memo can no longer be changed.');
-    var id = x ? x.id : (function () { var y = String(d.tglMemo || bgDefaults_().today).slice(0, 4), mx = 0; rows.forEach(function (r) { var k = String(r.id).match(/^BG-(\d{4})-(\d+)$/); if (k && k[1] === y) mx = Math.max(mx, +k[2]); }); return 'BG-' + y + '-' + ('00' + (mx + 1)).slice(-3); })();
-    var row = x ? x._row : lastDataRow_(sh, BG_SCHEMA_.firstRow, [colMap_(sh, BG_SCHEMA_).id || 1]) + 1; roomFor_(sh, row);
-    var nilai = bgNum_(d.nilai), o = { id: id, tgl: d.tglMemo || '', jenis: String(d.jenisTxt).toUpperCase(), npp: d.npp || '', kepada: d.kepada, pekerjaan: [d.pekerjaan, d.proyek].filter(String).join(' — '),
-      kontrak: d.kontrak || '', omzet: bgNum_(d.omzet), pct: d.pct ? Number(d.pct) / 100 : '', nilai: nilai, mulai: d.mulai || '', sampai: d.sampai || '', perlu: d.perlu || '',
-      provisi: bgProvisi_(nilai, d.mulai, d.sampai), bg_lama: d.bgLama || '', ket: d.ket || '', data: d };
-    if (!x) { o.status = 'DRAF'; o.oleh = me; }
-    bgWrite_(sh, row, o);
-    out = { ok: true, id: id };
+    var sh = bgSheet_(true), rows = bgRows_(), me = email_(), idc = colMap_(sh, BG_SCHEMA_).id || 1, nextRow = lastDataRow_(sh, BG_SCHEMA_.firstRow, [idc]) + 1;
+    L.forEach(function (d) {
+      var x = d.id ? rows.filter(function (r) { return r.id === d.id; })[0] : null;
+      if (d.id && !x) throw new Error('BG ' + d.id + ' not found.');
+      if (x && ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(String(x.status)) < 0) throw new Error('BG ' + x.id + ' is already ' + x.status + ' — the memo can no longer be changed.');
+      var id = x ? x.id : (function () { var y = String(d.tglMemo || bgDefaults_().today).slice(0, 4), mx = 0; rows.concat(ids.map(function (k) { return { id: k }; })).forEach(function (r) { var k = String(r.id).match(/^BG-(\d{4})-(\d+)$/); if (k && k[1] === y) mx = Math.max(mx, +k[2]); }); return 'BG-' + y + '-' + ('00' + (mx + 1)).slice(-3); })();
+      var row = x ? x._row : nextRow++; roomFor_(sh, row);
+      var nilai = bgNum_(d.nilai), o = { id: id, tgl: d.tglMemo || '', jenis: String(d.jenisTxt).toUpperCase(), npp: d.npp || '', kepada: d.kepada, pekerjaan: [d.pekerjaan, d.proyek].filter(String).join(' — '),
+        kontrak: d.kontrak || '', omzet: bgNum_(d.omzet), pct: d.pct ? Number(d.pct) / 100 : '', nilai: nilai, mulai: d.mulai || '', sampai: d.sampai || '', perlu: d.perlu || '',
+        provisi: bgProvisi_(nilai, d.mulai, d.sampai), bg_lama: d.bgLama || '', ket: [d.jwTxt ? 'Masa berlaku: ' + d.jwTxt : '', d.ket || ''].filter(String).join(' · ').slice(0, 500), data: d };
+      if (L.length > 1) o.ket = (o.ket + (o.ket ? ' · ' : '') + 'dibuat bersama ' + L.length + ' jaminan').slice(0, 500);
+      if (!x) { o.status = 'DRAF'; o.oleh = me; }
+      bgWrite_(sh, row, o); ids.push(id);
+    });
   } finally { lock.releaseLock(); }
   try { arBootBust_(); } catch (e) { }
-  return out;
+  return { ok: true, id: ids[0], ids: ids };
 }
-/** memo PDF (dibuat aplikasi) disimpan ke arsip Drive: <arsip>/Bank Garansi/<tahun>/<bulan> */
-function apiBgMemoPdf(id, b64, name) { arRequireMaker_();
-  var res = { params: arParameters_(), ctx: { today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') } }, rows = bgRows_(), x = rows.filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('BG ' + id + ' not found.');
-  var folder = archiveFolder_(res.params, 'BG', String(x.tgl || res.ctx.today).slice(0, 7)), nm = String(name || ('Memo Permohonan Jaminan ' + id)).replace(/[\\\/:*?"<>|]/g, '-') + (/\.pdf$/i.test(name || '') ? '' : '.pdf');
-  var files = folder.getFiles(), old = null; while (files.hasNext()) { var f0 = files.next(); if (String(f0.getName()).indexOf(id + ' ') === 0 || String(f0.getName()).indexOf(id + '_') === 0) { if (!old) { var it2 = folder.getFoldersByName('Revisi lama'); old = it2.hasNext() ? it2.next() : folder.createFolder('Revisi lama'); } f0.moveTo(old); } }
+/** memo PDF (dibuat aplikasi; boleh berisi beberapa memo) disimpan ke arsip Drive: <arsip>/Bank Garansi/<tahun>/<bulan>; link dicatat untuk setiap ID */
+function apiBgMemoPdf(ids, b64, name) { arRequireMaker_();
+  ids = [].concat(ids || []).map(String); if (!ids.length) throw new Error('BG ID missing.');
+  var res = { params: arParameters_(), ctx: { today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') } }, rows = bgRows_(), X = rows.filter(function (r) { return ids.indexOf(r.id) >= 0; });
+  if (!X.length) throw new Error('BG ' + ids.join(', ') + ' not found.');
+  var folder = archiveFolder_(res.params, 'BG', String(X[0].tgl || res.ctx.today).slice(0, 7)), nm = String(name || ('Memo Permohonan Jaminan ' + ids.join('+'))).replace(/[\\\/:*?"<>|]/g, '-') + (/\.pdf$/i.test(name || '') ? '' : '.pdf');
+  var files = folder.getFiles(), old = null; while (files.hasNext()) { var f0 = files.next(), n0 = String(f0.getName()); if (ids.some(function (id) { return n0.indexOf(id + ' ') === 0 || n0.indexOf(id + '+') === 0 || n0.indexOf(id + '_') === 0; })) { if (!old) { var it2 = folder.getFoldersByName('Revisi lama'); old = it2.hasNext() ? it2.next() : folder.createFolder('Revisi lama'); } f0.moveTo(old); } }
   var f = folder.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'application/pdf', nm));
-  var lock = bgLock_(); try { bgWrite_(bgSheet_(true), x._row, { memo: f.getUrl() }); } finally { lock.releaseLock(); }
+  var lock = bgLock_(); try { var sh = bgSheet_(true); X.forEach(function (x) { bgWrite_(sh, x._row, { memo: f.getUrl() }); }); } finally { lock.releaseLock(); }
   return { ok: true, url: f.getUrl(), name: f.getName(), folder: folder.getName() };
 }
 /** perubahan status: KIRIM · TERBIT {no_bg, bank, tgl_terbit, mulai, sampai, scan:{b64,name,mime}} · SELESAI {hasil: DIKEMBALIKAN|ROYA, tgl} · PERPANJANG · BATAL {alasan} · SCAN {scan} */

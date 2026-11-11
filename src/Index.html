@@ -913,6 +913,17 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .bgx-calc{background:#F7F9FC;border-radius:10px;padding:8px 10px;margin-top:10px;font-size:12px}.bgx-calc div{display:flex;justify-content:space-between;padding:2px 0}
 .bgx-act{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;justify-content:flex-end}.bgx-act .btn.red{color:#B42318}
 .bgx-tip{background:#F1F8F8;border:1px dashed #9CCFD1;border-radius:9px;padding:7px 10px;font-size:11.5px;color:#24505A;margin-top:8px}.bgx-nonpp{font-style:normal;background:#FFF1D6;color:#9A6200;border-radius:6px;padding:0 5px;font-size:10.5px;font-weight:700}.bgx-sub p.s{margin:0 0 6px;color:#6A7A8E;font-size:11.5px}
+.bgx-sec{margin-top:12px;border-top:1px dashed #DCE3EB;padding-top:8px}.bgx-sec>b{font-size:12.5px;color:#14284B}.bgx-sec p.s{margin:4px 0 0}
+.bgx-form .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.bgx-form .g2b{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.bgx-jm{border:1.5px solid #D5E3EA;border-radius:12px;margin-top:10px;overflow:hidden}.bgx-jm .hd{display:flex;align-items:center;gap:10px;padding:7px 12px;font-weight:800;font-size:13px;color:#fff}.bgx-jm .hd small{font-weight:600;opacity:.88;font-size:11.5px}.bgx-jm .hd i{flex:1}.bgx-jm .bd{padding:2px 12px 12px}
+.bgx-lc{display:flex;flex-wrap:wrap;gap:3px;align-items:center}.bgx-lc button{border:1px solid #CBD5E1;background:#fff;border-radius:6px;padding:3px 7px;font:inherit;font-size:11.5px;font-weight:700;color:#6A7A8E;cursor:pointer}.bgx-lc button.on{background:#14284B;border-color:#14284B;color:#fff}.bgx-lc .tg{margin-left:4px}
+.bgx .tg{font-size:11px;color:#6A7A8E;font-weight:500}
+.bgx-jw{background:#F7FAFC;border:1px solid #E3E9F0;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:12.5px}.bgx-jwr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:3px 0}.bgx-jwr>b{font-size:11px;color:#5B6B80;width:96px}
+.bgx-form label.bgx-r,.bgx-form label.bgx-cb{display:inline-flex!important;align-items:center;gap:5px;margin:0!important;font-size:12.5px!important;font-weight:500!important;color:#16263D!important;cursor:pointer}.bgx-form label.bgx-r input,.bgx-form label.bgx-cb input{width:auto!important;margin:0}
+.bgx-jws{margin:5px 0 3px 110px;line-height:2}.bgx-form input.bgx-sn{width:64px!important;text-align:center;padding:2px 6px;height:28px;min-height:0}.bgx-form input.bgx-sd{width:150px!important;padding:2px 6px;height:28px;min-height:0}.bgx-form select.bgx-su{width:auto!important;padding:2px 6px;height:28px;min-height:0}
+.bgx-form label.bgx-cb{margin:4px 0 0 110px!important;font-size:12px!important}.bgx-form label.bgx-same{margin:0 0 0 14px!important;font-weight:700!important;color:#0F6E78!important}
+.bgx-res{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#EEF7F8;border-radius:9px;padding:7px 11px;margin-top:9px;font-size:12.5px}.bgx-res b{color:#0B4F56;font-size:13.5px}
+@media(max-width:700px){.bgx-form .g4,.bgx-form .g2b{grid-template-columns:1fr 1fr}.bgx-jws,.bgx-form label.bgx-cb{margin-left:0!important}}
 .bgx-msg{margin-top:8px;font-size:12px;color:#1E6B3E}.bgx-msg.e{color:#B42318;font-weight:700}
 .bgx-dl>div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed #EEF2F6;font-size:12.5px}.bgx-dl span{color:#6A7A8E}.bgx-dl b{text-align:right}.bgx-dl small{font-weight:500;color:#6A7A8E}.bgx-dl small.bgred{color:#C8372F;font-weight:700}
 .bgx-links{display:flex;gap:14px;margin-top:10px;font-size:12.5px}.bgx-links a{color:#0F6E78;font-weight:700}
@@ -5142,25 +5153,117 @@ function bgPro(npp) { return (B.proyek || []).filter(function (p) { return p.npp
 function bgPel(nama) { return (B.pelanggan || []).filter(function (p) { return p.nama === nama; })[0] || null; }
 function bgJenisTxt(f) { return f.jenis === 'PERUBAHAN' ? 'PERPANJANGAN ' + (f.perJenis || 'PELAKSANAAN') : f.jenis === 'LAIN' ? String(f.lainTxt || '').toUpperCase() : f.jenis; }
 function bgDefLamp(j) { return j === 'PELAKSANAAN' ? { b: 1 } : j === 'UANG MUKA' ? { c: 1 } : j === 'PEMELIHARAAN' ? { d: 1 } : j === 'TENDER' ? { e: 1 } : j === 'PENAWARAN' ? { a: 1, f: 1 } : {}; }
+// v2.9.7: satu form → beberapa jaminan (mis. Uang Muka + Pelaksanaan). Data proyek, form & penanda tangan sekali; persen, nilai, tanggal & lampiran per jaminan.
+// Jangka waktu memakai aturan: berlaku sejak SPK/SPMK (atau tanggal lain) s/d tanggal tertentu · N hari · selesai pekerjaan + tambahan (bulan kalender / hari).
+var BG_MULTI = ['TENDER', 'PENAWARAN', 'UANG MUKA', 'PELAKSANAAN', 'PEMELIHARAAN'], BG_JC = { 'TENDER': '#6A7A8E', 'PENAWARAN': '#8A5A00', 'UANG MUKA': '#2F5597', 'PELAKSANAAN': '#1E8A4C', 'PEMELIHARAAN': '#7C4DC0', 'PERUBAHAN': '#B45309', 'LAIN': '#475569' };
+function bgJwNew(o) { var r = { start: 'spk', mulaiLain: '', mode: 'selesai', sampaiTgl: '', hari: '', pelaks: '', tambah: '', unit: 'bulan', hari1: false }; if (o) Object.keys(o).forEach(function (k) { r[k] = o[k]; }); return r; }
+function bgAddMonths(d, n) { var p = String(d || '').split('-'); if (p.length < 3) return ''; var y = +p[0], m = +p[1] - 1 + (+n || 0), day = +p[2]; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; var last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); return y + '-' + ('0' + (m + 1)).slice(-2) + '-' + ('0' + Math.min(day, last)).slice(-2); }
+/** hasil aturan jangka waktu → { mulai, sampai, selesai, txt } */
+function bgJwCalc(F, w) {
+  var mulai = w.start === 'spk' ? (F.tglKontrak || '') : (w.mulaiLain || ''), sampai = '', selesai = '', k = w.hari1 ? 1 : 0, txt = '';
+  var basis = w.start === 'spk' ? (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK') + ' ' + tg(mulai) : 'mulai ' + tg(mulai);
+  if (w.mode === 'tgl') { sampai = w.sampaiTgl || ''; txt = basis + ' s/d ' + tg(sampai); }
+  else if (w.mode === 'hari') { if (mulai && +w.hari > 0) sampai = bgAddDays(mulai, +w.hari - k); txt = basis + ' + ' + (+w.hari || 0) + ' hari' + (k ? ' (tgl mulai = hari ke-1)' : ''); }
+  else { if (mulai && +w.pelaks > 0) { selesai = bgAddDays(mulai, +w.pelaks - k); sampai = +w.tambah > 0 ? (w.unit === 'bulan' ? bgAddMonths(selesai, +w.tambah) : bgAddDays(selesai, +w.tambah)) : selesai; }
+    txt = basis + ' + ' + (+w.pelaks || 0) + ' hr pelaksanaan' + (k ? ' (tgl mulai = hari ke-1)' : '') + (+w.tambah > 0 ? ' + ' + (+w.tambah) + (w.unit === 'bulan' ? ' bln kalender' : ' hari') : ''); }
+  return { mulai: mulai, sampai: sampai, selesai: selesai, txt: txt };
+}
+function bgRule(F, j) { return F.jwSame || F.list.length < 2 ? F.jw : (F.it[j].jw || (F.it[j].jw = bgJwNew(F.jw))); }
+function bgDefPct(F, j) {
+  var jj = j === 'PERUBAHAN' ? F.perJenis : j, p = bgPro(F.npp);
+  if (jj === 'UANG MUKA') return p && +p.um > 0 && F.omzet > 0 ? Math.round(+p.um / F.omzet * 10000) / 100 : 10;
+  return jj === 'TENDER' || jj === 'PENAWARAN' ? 1 : jj === 'LAIN' ? 10 : 5;
+}
+function bgNewItem(F, j) { var l = bgDefLamp(j === 'PERUBAHAN' ? F.perJenis : j); if (F.kontrakLbl === 'SPMK') l.g = 1; return { pct: bgDefPct(F, j), nilai: 0, nilaiManual: false, nilaiKet: '', perlu: B.today, terbit: bgAddDays(B.today, 1), terbitManual: false, lamp: l, jw: null }; }
 function bgNewForm(o) {
   var d = BG.def || {}, t = B.today;
-  var f = { id: '', jenis: 'PELAKSANAAN', perJenis: 'PELAKSANAAN', lainTxt: '', bgLama: '', pel: '', npp: '', pekerjaan: '', proyek: '', omzetLbl: 'Omzet Kontrak', omzet: 0, ppn: 'Exclude PPN', kontrakLbl: '', kontrak: '', tglKontrak: '',
-    kepada: '', alamat: '', mulai: '', sampai: '', pct: 5, nilai: 0, nilaiManual: false, nilaiKet: '', perlu: t, terbit: bgAddDays(t, 1), terbitManual: false, formBank: 'a', formB: '', lamp: { b: 1 }, lampLain: '',
+  var F = { id: '', lock: false, list: ['PELAKSANAAN'], it: {}, jwSame: true, jw: bgJwNew(), perJenis: 'PELAKSANAAN', lainTxt: '', bgLama: '', pel: '', npp: '', pekerjaan: '', proyek: '', omzetLbl: 'Omzet Kontrak', omzet: 0, ppn: 'Exclude PPN', kontrakLbl: '', kontrak: '', tglKontrak: '',
+    kepada: '', alamat: '', formBank: 'a', formB: '', lampLain: '',
     dari: d.dari || 'Manager Concrete Services Unit', untuk: d.untuk || 'Manager Treasury Sub Division', up: d.up || 'up. Bpk Agung A / Citra', unit: d.unit || 'CONCRETE SERVICE UNIT', kota: d.kota || 'Jakarta',
     pemohon: (d.pemohon || ['PT. WIJAYA KARYA BETON Tbk.', 'Tamansari Hive Office Lt 3-5', 'Jalan D. I Panjaitan Kav. 2 Jakarta 13340']).join('\n'), ttd: d.ttd || 'Yusqi Audah Firdaus', jab: d.jab || 'Manager of Concrete Service Unit', tglMemo: t, ket: '' };
-  if (o) Object.keys(o).forEach(function (k) { f[k] = o[k]; });
-  return f;
+  if (o) Object.keys(o).forEach(function (k) { F[k] = o[k]; });
+  F.list.forEach(function (j) { if (!F.it[j]) F.it[j] = bgNewItem(F, j); });
+  bgCalc(F); return F;
 }
-function bgFillNpp(f, npp) {
-  var p = bgPro(npp); f.npp = npp; if (!p) return;
+function bgFillNpp(F, npp) {
+  var p = bgPro(npp); F.npp = npp; if (!p) return;
   var pel = bgPel(p.pelanggan) || {};
-  f.pekerjaan = p.pekerjaan || p.singkat || ''; f.proyek = p.nama_pe || p.deskripsi || p.singkat || ''; f.kontrak = p.kontrak || ''; f.tglKontrak = p.tgl_kontrak || '';
-  f.omzet = Math.round(+p.nilai_ok || +p.nilai || 0); f.kepada = pel.inv || p.pelanggan || ''; f.alamat = (pel.alamat || []).join('\n');
-  if (f.jenis === 'UANG MUKA' && +p.um > 0 && f.omzet > 0) f.pct = Math.round(+p.um / f.omzet * 10000) / 100;
-  bgCalc(f);
+  F.pel = p.pelanggan; F.pekerjaan = p.pekerjaan || p.singkat || ''; F.proyek = p.nama_pe || p.deskripsi || p.singkat || ''; F.kontrak = p.kontrak || ''; F.tglKontrak = p.tgl_kontrak || '';
+  F.omzet = Math.round(+p.nilai_ok || +p.nilai || 0); F.kepada = pel.inv || p.pelanggan || ''; F.alamat = (pel.alamat || []).join('\n');
+  F.list.forEach(function (j) { if (!F.it[j].nilaiManual) F.it[j].pct = bgDefPct(F, j); });
+  bgCalc(F);
 }
-function bgCalc(f) { if (!f.nilaiManual) f.nilai = Math.round((+f.omzet || 0) * (+f.pct || 0) / 100); if (!f.terbitManual && f.perlu) f.terbit = bgAddDays(f.perlu, 1); }
-function bgProv(f) { var n = bgDays(f.sampai, f.mulai); return n === null || n < 0 || !(f.nilai > 0) ? 0 : Math.round(f.nilai * 0.00125 * (n + 1) / 91); }
+function bgCalc(F) { F.list.forEach(function (j) { var x = F.it[j]; if (!x) return; if (!x.nilaiManual) x.nilai = Math.round((+F.omzet || 0) * (+x.pct || 0) / 100); if (!x.terbitManual && x.perlu) x.terbit = bgAddDays(x.perlu, 1); }); }
+function bgProv(m) { var n = bgDays(m.sampai, m.mulai); return n === null || n < 0 || !(m.nilai > 0) ? 0 : Math.round(m.nilai * 0.00125 * (n + 1) / 91); }
+/** isi memo (satu per jaminan) — bentuk datar yang dicetak & disimpan per baris BG */
+function bgMemos(F) {
+  return F.list.map(function (j) {
+    var x = F.it[j], w = bgRule(F, j), r = bgJwCalc(F, w), m = {};
+    Object.keys(F).forEach(function (k) { if (['it', 'list', 'jw', 'jwSame', 'lock'].indexOf(k) < 0) m[k] = F[k]; });
+    m.jenis = j; m.pct = x.pct; m.nilai = x.nilai; m.nilaiKet = x.nilaiKet; m.perlu = x.perlu; m.terbit = x.terbit; m.lamp = x.lamp; m.mulai = r.mulai; m.sampai = r.sampai; m.jw = JSON.parse(JSON.stringify(w)); m.jwTxt = r.txt;
+    return m;
+  });
+}
+function bgJwHtml(F, w, key, j) {
+  var r = bgJwCalc(F, w), a = function (f, v) { return 'data-bgw="' + f + '" data-bgwj="' + esc(key) + '"' + (v ? ' value="' + esc(v) + '"' : ''); };
+  var rad = function (f, v, on, lbl, extra) { return '<label class="bgx-r"><input type="radio" name="bgw_' + esc(key) + '_' + f + '" ' + a(f) + ' data-v="' + v + '"' + (on ? ' checked' : '') + '> ' + lbl + '</label>' + (extra || ''); };
+  var nI = function (f, v, ph) { return '<input class="bgx-sn" ' + a(f) + ' value="' + esc(v === undefined || v === null ? '' : v) + '" inputmode="numeric" placeholder="' + (ph || '') + '">'; };
+  var h = '<div class="bgx-jw"><div class="bgx-jwr"><b>Berlaku sejak</b>' + rad('start', 'spk', w.start === 'spk', 'tanggal ' + (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK / kontrak') + ' <span class="tg">(' + (F.tglKontrak ? tg(F.tglKontrak) : 'isi tanggal di butir 3') + ')</span>') +
+    rad('start', 'lain', w.start === 'lain', 'tanggal lain') + (w.start === 'lain' ? '<input type="date" class="bgx-sd" ' + a('mulaiLain', w.mulaiLain) + '>' : '') + '</div>';
+  h += '<div class="bgx-jwr"><b>Berlaku sampai</b>' + rad('mode', 'tgl', w.mode === 'tgl', 'tanggal tertentu') + rad('mode', 'hari', w.mode === 'hari', 'jumlah hari') + rad('mode', 'selesai', w.mode === 'selesai', 'selesai pekerjaan + tambahan') + '</div>';
+  if (w.mode === 'tgl') h += '<div class="bgx-jws">s/d <input type="date" class="bgx-sd" ' + a('sampaiTgl', w.sampaiTgl) + '></div>';
+  if (w.mode === 'hari') h += '<div class="bgx-jws">' + nI('hari', w.hari, '60') + ' hari sejak tanggal mulai</div>';
+  if (w.mode === 'selesai') h += '<div class="bgx-jws">Masa pelaksanaan ' + nI('pelaks', w.pelaks, '60') + ' hari <span class="tg">→ selesai / BAST-1 ± ' + (r.selesai ? tg(r.selesai) : '…') + '</span><br>Ditambah ' + nI('tambah', w.tambah, '3') + ' <select class="bgx-su" ' + a('unit') + '><option value="bulan"' + (w.unit === 'bulan' ? ' selected' : '') + '>bulan kalender</option><option value="hari"' + (w.unit === 'hari' ? ' selected' : '') + '>hari</option></select></div>';
+  if (w.mode !== 'tgl') h += '<label class="bgx-cb"><input type="checkbox" ' + a('hari1') + (w.hari1 ? ' checked' : '') + '> tanggal mulai dihitung hari ke-1 <span class="tg">(mis. 60 hari kalender sejak SPMK)</span></label>';
+  return h + '</div>';
+}
+function bgResHtml(F, j) {
+  var x = F.it[j], r = bgJwCalc(F, bgRule(F, j)), n = r.mulai && r.sampai ? bgDays(r.sampai, r.mulai) + 1 : null, m = { nilai: x.nilai, mulai: r.mulai, sampai: r.sampai };
+  return '<div class="bgx-res"><span>' + (r.mulai ? esc(tglIndo(r.mulai)) : '<i>tanggal mulai?</i>') + ' s/d <b>' + (r.sampai ? esc(tglIndo(r.sampai)) : '…') + '</b>' + (n ? ' · ' + n + ' hari' : '') + '</span><span>provisi ± Rp ' + nfDot(bgProv(m)) + '</span></div>';
+}
+function bgFormHtml(F) {
+  var pro = (B.proyek || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.npp < b.npp ? -1 : 1; });
+  var inp = function (k, lbl, v, ex) { return '<div><label>' + lbl + '</label><input data-bgk="' + k + '" value="' + esc(v === undefined || v === null ? '' : v) + '"' + (ex || '') + '></div>'; };
+  var ta = function (k, lbl, v, rows) { return '<div><label>' + lbl + '</label><textarea data-bgk="' + k + '" rows="' + (rows || 2) + '">' + esc(v || '') + '</textarea></div>'; };
+  var multi = F.list.length > 1, ex = F.list[0] === 'PERUBAHAN' || F.list[0] === 'LAIN';
+  var h = '<div class="bgx-card bgx-form"><h3>' + (F.id ? 'Ubah draf ' + esc(F.id) : 'Permohonan BG baru') + ' <em>memo ke pusat</em></h3><p class="s">Data proyek diisi sekali · setiap jenis jaminan punya nilai &amp; masa berlaku sendiri · 1 memo per jaminan</p>';
+  h += '<label>Jenis jaminan' + (F.lock ? '' : ' — boleh pilih lebih dari satu') + '</label><div class="bgx-seg">' + [['TENDER', 'Tender'], ['PENAWARAN', 'Penawaran'], ['UANG MUKA', 'Uang Muka'], ['PELAKSANAAN', 'Pelaksanaan'], ['PEMELIHARAAN', 'Pemeliharaan'], ['PERUBAHAN', 'Perubahan / Perpanjangan'], ['LAIN', 'Lainnya']].map(function (x) { var on = F.list.indexOf(x[0]) >= 0; return '<button type="button" data-bgj="' + x[0] + '" class="' + (on ? 'on' : '') + '"' + (F.lock && !on ? ' disabled' : '') + '>' + (on && BG_MULTI.indexOf(x[0]) >= 0 ? '☑ ' : '') + x[1] + '</button>'; }).join('') + '</div>';
+  if (F.list[0] === 'PERUBAHAN') h += '<div class="g2"><div><label>Jaminan yang diperpanjang / diubah</label><select data-bgk="perJenis">' + ['PELAKSANAAN', 'UANG MUKA', 'PEMELIHARAAN'].map(function (x) { return '<option' + (F.perJenis === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('bgLama', 'Nomor BG lama', F.bgLama, ' placeholder="no. BG yang diperpanjang"') + '</div>';
+  if (F.list[0] === 'LAIN') h += '<div class="g2">' + inp('lainTxt', 'Nama jaminan (tercetak sebagai g)', F.lainTxt, ' placeholder="mis. Corporate Guarantee Uang Muka / Surat Dukungan"') + inp('bgLama', 'Perubahan jaminan nomor (bila ada)', F.bgLama) + '</div>';
+  // data proyek
+  var pels = (B.pelanggan || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.nama < b.nama ? -1 : 1; }), proP = F.pel ? pro.filter(function (p) { return p.pelanggan === F.pel; }) : pro;
+  h += '<div class="bgx-sec"><b>Data proyek' + (multi ? ' (sama untuk semua jaminan)' : '') + '</b>';
+  h += '<div class="g2"><div><label>Pelanggan</label><select data-bgk="pel"><option value="">— pelanggan baru / belum terdaftar (isi manual) —</option>' + pels.map(function (p) { return '<option value="' + esc(p.nama) + '"' + (F.pel === p.nama ? ' selected' : '') + '>' + esc(titleCaseS(p.nama)) + '</option>'; }).join('') + '</select></div>' +
+    '<div><label>NPP / proyek</label><select data-bgk="npp"><option value="">' + (F.pel ? '— belum ada NPP (pekerjaan baru) —' : '— belum ada NPP / pilih NPP —') + '</option>' + proP.map(function (p) { return '<option value="' + esc(p.npp) + '"' + (F.npp === p.npp ? ' selected' : '') + '>' + esc(p.npp + ' · ' + (F.pel ? '' : titleCaseS(p.pelanggan).replace(/^PT\s+/, '') + ' · ') + (p.singkat || '')) + '</option>'; }).join('') + '</select></div></div>';
+  if (!F.npp) h += '<div class="bgx-tip">' + (F.pel ? 'Pekerjaan baru tanpa NPP: bouwheer & alamat sudah terisi dari data pelanggan, isi data pekerjaan & kontrak secara manual.' : 'Pelanggan baru: isi semua data memo secara manual.') + ' NPP bisa dihubungkan nanti dari rincian BG (tombol <b>Hubungkan NPP</b>).</div>';
+  h += '<div class="g2">' + ta('pekerjaan', '1. Jenis pekerjaan', F.pekerjaan, 2) + ta('proyek', 'Proyek', F.proyek, 2) + '</div>';
+  h += '<div class="g3"><div><label>2. Label nilai</label><select data-bgk="omzetLbl">' + ['Omzet Kontrak', 'Nilai Penawaran', 'Nilai Kontrak'].map(function (x) { return '<option' + (F.omzetLbl === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('omzet', 'Nilai (Rp)', F.omzet ? nfDot(F.omzet) : '', ' class="num" inputmode="decimal"') +
+    '<div><label>Keterangan PPN</label><select data-bgk="ppn">' + ['Exclude PPN', 'Include PPN'].map(function (x) { return '<option' + (F.ppn === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div></div>';
+  h += '<div class="g3"><div><label>3. Jenis dokumen (tebal)</label><select data-bgk="kontrakLbl">' + [['', '— tanpa —'], ['SPMK', 'SPMK'], ['Dokumen Tender', 'Dokumen Tender']].map(function (x) { return '<option value="' + x[0] + '"' + (F.kontrakLbl === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>' + inp('kontrak', 'No. kontrak / SPK / PO', F.kontrak) + inp('tglKontrak', 'Tanggal ' + (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK / kontrak'), F.tglKontrak, ' type="date"') + '</div>';
+  h += '<div class="g2">' + inp('kepada', '4. Ditujukan kepada (bouwheer)', F.kepada) + ta('alamat', '5. Alamat (bouwheer)', F.alamat, 2) + '</div></div>';
+  // jangka waktu bersama
+  h += '<div class="bgx-sec"><b>6. Jangka waktu' + (multi ? '' : '') + '</b>' + (multi ? '<label class="bgx-cb bgx-same"><input type="checkbox" data-bgk="jwSame"' + (F.jwSame ? ' checked' : '') + '> Jangka waktu sama untuk semua jaminan</label>' : '') +
+    (F.jwSame || !multi ? bgJwHtml(F, F.jw, '', '') : '<p class="s">Atur jangka waktu di masing-masing jaminan di bawah.</p>') + '</div>';
+  // rincian per jaminan
+  h += '<div class="bgx-sec"><b>Rincian ' + (multi ? 'per jaminan · ' + F.list.length + ' memo' : 'jaminan') + '</b>';
+  F.list.forEach(function (j, i) {
+    var x = F.it[j], lb = j === 'PERUBAHAN' ? 'f) Perpanjangan ' + titleCaseS(F.perJenis) : j === 'LAIN' ? 'g) ' + (F.lainTxt || 'Lainnya') : (BG_JENIS.filter(function (y) { return y[0] === j; })[0] || [0, j])[1];
+    var a = function (f) { return 'data-bgi="' + f + '" data-bgij="' + esc(j) + '"'; };
+    h += '<div class="bgx-jm"><div class="hd" style="background:' + (BG_JC[j] || '#475569') + '">' + esc(lb) + (multi ? '<small>memo ' + (i + 1) + ' dari ' + F.list.length + '</small>' : '') + '<i></i><small>' + (x.nilaiManual ? 'nilai manual' : (+x.pct || 0) + '% × ' + nfDot(F.omzet)) + ' → Rp ' + nfDot(x.nilai) + '</small></div><div class="bd">';
+    h += '<div class="g4"><div><label>Persen (%)</label><input ' + a('pct') + ' value="' + esc(x.pct) + '" class="num" inputmode="decimal"></div><div><label>7. Nilai jaminan (Rp)</label><input ' + a('nilai') + ' value="' + (x.nilai ? nfDot(x.nilai) : '') + '" class="num" inputmode="decimal"></div>' +
+      '<div><label>8. Diperlukan tanggal</label><input type="date" ' + a('perlu') + ' value="' + esc(x.perlu) + '"></div><div><label>9. Tanggal penerbitan</label><input type="date" ' + a('terbit') + ' value="' + esc(x.terbit) + '"></div></div>';
+    h += '<div class="g2b"><div><label>Catatan nilai (opsional)</label><input ' + a('nilaiKet') + ' value="' + esc(x.nilaiKet) + '" placeholder="mis. (20% dari nilai kontrak)"></div><div><label>Lampiran (tercetak tebal)</label><div class="bgx-lc">' + BG_LAMP.map(function (y) { return '<button type="button" data-bgil="' + y[0] + '" data-bgij="' + esc(j) + '" class="' + (x.lamp[y[0]] ? 'on' : '') + '" title="' + esc(y[1]) + '">' + y[0] + ')</button>'; }).join('') + '<span class="tg">' + esc(BG_LAMP.filter(function (y) { return x.lamp[y[0]]; }).map(function (y) { return y[1].replace(/\s*\(.*$/, ''); }).join(' · ') || '—') + '</span></div></div></div>';
+    if (multi && !F.jwSame) h += '<label>6. Jangka waktu</label>' + bgJwHtml(F, bgRule(F, j), j, j);
+    h += bgResHtml(F, j) + '</div></div>';
+  });
+  h += '</div>';
+  // form, lampiran lain, kop
+  h += '<div class="bgx-sec"><b>Form, lampiran lain &amp; penanda tangan' + (multi ? ' (sama untuk semua memo)' : '') + '</b><div class="g3"><div><label>12. Sesuai dengan form</label><select data-bgk="formBank"><option value="a"' + (F.formBank === 'a' ? ' selected' : '') + '>a) Bank Mandiri</option><option value="b"' + (F.formBank === 'b' ? ' selected' : '') + '>b) Khusus dari …</option><option value="c"' + (F.formBank === 'c' ? ' selected' : '') + '>c) Terlampir (Form Khusus)</option></select></div>' +
+    (F.formBank === 'b' ? inp('formB', 'Khusus dari', F.formB) : inp('lampLain', 'Lampiran lain (opsional)', F.lampLain)) + inp('tglMemo', 'Tanggal memo', F.tglMemo, ' type="date"') + '</div>' + (F.formBank === 'b' ? inp('lampLain', 'Lampiran lain (opsional)', F.lampLain) : '');
+  h += '<details class="bgx-more"><summary>Kop, pemohon & penanda tangan</summary><div class="g3">' + inp('dari', 'Dari', F.dari) + inp('untuk', 'Untuk', F.untuk) + inp('up', 'Up. (kanan atas)', F.up) + '</div><div class="g3">' + ta('pemohon', '10. Pemohon jaminan', F.pemohon, 3) + '<div>' + inp('ttd', 'Penanda tangan', F.ttd) + inp('jab', 'Jabatan', F.jab) + '</div>' + inp('kota', 'Kota', F.kota) + '</div>' + ta('ket', 'Catatan internal (tidak tercetak)', F.ket, 2) + '</details></div>';
+  h += '<div class="bgx-act"><button class="btn" type="button" data-bga="cancel">Batal</button><button class="btn" type="button" data-bga="preview">Pratinjau ' + (multi ? F.list.length + ' memo' : 'memo') + '</button><button class="btn" type="button" data-bga="save">Simpan draf</button><button class="btn primary" type="button" data-bga="savepdf">' + ico('download') + 'Simpan &amp; unduh memo PDF' + (multi ? ' (' + F.list.length + ' halaman)' : '') + '</button></div><div class="bgx-msg" id="bgMsg"></div></div>';
+  return h;
+}
 function bgDispRows() {
   var L = BG.rows || [], q = BG.q.toUpperCase();
   return L.filter(function (r) {
@@ -5192,33 +5295,6 @@ function bgRender() {
   }).join('') + '</table>' : '<div class="bgx-empty">' + (R.length ? 'Tidak ada BG untuk saringan ini.' : 'Belum ada permohonan BG. Klik <b>+ Permohonan BG baru</b> untuk membuat memo ke pusat.') + '</div>';
   h += '</div><div class="bgx-side">' + (BG.form ? bgFormHtml(BG.form) : BG.sel ? bgDetailHtml(R.filter(function (r) { return r.id === BG.sel; })[0]) : '<div class="bgx-card bgx-hint"><h3>Pilih BG di daftar</h3><p>untuk melihat rincian, mengunduh memo, atau mencatat BG terbit / dikembalikan.</p>' + (maker ? '<button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>') + '</div></div></div>';
   w.innerHTML = h; bgBind();
-}
-function bgFormHtml(f) {
-  var pro = (B.proyek || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.npp < b.npp ? -1 : 1; });
-  var inp = function (k, lbl, v, ex) { return '<div><label>' + lbl + '</label><input data-bgk="' + k + '" value="' + esc(v === undefined || v === null ? '' : v) + '"' + (ex || '') + '></div>'; };
-  var ta = function (k, lbl, v, rows) { return '<div><label>' + lbl + '</label><textarea data-bgk="' + k + '" rows="' + (rows || 2) + '">' + esc(v || '') + '</textarea></div>'; };
-  var h = '<div class="bgx-card bgx-form"><h3>' + (f.id ? 'Ubah draf ' + esc(f.id) : 'Permohonan BG baru') + ' <em>memo ke pusat</em></h3><p class="s">Isian sama dengan memo yang biasa dikirim ke pusat · data proyek terisi otomatis dari NPP (bisa diubah)</p>';
-  h += '<label>Jenis jaminan</label><div class="bgx-seg">' + [['TENDER', 'Tender'], ['PENAWARAN', 'Penawaran'], ['PELAKSANAAN', 'Pelaksanaan'], ['UANG MUKA', 'Uang Muka'], ['PEMELIHARAAN', 'Pemeliharaan'], ['PERUBAHAN', 'Perubahan / Perpanjangan'], ['LAIN', 'Lainnya']].map(function (x) { return '<button type="button" data-bgj="' + x[0] + '" class="' + (f.jenis === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>';
-  if (f.jenis === 'PERUBAHAN') h += '<div class="g2"><div><label>Jaminan yang diperpanjang / diubah</label><select data-bgk="perJenis">' + ['PELAKSANAAN', 'UANG MUKA', 'PEMELIHARAAN'].map(function (x) { return '<option' + (f.perJenis === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('bgLama', 'Nomor BG lama', f.bgLama, ' placeholder="no. BG yang diperpanjang"') + '</div>';
-  if (f.jenis === 'LAIN') h += '<div class="g2">' + inp('lainTxt', 'Nama jaminan (tercetak sebagai g)', f.lainTxt, ' placeholder="mis. Corporate Guarantee Uang Muka / Surat Dukungan"') + inp('bgLama', 'Perubahan jaminan nomor (bila ada)', f.bgLama) + '</div>';
-  var pels = (B.pelanggan || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.nama < b.nama ? -1 : 1; }), proP = f.pel ? pro.filter(function (p) { return p.pelanggan === f.pel; }) : pro;
-  h += '<div class="g2"><div><label>Pelanggan</label><select data-bgk="pel"><option value="">— pelanggan baru / belum terdaftar (isi manual) —</option>' + pels.map(function (p) { return '<option value="' + esc(p.nama) + '"' + (f.pel === p.nama ? ' selected' : '') + '>' + esc(titleCaseS(p.nama)) + '</option>'; }).join('') + '</select></div>' +
-    '<div><label>NPP / proyek</label><select data-bgk="npp"><option value="">' + (f.pel ? '— belum ada NPP (pekerjaan baru) —' : '— belum ada NPP / pilih NPP —') + '</option>' + proP.map(function (p) { return '<option value="' + esc(p.npp) + '"' + (f.npp === p.npp ? ' selected' : '') + '>' + esc(p.npp + ' · ' + (f.pel ? '' : titleCaseS(p.pelanggan).replace(/^PT\s+/, '') + ' · ') + (p.singkat || '')) + '</option>'; }).join('') + '</select></div></div>';
-  if (!f.npp) h += '<div class="bgx-tip">' + (f.pel ? 'Pekerjaan baru tanpa NPP: bouwheer & alamat sudah terisi dari data pelanggan, isi data pekerjaan & kontrak secara manual.' : 'Pelanggan baru: isi semua data memo secara manual.') + ' NPP bisa dihubungkan nanti dari rincian BG setelah NPP terbit (tombol <b>Hubungkan NPP</b>).</div>';
-  h += '<div class="g2">' + ta('pekerjaan', '1. Jenis pekerjaan', f.pekerjaan, 2) + ta('proyek', 'Proyek', f.proyek, 2) + '</div>';
-  h += '<div class="g3"><div><label>2. Label nilai</label><select data-bgk="omzetLbl">' + ['Omzet Kontrak', 'Nilai Penawaran', 'Nilai Kontrak'].map(function (x) { return '<option' + (f.omzetLbl === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('omzet', 'Nilai (Rp)', f.omzet ? nfDot(f.omzet) : '', ' class="num" inputmode="decimal"') +
-    '<div><label>Keterangan PPN</label><select data-bgk="ppn">' + ['Exclude PPN', 'Include PPN'].map(function (x) { return '<option' + (f.ppn === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div></div>';
-  h += '<div class="g3"><div><label>3. Jenis dokumen (tebal)</label><select data-bgk="kontrakLbl">' + [['', '— tanpa —'], ['SPMK', 'SPMK'], ['Dokumen Tender', 'Dokumen Tender']].map(function (x) { return '<option value="' + x[0] + '"' + (f.kontrakLbl === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>' + inp('kontrak', 'No. kontrak / SPK / PO', f.kontrak) + inp('tglKontrak', 'Tanggal', f.tglKontrak, ' type="date"') + '</div>';
-  h += '<div class="g2">' + inp('kepada', '4. Ditujukan kepada (bouwheer)', f.kepada) + ta('alamat', '5. Alamat (bouwheer)', f.alamat, 2) + '</div>';
-  h += '<div class="g3">' + inp('mulai', '6. Jangka waktu — dari', f.mulai, ' type="date"') + inp('sampai', 's/d', f.sampai, ' type="date"') + inp('pct', 'Persen jaminan (%)', f.pct, ' class="num" inputmode="decimal"') + '</div>';
-  h += '<div class="g3">' + inp('nilai', '7. Nilai jaminan (Rp)', f.nilai ? nfDot(f.nilai) : '', ' class="num" inputmode="decimal"') + inp('nilaiKet', 'Catatan nilai (opsional)', f.nilaiKet, ' placeholder="mis. (20% dari nilai kontrak)"') + inp('perlu', '8. Diperlukan tanggal', f.perlu, ' type="date"') + '</div>';
-  h += '<div class="g3">' + inp('terbit', '9. Tanggal penerbitan', f.terbit, ' type="date"') + '<div><label>12. Sesuai dengan form</label><select data-bgk="formBank"><option value="a"' + (f.formBank === 'a' ? ' selected' : '') + '>a) Bank Mandiri</option><option value="b"' + (f.formBank === 'b' ? ' selected' : '') + '>b) Khusus dari …</option><option value="c"' + (f.formBank === 'c' ? ' selected' : '') + '>c) Terlampir (Form Khusus)</option></select></div>' + (f.formBank === 'b' ? inp('formB', 'Khusus dari', f.formB) : inp('tglMemo', 'Tanggal memo', f.tglMemo, ' type="date"')) + '</div>';
-  if (f.formBank === 'b') h += '<div class="g3">' + inp('tglMemo', 'Tanggal memo', f.tglMemo, ' type="date"') + '</div>';
-  h += '<label>Lampiran (yang dicentang tercetak tebal)</label><div class="bgx-lamp">' + BG_LAMP.map(function (x) { return '<label><input type="checkbox" data-bgl="' + x[0] + '"' + (f.lamp[x[0]] ? ' checked' : '') + '> ' + x[0] + ') ' + esc(x[1]) + '</label>'; }).join('') + '</div>' + inp('lampLain', 'Lampiran lain (opsional)', f.lampLain);
-  h += '<details class="bgx-more"><summary>Kop, pemohon & penanda tangan</summary><div class="g3">' + inp('dari', 'Dari', f.dari) + inp('untuk', 'Untuk', f.untuk) + inp('up', 'Up. (kanan atas)', f.up) + '</div><div class="g3">' + ta('pemohon', '10. Pemohon jaminan', f.pemohon, 3) + '<div>' + inp('ttd', 'Penanda tangan', f.ttd) + inp('jab', 'Jabatan', f.jab) + '</div>' + inp('kota', 'Kota', f.kota) + '</div>' + ta('ket', 'Catatan internal (tidak tercetak)', f.ket, 2) + '</details>';
-  h += '<div class="bgx-calc"><div><span>Nilai jaminan ' + (f.nilaiManual ? '(diisi manual)' : (+f.pct || 0) + '% × ' + nfDot(f.omzet)) + '</span><b>Rp ' + nfDot(f.nilai) + '</b></div><div><span>Jangka waktu</span><b>' + (bgDays(f.sampai, f.mulai) !== null ? (bgDays(f.sampai, f.mulai) + 1) + ' hari' : '—') + '</b></div><div><span>Perkiraan provisi 0,125% × hari ÷ 91</span><b>Rp ' + nfDot(bgProv(f)) + '</b></div></div>';
-  h += '<div class="bgx-act"><button class="btn" type="button" data-bga="cancel">Batal</button><button class="btn" type="button" data-bga="preview">Pratinjau memo</button><button class="btn" type="button" data-bga="save">Simpan draf</button><button class="btn primary" type="button" data-bga="savepdf">' + ico('download') + 'Simpan &amp; unduh memo PDF</button></div><div class="bgx-msg" id="bgMsg"></div></div>';
-  return h;
 }
 function bgDetailHtml(r) {
   if (!r) return '';
@@ -5279,34 +5355,6 @@ function bgMemoHtml(f) {
     '</div></div>';
   return h;
 }
-function bgMemoName(f, id) { return (id ? id + ' ' : '') + 'Memo Permohonan Jaminan ' + titleCaseS(bgJenisTxt(f)) + ' - ' + String(f.kepada || '').replace(/[\\\/:*?"<>|]/g, '-').slice(0, 60) + ' - ' + (f.tglMemo || B.today); }
-function bgPdf(f, id, after) {
-  bgMsg('<span class="spin"></span>Membuat memo PDF…');
-  makePdf(bgMemoHtml(f), bgMemoName(f, id), { plain: true }).then(function (b64) {
-    saveFile(b64Blob(b64, 'application/pdf'), bgMemoName(f, id) + '.pdf');
-    if (!id) { bgMsg('Memo PDF diunduh.'); return; }
-    bgMsg('Memo PDF diunduh · menyimpan arsip ke Drive…');
-    call('apiBgMemoPdf', [id, b64, bgMemoName(f, id)], function (r) { bgMsg('✓ Memo PDF diunduh & diarsipkan: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>'); var x = (BG.rows || []).filter(function (z) { return z.id === id; })[0]; if (x) x.memo = r.url; if (after) after(); }, function (e) { bgMsg('Memo PDF diunduh, tetapi arsip Drive gagal: ' + esc(e.message || e), true); });
-  }).catch(function (e) { bgMsg('Gagal membuat PDF: ' + esc(e.message || e), true); });
-}
-function bgCheck(f) {
-  var m = [];
-  if (f.jenis === 'LAIN' && !String(f.lainTxt || '').trim()) m.push('nama jaminan');
-  if (f.jenis === 'PERUBAHAN' && !String(f.bgLama || '').trim()) m.push('nomor BG lama');
-  if (!String(f.pekerjaan || '').trim()) m.push('jenis pekerjaan'); if (!String(f.kepada || '').trim()) m.push('ditujukan kepada');
-  if (!(+f.nilai > 0)) m.push('nilai jaminan'); if (!f.mulai || !f.sampai) m.push('jangka waktu'); else if (f.sampai < f.mulai) m.push('jangka waktu (s/d sebelum tanggal mulai)');
-  if (!f.perlu) m.push('diperlukan tanggal');
-  return m.length ? 'Lengkapi: ' + m.join(', ') + '.' : '';
-}
-function bgPayload(f) { var d = JSON.parse(JSON.stringify(f)); d.jenisTxt = bgJenisTxt(f); delete d.nilaiManual; delete d.terbitManual; return d; }
-function bgSave(f, pdf) {
-  if (BG.busy) return; var e = bgCheck(f); if (e) return bgMsg(e, true);
-  BG.busy = true; bgMsg('<span class="spin"></span>Menyimpan…');
-  call('apiBgSave', [bgPayload(f)], function (r) {
-    BG.busy = false; var id = r.id; f.id = id; toast('BG ' + id + ' tersimpan sebagai draf.');
-    bgLoad(function () { BG.form = null; BG.sel = id; if (pdf) setTimeout(function () { bgPdf(f, id); }, 50); });
-  }, function (er) { BG.busy = false; bgMsg(esc(er.message || er), true); });
-}
 function bgStatus(id, act, p, okMsg) {
   if (BG.busy) return; BG.busy = true; bgMsg('<span class="spin"></span>Menyimpan…');
   call('apiBgStatus', [id, act, p || {}], function () { BG.busy = false; BG.act = ''; toast(okMsg); bgLoad(); if (window.refreshAll) try { refreshAll(); } catch (e) { } }, function (e) { BG.busy = false; bgMsg(esc(e.message || e), true); });
@@ -5316,20 +5364,74 @@ function bgReadFile(cb) {
   if (f.size > 15 * 1024 * 1024) { bgMsg('File terlalu besar (maks 15 MB).', true); return; }
   var rd = new FileReader(); rd.onload = function () { cb({ b64: String(rd.result).split(',')[1], name: f.name, mime: f.type || 'application/pdf' }); }; rd.readAsDataURL(f);
 }
-function bgFormFrom(r) { var f = bgNewForm(r.d || {}); f.id = r.id; f.lamp = (r.d && r.d.lamp) || {}; return f; }
+function bgMemoName(L, ids) {
+  L = [].concat(L); ids = [].concat(ids || []).filter(Boolean); var f = L[0];
+  var idTxt = ids.length > 1 ? ids[0] + '+' + ids.slice(1).map(function (x) { return String(x).split('-').pop(); }).join('+') : ids[0] || '';
+  return (idTxt ? idTxt + ' ' : '') + 'Memo Permohonan Jaminan ' + L.map(function (m) { return titleCaseS(bgJenisTxt(m)); }).join(' & ') + ' - ' + String(f.kepada || '').replace(/[\\\/:*?"<>|]/g, '-').slice(0, 60) + ' - ' + (f.tglMemo || B.today);
+}
+/** L = daftar isi memo (1 per jaminan) → 1 file PDF (1 halaman per memo), diunduh & diarsipkan untuk setiap ID */
+function bgPdf(L, ids, after) {
+  L = [].concat(L); ids = [].concat(ids || []).filter(Boolean); var nm = bgMemoName(L, ids);
+  bgMsg('<span class="spin"></span>Membuat memo PDF' + (L.length > 1 ? ' (' + L.length + ' halaman)' : '') + '…');
+  makePdf(L.map(bgMemoHtml).join(''), nm, { plain: true }).then(function (b64) {
+    saveFile(b64Blob(b64, 'application/pdf'), nm + '.pdf');
+    if (!ids.length) { bgMsg('Memo PDF diunduh.'); return; }
+    bgMsg('Memo PDF diunduh · menyimpan arsip ke Drive…');
+    call('apiBgMemoPdf', [ids, b64, nm], function (r) { bgMsg('✓ Memo PDF diunduh & diarsipkan: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>'); (BG.rows || []).forEach(function (z) { if (ids.indexOf(z.id) >= 0) z.memo = r.url; }); if (after) after(); }, function (e) { bgMsg('Memo PDF diunduh, tetapi arsip Drive gagal: ' + esc(e.message || e), true); });
+  }).catch(function (e) { bgMsg('Gagal membuat PDF: ' + esc(e.message || e), true); });
+}
+function bgCheck(F) {
+  var m = [];
+  if (!F.list.length) m.push('jenis jaminan');
+  if (F.list[0] === 'LAIN' && !String(F.lainTxt || '').trim()) m.push('nama jaminan');
+  if (F.list[0] === 'PERUBAHAN' && !String(F.bgLama || '').trim()) m.push('nomor BG lama');
+  if (!String(F.pekerjaan || '').trim()) m.push('jenis pekerjaan'); if (!String(F.kepada || '').trim()) m.push('ditujukan kepada');
+  bgMemos(F).forEach(function (x) {
+    var n = F.list.length > 1 ? ' (' + titleCaseS(bgJenisTxt(x)) + ')' : '';
+    if (!(+x.nilai > 0)) m.push('nilai jaminan' + n);
+    if (!x.mulai) m.push('tanggal mulai berlaku' + n + (x.jw && x.jw.start === 'spk' ? ' — isi tanggal SPK/SPMK di butir 3' : ''));
+    if (!x.sampai) m.push('masa berlaku s/d' + n); else if (x.mulai && x.sampai < x.mulai) m.push('masa berlaku' + n + ' berakhir sebelum mulai');
+    if (!x.perlu) m.push('diperlukan tanggal' + n);
+  });
+  return m.length ? 'Lengkapi: ' + m.join(', ') + '.' : '';
+}
+function bgPayload(m) { var d = JSON.parse(JSON.stringify(m)); d.jenisTxt = bgJenisTxt(m); return d; }
+function bgSave(F, pdf) {
+  if (BG.busy) return; var e = bgCheck(F); if (e) return bgMsg(e, true);
+  var L = bgMemos(F), P = L.map(bgPayload); if (F.id) P[0].id = F.id;
+  BG.busy = true; bgMsg('<span class="spin"></span>Menyimpan…');
+  call('apiBgSave', [P], function (r) {
+    BG.busy = false; var ids = r.ids || [r.id]; toast((ids.length > 1 ? ids.length + ' BG (' + ids.join(', ') + ')' : 'BG ' + ids[0]) + ' tersimpan sebagai draf.');
+    bgLoad(function () { BG.form = null; BG.sel = ids[0]; if (pdf) setTimeout(function () { bgPdf(L, ids); }, 50); });
+  }, function (er) { BG.busy = false; bgMsg(esc(er.message || er), true); });
+}
+/** baris BG (isi memo datar) → form 1 jaminan */
+function bgFormFrom(r) {
+  var d = r.d || {}, j = d.jenis || (/PERPANJANGAN/.test(r.jenis) ? 'PERUBAHAN' : r.jenis) || 'PELAKSANAAN';
+  if (BG_MULTI.indexOf(j) < 0 && j !== 'PERUBAHAN') j = 'LAIN';
+  var sh = {}; Object.keys(d).forEach(function (k) { if (['jenis', 'pct', 'nilai', 'nilaiKet', 'perlu', 'terbit', 'lamp', 'mulai', 'sampai', 'jw', 'jwTxt', 'jenisTxt', 'id', 'nilaiManual', 'terbitManual'].indexOf(k) < 0) sh[k] = d[k]; });
+  if (!d.kepada) { sh.kepada = r.kepada; sh.pekerjaan = r.pekerjaan; sh.kontrak = r.kontrak; sh.omzet = +r.omzet || 0; sh.npp = r.npp; }
+  sh.list = [j]; sh.it = {}; sh.lock = true; sh.id = r.id;
+  sh.jw = d.jw ? bgJwNew(d.jw) : bgJwNew({ start: 'lain', mulaiLain: d.mulai || r.mulai || '', mode: 'tgl', sampaiTgl: d.sampai || r.sampai || '' });
+  var F = bgNewForm(sh), omz = +F.omzet || 0, pct = d.pct !== undefined ? +d.pct : (r.pct ? Math.round(r.pct * 10000) / 100 : 0), nil = +d.nilai || +r.nilai || 0;
+  F.it[j] = { pct: pct, nilai: nil, nilaiManual: Math.abs(Math.round(omz * pct / 100) - nil) > 1, nilaiKet: d.nilaiKet || '', perlu: d.perlu || r.perlu || B.today, terbit: d.terbit || bgAddDays(d.perlu || r.perlu || B.today, 1), terbitManual: true, lamp: d.lamp || bgDefLamp(j), jw: null };
+  return F;
+}
+function bgPrevShow(L, title, onPdf) {
+  var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + 'Simpan &amp; unduh memo PDF</button>' : '') + '</div><div class="bgp-pg">' + L.map(bgMemoHtml).join('') + '</div>';
+  ov.hidden = false; ov.scrollTop = 0; $('bgPrevX').onclick = function () { ov.hidden = true; }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
+  ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; };
+}
 function bgAct(k) {
   var r = (BG.rows || []).filter(function (x) { return x.id === BG.sel; })[0];
   if (k === 'new') { BG.form = bgNewForm(); BG.sel = ''; BG.act = ''; return bgRender(); }
   if (k === 'cancel') { BG.form = null; return bgRender(); }
-  if (k === 'preview') { // pratinjau di dalam aplikasi (sama persis dengan PDF)
-    var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
-    ov.innerHTML = '<div class="bgp-bar"><b>Pratinjau memo</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button><button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + 'Simpan &amp; unduh memo PDF</button></div><div class="bgp-pg">' + bgMemoHtml(BG.form) + '</div>';
-    ov.hidden = false; $('bgPrevX').onclick = function () { ov.hidden = true; }; $('bgPrevPdf').onclick = function () { ov.hidden = true; bgSave(BG.form, true); };
-    ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; }; return; }
+  if (k === 'preview') { var L = bgMemos(BG.form); return bgPrevShow(L, 'Pratinjau ' + (L.length > 1 ? L.length + ' memo' : 'memo'), function () { bgSave(BG.form, true); }); }
   if (k === 'save') return bgSave(BG.form, false);
   if (k === 'savepdf') return bgSave(BG.form, true);
   if (!r) return;
-  if (k === 'pdf') return bgPdf(bgFormFrom(r), r.id);
+  if (k === 'pdf') return bgPdf(bgMemos(bgFormFrom(r)), [r.id]);
   if (k === 'edit') { BG.form = bgFormFrom(r); return bgRender(); }
   if (k === 'kirim') return confirmDlg('Memo ' + esc(r.id) + ' sudah dikirim ke pusat?', 'Status menjadi <b>Dikirim ke pusat</b>. Pastikan memo PDF sudah ditandatangani Manager.<label style="margin-top:8px">Tanggal kirim</label><input type="date" id="dlgTk" value="' + B.today + '">', 'Tandai dikirim', function () { bgStatus(r.id, 'KIRIM', { tgl: ($('dlgTk') || {}).value }, 'Memo ' + r.id + ' ditandai dikirim ke pusat.'); });
   if (k === 'batal') return confirmDlg('Batalkan permohonan ' + esc(r.id) + '?', 'Baris tidak dihapus dari sheet, hanya berstatus BATAL.<textarea id="dlgNote" placeholder="Alasan (wajib)"></textarea>', 'Batalkan', function () { bgStatus(r.id, 'BATAL', { alasan: ($('dlgNote').value || '').trim() }, 'Permohonan ' + r.id + ' dibatalkan.'); }, function () { if (($('dlgNote').value || '').trim().length < 5) { toast('Isi alasan (min. 5 karakter).'); return false; } });
@@ -5341,7 +5443,12 @@ function bgAct(k) {
     return bgReadFile(function (sc) { if (sc) p.scan = sc; bgStatus(r.id, 'TERBIT', p, 'BG ' + p.no_bg + ' dicatat aktif.'); }); }
   if (k === 'scanOk') return bgReadFile(function (sc) { if (!sc) return bgMsg('Pilih file scan BG.', true); bgStatus(r.id, 'SCAN', { scan: sc }, 'Scan BG tersimpan.'); });
   if (k === 'selesaiOk') return bgStatus(r.id, 'SELESAI', { hasil: $('bgH').value, tgl: $('bgTs').value, catatan: $('bgC').value }, 'BG ' + (r.no_bg || r.id) + ' ditandai ' + $('bgH').value.toLowerCase() + '.');
-  if (k === 'perpanjang') { var f = bgFormFrom(r); f.id = ''; f.jenis = 'PERUBAHAN'; f.perJenis = /UANG MUKA/.test(r.jenis) ? 'UANG MUKA' : /PEMELIHARAAN/.test(r.jenis) ? 'PEMELIHARAAN' : 'PELAKSANAAN'; f.bgLama = r.no_bg || ''; f.mulai = bgAddDays(r.sampai, 1); f.sampai = ''; f.tglMemo = B.today; f.perlu = r.sampai && r.sampai > B.today ? r.sampai : B.today; f.terbitManual = false; bgCalc(f); BG.form = f; BG.sel = ''; BG.act = ''; toast('Draf perpanjangan dibuat dari ' + (r.no_bg || r.id) + ' — isi tanggal s/d yang baru.'); return bgRender(); }
+  if (k === 'perpanjang') {
+    var F = bgFormFrom(r), j0 = F.list[0], x0 = F.it[j0];
+    F.id = ''; F.lock = true; F.perJenis = /UANG MUKA/.test(r.jenis) ? 'UANG MUKA' : /PEMELIHARAAN/.test(r.jenis) ? 'PEMELIHARAAN' : 'PELAKSANAAN'; F.list = ['PERUBAHAN']; F.it = { PERUBAHAN: x0 }; F.bgLama = r.no_bg || '';
+    F.jw = bgJwNew({ start: 'lain', mulaiLain: r.sampai ? bgAddDays(r.sampai, 1) : '', mode: 'tgl', sampaiTgl: '' }); F.tglMemo = B.today; x0.perlu = r.sampai && r.sampai > B.today ? r.sampai : B.today; x0.terbitManual = false; x0.lamp = bgDefLamp(F.perJenis);
+    bgCalc(F); BG.form = F; BG.sel = ''; BG.act = ''; toast('Draf perpanjangan dibuat dari ' + (r.no_bg || r.id) + ' — atur masa berlaku yang baru.'); return bgRender();
+  }
 }
 function bgBind() {
   var w = $('bgWrap');
@@ -5349,20 +5456,48 @@ function bgBind() {
   w.querySelectorAll('[data-bgf]').forEach(function (b) { b.onclick = function () { BG.f = b.dataset.bgf; bgRender(); }; });
   w.querySelectorAll('[data-bgs]').forEach(function (t) { t.onclick = function () { if (BG.form && !confirm('Tutup form yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.sel = t.dataset.bgs; bgRender(); }; });
   if ($('bgQ')) $('bgQ').oninput = function () { var v = this.value, pos = this.selectionStart; clearTimeout(bgBind.t); bgBind.t = setTimeout(function () { BG.q = v; bgRender(); var i = $('bgQ'); if (i) { i.focus(); i.setSelectionRange(pos, pos); } }, 250); };
-  var f = BG.form; if (!f) return;
-  w.querySelectorAll('[data-bgj]').forEach(function (b) { b.onclick = function () { var j = b.dataset.bgj; f.jenis = j; f.lamp = bgDefLamp(j === 'PERUBAHAN' ? f.perJenis : j); if (j === 'PELAKSANAAN' || j === 'PEMELIHARAAN') f.pct = 5; if (j === 'UANG MUKA') { var p = bgPro(f.npp); f.pct = p && +p.um > 0 && f.omzet > 0 ? Math.round(+p.um / f.omzet * 10000) / 100 : 10; } bgCalc(f); bgRender(); }; });
-  w.querySelectorAll('[data-bgl]').forEach(function (c) { c.onchange = function () { if (c.checked) f.lamp[c.dataset.bgl] = 1; else delete f.lamp[c.dataset.bgl]; }; });
+  var F = BG.form; if (!F) return;
+  var keep = function (fn) { var sy = w.scrollTop; fn(); bgRender(); w.scrollTop = sy; };
+  w.querySelectorAll('[data-bgj]').forEach(function (b) { b.onclick = function () { keep(function () {
+    var j = b.dataset.bgj, multi = BG_MULTI.indexOf(j) >= 0;
+    if (F.lock) return;
+    if (!multi) { F.list = [j]; } else {
+      F.list = F.list.filter(function (x) { return BG_MULTI.indexOf(x) >= 0; });
+      var i = F.list.indexOf(j); if (i >= 0) { if (F.list.length > 1) F.list.splice(i, 1); } else F.list.push(j);
+      F.list.sort(function (a, c) { return BG_MULTI.indexOf(a) - BG_MULTI.indexOf(c); });
+    }
+    F.list.forEach(function (x) { if (!F.it[x]) F.it[x] = bgNewItem(F, x); }); bgCalc(F);
+  }); }; });
+  w.querySelectorAll('[data-bgil]').forEach(function (b) { b.onclick = function () { keep(function () { var x = F.it[b.dataset.bgij], l = b.dataset.bgil; if (x.lamp[l]) delete x.lamp[l]; else x.lamp[l] = 1; }); }; });
+  w.querySelectorAll('[data-bgi]').forEach(function (el) {
+    var k = el.dataset.bgi, x = F.it[el.dataset.bgij], h = function () {
+      var v = el.value;
+      if (k === 'pct') { x.pct = Number(String(v).replace(',', '.')) || 0; x.nilaiManual = false; }
+      else if (k === 'nilai') { x.nilai = num(v); x.nilaiManual = !!v; if (!v) x.nilaiManual = false; }
+      else if (k === 'terbit') { x.terbit = v; x.terbitManual = true; return; }
+      else if (k === 'nilaiKet') { x.nilaiKet = v; return; }
+      else x[k] = v;
+      keep(function () { bgCalc(F); });
+    };
+    if (el.type === 'date' || el.classList.contains('num')) el.onchange = h; else el.oninput = h;
+  });
+  w.querySelectorAll('[data-bgw]').forEach(function (el) {
+    var f = el.dataset.bgw, key = el.dataset.bgwj, rule = key ? F.it[key].jw || (F.it[key].jw = bgJwNew(F.jw)) : F.jw;
+    var h = function () { keep(function () { rule[f] = el.type === 'radio' ? el.dataset.v : el.type === 'checkbox' ? el.checked : el.value; }); };
+    if (el.type === 'radio' || el.type === 'checkbox' || el.tagName === 'SELECT' || el.type === 'date') el.onchange = h; else el.onchange = h;
+  });
   w.querySelectorAll('[data-bgk]').forEach(function (el) {
     var k = el.dataset.bgk, h = function () {
       var v = el.value;
-      if (k === 'npp') { if (v) { bgFillNpp(f, v); var pp = bgPro(v); if (pp) f.pel = pp.pelanggan; } else f.npp = ''; return bgRender(); }
-      if (k === 'pel') { f.pel = v; var pl = bgPel(v); if (f.npp && (!bgPro(f.npp) || bgPro(f.npp).pelanggan !== v)) f.npp = ''; if (pl) { f.kepada = pl.inv || pl.nama; f.alamat = (pl.alamat || []).join('\n'); } return bgRender(); }
-      if (k === 'omzet' || k === 'nilai') { f[k] = num(v); if (k === 'nilai') f.nilaiManual = !!v; bgCalc(f); return bgRender(); }
-      if (k === 'pct') { f.pct = Number(String(v).replace(',', '.')) || 0; f.nilaiManual = false; bgCalc(f); return bgRender(); }
-      if (k === 'terbit') { f.terbit = v; f.terbitManual = true; return; }
-      f[k] = v; if (k === 'perlu') { bgCalc(f); bgRender(); } else if (['mulai', 'sampai', 'formBank', 'perJenis'].indexOf(k) >= 0) { if (k === 'perJenis') f.lamp = bgDefLamp(v); bgRender(); }
+      if (k === 'npp') return keep(function () { if (v) bgFillNpp(F, v); else F.npp = ''; });
+      if (k === 'pel') return keep(function () { F.pel = v; var pl = bgPel(v); if (F.npp && (!bgPro(F.npp) || bgPro(F.npp).pelanggan !== v)) F.npp = ''; if (pl) { F.kepada = pl.inv || pl.nama; F.alamat = (pl.alamat || []).join('\n'); } });
+      if (k === 'omzet') return keep(function () { F.omzet = num(v); bgCalc(F); });
+      if (k === 'jwSame') return keep(function () { F.jwSame = el.checked; if (!F.jwSame) F.list.forEach(function (j) { F.it[j].jw = bgJwNew(F.jw); }); });
+      if (k === 'kontrakLbl') return keep(function () { F.kontrakLbl = v; F.list.forEach(function (j) { if (v === 'SPMK') F.it[j].lamp.g = 1; else delete F.it[j].lamp.g; }); });
+      F[k] = v;
+      if (['tglKontrak', 'formBank', 'perJenis'].indexOf(k) >= 0) keep(function () { if (k === 'perJenis') F.list.forEach(function (j) { F.it[j].lamp = bgDefLamp(v); F.it[j].pct = bgDefPct(F, j); }); bgCalc(F); });
     };
-    if (el.tagName === 'SELECT' || el.type === 'date' || el.classList.contains('num')) el.onchange = h; else el.oninput = h;
+    if (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'checkbox' || el.classList.contains('num')) el.onchange = h; else el.oninput = h;
   });
 }
 /** exposure pelanggan (saldo invoice aktif selain invoice yang sedang dibuat) untuk peringatan batas kredit */
