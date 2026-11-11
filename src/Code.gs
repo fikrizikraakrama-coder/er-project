@@ -949,7 +949,7 @@ function apiBootstrap() {
   b.access = access; b.summary = arDashboard_(res.ctx); b.sheetUrl = arSpreadsheet_().getUrl();
   // v2.9: status Rencana Termin bulan berjalan & bulan depan (notifikasi Section Head / AR)
   var nyM = +b.today.slice(5, 7) + 1, nyY = +b.today.slice(0, 4); if (nyM > 12) { nyM = 1; nyY++; }
-  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', subAt: p.subAt || '', finalAt: p.finalAt || '', rev: !!p.rev }; });
+  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', subAt: p.subAt || '', finalAt: p.finalAt || '', rev: !!p.rev, revAt: p.revAt || '', revDasar: p.revDasar || '' }; });
   var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('buka aplikasi', Date.now() - t0, 'hitung');
   return out;
 }
@@ -1176,7 +1176,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
       var als = String((extra && extra.alasan) || '').trim(); if (als.length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
     }
     var snap = { label: d.label, nilai: d.nilai || d.total || 0 };
-    if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); if (raSh) snap.ap = 1; /* v2.9.5: menunggu approval Section Head */ try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
+    if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); var raRev = raSh && !!(rp && rp.rev) && !!d.curId; if (raSh && !raRev) snap.ap = 1; /* v2.9.5: RA awal menunggu approval Section Head; revisi oleh AR langsung final (Section Head mengetahui di rapat) */ try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
     if (kind === 'VALX') snap = { label: d.label, nilai: 0, alasan: String(extra.alasan).trim(), list: d.list };
     if (kind === 'BATAL') snap = { label: d.label, nilai: d.nilai, nomor: d.inv.nomor, pelanggan: d.inv.pelanggan, alasan: String(extra.alasan).trim(), pengganti: String(extra.pengganti || '').trim() };
     if (kind === 'REVP') snap = { label: d.label, nilai: d.nilai, ids: d.ids, key: d.key, sebab: String(extra.sebab || '').trim().slice(0, 60), alasan: String(extra.alasan).trim() };
@@ -1190,13 +1190,18 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
     // v2.8.7: jenis yang disahkan lewat tanda tangan basah Section Head (Parameter PERSETUJUAN_TTD_BASAH) langsung tercatat DISETUJUI;
     // tidak atas nama Section Head secara elektronik (PUTUS OLEH kosong, tanpa cap elektronik) — bukti persetujuan = tanda tangan basah di lembar cetak
     if (ENGINE.basahKinds(P).indexOf(kind) >= 0 && !raSh) arBasah_(rec, now);
+    if (raRev) { // v2.9.5: revisi RA oleh AR — langsung berlaku tanpa approval; bukti tertulis = TTD basah Lembar RA–RI revisi
+      raFinal_(rec, snap, { shBy: me }, now);
+      rec.catatan = '[REVISI RA OLEH AR — ' + (snap.dasar === 'PUSAT' ? 'HASIL RAPAT PUSAT ' + snap.tglRapat + ', diketahui Section Head di rapat' : 'KOREKSI INTERNAL') + '] menggantikan ' + d.curId + ' · bukti tertulis: TTD basah Lembar RA–RI ' + 'Rev.' + ('0' + snap.rev).slice(-2);
+      raMarkReplaced_(A, rec, String(d.ref));
+    }
     var lc = Math.max(A.sh.getLastColumn(), ENGINE.APPR.cols.length), arr = []; for (var k = 0; k < lc; k++) arr.push('');
     ENGINE.APPR.cols.forEach(function (c) { var j = A.map[c[0]]; if (j) arr[j - 1] = rec[c[0]]; });
     var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1; roomFor_(A.sh, row);
     A.sh.getRange(row, 1, 1, lc).setNumberFormat('@').setValues([arr]);
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
     out = { ok: true, id: rec.id, label: rec.label, status: rec.status, basah: rec.status === 'DISETUJUI' };
-    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'WAIT'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; rp2.back = ''; raPlanSet_(String(d.ref), rp2); }
+    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = raRev ? 'DONE' : 'WAIT'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; rp2.back = ''; if (raRev) { rp2.finalAt = now; rp2.rev = false; rp2.revAt = now; rp2.revDasar = snap.dasar; } raPlanSet_(String(d.ref), rp2); }
   } finally { lock.releaseLock(); }
   // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
   out.background = arQueueAfterSave_().background; arPerfLog_('ajukan ' + kind, Date.now() - tP, '');

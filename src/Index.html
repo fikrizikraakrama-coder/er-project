@@ -3296,13 +3296,14 @@ function planRender() {
   h = h.replace('<h2>Rencana Termin (RA)</h2>', '<h2>Rencana Termin (RA) <span class="rp-who' + (/Giliran/.test(who) ? ' on' : '') + '">' + who + '</span></h2>');
   h += '<span class="sp"></span><button class="btn" type="button" data-rpdl="pdf">' + ico('download') + 'PDF Lembar RA–RI</button><button class="btn rp-xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel Lembar RA–RI</button></div>';
   // alur 3 langkah (v2.9.5): AR menyusun → Section Head approval → RA final (unduh PDF / Excel, TTD basah)
-  var fs = [['AR Officer', isRev ? 'menyusun revisi · dasar rapat pusat / internal' : 'menyusun RA: Committed / Upside / Rescheduled / On Hold'], ['Section Head', 'melihat & approve (atau kembalikan + catatan)'], ['RA final', 'unduh PDF / Excel · TTD basah']], fi = st === 1 ? 0 : st === 3 ? 1 : 2;
+  var fs = isRev ? [['AR Officer', 'menyusun revisi · dasar rapat pusat / internal'], ['Finalkan revisi', 'tanpa approval — Section Head mengetahui di rapat'], ['RA final', 'unduh PDF / Excel · TTD basah']]
+    : [['AR Officer', 'menyusun RA: Committed / Upside / Rescheduled / On Hold'], ['Section Head', 'melihat & approve (atau kembalikan + catatan)'], ['RA final', 'unduh PDF / Excel · TTD basah']], fi = st === 1 ? 0 : st === 3 ? 1 : 2;
   h += '<div class="rp-flow">' + fs.map(function (f, i) { var s = i < fi || (st === 4 && i === 2) ? 'dn' : i === fi ? 'on' : ''; return (i ? '<i class="' + (i <= fi ? 'd' : '') + '"></i>' : '') + '<div class="' + s + '"><b>' + (s === 'dn' ? '✓' : i + 1) + '</b><span><strong>' + f[0] + '</strong>' + f[1] + '</span></div>'; }).join('') + '</div>';
   // banner
   if (pl.back && st === 1) h += '<div class="rp-ban r">↩ <b>' + esc(pl.back) + '</b></div>';
-  if (st === 4 && a) h += '<div class="rp-ban g"><b>✓ RA Termin ' + esc(planBln(ref)) + ' final ' + esc(tgJam(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + (P.dasar ? ' · revisi ' + (P.dasar === 'PUSAT' ? 'hasil rapat pusat' + (P.tglRapat ? ' ' + esc(tg(P.tglRapat)) : '') : 'koreksi internal') : '') + ' · approve Section Head' + (a.putus_nama ? ' (' + esc(a.putus_nama) + ')' : '') + ' · unduh Lembar RA–RI untuk TTD basah' + (role === 'ar' ? '<span class="sp"></span><button class="btn sm" type="button" id="rpRev">✎ Revisi RA</button>' : '') + '</div>';
+  if (st === 4 && a) h += '<div class="rp-ban g"><b>✓ RA Termin ' + esc(planBln(ref)) + ' final ' + esc(tgJam(a.putus_waktu)) + '</b> · ' + esc(a.id) + ' ' + revTxt(P) + (P.dasar ? ' · revisi ' + (P.dasar === 'PUSAT' ? 'hasil rapat pusat' + (P.tglRapat ? ' ' + esc(tg(P.tglRapat)) : '') : 'koreksi internal') : '') + (P.dasar ? ' · difinalkan AR' : ' · approve Section Head') + (a.putus_nama ? ' (' + esc(a.putus_nama) + ')' : '') + ' · unduh Lembar RA–RI untuk TTD basah' + (role === 'ar' ? '<span class="sp"></span><button class="btn sm" type="button" id="rpRev">✎ Revisi RA</button>' : '') + '</div>';
   if (isRev && st === 1) {
-    h += '<div class="rp-ban y">Anda menyusun <b>revisi ' + esc('Rev.' + ('0' + (P.revNext || 0)).slice(-2)) + '</b>' + (P.curId ? ' atas ' + esc(P.curId) : '') + '. RA yang berlaku tetap dipakai sampai revisi ini di-approve Section Head.</div>';
+    h += '<div class="rp-ban y">Anda menyusun <b>revisi ' + esc('Rev.' + ('0' + (P.revNext || 0)).slice(-2)) + '</b>' + (P.curId ? ' atas ' + esc(P.curId) : '') + '. RA yang berlaku tetap dipakai sampai revisi ini difinalkan. Revisi <b>tidak perlu approval</b> Section Head (sudah diketahui di rapat) — bukti tertulis: TTD basah Lembar RA–RI revisi.</div>';
     h += '<div class="rp-ban rp-das"><b>Dasar revisi:</b>' + (eDec ? '<label><input type="radio" name="rpDas" value="PUSAT"' + (PLAN.dasar === 'PUSAT' ? ' checked' : '') + '> Hasil rapat pusat</label><label><input type="radio" name="rpDas" value="INTERNAL"' + (PLAN.dasar === 'INTERNAL' ? ' checked' : '') + '> Koreksi internal</label>' +
       (PLAN.dasar === 'PUSAT' ? '<span>Tanggal rapat <input type="date" id="rpRapat" value="' + esc(PLAN.tglRapat) + '"' + (!PLAN.tglRapat ? ' class="bad"' : '') + '></span>' : '') : '<span>' + (PLAN.dasar === 'PUSAT' ? 'hasil rapat pusat' + (PLAN.tglRapat ? ' ' + esc(tg(PLAN.tglRapat)) : '') : PLAN.dasar === 'INTERNAL' ? 'koreksi internal' : 'belum dipilih') + '</span>') +
       '<small>Invoice yang dipindah ke ✓ Committed bertanda ➕, yang dikeluarkan bertanda ➖ (tercetak di Lembar RA–RI).</small></div>';
@@ -3384,7 +3385,7 @@ function planRender() {
   h += '<div class="rp-leg"><b>✓ Committed</b> = komitmen inkaso, masuk angka RA yang dilaporkan ke pusat.<br><b>◇ Upside</b> = potensi inkaso tambahan, diupayakan cair, tidak masuk angka RA.<br><b>→ Rescheduled</b> = tidak ada masalah, jadwal cairnya ' + esc(planBln(planNextRef(ref))) + '.<br><b>⏸ On Hold</b> = ada kendala (sengketa, PPN, berkas kurang) — alasan wajib, muncul terus sampai dilepas.</div></div></div>';
   // bar bawah
   var act = '';
-  if (st === 1 && role === 'ar') act = (isRev ? '<button class="btn" type="button" data-rpa2="cancelrev">Batal revisi</button>' : '') + '<button class="btn" type="button" data-rpa2="arsave">Simpan draf</button><button class="btn go" type="button" data-rpa2="arsubmit">Ajukan ke Section Head ➜</button>';
+  if (st === 1 && role === 'ar') act = (isRev ? '<button class="btn" type="button" data-rpa2="cancelrev">Batal revisi</button>' : '') + '<button class="btn" type="button" data-rpa2="arsave">Simpan draf</button><button class="btn go" type="button" data-rpa2="arsubmit">' + (isRev ? '✓ Finalkan revisi' : 'Ajukan ke Section Head ➜') + '</button>';
   else if (st === 3 && role === 'sh') act = '<button class="btn red" type="button" data-rpa2="reject">↩ Kembalikan ke AR</button><button class="btn ok" type="button" data-rpa2="approve">✓ Approve RA</button>';
   else if (st === 4) act = '<button class="btn go" type="button" data-rpdl="pdf">' + ico('download') + 'PDF (TTD basah)</button><button class="btn xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel</button>';
   var msg = st === 1 ? (role === 'ar' ? (T[''].n ? T[''].n + ' belum dipilih → Rescheduled' : 'tanggal cair ' + TT.nd + ' / ' + TT.nc) : 'AR sedang menyusun RA') : st === 3 ? (role === 'sh' ? 'RA ' + revTxt(P) + ' menunggu approval Anda' : 'menunggu approval Section Head') : 'RA berlaku';
@@ -3421,13 +3422,13 @@ function planAct(k) {
     if (!T.C.n) return planMsg('Pilih minimal satu invoice sebagai ✓ Committed.', true);
     if (TT.nd < TT.nc) { PLAN.f = 'nodate'; planRender(); return planMsg((TT.nc - TT.nd) + ' invoice ✓ Committed belum ada tanggal cair di ' + planBln(ref) + '.', true); }
     var nP = rev ? (PKG.items || []).filter(function (x) { var v = PLAN.W[x.nomor]; return v && x.cur && v.u === 'C' && x.cur !== 'C'; }).length : 0, nM = rev ? (PKG.items || []).filter(function (x) { var v = PLAN.W[x.nomor]; return v && x.cur === 'C' && v.u !== 'C'; }).length : 0;
-    return confirmDlg('Ajukan RA Termin ' + esc(planBln(ref)) + (rev ? ' (revisi)' : '') + ' ke Section Head?', '<b>✓ Committed ' + T.C.n + ' invoice · ' + rpShort(T.C.v) + '</b> (DPP − PPh), semua bertanggal.<br>◇ Upside ' + T.S.n + ' · → Rescheduled ' + (T.N.n + T[''].n) + ' · ⏸ On Hold ' + T.H.n +
+    return confirmDlg(rev ? 'Finalkan revisi RA Termin ' + esc(planBln(ref)) + ' ' + esc('Rev.' + ('0' + (PKG.revNext || 0)).slice(-2)) + '?' : 'Ajukan RA Termin ' + esc(planBln(ref)) + ' ke Section Head?', '<b>✓ Committed ' + T.C.n + ' invoice · ' + rpShort(T.C.v) + '</b> (DPP − PPh), semua bertanggal.<br>◇ Upside ' + T.S.n + ' · → Rescheduled ' + (T.N.n + T[''].n) + ' · ⏸ On Hold ' + T.H.n +
       (rev ? '<br>Dasar revisi: <b>' + (PLAN.dasar === 'PUSAT' ? 'hasil rapat pusat ' + esc(tg(PLAN.tglRapat)) : 'koreksi internal') + '</b> · ➕ ' + nP + ' · ➖ ' + nM : '') +
-      '<br><span style="font-size:12px;color:var(--steel)">Section Head mendapat notifikasi untuk approve. ' + (rev ? 'RA yang berlaku tetap dipakai sampai revisi di-approve.' : 'Setelah di-approve, unduh Lembar RA–RI (PDF / Excel) untuk TTD basah.') + '</span>', 'Ajukan', function () {
+      '<br><span style="font-size:12px;color:var(--steel)">' + (rev ? 'Revisi langsung berlaku tanpa approval (Section Head sudah mengetahui di rapat) dan menggantikan ' + esc(PKG.curId || 'RA sebelumnya') + '. Section Head mendapat pemberitahuan. Unduh Lembar RA–RI revisi untuk TTD basah.' : 'Section Head mendapat notifikasi untuk approve. Setelah di-approve, unduh Lembar RA–RI (PDF / Excel) untuk TTD basah.') + '</span>', rev ? 'Finalkan revisi' : 'Ajukan', function () {
       PLAN.busy = true; planMsg('Mengajukan…');
       call('apiRaPlanSave', [ref, planArPayload(), 'ar-save'], function () {
         var items = (PKG.items || []).filter(function (x) { return !x.gone && PLAN.W[x.nomor]; }).map(function (x) { var v = PLAN.W[x.nomor]; return { nomor: x.nomor, u: v.u || '', d: v.u === 'C' || v.u === 'S' ? (v.d || '') : '' }; });
-        call('apiSubmit', ['VAL', ref, { flow: 'SH', items: items }], done('RA Termin ' + planBln(ref) + ' diajukan ke Section Head.'), fail);
+        call('apiSubmit', ['VAL', ref, { flow: 'SH', items: items }], done(rev ? 'Revisi RA Termin ' + planBln(ref) + ' final — unduh Lembar RA–RI untuk TTD basah.' : 'RA Termin ' + planBln(ref) + ' diajukan ke Section Head.'), fail);
       }, fail);
     });
   }
@@ -3508,7 +3509,7 @@ function pgRaTermin(D) {
   if (D.K.length) h += '<table class="t rat-h2"><tr><th style="width:7mm">NO</th><th>➖ ' + (D.pus ? 'Digeser rapat pusat' : 'Dikeluarkan dari RA (revisi)') + ' · pelanggan</th><th style="width:34mm">No invoice</th><th style="width:24mm">Nilai (DPP − PPh)</th><th>Keterangan</th></tr>' + D.K.map(function (x, i) { return '<tr><td style="text-align:center">' + (i + 1) + '</td><td>' + esc(x.pel) + '</td><td>' + esc(x.nomor) + '</td><td class="n">' + nd(x.nilai) + '</td><td>' + esc(x.ket) + '</td></tr>'; }).join('') + '</table>';
   h += '</div>';
   var box = function (t, p, x) { return '<div><span>' + t + '</span><i></i><b>' + esc(p.nama || '………………………') + '</b><small>' + esc(p.jabatan || '') + '</small><em>Tanggal : …………………</em>' + (x || '') + '</div>'; };
-  h += '<div class="rat-sig">' + box('Mengetahui,', D.sign[0][1]) + box('Diperiksa &amp; disetujui oleh,', D.sign[1][1], st === 4 && a ? '<small class="ok">di-approve di aplikasi · ' + esc(a.id) + ' · ' + esc(tgJam(a.putus_waktu)) + '</small>' : '') + box('Dibuat oleh,', D.sign[2][1]) + '</div>';
+  h += '<div class="rat-sig">' + box('Mengetahui,', D.sign[0][1]) + box('Diperiksa &amp; disetujui oleh,', D.sign[1][1], st === 4 && a ? '<small class="ok">' + (D.dasTxt ? 'revisi difinalkan AR · ' : 'di-approve di aplikasi · ') + esc(a.id) + ' · ' + esc(tgJam(a.putus_waktu)) + '</small>' : '') + box('Dibuat oleh,', D.sign[2][1]) + '</div>';
   return h + docFoot(st === 4 ? PKG : null) + '</div>';
 }
 /* ---------- unduhan Lembar RA–RI: PDF (persis tampilan cetak) & Excel .xlsx (rapi saat dicetak) */
@@ -3647,7 +3648,7 @@ function raXlsx(D) {
     S.set(r + 4, c1, p.nama || '………………………', 16); S.merge(r + 4, c1, r + 4, c2);
     S.set(r + 5, c1, p.jabatan || '', 17); S.merge(r + 5, c1, r + 5, c2);
     S.set(r + 6, c1, 'Tanggal : …………………', 15); S.merge(r + 6, c1, r + 6, c2);
-    if (k === 1 && D.st === 4 && D.a) { S.set(r + 7, c1, 'di-approve di aplikasi · ' + D.a.id + ' · ' + tgJam(D.a.putus_waktu), 17); S.merge(r + 7, c1, r + 7, c2); }
+    if (k === 1 && D.st === 4 && D.a) { S.set(r + 7, c1, (D.dasTxt ? 'revisi difinalkan AR · ' : 'di-approve di aplikasi · ') + D.a.id + ' · ' + tgJam(D.a.putus_waktu), 17); S.merge(r + 7, c1, r + 7, c2); }
   });
   for (var h2 = 1; h2 <= 3; h2++) S.height(r + h2, 16);
   var xml = xSheetXml(S, { widths: [5, 30, 26, 14, 12, 29, 17, 8, 32, 12, 17, 12], freeze: 7, label: D.name });
@@ -5140,8 +5141,9 @@ function ovRender(d) {
   } else {
     var TT = A.T, old = function (x) { var o = x.tunggu.reduce(function (m, i) { return Math.max(m, dayDiff(i.t, B.today)); }, 0); return x.tunggu.length && o > 0 ? 'oldest ' + o + (o > 1 ? ' days' : ' day') : 'oldest first'; };
     [['PAY', '🏦', 'Cash receipts & reversals'], ['INV', '🧾', 'Invoices'], ['VAL', '📅', 'Collection plan validation'], ['LAIN', '⚠️', 'Other (cancellations, manual close)']].forEach(function (x) { var n = TT[x[0]].tunggu.length; if (n) ai(n > 3 ? 0 : 1, x[1], '#E4EEFA', x[2], old(TT[x[0]]), n, viewer ? '' : 'ap:' + x[0], viewer ? 'Pending' : 'Review'); });
-    if (!viewer) (B.raPlans || []).forEach(function (p) { if (p.st === 'DONE' && p.finalAt && dayDiff(p.finalAt, B.today) <= 5) ai(2, '✅', '#E2F4EA', 'RA Termin ' + planBln(p.ref) + ' sudah final', 'di-approve ' + esc(tgJam(p.finalAt)) + ' · tanda tangani Lembar RA–RI (PDF / Excel)', '✓', 'plan:' + p.ref, 'Lihat'); });
+    if (!viewer) (B.raPlans || []).forEach(function (p) { if (p.st === 'DONE' && p.finalAt && p.finalAt !== p.revAt && dayDiff(p.finalAt, B.today) <= 5) ai(2, '✅', '#E2F4EA', 'RA Termin ' + planBln(p.ref) + ' sudah final', 'di-approve ' + esc(tgJam(p.finalAt)) + ' · tanda tangani Lembar RA–RI (PDF / Excel)', '✓', 'plan:' + p.ref, 'Lihat'); });
     if (!viewer) planPending().forEach(function (p) { ai(0, '📅', '#E3F1F2', esc(p.t), esc(p.s || ''), '!', 'plan:' + p.ref, 'Rencana Termin'); });
+    if (!viewer) (B.raPlans || []).forEach(function (p) { if (p.revAt && dayDiff(p.revAt, B.today) <= 5) ai(1, '🔁', '#F3E8FD', 'RA Termin ' + planBln(p.ref) + ' direvisi AR', (p.revDasar === 'PUSAT' ? 'hasil rapat pusat' : 'koreksi internal') + ' · ' + esc(tgJam(p.revAt)) + ' · tanda tangani Lembar RA–RI revisi', '↻', 'plan:' + p.ref, 'Lihat'); });
     if (d.attn.od90n) ai(0, '⏰', '#FDE4E2', plural(d.attn.od90n, 'customer') + ' &gt; 90 days past due', rpShort(d.attn.od90v), d.attn.od90n, 'bal', 'Customer Balances');
     if (d.attn.janji) ai(1, '🤝', '#FFF1D6', 'Payment promises / letter deadlines missed', 'follow up with the AR Officer', d.attn.janji, 'bal', 'Customer Balances');
   }
