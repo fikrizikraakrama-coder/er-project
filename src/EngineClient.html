@@ -95,7 +95,8 @@ var ENGINE = (function () {
   var ADD = {
     sheet: 'Riwayat Adendum', headerRow: 5, firstRow: 6,
     cols: [['npp', 'NPP', 14], ['ke', 'ADENDUM KE-', 9, 'int'], ['nodok', 'NO. DOKUMEN ADENDUM', 30], ['tgl', 'TANGGAL BERLAKU', 13, 'date'],
-      ['jenis', 'JENIS (TAMBAH / KURANG)', 13], ['nilai', 'NILAI ADENDUM (Rp, EXCL. PPN)', 19, 'money'], ['catatan', 'CATATAN', 60]]
+      ['jenis', 'JENIS (TAMBAH / KURANG)', 13], ['nilai', 'NILAI ADENDUM (Rp, EXCL. PPN)', 19, 'money'], ['catatan', 'CATATAN', 60],
+      ['selesai', 'SELESAI PEKERJAAN (BARU)', 13, 'date'], ['file', 'DOKUMEN (LINK)', 30], ['status', 'STATUS (BATAL = tidak dipakai)', 12], ['ubah', 'RIWAYAT UBAH / BATAL', 40]]
   };
   // Input Tagbrut: dua tabel berdampingan — pengakuan pendapatan (kiri) dan catatan tindak lanjut (kanan)
   var TAG = {
@@ -143,7 +144,7 @@ var ENGINE = (function () {
   var OPT = {
     validasi: ['✓ CAIR', '◇ CADANGAN', '→ BULAN DEPAN', '⏸ HOLD'],
     status_inv: ['AKTIF', 'BATAL'], /* v2.6: STATUS DOKUMEN otomatis — pembatalan lewat aplikasi */ tutup: ['CLOSE MANUAL'], lunas: ['✓'], alokasi: ['OTOMATIS', 'NETTO', 'PPN'], jenis_trx: ['PINDAH BUKU', 'KOMPENSASI'], aktif_pro: ['YA', 'TIDAK', 'SELESAI', 'ARSIP'],
-    jenis: ['PROGRES', 'UANG MUKA', 'RETENSI', 'LAINNYA'], jenis_add: ['TAMBAH', 'KURANG'], template: ['UMUM', 'IKK', 'KIDOH', 'FAJARPUTERA', 'WIKA-WITON'],
+    jenis: ['PROGRES', 'UANG MUKA', 'RETENSI', 'LAINNYA'], jenis_add: ['TAMBAH', 'KURANG', 'WAKTU', 'LAINNYA'], template: ['UMUM', 'IKK', 'KIDOH', 'FAJARPUTERA', 'WIKA-WITON'],
     ret_pos: ['AWAL', 'AKHIR', 'TIDAK ADA'], dasar_pph: ['SETELAH RETENSI', 'SEBELUM RETENSI'], yatidak: ['YA', 'TIDAK'],
     jenis_pel: ['WIKA', 'BUMN', 'SWASTA', 'JO'], kelompok: ['PIHAK BERELASI', 'PIHAK KETIGA'], dasar_jt: ['TGL SUBMIT', 'TGL TANDA TERIMA'],
     akun_peng: ['TAGBRUT', 'HAD'], sumber_tag: ['P&E MINGGUAN', 'LK BULANAN', 'SALDO AWAL LK', 'KOREKSI'],
@@ -331,14 +332,15 @@ var ENGINE = (function () {
   function buildMaster(pelRows, proRows, params, addRows) {
     var pel = {}, pro = {}, issues = [], adds = {};
     rowsToObjects(addRows || [], ADD.cols, ADD.firstRow).forEach(function (a) {
-      if (a._empty) return;
+      if (a._empty || U(a.status) === 'BATAL') return; // v2.10: adendum yang dibatalkan (salah input) tidak dipakai
       var n = S(a.npp), j = U(a.jenis), v = N(a.nilai), ref = 'baris ' + a._row + (n ? ' (' + n + ')' : '');
       if (!n) { issues.push(['ADENDUM', ADD.sheet, ref, 'NPP kosong', 'Isi NPP proyek']); return; }
-      if (j !== 'TAMBAH' && j !== 'KURANG') { issues.push(['ADENDUM', ADD.sheet, ref, 'Jenis adendum harus TAMBAH atau KURANG', 'Pilih dari daftar']); return; }
-      if (!(v > 0)) { issues.push(['ADENDUM', ADD.sheet, ref, 'Nilai adendum kosong / nol', 'Isi nilai adendum (angka positif)']); return; }
+      if (['TAMBAH', 'KURANG', 'WAKTU', 'LAINNYA'].indexOf(j) < 0) { issues.push(['ADENDUM', ADD.sheet, ref, 'Jenis adendum harus TAMBAH, KURANG, WAKTU atau LAINNYA', 'Pilih dari daftar']); return; }
+      if (j === 'WAKTU' || j === 'LAINNYA') v = 0;
+      else if (!(v > 0)) { issues.push(['ADENDUM', ADD.sheet, ref, 'Nilai adendum kosong / nol', 'Isi nilai adendum (angka positif)']); return; }
       var t = D(a.tgl);
       if (!t) issues.push(['ADENDUM', ADD.sheet, ref, 'Tanggal berlaku kosong — dianggap berlaku sejak awal kontrak', 'Isi TANGGAL BERLAKU agar invoice sebelum adendum tetap memakai nilai lama']);
-      (adds[n] = adds[n] || []).push({ ke: a.ke, nodok: S(a.nodok), tgl: t, jenis: j, nilai: v });
+      (adds[n] = adds[n] || []).push({ ke: a.ke, nodok: S(a.nodok), tgl: t, jenis: j, nilai: v, selesai: D(a.selesai), file: S(a.file) });
     });
     rowsToObjects(pelRows, MPEL.cols, MPEL.firstRow).forEach(function (o) {
       if (o._empty || !S(o.nama)) return;
@@ -404,7 +406,7 @@ var ENGINE = (function () {
     var awal = N(p.nilai_awal !== undefined ? p.nilai_awal : p.nilai), t = 0, k = 0, list = [];
     (p.adds || p.adendum || []).forEach(function (a) {
       if (a.tgl && tgl && a.tgl > tgl) return;
-      list.push(a); if (a.jenis === 'TAMBAH') t += N(a.nilai); else k += N(a.nilai);
+      list.push(a); if (a.jenis === 'TAMBAH') t += N(a.nilai); else if (a.jenis === 'KURANG') k += N(a.nilai);
     });
     if (!list.length && !(p.adds || p.adendum || []).length && N(p.nilai_ok) && N(p.nilai_ok) !== awal) return { awal: N(p.nilai_ok), tambah: 0, kurang: 0, net: N(p.nilai_ok), list: [] };
     return { awal: awal, tambah: t, kurang: k, net: awal + t - k, list: list };

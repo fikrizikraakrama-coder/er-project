@@ -21,7 +21,7 @@ function arLock_() {
     // v2.8.7: tunggu sampai 90 detik — pembaruan laporan (pengguna lain / jadwal 5 menit) bisa memegang kunci lebih dari 28 detik
     waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, ''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('The system is busy updating reports. Nothing was saved by this step — try again in a minute.'); } } AR28_LOCK_DEPTH_++; held = true; },
     tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
-    releaseLock: function() { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; arBootBust_(); } } }
+    releaseLock: function(noBust) { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; if (!noBust) arBootBust_(); } } }
   };
 }
 // Keep legacy document properties readable; new prefixed properties also work in web apps.
@@ -642,6 +642,7 @@ function arInstallTriggers_(ss) {
   ScriptApp.newTrigger('rebuildIfDirty').timeBased().everyMinutes(5).create();
   ScriptApp.newTrigger('onChangeInstalled').forSpreadsheet(ss).onChange().create();
 }
+function arMarkDirtyQuiet_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); }
 function arMarkDirty_() { PropertiesService.getScriptProperties().setProperty(AR_DIRTY_KEY_, Date.now() + '-' + Math.random().toString(36).slice(2, 8)); arBootBust_(); }
 /** kerjakan bila ditandai; bila lock dipegang proses lain, tanda dibiarkan untuk jadwal 5 menit (tidak ada "Lock timeout" bagi pengedit) */
 function arRebuildIfDirty_(waitMs, quietMs) {
@@ -649,13 +650,11 @@ function arRebuildIfDirty_(waitMs, quietMs) {
   var t0 = sp.getProperty(AR_DIRTY_KEY_); if (!t0) return false;
   // v2.9.2: jadwal 5 menit menunggu 90 detik tenang setelah penyimpanan terakhir (simpan beruntun tidak antre di belakang pembaruan laporan)
   if (quietMs && Date.now() - (+String(t0).split('-')[0] || 0) < quietMs) return false;
-  var lock = arLock_(); if (!lock.tryLock(waitMs)) return false;
-  try {
-    var t = sp.getProperty(AR_DIRTY_KEY_); if (!t) return false;
-    rebuildAll_({ format: false });
-    if (sp.getProperty(AR_DIRTY_KEY_) === t) sp.deleteProperty(AR_DIRTY_KEY_); // edit selama pembaruan → tanda baru tetap ada
-    return true;
-  } finally { lock.releaseLock(); }
+  // v2.10: rebuildAll_ memegang kunci utama hanya saat membaca & menghitung (fase 1)
+  var t = sp.getProperty(AR_DIRTY_KEY_); if (!t) return false;
+  var r = rebuildAll_({ format: false }); if (r && r.deferred) return false;
+  if (sp.getProperty(AR_DIRTY_KEY_) === t) sp.deleteProperty(AR_DIRTY_KEY_); // edit selama pembaruan → tanda baru tetap ada
+  return true;
 }
 function arEditRebuild_() { arMarkDirty_(); arRebuildIfDirty_(2000); }
 
@@ -1148,7 +1147,7 @@ function apiMasterData() {
   return arCached_('masterdata', function () {
   var ss = arSpreadsheet_(), d = arMdRead_(ss), hs = ss.getSheetByName(AR_MD_HIST_), hist = [];
   if (hs && hs.getLastRow() > 1) { var n = Math.min(hs.getLastRow() - 1, 400); hist = hs.getRange(hs.getLastRow() - n + 1, 1, n, 9).getDisplayValues().reverse(); }
-  return plain_({ pel: d.pel, pro: d.pro, add: d.add, hist: hist, sens: ENGINE.MD_SENS }); });
+  return plain_({ pel: d.pel, pro: d.pro, add: d.add, docs: arPdocRows_(ss), hist: hist, sens: ENGINE.MD_SENS }); });
 }
 /** tulis satu baris master (baru = baris setelah data terakhir) */
 function arMdWrite_(sh, schema, alias, row, data) {
@@ -1157,7 +1156,7 @@ function arMdWrite_(sh, schema, alias, row, data) {
   if (!row) { row = lastDataRow_(sh, schema.firstRow, [map[schema.cols[0][0]]]) + 1; roomFor_(sh, row); }
   schema.cols.forEach(function (c) { var k = c[0], j = map[k]; if (!j || !(k in data) || auto.indexOf(k) >= 0) return; var v = data[k], rg = sh.getRange(row, j);
     if (AR_MD_TEXT_.indexOf(k) >= 0) { rg.setNumberFormat('@').setValue(arSafeCell_(String(v || ''))); }
-    else if (k === 'tgl_kontrak' || k === 'tgl') { rg.setNumberFormat(NUMF.date).setValue(v ? toCell_(String(v), 'date') : ''); }
+    else if (k === 'tgl_kontrak' || k === 'tgl' || k === 'selesai') { rg.setNumberFormat(NUMF.date).setValue(v ? toCell_(String(v), 'date') : ''); }
     else rg.setValue(typeof v === 'string' ? arSafeCell_(v) : v); });
   return row;
 }
@@ -1208,21 +1207,84 @@ function apiMasterWizard(pel, pro) {
   return plain_({ ok: true, pelanggan: a.key, npp: b.key, background: bg });
 }
 /** adendum kontrak baru (selalu sensitif: wajib dasar, dicatat & diemailkan) */
-function apiMasterAddendum(npp, d, reason) {
-  var acc = arRequireMaker_(); d = d || {};
-  if (String(reason || '').trim().length < 5) throw new Error('Enter the basis for the addendum (document / reason).');
-  if (!arValidDate_(String(d.tgl || ''))) throw new Error('Addendum effective date is invalid.');
-  if (!(Number(d.nilai) > 0)) throw new Error('Addendum value must be greater than 0.');
-  if (['TAMBAH', 'KURANG'].indexOf(String(d.jenis || '').toUpperCase()) < 0) throw new Error('Type must be TAMBAH or KURANG.');
+/** v2.10 adendum kontrak: op 'new' (default) · 'edit' (ke) · 'batal' (ke, salah input). Jenis TAMBAH / KURANG (nilai) · WAKTU / LAINNYA (tanpa nilai).
+ *  d = {jenis, nodok, tgl, nilai, selesai, catatan, file:{b64,name,mime}} — file disimpan di <arsip>/Kontrak Proyek/<NPP> */
+function apiMasterAddendum(npp, d, reason, op, ke0) {
+  var acc = arRequireMaker_(); d = d || {}; op = op || 'new';
+  if (String(reason || '').trim().length < 5) throw new Error('Isi dasar / alasan adendum (min. 5 karakter).');
+  var J = String(d.jenis || '').toUpperCase();
+  if (op !== 'batal') {
+    if (['TAMBAH', 'KURANG', 'WAKTU', 'LAINNYA'].indexOf(J) < 0) throw new Error('Jenis adendum harus Tambah nilai, Kurang nilai, Waktu saja, atau Lainnya.');
+    if (!arValidDate_(String(d.tgl || ''))) throw new Error('Tanggal berlaku adendum tidak valid.');
+    if ((J === 'TAMBAH' || J === 'KURANG') && !(Number(d.nilai) > 0)) throw new Error('Nilai adendum harus lebih dari 0.');
+    if (J === 'WAKTU' && !arValidDate_(String(d.selesai || ''))) throw new Error('Isi tanggal selesai pekerjaan yang baru.');
+    if (d.selesai && !arValidDate_(String(d.selesai))) throw new Error('Tanggal selesai pekerjaan tidak valid.');
+  }
+  var np = String(npp || '').toUpperCase().trim(), link = '';
+  if (d.file && d.file.b64) link = arPdocSave_(np, 'ADD-' + ('0' + (ke0 || 'x')).slice(-2) + '_' + String(d.nodok || '').replace(/[\\\/:*?"<>|]/g, '-').slice(0, 60), d.file);
   var lock = arLock_(), log = [], ke; lock.waitLock(28000);
   try {
-    var ss = arSpreadsheet_(), all = arMdRead_(ss), np = String(npp || '').toUpperCase().trim();
-    if (!all.pro.some(function (r) { return String(r.npp).toUpperCase().trim() === np; })) throw new Error('Project ' + npp + ' not found.');
-    ke = all.add.filter(function (r) { return String(r.npp).toUpperCase().trim() === np; }).reduce(function (m, r) { return Math.max(m, Number(r.ke) || 0); }, 0) + 1;
-    var sh = ss.getSheetByName(ENGINE.ADD.sheet); if (!sh) throw new Error('Sheet ' + ENGINE.ADD.sheet + ' not found.');
-    arMdWrite_(sh, ENGINE.ADD, null, 0, { npp: np, ke: ke, nodok: String(d.nodok || ''), tgl: d.tgl, jenis: String(d.jenis).toUpperCase(), nilai: Math.round(Number(d.nilai)), catatan: String(d.catatan || '') });
-    log.push([arNow_(), acc.email, 'ADENDUM', np, 'ADENDUM KE-' + ke + ' (' + String(d.jenis).toUpperCase() + ')', '', (String(d.jenis).toUpperCase() === 'KURANG' ? '−' : '+') + ENGINE.fmtRp(d.nilai) + ' · ' + (d.nodok || '') + ' · berlaku ' + d.tgl, 'YA', reason]);
+    var ss = arSpreadsheet_(), all = arMdRead_(ss);
+    if (!all.pro.some(function (r) { return String(r.npp).toUpperCase().trim() === np; })) throw new Error('Proyek ' + npp + ' tidak ditemukan.');
+    var sh = ss.getSheetByName(ENGINE.ADD.sheet); if (!sh) throw new Error('Sheet ' + ENGINE.ADD.sheet + ' tidak ditemukan.');
+    ensureSchema_(sh, ENGINE.ADD, null, null);
+    try { var mj = colMap_(sh, ENGINE.ADD).jenis; if (mj) sh.getRange(ENGINE.ADD.firstRow, mj, 400, 1).setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList(ENGINE.OPT.jenis_add, true).setAllowInvalid(false).build()); } catch (e) { }
+    var mine = all.add.filter(function (r) { return String(r.npp).toUpperCase().trim() === np; }), now = arNow_();
+    if (op === 'new') {
+      ke = mine.reduce(function (m, r) { return Math.max(m, Number(r.ke) || 0); }, 0) + 1;
+      if (link) { /* nama file memakai nomor adendum yang baru */ try { var f0 = DriveApp.getFileById((/[-\w]{25,}/.exec(link) || [])[0]); f0.setName(f0.getName().replace('ADD-0x', 'ADD-' + ('0' + ke).slice(-2))); } catch (e) { } }
+      arMdWrite_(sh, ENGINE.ADD, null, 0, { npp: np, ke: ke, nodok: String(d.nodok || ''), tgl: d.tgl, jenis: J, nilai: J === 'TAMBAH' || J === 'KURANG' ? Math.round(Number(d.nilai)) : 0, catatan: String(d.catatan || ''), selesai: d.selesai || '', file: link, status: 'AKTIF', ubah: '' });
+      log.push([now, acc.email, 'ADENDUM', np, 'ADENDUM KE-' + ke + ' (' + J + ')', '', (J === 'KURANG' ? '−' + ENGINE.fmtRp(d.nilai) : J === 'TAMBAH' ? '+' + ENGINE.fmtRp(d.nilai) : J === 'WAKTU' ? 'selesai ' + d.selesai : 'lainnya') + ' · ' + (d.nodok || '') + ' · berlaku ' + d.tgl, 'YA', reason]);
+    } else {
+      var x = mine.filter(function (r) { return Number(r.ke) === Number(ke0); })[0]; if (!x) throw new Error('Adendum ke-' + ke0 + ' tidak ditemukan.');
+      ke = ke0;
+      if (op === 'batal') {
+        arMdWrite_(sh, ENGINE.ADD, null, x._row, { status: 'BATAL', ubah: (String(x.ubah || '') + (x.ubah ? ' · ' : '') + 'DIBATALKAN ' + now + ' ' + acc.email + ': ' + String(reason).trim()).slice(0, 480) });
+        log.push([now, acc.email, 'ADENDUM', np, 'ADENDUM KE-' + ke + ' DIBATALKAN', '', String(x.jenis) + ' ' + ENGINE.fmtRp(x.nilai), 'YA', reason]);
+      } else {
+        var o = { nodok: String(d.nodok || ''), tgl: d.tgl, jenis: J, nilai: J === 'TAMBAH' || J === 'KURANG' ? Math.round(Number(d.nilai)) : 0, catatan: String(d.catatan || ''), selesai: d.selesai || '' };
+        if (link) o.file = link;
+        var ch = Object.keys(o).filter(function (k) { return String(o[k] || '') !== String(x[k] || ''); }).map(function (k) { return k + ': ' + (x[k] || '-') + ' → ' + (o[k] || '-'); });
+        o.ubah = (String(x.ubah || '') + (x.ubah ? ' · ' : '') + 'DIUBAH ' + now + ' ' + acc.email + ': ' + ch.join(', ')).slice(0, 480);
+        arMdWrite_(sh, ENGINE.ADD, null, x._row, o);
+        log.push([now, acc.email, 'ADENDUM', np, 'ADENDUM KE-' + ke + ' DIUBAH', '', ch.join(' · ').slice(0, 300), 'YA', reason]);
+      }
+    }
   } finally { lock.releaseLock(); }
   var bg = arMdFinish_(arSpreadsheet_(), log, log, 'Adendum kontrak ' + npp + ' ke-' + ke);
   return plain_({ ok: true, ke: ke, background: bg });
+}
+/* ---------- v2.10 dokumen proyek (kontrak / SPK, SPMK, BAST, lainnya) */
+var AR_PDOC_ = { sheet: 'Dokumen Proyek', headerRow: 5, firstRow: 6, cols: [['npp', 'NPP', 'app', 14], ['jenis', 'JENIS DOKUMEN', 'app', 18], ['nama', 'NAMA / NO. DOKUMEN', 'app', 34], ['tgl', 'TANGGAL DOKUMEN', 'app', 12, 'date'], ['link', 'LINK FILE', 'app', 30], ['oleh', 'DIUPLOAD OLEH', 'app', 24], ['waktu', 'WAKTU', 'app', 16], ['status', 'STATUS', 'app', 10]] };
+function arPdocRows_(ss) {
+  var sh = ss.getSheetByName(AR_PDOC_.sheet); if (!sh) return [];
+  return readSchema_(sh, AR_PDOC_, null).map(function (r, i) { var o = { _row: AR_PDOC_.firstRow + i }; AR_PDOC_.cols.forEach(function (c, j) { o[c[0]] = r[j]; }); return o; }).filter(function (o) { return String(o.npp || '').trim() && String(o.status || '') !== 'BATAL'; });
+}
+function arPdocFolder_(npp) {
+  var P = arParameters_(), mf = archiveFolder_(P, 'KONTRAK', Utilities.formatDate(new Date(), TZ, 'yyyy-MM')), kf = mf.getParents().next().getParents().next();
+  var nm = String(npp).replace(/[\\\/:*?"<>|]/g, '-'), it = kf.getFoldersByName(nm); return it.hasNext() ? it.next() : kf.createFolder(nm);
+}
+function arPdocSave_(npp, base, file) {
+  var mime = String(file.mime || ''), ext = (/\.(\w{2,5})$/.exec(file.name || '') || [0, mime === 'application/pdf' ? 'pdf' : 'jpg'])[1].toLowerCase();
+  if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Dokumen harus PDF atau gambar.');
+  var bytes = Utilities.base64Decode(file.b64); if (bytes.length > 15 * 1024 * 1024) throw new Error('File lebih dari 15 MB.');
+  var f = arPdocFolder_(npp), nm = (String(npp) + '_' + base).replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 150), it = f.getFiles(), old = null;
+  while (it.hasNext()) { var f0 = it.next(); if (String(f0.getName()).replace(/\.\w{2,5}$/, '') === nm) { if (!old) { var i2 = f.getFoldersByName('Revisi lama'); old = i2.hasNext() ? i2.next() : f.createFolder('Revisi lama'); } f0.moveTo(old); } }
+  return f.createFile(Utilities.newBlob(bytes, mime, nm + '.' + ext)).getUrl();
+}
+/** upload dokumen proyek: jenis KONTRAK / SPMK / BAST / LAINNYA (adendum lewat apiMasterAddendum). op 'hapus' = tandai BATAL (row). */
+function apiProjectDoc(npp, d, op) {
+  var acc = arRequireMaker_(); d = d || {}; var np = String(npp || '').toUpperCase().trim(), ss = arSpreadsheet_();
+  var sh = ss.getSheetByName(AR_PDOC_.sheet); if (!sh) sh = setupDataSheet_(ss, AR_PDOC_, 'DOKUMEN PROYEK', 'Dibuat aplikasi (Pelanggan ▸ Master ▸ proyek ▸ tab Dokumen). Satu baris per dokumen kontrak / SPK, SPMK, BAST, dan lainnya. File di Drive › Arsip › Kontrak Proyek › NPP.', 'Master Proyek', '#0F6E78').sh;
+  if (op === 'hapus') { var lk = arLock_(); lk.waitLock(28000); try { var m0 = colMap_(sh, AR_PDOC_); sh.getRange(+d.row, m0.status).setValue('BATAL'); } finally { lk.releaseLock(); } try { arBootBust_(); } catch (e) { } return { ok: true }; }
+  var J = String(d.jenis || '').toUpperCase(); if (['KONTRAK', 'SPMK', 'BAST', 'LAINNYA'].indexOf(J) < 0) throw new Error('Pilih jenis dokumen.');
+  if (!d.file || !d.file.b64) throw new Error('Pilih file dokumen.');
+  var link = arPdocSave_(np, J + (d.nama ? '_' + String(d.nama).slice(0, 60) : ''), d.file);
+  var lock = arLock_(); lock.waitLock(28000);
+  try { var map = colMap_(sh, AR_PDOC_), row = lastDataRow_(sh, AR_PDOC_.firstRow, [map.npp]) + 1; roomFor_(sh, row);
+    var o = { npp: np, jenis: J, nama: String(d.nama || '').slice(0, 120), tgl: d.tgl || '', link: link, oleh: acc.email, waktu: arNow_().slice(0, 16), status: 'AKTIF' };
+    AR_PDOC_.cols.forEach(function (c) { var j = map[c[0]]; if (!j) return; var rg = sh.getRange(row, j); if (c[0] === 'tgl') rg.setNumberFormat(NUMF.date).setValue(o.tgl ? toCell_(o.tgl, 'date') : ''); else rg.setNumberFormat('@').setValue(arSafeCell_(String(o[c[0]] || ''))); });
+  } finally { lock.releaseLock(); }
+  try { arBootBust_(); } catch (e) { }
+  return { ok: true, link: link };
 }

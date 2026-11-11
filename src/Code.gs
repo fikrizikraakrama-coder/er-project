@@ -229,54 +229,79 @@ function toCell_(v, type) {
 function rebuildAll() { arRequireAccess_(); return rebuildAll_({ format: true }); }
 /** inti pembaruan tanpa cek identitas — hanya dipanggil fungsi yang sudah memeriksa akses atau oleh trigger terverifikasi.
  *  opt.format: rapikan format sheet sumber (berat; dilewati untuk pembaruan karena edit sel) */
+/** v2.10 pembaruan laporan dua fase:
+ *  fase 1 (kunci utama, singkat): baca data, hitung, tulis kolom otomatis sheet sumber (Monitoring Invoice / Log Penerimaan / memorial)
+ *  fase 2 (tanpa kunci utama, penanda REPORT_RUN): tulis sheet laporan — simpan/ajukan pengguna tidak antre di belakangnya.
+ *  Laporan yang isinya tidak berubah dilewati (sidik isi). Grafik, filter & perapian berat hanya saat format (jadwal harian / menu) atau sekali sehari. */
 function rebuildAll_(opt) {
   opt = opt || {};
-  var lock = arLock_();
-  lock.waitLock(28000);
+  var ss = arSpreadsheet_(), res, dp = arProps_(), today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), daily = opt.format || dp.getProperty('RB_DAY') !== today;
+  if (!arReportClaim_()) { arMarkDirtyQuiet_(); return { ok: true, deferred: true }; } // pembaruan lain sedang berjalan → diulang oleh jadwal / pembaruan berikutnya
   try {
-    var ss = arSpreadsheet_();
-    if (!ss.getSheetByName('Kinerja & Peringatan Dini')) { try { var rr = ss.getSheetByName('RA-RI Termin'); setupKinerja_(ss, rr ? rr.getIndex() : ss.getSheets().length); } catch (err) { } }
-    var input = readAll_();
+    var lock = arLock_(), rows0 = function () { var a = ss.getSheetByName('Monitoring Invoice'), b = ss.getSheetByName('Log Penerimaan'); return (a ? a.getLastRow() : 0) + '|' + (b ? b.getLastRow() : 0); }, n0, input;
+    // baca di bawah kunci (beberapa detik) → hitung tanpa kunci → tulis kolom otomatis di bawah kunci lagi
+    lock.waitLock(28000);
+    try {
+      if (!ss.getSheetByName('Kinerja & Peringatan Dini')) { try { var rr = ss.getSheetByName('RA-RI Termin'); setupKinerja_(ss, rr ? rr.getIndex() : ss.getSheets().length); } catch (err) { } }
+      input = readAll_(); n0 = rows0();
+    } finally { lock.releaseLock(true); }
     try { arAuditCounts_(input); } catch (err) { }
-    var res = ENGINE.compute(input);
+    res = ENGINE.compute(input);
+    lock = arLock_(); lock.waitLock(28000);
+    try {
+      if (rows0() !== n0) { arMarkDirtyQuiet_(); return { ok: true, deferred: true }; } // baris sumber bertambah selama menghitung → diulang oleh pembaruan berikutnya
+      if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
+      writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
+      writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
+      try { arRepairInvoiceDates_(ss); } catch (err) { }
+      try { arRepairPayDates_(ss); } catch (err) { }
+      if (daily) {
+        try { arHideArsip_(ss, {}); } catch (err) { }
+        if (!ss.getSheetByName(ENGINE.RAM.sheet)) { try { arSetupRaManual_(ss); } catch (err) { } }
+        if (!ss.getSheetByName('Rekap Tagihan Proyek')) { try { var kp1 = ss.getSheetByName('Kartu Piutang'); arSetupRekapTagihan_(ss, kp1 ? kp1.getIndex() : ss.getSheets().length); } catch (err) { } }
+        try { if (dp.getProperty('MPEL_LIMIT_V29') !== '1') { var mpl = ss.getSheetByName('Master Pelanggan'); if (mpl) ensureSchema_(mpl, ENGINE.MPEL, null, null); dp.setProperty('MPEL_LIMIT_V29', '1'); } } catch (err) { }
+        try { if (dp.getProperty('MPRO_POLA_V288') !== '1') { var mp8 = ss.getSheetByName('Master Proyek'); if (mp8) ensureSchema_(mp8, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); dp.setProperty('MPRO_POLA_V288', '1'); } } catch (err) { }
+        if (opt.format) arFormatSourceSheets_(ss);
+        else { try { if (dp.getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); dp.setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
+        try { if (dp.getProperty('REG_HO_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'), lp7 = ss.getSheetByName('Log Penerimaan'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); if (lp7) ensureSchema_(lp7, ENGINE.LOG, null, 6); dp.setProperty('REG_HO_V287', '1'); } } catch (err) { }
+      }
+    } finally { lock.releaseLock(true); }
+    // ---- fase 2: tanpa kunci utama
     arEnrichReports_(res);
-    try { var cj = JSON.stringify(arDashboardCharts_(res)); if (cj.length < 8500) arProps_().setProperty('DASH_CHARTS', cj); } catch (err) { }
-    try { arProps_().setProperty('REPORT_TIME', arNow_()); } catch (err) { }
-    if (res.ctx.memo && res.ctx.memo.changed) writeMemo_(ss.getSheetByName(ENGINE.MEMO.sheet), res.ctx.memo.rows);
-    writeAutoColumns_(ss.getSheetByName('Monitoring Invoice'), ENGINE.REG, ENGINE.REG_ALIAS, res.regOut);
-    writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
-    try { arHideArsip_(ss, {}); } catch (err) { } // versi sebelumnya menyembunyikan baris ARSIP: tampilkan kembali (kini dipindah lewat menu)
-    // v2.8.7: satu laporan gagal tidak menghentikan laporan lain (sebelumnya error di Kartu Piutang membuat Rekap Invoice Keluar dst. tidak diperbarui)
-    var repErr = [];
-    if (!ss.getSheetByName(ENGINE.RAM.sheet)) { try { arSetupRaManual_(ss); } catch (err) { } }
-    if (!ss.getSheetByName('Rekap Tagihan Proyek')) { try { var kp1 = ss.getSheetByName('Kartu Piutang'); arSetupRekapTagihan_(ss, kp1 ? kp1.getIndex() : ss.getSheets().length); } catch (err) { } }
-    REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && res.reports[n]) { try { writeReport_(sh, res.reports[n], n); } catch (err) { repErr.push(n + ': ' + err.message); } } });
-    REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
-    ensureSelectors_(ss, res);
-    arWriteReconciliation_(res);
-    try { arExtendFilters_(ss); } catch (err) { }
-    try { arRepairInvoiceDates_(ss); } catch (err) { }
-    try { arRepairPayDates_(ss); } catch (err) { }
-    try { if (arProps_().getProperty('MPEL_LIMIT_V29') !== '1') { var mpl = ss.getSheetByName('Master Pelanggan'); if (mpl) ensureSchema_(mpl, ENGINE.MPEL, null, null); arProps_().setProperty('MPEL_LIMIT_V29', '1'); } } catch (err) { }
-    try { if (arProps_().getProperty('MPRO_POLA_V288') !== '1') { var mp8 = ss.getSheetByName('Master Proyek'); if (mp8) ensureSchema_(mp8, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); arProps_().setProperty('MPRO_POLA_V288', '1'); } } catch (err) { }
-    if (opt.format) arFormatSourceSheets_(ss);
-    else { try { if (arProps_().getProperty('REG_GROUP_V285') !== '1') { arGroupRegister_(ss); arProps_().setProperty('REG_GROUP_V285', '1'); } } catch (err) { } }
-    // v2.8.7: kolom ADJUSTMENT DPP (DASAR PPN SAJA) di Monitoring Invoice — ditambahkan sekali (di ujung kanan)
-    try { if (arProps_().getProperty('REG_HO_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'), lp7 = ss.getSheetByName('Log Penerimaan'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); if (lp7) ensureSchema_(lp7, ENGINE.LOG, null, 4); arProps_().setProperty('REG_HO_V287', '1'); } } catch (err) { }
-    var aktif = false; try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; }
+    try { var cj = JSON.stringify(arDashboardCharts_(res)); if (cj.length < 8500) dp.setProperty('DASH_CHARTS', cj); } catch (err) { }
+    try { dp.setProperty('REPORT_TIME', arNow_()); } catch (err) { }
+    var repErr = [], hashes = {}; try { hashes = JSON.parse(dp.getProperty('RP_HASH') || '{}'); } catch (err) { }
+    REPORT_SHEETS.forEach(function (n) {
+      var sh = ss.getSheetByName(n); if (!sh || !res.reports[n]) return;
+      var h = ''; try { h = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(res.reports[n]))); } catch (err) { }
+      if (!opt.format && !daily && h && hashes[n] === h) return; // isi laporan sama → tidak ditulis ulang
+      try { writeReport_(sh, res.reports[n], n); hashes[n] = h; } catch (err) { delete hashes[n]; repErr.push(n + ': ' + err.message); }
+    });
+    try { dp.setProperty('RP_HASH', JSON.stringify(hashes)); } catch (err) { }
+    if (daily) REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n), rp = res.reports[n]; if (sh && rp && rp.charts) { try { ensureCharts_(sh, rp.charts); } catch (err) { } } });
+    try { ensureSelectors_(ss, res); } catch (err) { }
+    try { arWriteReconciliation_(res); } catch (err) { }
+    if (daily) { try { arExtendFilters_(ss); } catch (err) { } }
+    var aktif = true; if (daily) { try { aktif = ScriptApp.getProjectTriggers().some(function (t) { return t.getHandlerFunction() === 'onEditInstalled'; }); } catch (err) { aktif = true; } }
     var stamp = 'Diperbarui otomatis: ' + Utilities.formatDate(new Date(), TZ, 'dd MMM yyyy HH:mm') + ' · Sistem AR CSU v' + ENGINE.VERSION + ' · dirancang & dikembangkan oleh ' + PENGEMBANG +
       (aktif ? '' : '   ⚠ OTOMATISASI BELUM AKTIF — jalankan menu AR CSU ▸ Aktifkan otomatisasi agar pilihan bulan/NPP langsung memperbarui laporan');
     REPORT_SHEETS.forEach(function (n) { var sh = ss.getSheetByName(n); if (sh) sh.getRange('A3').setValue(stamp); });
-    // v2.7.1: keterangan baris 2 laporan yang berubah istilah — ditulis ulang bila berbeda (aman dijalankan berulang)
-    Object.keys(REPORT_SUB_).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && String(sh.getRange('A2').getValue()) !== REPORT_SUB_[n]) sh.getRange('A2').setValue(REPORT_SUB_[n]); });
-    ss.getSheetByName('Monitoring Invoice').getRange('A4').setValue(stamp);
-    ss.getSheetByName('Log Penerimaan').getRange('A3').setValue(stamp);
+    if (daily) Object.keys(REPORT_SUB_).forEach(function (n) { var sh = ss.getSheetByName(n); if (sh && String(sh.getRange('A2').getValue()) !== REPORT_SUB_[n]) sh.getRange('A2').setValue(REPORT_SUB_[n]); });
+    try { ss.getSheetByName('Monitoring Invoice').getRange('A4').setValue(stamp); ss.getSheetByName('Log Penerimaan').getRange('A3').setValue(stamp); } catch (err) { }
     SpreadsheetApp.flush();
+    if (daily) try { dp.setProperty('RB_DAY', today); } catch (err) { }
     LAST_RES_ = res;
     if (repErr.length) throw new Error('Laporan gagal ditulis — ' + repErr.join(' · '));
     return { ok: true, issues: res.issues.length };
-  } finally { lock.releaseLock(); }
+  } finally { arReportRelease_(); }
 }
+/** penanda "pembaruan laporan sedang berjalan" (kedaluwarsa 8 menit bila eksekusi terhenti) */
+function arReportClaim_() {
+  var l = LockService.getScriptLock(); if (AR28_LOCK_DEPTH_ === 0 && !l.tryLock(10000)) return false;
+  try { var sp = PropertiesService.getScriptProperties(), v = +(sp.getProperty('REPORT_RUN') || 0); if (v && Date.now() - v < 8 * 60000) return false; sp.setProperty('REPORT_RUN', String(Date.now())); return true; }
+  finally { if (AR28_LOCK_DEPTH_ === 0) l.releaseLock(); }
+}
+function arReportRelease_() { try { PropertiesService.getScriptProperties().deleteProperty('REPORT_RUN'); } catch (e) { } }
 var LAST_RES_ = null;
 var REPORT_SUB_ = {
   'Pareto': 'Daftar tagihan yang harus cair. Usulan AR, rencana tgl cair & catatan diisi di aplikasi ▸ Otorisasi Dokumen AR ▸ Lembar Validasi Rencana Cair. Kolom 🔒 tidak diketik manual; kolom VALIDASI SECTION HEAD F&HR 🔒 terisi otomatis saat Section Head F&HR menyetujui lembar.',
@@ -489,6 +514,18 @@ function ensureCharts_(sh, specs) {
   });
 }
 
+/** v2.10 tutup manual dari aplikasi (sebelumnya diketik di sheet): TUTUP MANUAL = CLOSE MANUAL + alasan → lembar penutupan diajukan dari aplikasi */
+function apiTutupManual(nomor, alasan) { arRequireMaker_();
+  alasan = String(alasan || '').trim(); if (alasan.length < 10) throw new Error('Isi alasan tutup manual (min. 10 karakter).');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, nomor, map);
+    if (!row) throw new Error('Invoice ' + nomor + ' tidak ditemukan.');
+    if (!map.tutup || !map.alasan_tutup) throw new Error('Kolom TUTUP MANUAL belum ada di sheet Monitoring Invoice.');
+    sh.getRange(row, map.tutup).setValue('CLOSE MANUAL'); sh.getRange(row, map.alasan_tutup).setNumberFormat('@').setValue(alasan.slice(0, 300));
+  } finally { lock.releaseLock(); }
+  return { ok: true, background: arQueueAfterSave_().background };
+}
 function setRegisterValue_(nomor, key, value) {
   var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
   var row = findRegisterRow_(sh, nomor, map);
@@ -1346,7 +1383,7 @@ function archiveFolder_(P, kind, month) {
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
-  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak', BG: 'Bank Garansi' }[kind] || 'Lainnya';
+  var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak', BG: 'Bank Garansi', KONTRAK: 'Kontrak Proyek' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
   return sub(sub(f, y), ('0' + mm).slice(-2) + ' ' + ENGINE.MONTHS[mm - 1] + ' ' + y);
 }
@@ -1481,7 +1518,7 @@ function apiSuratSimpan(m) {
       var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1; roomFor_(sh, at);
       sh.getRange(at, 1, 1, lc).setValues([row]);
     } finally { lock.releaseLock(); }
-    if (asal) suratUpdate_(asal.nomor, { ganti: nomor }); else { try { rebuildAll_(); } catch (e) { } }
+    if (asal) suratUpdate_(asal.nomor, { ganti: nomor }); else { try { arMarkDirty_(); } catch (e) { } }
   }
   var warn = mode === 'baru' ? '' : arNotify_((mode === 'revisi' ? 'Revisi surat ' + nomor + ' Rev.' + rev : 'Surat ' + asal.nomor + ' diganti ' + nomor) + ' — ' + d.nama,
     ['Pelanggan: ' + d.nama, mode === 'revisi' ? 'Surat ' + nomor + ' direvisi sebelum dikirim (Rev.' + rev + ').' : 'Surat ' + asal.nomor + ' tanggal ' + asal.tgl + ' (sudah diterima pelanggan) diganti surat ' + nomor + ' tanggal ' + tgl + '.',
@@ -1502,7 +1539,7 @@ function suratUpdate_(nomor, fields) {
     if (map.ganti && String(sh.getRange(at, map.ganti).getValue()).trim()) throw new Error('Letter ' + nomor + ' has already been replaced by letter ' + sh.getRange(at, map.ganti).getValue() + '.');
     ENGINE.SURAT.cols.forEach(function (c) { if (fields[c[0]] !== undefined && map[c[0]]) sh.getRange(at, map[c[0]]).setNumberFormat(colFmt_(c) === 'date' ? NUMF.date : '@').setValue(arSafeCell_(toCell_(fields[c[0]], colFmt_(c)))); });
   } finally { lock.releaseLock(); }
-  try { rebuildAll_(); } catch (e) { }
+  try { arMarkDirty_(); } catch (e) { }
   return plain_({ ok: true });
 }
 /** tanggapan pelanggan (surat balasan / email / telepon / rapat), opsional janji bayar → surat berikutnya ditahan sampai janji */
@@ -1874,11 +1911,9 @@ function syncRun_(opt, out) {
     var sl = arLock_();
     // v2.8.7: sistem sibuk atau satu laporan gagal tidak lagi membatalkan pengiriman ke file Akuntansi / P&E / Pajak
     if (sl.tryLock(30000)) {
-      try {
-        try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
-        try { rebuildAll_(); } catch (e) { out.err.push('reports: ' + e.message); }
-        res = LAST_RES_ || compute_();
-      } finally { sl.releaseLock(); }
+      try { try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); } } finally { sl.releaseLock(); }
+      try { rebuildAll_(); } catch (e) { out.err.push('reports: ' + e.message); }
+      res = LAST_RES_ || compute_();
     } else { out.err.push('system busy — verification pull postponed to the next schedule'); res = compute_(); }
   }
   try { out.memo = pushMemorial_(res, opt.months); } catch (e) { out.err.push('Accounting file: ' + e.message); }
