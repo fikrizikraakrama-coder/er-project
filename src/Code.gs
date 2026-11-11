@@ -949,7 +949,7 @@ function apiBootstrap() {
   b.access = access; b.summary = arDashboard_(res.ctx); b.sheetUrl = arSpreadsheet_().getUrl();
   // v2.9: status Rencana Termin bulan berjalan & bulan depan (notifikasi Section Head / AR)
   var nyM = +b.today.slice(5, 7) + 1, nyY = +b.today.slice(0, 4); if (nyM > 12) { nyM = 1; nyY++; }
-  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', finalAt: p.finalAt || '' }; });
+  b.raPlans = [b.today.slice(0, 7), nyY + '-' + ('0' + nyM).slice(-2)].map(function (ref) { var p = raPlan_(ref) || {}; return { ref: ref, st: p.st || '', note: p.note || '', back: p.back || '', sentAt: p.sentAt || '', subAt: p.subAt || '', finalAt: p.finalAt || '', rev: !!p.rev }; });
   var out = plain_(b); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('buka aplikasi', Date.now() - t0, 'hitung');
   return out;
 }
@@ -1138,11 +1138,15 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
     if (kind === 'TUTUP' && !String(d.alasan || '').trim()) throw new Error('Fill in ALASAN TUTUP MANUAL in the Monitoring Invoice sheet first.');
     if ((kind === 'VAL') && !d.items.filter(function (x) { return !x.gone; }).length) throw new Error('No open invoices for ' + d.label + '.');
     var raSh = kind === 'VAL' && extra && extra.flow === 'SH';
-    if (raSh) { // v2.9: alur Section Head — AR hanya mengajukan setelah Section Head mengirim pilihannya; cicilan, alasan & penjelasan dari draf
+    if (raSh) { // v2.9.5: AR menyusun RA (keputusan, cicilan, tanggal) lalu mengajukan ke Section Head untuk approval; cicilan, alasan & penjelasan dari draf
       var rp = raPlan_(String(d.ref));
-      if (!rp || rp.st !== 'AR') throw new Error('Section Head has not sent the invoice selection for ' + d.label + ' yet (or it was returned).');
+      if (!rp || !rp.init) throw new Error('Save the RA draft for ' + d.label + ' first.');
+      if (rp.st === 'WAIT') throw new Error('RA ' + d.label + ' is already submitted and awaits Section Head approval.');
       extra.plan = { cic: rp.cic || {}, al: rp.al || {}, pj: rp.pj || {}, note: rp.note || '' };
-      (extra.items || []).forEach(function (x) { delete x.u; delete x.c; delete x.p; }); // keputusan tetap milik Section Head (kolom USULAN), AR hanya tanggal
+      extra.dasar = rp.rev ? String(rp.dasar || '') : ''; extra.tglRapat = rp.rev && rp.dasar === 'PUSAT' ? String(rp.tglRapat || '') : '';
+      if (rp.rev && !extra.dasar) throw new Error('Select the revision basis (head-office meeting or internal correction).');
+      if (extra.dasar === 'PUSAT' && !/^\d{4}-\d{2}-\d{2}$/.test(extra.tglRapat)) throw new Error('Enter the head-office meeting date.');
+      (extra.items || []).forEach(function (x) { delete x.c; delete x.p; });
       extra.noDraft = true;
     }
     if (kind === 'VAL' && extra && extra.items) {
@@ -1172,7 +1176,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
       var als = String((extra && extra.alasan) || '').trim(); if (als.length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
     }
     var snap = { label: d.label, nilai: d.nilai || d.total || 0 };
-    if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
+    if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); if (raSh) snap.ap = 1; /* v2.9.5: menunggu approval Section Head */ try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
     if (kind === 'VALX') snap = { label: d.label, nilai: 0, alasan: String(extra.alasan).trim(), list: d.list };
     if (kind === 'BATAL') snap = { label: d.label, nilai: d.nilai, nomor: d.inv.nomor, pelanggan: d.inv.pelanggan, alasan: String(extra.alasan).trim(), pengganti: String(extra.pengganti || '').trim() };
     if (kind === 'REVP') snap = { label: d.label, nilai: d.nilai, ids: d.ids, key: d.key, sebab: String(extra.sebab || '').trim().slice(0, 60), alasan: String(extra.alasan).trim() };
@@ -1185,15 +1189,14 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
       nilai: Math.round(snap.nilai || 0), sidik: d.fp, oleh: me, status: 'MENUNGGU', putus_oleh: '', putus_waktu: '', catatan: '', kode: '', data: JSON.stringify(snap) };
     // v2.8.7: jenis yang disahkan lewat tanda tangan basah Section Head (Parameter PERSETUJUAN_TTD_BASAH) langsung tercatat DISETUJUI;
     // tidak atas nama Section Head secara elektronik (PUTUS OLEH kosong, tanpa cap elektronik) — bukti persetujuan = tanda tangan basah di lembar cetak
-    if (ENGINE.basahKinds(P).indexOf(kind) >= 0) arBasah_(rec, now);
-    if (raSh) { var rpF = raPlan_(String(d.ref)) || {}; raFinal_(rec, snap, rpF, now); raMarkReplaced_(A, rec, String(d.ref)); } // v2.9.3: RA langsung final saat AR mengajukan
+    if (ENGINE.basahKinds(P).indexOf(kind) >= 0 && !raSh) arBasah_(rec, now);
     var lc = Math.max(A.sh.getLastColumn(), ENGINE.APPR.cols.length), arr = []; for (var k = 0; k < lc; k++) arr.push('');
     ENGINE.APPR.cols.forEach(function (c) { var j = A.map[c[0]]; if (j) arr[j - 1] = rec[c[0]]; });
     var row = lastDataRow_(A.sh, ENGINE.APPR.firstRow, [A.map.id]) + 1; roomFor_(A.sh, row);
     A.sh.getRange(row, 1, 1, lc).setNumberFormat('@').setValues([arr]);
     if (A.map.nilai) A.sh.getRange(row, A.map.nilai).setNumberFormat(NUMF.money).setValue(rec.nilai);
     out = { ok: true, id: rec.id, label: rec.label, status: rec.status, basah: rec.status === 'DISETUJUI' };
-    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'DONE'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; rp2.finalAt = now; rp2.back = ''; raPlanSet_(String(d.ref), rp2); }
+    if (raSh) { var rp2 = raPlan_(String(d.ref)) || {}; rp2.st = 'WAIT'; rp2.subAt = now; rp2.subBy = me; rp2.apv = rec.id; rp2.back = ''; raPlanSet_(String(d.ref), rp2); }
   } finally { lock.releaseLock(); }
   // v2.8.6: laporan diperbarui di latar belakang (aplikasi memanggil apiAfterSave tanpa menunggu) — pengajuan langsung selesai
   out.background = arQueueAfterSave_().background; arPerfLog_('ajukan ' + kind, Date.now() - tP, '');
@@ -1260,7 +1263,7 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_(); 
     var data = null; try { data = JSON.parse(String(r.data || '')); } catch (e) { data = null; }
     // v2.9: alur Section Head — keputusan = pilihan Section Head yang sudah ada di lembar (AR hanya menambah tanggal)
     if (kind === 'VAL' && data && data.flow === 'SH' && st === 'DISETUJUI' && !(keputusanItem && keputusanItem.length)) keputusanItem = (data.items || []).map(function (it) { return { nomor: it.nomor, d: it.u || 'N', a: it.alasan || '' }; });
-    if (kind === 'VAL' && data && data.flow === 'SH') { var rp3 = raPlan_(String(r.ref)) || {}; if (st === 'DISETUJUI') { rp3.st = 'DONE'; rp3.back = ''; } else { rp3.st = 'SH'; rp3.back = 'Ditolak Section Head: ' + String(catatan || '').replace(/^\[DELEGASI[^\]]*\]\s*/, ''); } rp3.decAt = now; raPlanSet_(String(r.ref), rp3); }
+    if (kind === 'VAL' && data && data.flow === 'SH') { var rp3 = raPlan_(String(r.ref)) || {}; if (st === 'DISETUJUI') { rp3.st = 'DONE'; rp3.back = ''; rp3.rev = false; rp3.finalAt = now; rp3.apv = r.id; } else { rp3.st = 'AR'; rp3.back = 'Dikembalikan Section Head: ' + String(catatan || '').replace(/^\[DELEGASI[^\]]*\]\s*/, ''); } rp3.decAt = now; raPlanSet_(String(r.ref), rp3); }
     if (kind === 'VAL' && st === 'DISETUJUI' && data && data.v === 2) {
       var err = ENGINE.valApplyDecisions(data, keputusanItem || []);
       if (err) throw new Error(err);
@@ -2247,7 +2250,7 @@ function raMarkReplaced_(A, rec, ref) {
 /** pengajuan RA alur Section Head yang dibuat sebelum v2.9.3 dan masih MENUNGGU → difinalkan otomatis saat Rencana Termin dibuka */
 function raAutoFinal_(ref) {
   var A = apprRows_(), r = A.rows.filter(function (x) { return String(x.jenis).toUpperCase() === ENGINE.DOC.VAL && String(x.ref) === ref && String(x.status).toUpperCase() === 'MENUNGGU'; }).pop();
-  if (!r) return false; var data = null; try { data = JSON.parse(String(r.data || '')); } catch (e) { } if (!data || data.flow !== 'SH') return false;
+  if (!r) return false; var data = null; try { data = JSON.parse(String(r.data || '')); } catch (e) { } if (!data || data.flow !== 'SH' || data.ap) return false; // v2.9.5: pengajuan alur approval tidak difinalkan otomatis
   var lock = arLock_(); lock.waitLock(28000);
   try {
     var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), rp = raPlan_(ref) || {};
@@ -2260,37 +2263,36 @@ function raAutoFinal_(ref) {
   arQueueAfterSave_(); arDiag_('RA', 'Pengajuan ' + r.id + ' (' + ref + ') difinalkan otomatis (alur v2.9.3, tanpa langkah persetujuan)');
   return true;
 }
-/** action: sh-save · sh-send (Section Head) · ar-save · ar-back (AR). pl: { items:[{nomor,u}|{nomor,d}], cic:{key:{pct,ke,kn}}, al:{key:alasan}, pj:{key:teks}, note } */
+/** v2.9.5: RA disusun AR (keputusan, cicilan, alasan, penjelasan, tanggal) → diajukan ke Section Head (apiSubmit VAL flow SH) → approve / kembalikan.
+ *  action: ar-save (simpan draf) · ar-pull (tarik pengajuan yang menunggu) · ar-cancelrev (batal revisi; draf kembali ke RA yang berlaku).
+ *  pl: { items:[{nomor,u,d}], cic:{key:{pct,ke,kn}}, al:{key:alasan}, pj:{key:teks}, note, rev, dasar, tglRapat } */
 function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
   ref = String(ref || ''); if (!/^\d{4}-\d{2}$/.test(ref)) throw new Error('Invalid month.');
   pl = pl || {}; action = String(action || '');
   var lock = arLock_(), tP = Date.now(); lock.waitLock(28000); var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), R = raPlanRole_(P, me, res.ctx.today), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
-    var pend = res.ctx.appr.filter(function (r) { return r.jenis === ENGINE.DOC.VAL && String(r.ref) === ref && r.status === 'MENUNGGU'; })[0];
-    if (pend) throw new Error('The plan for ' + ref + ' is already submitted (' + pend.id + ') and awaits Section Head approval.');
-    var rp = raPlan_(ref) || { st: 'SH' }, nm = function (x) { return ENGINE.normInv(x); };
-    if (/^sh-/.test(action)) {
-      if (!R.sh) throw new Error('Only the Section Head selects the invoices to be collected.');
-      var items = (pl.items || []).map(function (x) { return { nomor: x.nomor, u: /^[CSHN]$/.test(String(x.u || '')) ? x.u : '' }; });
+    if (!R.ar) throw new Error('Only the AR Officer prepares and revises the RA.');
+    var A = apprRows_(), pend = A.rows.filter(function (r) { return String(r.jenis).toUpperCase() === ENGINE.DOC.VAL && String(r.ref) === ref && String(r.status).toUpperCase() === 'MENUNGGU'; })[0];
+    var rp = raPlan_(ref) || { st: 'AR' }, nm = function (x) { return ENGINE.normInv(x); };
+    if (action === 'ar-pull') {
+      if (!pend) throw new Error('There is no pending RA submission for ' + ref + '.');
+      A.sh.getRange(pend._row, A.map.status).setValue('DIBATALKAN'); A.sh.getRange(pend._row, A.map.catatan).setNumberFormat('@').setValue('Ditarik kembali AR ' + now + ' untuk diubah');
+      rp.st = 'AR'; rp.back = ''; rp.pullAt = now;
+    } else if (action === 'ar-cancelrev') {
+      if (pend) throw new Error('The revision is already submitted (' + pend.id + '). Withdraw it first.');
+      if (pl.items && pl.items.length) writeUsulan_({ items: pl.items.map(function (x) { return { nomor: x.nomor, u: /^[CSHN]$/.test(String(x.u || '')) ? x.u : '', d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')) ? x.d : '' }; }), noDraft: true });
+      if (pl.cic) rp.cic = pl.cic;
+      rp.st = 'DONE'; rp.rev = false; rp.dasar = ''; rp.tglRapat = ''; rp.back = '';
+    } else if (action === 'ar-save') {
+      if (pend) throw new Error('RA ' + ref + ' is already submitted (' + pend.id + ') and awaits Section Head approval. Withdraw it first to change it.');
+      var items = (pl.items || []).map(function (x) { return { nomor: x.nomor, u: /^[CSHN]$/.test(String(x.u || '')) ? x.u : '', d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')) ? x.d : '' }; });
       var cic = {}; Object.keys(pl.cic || {}).forEach(function (k) { var c = pl.cic[k] || {}, p = Number(c.pct); if (p > 0 && p < 100) cic[nm(k)] = { pct: Math.round(p * 100) / 100, ke: Math.max(1, Number(c.ke) || 1), kn: Math.max(2, Number(c.kn) || 2) }; });
       var al = {}; Object.keys(pl.al || {}).forEach(function (k) { var t = String(pl.al[k] || '').trim().slice(0, 200); if (t) al[nm(k)] = t; });
       var pj = {}; Object.keys(pl.pj || {}).forEach(function (k) { var t = String(pl.pj[k] || '').trim().slice(0, 120); if (t) pj[nm(k)] = t; });
-      if (action === 'sh-send') {
-        var nh = items.filter(function (x) { return x.u === 'H' && !al[nm(x.nomor)]; }); if (nh.length) throw new Error('Enter the reason for ' + nh.length + ' invoice(s) "Dalam Proses Penyelesaian" (' + nh.slice(0, 3).map(function (x) { return x.nomor; }).join(', ') + ').');
-        if (!items.some(function (x) { return x.u === 'C'; })) throw new Error('Select at least one invoice as ✓ RA.');
-      }
-      writeUsulan_({ items: items, noDraft: true });
-      rp.cic = cic; rp.al = al; rp.pj = pj; rp.note = String(pl.note || '').trim().slice(0, 500); rp.init = true; rp.shAt = now; rp.shBy = me;
-      rp.st = action === 'sh-send' ? 'AR' : 'SH'; if (action === 'sh-send') { rp.sentAt = now; rp.back = ''; }
-    } else if (/^ar-/.test(action)) {
-      if (!R.ar) throw new Error('Only the AR Officer fills the planned collection dates.');
-      if (rp.st !== 'AR') throw new Error('The Section Head has not sent the selection for ' + ref + ' yet.');
-      if (action === 'ar-back') { var bn = String(pl.note || '').trim(); if (bn.length < 5) throw new Error('Write a note for the Section Head (at least 5 characters).'); rp.st = 'SH'; rp.back = 'Dikembalikan AR: ' + bn.slice(0, 500); rp.backAt = now; }
-      var itd = (pl.items || []).map(function (x) { return { nomor: x.nomor, d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')) ? x.d : '' }; });
-      if (itd.length) writeUsulan_({ items: itd, noDraft: true });
-      if (pl.pj) { rp.pj = rp.pj || {}; Object.keys(pl.pj).forEach(function (k) { var t = String(pl.pj[k] || '').trim().slice(0, 120); if (t) rp.pj[nm(k)] = t; else delete rp.pj[nm(k)]; }); }
-      rp.arAt = now; rp.arBy = me;
+      if (items.length) writeUsulan_({ items: items, noDraft: true });
+      rp.cic = cic; rp.al = al; rp.pj = pj; rp.note = String(pl.note || '').trim().slice(0, 500); rp.init = true; rp.arAt = now; rp.arBy = me; rp.st = 'AR';
+      rp.rev = !!pl.rev; rp.dasar = rp.rev && /^(PUSAT|INTERNAL)$/.test(String(pl.dasar || '')) ? String(pl.dasar) : ''; rp.tglRapat = rp.dasar === 'PUSAT' && /^\d{4}-\d{2}-\d{2}$/.test(String(pl.tglRapat || '')) ? String(pl.tglRapat) : '';
     } else throw new Error('Unknown action.');
     raPlanSet_(ref, rp);
     out = { ok: true, at: now, plan: rp };

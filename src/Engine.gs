@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.9.3 · 03-11-2026';
+  var VERSION = '2.9.5 · 11-11-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -2459,7 +2459,7 @@ var ENGINE = (function () {
     (opt.items || []).forEach(function (x) { if (x.p) pm[normInv(x.nomor)] = x.p; });
     var sh = opt.flow === 'SH', pl = opt.plan || {}, cic = pl.cic || {}, al = pl.al || {}, pj = pl.pj || {};
     var snap = { v: 2, label: d.label, rev: d.revNext, fp0: d.fp, nilai: d.tot.C.nilai, dasar: S(opt.dasar), tglRapat: S(opt.tglRapat), items: d.items.filter(function (x) { return !x.gone; }).map(function (x) {
-      var p = S(pm[normInv(x.nomor)]); if (pusat && x.cur === 'C' && x.usul !== 'C') p = '-'; if (p === '+' && (x.usul !== 'C' && x.usul !== 'S')) p = '';
+      var p = S(pm[normInv(x.nomor)]); if (pusat && x.cur === 'C' && x.usul !== 'C') p = '-'; if (pusat && sh && x.usul === 'C' && x.cur !== 'C') p = '+'; if (p === '+' && (x.usul !== 'C' && x.usul !== 'S')) p = '';
       var o = { nomor: x.nomor, pelanggan: x.pelanggan, npp: x.npp, proyek: x.proyek, invke: x.invke, tgl: x.tgl, jt: x.jt, rencana: x.rencana, grp: x.grp, nilai: rnd(x.nilai), sisa: rnd(x.sisa),
         status: x.status, ua: x.ua, u: x.usul, carry: x.carry, prev: x.prev, def: x.def, defA: x.defA, paid: rnd(x.paid), paidTgl: x.paidTgl, rtgl: x.rtgl, cat: x.catatan, p: p, cur: x.cur };
       if (sh) { // v2.9: pilihan Section Head + cicilan (DPP − PPh) × persen; penjelasan tercetak; alasan "Dalam Proses Penyelesaian"
