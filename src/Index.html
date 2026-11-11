@@ -4171,9 +4171,12 @@ function buildNav(maker) {
     : viewer ? [['exec', 'home', 'Summary'], ['dashboard', 'grid', 'Overview'], ['kp', 'book', 'Kartu'], ['plan', 'cal', 'Plan'], ['dok', 'fold', 'Reports']] : [['setuju', 'shield', 'Approvals', 'apBadgeM'], ['plan', 'cal', 'RA'], ['kp', 'book', 'Kartu'], ['dashboard', 'grid', 'Overview'], ['dok', 'fold', 'Month-End']];
   $('mNav').innerHTML = MN.map(function (n) { return '<button type="button" data-mode="' + n[0] + '">' + ico(n[1]) + esc(n[2]) + (n[3] ? '<span class="tb-b" id="' + n[3] + '" hidden></span>' : '') + '</button>'; }).join('');
   document.querySelectorAll('#tbNav [data-mode],#mNav [data-mode]').forEach(function (b) { b.onclick = function () { ddClose(); if (/^act:/.test(b.dataset.mode)) { navAct(b.dataset.mode.substring(4)); return; } if (STACK) closePackage(); setMode(b.dataset.mode); }; });
-  document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; }; });
+  document.querySelectorAll('#tbNav [data-g]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); var d = $('dd-' + b.dataset.g), was = !d.hidden; ddClose(); d.hidden = was; if (!was) ddPlace(b, d); }; });
   navShow(MODE);
 }
+/* v2.9.9: menu atas bisa digeser (overflow) → dropdown ditempatkan fixed agar tidak terpotong */
+function ddPlace(btn, d) { var r = btn.getBoundingClientRect(), w = d.offsetWidth || 330; d.style.position = 'fixed'; d.style.top = Math.round(r.bottom + 6) + 'px'; d.style.left = Math.round(Math.max(8, Math.min(r.left, window.innerWidth - w - 8))) + 'px'; d.style.zIndex = 80; }
+window.addEventListener('resize', function () { ddClose(); }); document.addEventListener('scroll', function (e) { if (e.target && e.target.id === 'tbNav') document.querySelectorAll('.tb-dd').forEach(function (d) { if (!d.hidden) { var bt = document.querySelector('#tbNav [data-g="' + d.id.slice(3) + '"]'); if (bt) ddPlace(bt, d); } }); }, true);
 function ddClose() { document.querySelectorAll('.tb-dd').forEach(function (d) { d.hidden = true; }); }
 function bindTop() {
   document.addEventListener('click', function (e) { if (!e.target.closest('.tb-dd')) ddClose(); });
