@@ -164,7 +164,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
   #print-root .page{box-shadow:none;margin:0;break-after:page;page-break-after:always}
   #print-root .page:last-child{break-after:avoid;page-break-after:avoid}
   #print-root .pg-kw{page:kw}
-  #print-root .pg-inv,#print-root .pg-bap{page:po}
+  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-att{page:po}
 }
 /* ====================================================== v2: panel, persetujuan, dokumen internal */
 .modes button{font-size:12px;padding:9px 4px 10px}
@@ -1023,6 +1023,41 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .pg-bgm .bgm-rp{display:inline-block;width:19mm;padding:0}.pg-bgm .bgm-am{display:inline-block;min-width:24mm;text-align:right}
 .pg-bgm .bgm-l{margin-top:4mm}.pg-bgm .bgm-l table td.st{width:13mm;padding-left:6mm}.pg-bgm .bgm-l table td.k{width:8mm}
 .pg-bgm .bgm-s{margin:3mm 0 0 133mm}.pg-bgm .bgm-s .sp{height:19mm}
+
+/* ====================================================== v2.10.2: Catat Penerimaan — halaman lebar, panel ringkasan di kanan */
+.pw-seg button{white-space:nowrap}.seg button small{display:block;font-weight:500;font-size:10.5px;opacity:.8;margin-top:1px}
+.pw-sub{font-weight:500;color:#6A7A8E;font-size:12px}
+.pw-ok{margin-left:auto;font-style:normal;font-size:11.5px;font-weight:700;color:#17733F;background:#EAF7EF;border-radius:10px;padding:2px 9px}
+.row4{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.pw-sr{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.pw-sr input{flex:1 1 220px;min-width:0}.pw-sr .btn{flex:0 0 auto;width:auto}.pw-sr .linkbtn{flex:0 0 auto}.pw-auto{border-color:#0F6E78!important;color:#0F6E78!important}
+#pjTrf fieldset.stp{min-width:0}.pw-tw{overflow-x:auto}.pw-t th{font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:#6A7A8E;text-align:left;padding:7px 6px;border-bottom:1px solid #E5EAF0;font-weight:700;white-space:nowrap}.pw-t th.n,.pw-t td.n{text-align:right}
+.pw-t td{padding:8px 6px}.pw-t td.pw-in{min-width:170px}.pw-t td.pw-in input.num{border:1.5px solid #0F6E78;background:#F2FAFA;text-align:right}
+.pw-opt{display:flex;gap:6px;align-items:center;justify-content:flex-end;margin-top:4px}.pw-opt select{width:auto!important;padding:3px 6px!important;font-size:11.5px}.pw-opt label{margin:0!important;font-size:11.5px;font-weight:500;white-space:nowrap;display:flex;gap:4px;align-items:center}.pw-opt input{width:auto!important;margin:0}
+.pw-st{display:inline-block;font-size:11px;font-weight:800;border-radius:9px;padding:2px 8px;background:#FFF4D6;color:#8A5A00}.pw-st.ok{background:#EAF7EF;color:#17733F}.pw-st.bad{background:#FDECEA;color:#B42318}
+.pw-tot td{font-weight:800;background:#F7F9FC;border-top:1px solid #DCE3EB}
+.pw-lk{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:12px;flex-wrap:wrap}.pw-att{color:#0F6E78;font-weight:600}.pw-miss{color:#B45309;font-weight:600}
+.pw-sum,.pw-kp{background:#fff;border:1px solid #DFE6EE;border-radius:12px;padding:12px 14px}.pw-sum h4{margin:0 0 6px;font-size:13.5px}
+.pw-l{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:12.5px;border-bottom:1px dashed #E3E8EF}.pw-l b{font-variant-numeric:tabular-nums}.pw-l.big{font-size:14px;border:0}.pw-l.big b{font-size:17px}.pw-l.g{color:#17733F;font-weight:700;border:0}
+.pw-bal{margin-top:8px;border-radius:9px;padding:8px 11px;background:#F4F7FA;display:flex;justify-content:space-between;align-items:center;font-weight:800}.pw-bal small{display:block;font-weight:500;font-size:10.5px;color:#5B6B80}.pw-bal.ok{background:#EAF7EF;color:#17733F}.pw-bal.bad{background:#FDECEA;color:#B42318}
+.pw-kp{margin-top:4px}.pw-kp small{display:block;color:#6A7A8E;font-size:11px;margin-bottom:3px}
+#payKp .linkbtn{margin-top:4px}#paySum,#payKp{display:none}
+@media (min-width:1001px){
+  body.payw:not(.stack) #app{grid-template-columns:minmax(0,1fr)}
+  body.payw:not(.stack) main{position:fixed;top:64px;left:50%;transform:translateX(-50%);width:min(900px,90vw);z-index:40;pointer-events:none;overflow:visible}
+  body.payw:not(.stack) main>*:not(#arRecovery):not(#arNotice):not(#arVersion){display:none!important}
+  body.payw:not(.stack) main>.note{pointer-events:auto}
+  body.payw:not(.stack) aside{display:grid;grid-template-columns:minmax(0,1fr) 370px;grid-template-rows:minmax(0,1fr);border-right:0}
+  body.payw:not(.stack) #mode-bayar{padding:18px 26px 26px}
+  body.payw:not(.stack) #paySum,body.payw:not(.stack) #payKp{display:block}
+  body.payw:not(.stack) #act-bayar{position:static;overflow:auto;align-content:start;padding:18px 20px 22px;background:#F6F8FB;border-top:0;border-left:1px solid #E1E7EE;box-shadow:none;gap:10px}
+  body.payw:not(.stack) #act-bayar .fxbar{flex-direction:column-reverse;align-items:stretch}body.payw:not(.stack) #act-bayar .fxbar>span{display:none}
+  body.payw:not(.stack) #act-bayar .fxbar .btn{justify-content:center;margin:0;padding:11px 14px;font-size:14px}
+  body.payw .pw-hd{display:flex;align-items:flex-end;gap:16px;margin-bottom:12px}body.payw .pw-hd .fx-hd{flex:1}body.payw .pw-hd .fx-hd h2{font-size:21px}body.payw .pw-hd .fx-hd p{margin-bottom:0;font-size:12.5px}
+  body.payw .pw-seg{flex:0 0 auto;margin:0}body.payw .pw-seg button{padding:7px 16px}
+  body.payw #stPay{display:none}
+  body.payw .row4{grid-template-columns:150px 1.3fr 1fr 1fr}
+  body.payw #pRau{display:none}
+}
 </style>
 </head>
 <body>
@@ -1152,24 +1187,24 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 
     <!-- ===================== MODE BAYAR -->
     <div class="scroll fx" id="mode-bayar" hidden>
-      <div class="fx-hd"><h2>Catat Penerimaan<em class="ap-tc">F-28</em></h2><p>Penerimaan pembayaran pelanggan, dialokasikan ke invoice terbuka (PPN dulu, lalu neto)</p></div>
-      <div class="fx-steps" id="stPay"><span>1 · Data bank</span><span>2 · Alokasi ke invoice</span><span>3 · Periksa &amp; simpan</span></div><div class="note ok" id="payDone" hidden style="margin:0 0 10px"></div>
-      <div class="seg" role="group" aria-label="Jenis penerimaan"><button type="button" data-pj="trf" aria-pressed="true">Transfer bank</button><button type="button" data-pj="pb" aria-pressed="false">Pindah buku</button><button type="button" data-pj="kom" aria-pressed="false">Kompensasi</button></div>
+      <div class="pw-hd"><div class="fx-hd"><h2>Catat Penerimaan<em class="ap-tc">F-28</em></h2><p>Uang masuk dari pelanggan → dialokasikan ke invoice (PPN dulu, lalu neto) → diajukan pengesahan</p></div>
+      <div class="seg pw-seg" role="group" aria-label="Jenis penerimaan"><button type="button" data-pj="trf" aria-pressed="true">Transfer bank<small>uang masuk rekening</small></button><button type="button" data-pj="pb" aria-pressed="false">Pindah buku<small>tanpa kas masuk</small></button><button type="button" data-pj="kom" aria-pressed="false">Kompensasi<small>dengan BA / memo</small></button></div></div>
+      <div class="fx-steps" id="stPay"><span>1 · Uang masuk</span><span>2 · Alokasi ke invoice</span><span>3 · Periksa &amp; simpan</span></div><div class="note ok" id="payDone" hidden style="margin:0 0 10px"></div>
       <div id="pjTrf">
         <fieldset class="stp">
-          <legend><i>1</i>Data bank</legend>
-          <div class="row"><div><label for="pTgl">Tanggal valuta</label><input id="pTgl" type="date"></div><div><label for="pRek">Rekening penerima</label><select id="pRek"></select></div></div>
-          <div class="row"><div><label for="pTrf">Nilai diterima (Rp)</label><input id="pTrf" inputmode="decimal" class="num" placeholder="sesuai rekening koran"><div class="hint">sesuai rekening koran</div></div><div><label for="pRef">Referensi bank</label><input id="pRef" placeholder="no. jurnal di rekening koran"><div class="hint">wajib bila membayar &gt; 1 invoice</div></div></div>
-          <label for="pKet">Keterangan</label><input id="pKet" placeholder="mis. T1 T2 T3 sesuai berita transfer">
+          <legend><i>1</i>Uang masuk <span class="pw-sub">sesuai rekening koran</span><em class="pw-ok" id="pOk1" hidden>lengkap</em></legend>
+          <div class="row4"><div><label for="pTgl">Tanggal valuta</label><input id="pTgl" type="date"></div><div><label for="pRek">Rekening penerima</label><select id="pRek"></select></div>
+          <div><label for="pTrf">Nilai diterima (Rp)</label><input id="pTrf" inputmode="decimal" class="num" placeholder="sesuai rekening koran"></div><div><label for="pRef">Referensi bank</label><input id="pRef" placeholder="no. jurnal di rekening koran"><div class="hint">wajib bila membayar &gt; 1 invoice</div></div></div>
+          <label for="pKet">Keterangan / berita transfer</label><input id="pKet" placeholder="mis. T1 T2 T3 sesuai berita transfer">
         </fieldset>
         <fieldset class="stp">
-          <legend><i>2</i>Alokasi ke invoice terbuka</legend>
-          <div class="inline"><input id="pInv" list="dlOpen" placeholder="Cari no. invoice atau pelanggan, lalu Tambah"><button class="btn" type="button" id="pAdd" style="flex:0 0 auto">Tambah</button></div>
+          <legend><i>2</i>Alokasi ke invoice terbuka<em class="pw-ok" id="pOk2" hidden>seimbang</em></legend>
+          <div class="pw-sr"><input id="pInv" list="dlOpen" placeholder="Cari no. invoice, NPP atau pelanggan, lalu Tambah"><button class="btn" type="button" id="pAdd">Tambah</button><button class="btn" type="button" id="pAll" title="Tambahkan semua invoice terbuka milik pelanggan pada baris pertama">Semua invoice pelanggan ini</button><button class="btn pw-auto" type="button" id="pSplit" title="Bagi nilai diterima ke invoice sesuai sisa tagihan">⚡ Alokasi otomatis</button><button class="linkbtn" type="button" id="pClear">Kosongkan</button></div>
           <datalist id="dlOpen"></datalist>
-          <table class="prow" id="pRows"></table>
-          <div class="inline" style="margin-top:6px;justify-content:space-between"><button class="linkbtn" type="button" id="pSplit">Alokasi otomatis sesuai sisa saldo</button><button class="linkbtn" type="button" id="pClear">Kosongkan</button></div>
+          <div class="pw-tw"><table class="prow pw-t" id="pRows"></table></div>
           <div class="rau" id="pRau"></div>
           <div class="note" id="pBal"></div>
+          <div class="pw-lk"><span id="pAtt"></span><span style="flex:1"></span><button class="linkbtn" type="button" id="pKpOpen" hidden>Lihat kartu piutang proyek ›</button></div>
         </fieldset>
       </div>
       <div id="pjPb" hidden>
@@ -1273,11 +1308,13 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
       <div class="btns"><span>Cetak</span><button class="btn" id="btnSrPrint" disabled>Surat + lampiran</button></div>
     </div>
     <div class="actions fxa" id="act-bayar" hidden>
+      <div id="paySum"></div>
       <div id="payChk"></div>
       <div class="status" id="payStatus"></div>
       <div class="fxbar"><button class="btn" id="btnPay" type="button" disabled>Simpan penerimaan</button><span style="flex:1"></span>
         <button class="btn primary sub" id="btnPaySub" type="button" disabled><svg class="ic"><use href="#i-send"/></svg>Simpan &amp; ajukan pengesahan</button></div>
       <button class="linkbtn" id="btnPayPkg" type="button" disabled>Buka lembar pengesahan penerimaan terakhir</button>
+      <div id="payKp"></div>
     </div>
   </aside>
 
@@ -2339,7 +2376,7 @@ function invBy(no) { var k = E.normInv(no); return B ? B.invoices.filter(functio
 function short(no) { return String(no || '').replace(/^KU\.02\.02\/WB[\.\-]4C\./, ''); }
 function fillOpenList() {
   $('dlOpen').innerHTML = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL' && !i.closed; })
-    .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.invke) + ' · sisa Rp ' + nfDot(i.sisa) + '</option>'; }).join('');
+    .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.npp || '') + ' · ' + esc(i.invke) + ' · sisa Rp ' + nfDot(i.sisa) + '</option>'; }).join('');
   $('dlAll').innerHTML = B.invoices.filter(function (i) { return i.status_inv !== 'BATAL'; })
     .map(function (i) { return '<option value="' + esc(i.nomor) + '">' + esc(i.pelanggan) + ' · ' + esc(i.status) + '</option>'; }).join('');
   // v2.8.7: pilihan rekening dipertahankan saat data dimuat ulang di latar belakang (sebelumnya ter-reset → tombol simpan mati tanpa pesan)
@@ -2354,6 +2391,7 @@ function setPj(m) {
   if (m === 'pb') { $('bRef').value = B.nextPB || 'PB-0001'; if (!$('bTgl').value) $('bTgl').value = today(); pbInfo(); }
   if (m === 'kom' && !$('cTgl').value) $('cTgl').value = today();
   $('btnPay').textContent = m === 'pb' ? 'Simpan pindah buku' : m === 'kom' ? 'Simpan kompensasi' : 'Simpan penerimaan';
+  PAY.prev = null; paySide(); if ($('payChk')) $('payChk').innerHTML = '';
   payChanged();
 }
 function addPayInv(no) {
@@ -2384,22 +2422,65 @@ function splitAuto() {
   PAY.splitNote = note; renderPayRows();
 }
 function renderPayRows() {
-  var R = PAY.rows, pv = PAY.prev && PAY.prev.rows || [];
-  $('pRows').innerHTML = R.length ? R.map(function (r, k) {
-    var i = invBy(r.nomor) || {}, x = pv[k];
-    return '<tr><td style="width:44%"><div class="no">' + esc(short(r.nomor)) + '</div><div class="sub">' + esc(i.pelanggan || '') + ' · ' + esc(i.invke || '') + '<br>sisa Rp ' + nfDot(i.sisa) + ' · ' + esc(i.status || '') + '</div></td>' +
-      '<td><input data-k="' + k + '" data-f="nominal" class="num" inputmode="decimal" value="' + nfDot(r.nominal) + '" aria-label="Nilai untuk ' + esc(short(r.nomor)) + '">' +
-      '<div class="inline" style="margin-top:4px;gap:4px"><select data-k="' + k + '" data-f="alokasi" aria-label="Alokasi"><option value="OTOMATIS">Otomatis</option><option value="NETTO"' + (r.alokasi === 'NETTO' ? ' selected' : '') + '>Neto</option><option value="PPN"' + (r.alokasi === 'PPN' ? ' selected' : '') + '>PPN</option></select>' +
-      '<label class="inline" style="margin:0;font-size:11px;white-space:nowrap" title="Pelanggan menyatakan invoice ini sudah lunas"><input type="checkbox" data-k="' + k + '" data-f="lunas"' + (r.lunas ? ' checked' : '') + ' style="width:auto"> lunas</label></div>' +
-      (r.lunas ? '<input data-k="' + k + '" data-f="pph" class="num" inputmode="decimal" style="margin-top:4px" value="' + (num(r.pph) ? nfDot(num(r.pph)) : '') + '" placeholder="PPh sesuai bukti potong (opsional)" title="Isi hanya bila pelanggan memotong PPh berbeda dari nilai sistem" aria-label="PPh sesuai bukti potong">' : '') +
-      (x ? '<div class="pv' + (x.cek && x.cek.indexOf('⚠') >= 0 ? ' bad' : '') + '">Neto ' + nfDot(x.keN) + ' · PPN ' + nfDot(x.keP) + (x.pph ? ' · PPh ' + nfDot(x.pph) : '') + (x.adm ? ' · adm bank ' + nfDot(x.adm) : '') + '<br>→ ' + esc(x.status) + (x.cek && x.cek.indexOf('⚠') >= 0 ? '<br>' + esc(x.cek) : '') + '</div>' : '') + '</td>' +
-      '<td style="width:20px"><button class="x" type="button" data-del="' + k + '" aria-label="Hapus baris">✕</button></td></tr>';
-  }).join('') : '<tr><td class="sub">Belum ada invoice. Ketik nomor invoice lalu klik Tambah — satu transfer bisa untuk beberapa invoice.</td></tr>';
+  var R = PAY.rows, pv = PAY.prev && PAY.prev.rows || [], tN = 0, tH = 0;
+  $('pRows').innerHTML = R.length ? '<thead><tr><th>Invoice</th><th>Pelanggan · NPP</th><th class="n">Sisa tagihan</th><th class="n">Dialokasikan</th><th class="n">Hasil alokasi</th><th>Status setelah bayar</th><th></th></tr></thead><tbody>' + R.map(function (r, k) {
+    var i = invBy(r.nomor) || {}, x = payPv(k), z = !(Math.round(num(r.nominal)) > 0), sP = Math.max(0, (i.ppn || 0) - (i.keP || 0)), bad = x && x.cek && x.cek.indexOf('⚠') >= 0;
+    tN += Math.round(num(r.nominal)); if (x) tH += x.pph || 0;
+    return '<tr><td><div class="no">' + esc(short(r.nomor)) + '</div><div class="sub">' + esc(i.invke || '') + (i.tgl ? ' · ' + tg(i.tgl) : '') + '</div></td>' +
+      '<td>' + esc(i.pelanggan || '') + '<div class="sub">' + esc(i.npp || '') + '</div></td>' +
+      '<td class="n">' + nfDot(i.sisa) + '<div class="sub">PPN ' + nfDot(sP) + ' · neto ' + nfDot(Math.max(0, (i.sisa || 0) - sP)) + '</div></td>' +
+      '<td class="n pw-in"><input data-k="' + k + '" data-f="nominal" class="num" inputmode="decimal" value="' + nfDot(r.nominal) + '" aria-label="Nilai untuk ' + esc(short(r.nomor)) + '">' +
+      '<div class="pw-opt"><select data-k="' + k + '" data-f="alokasi" aria-label="Alokasi" title="Urutan alokasi: otomatis = PPN dulu, lalu neto"><option value="OTOMATIS">Otomatis</option><option value="NETTO"' + (r.alokasi === 'NETTO' ? ' selected' : '') + '>Neto saja</option><option value="PPN"' + (r.alokasi === 'PPN' ? ' selected' : '') + '>PPN saja</option></select>' +
+      '<label title="Pelanggan menyatakan invoice ini sudah lunas"><input type="checkbox" data-k="' + k + '" data-f="lunas"' + (r.lunas ? ' checked' : '') + '> lunas</label></div>' +
+      (r.lunas ? '<input data-k="' + k + '" data-f="pph" class="num" inputmode="decimal" style="margin-top:4px" value="' + (num(r.pph) ? nfDot(num(r.pph)) : '') + '" placeholder="PPh sesuai bukti potong (opsional)" title="Isi hanya bila pelanggan memotong PPh berbeda dari nilai sistem" aria-label="PPh sesuai bukti potong">' : '') + '</td>' +
+      '<td class="n">' + (x ? 'PPN ' + nfDot(x.keP) + '<div class="sub">neto ' + nfDot(x.keN) + (x.pph ? ' · PPh ' + nfDot(x.pph) : '') + (x.adm ? ' · adm ' + nfDot(x.adm) : '') + '</div>' : '<span class="sub">' + (z ? 'tidak dialokasikan' : 'menghitung…') + '</span>') + '</td>' +
+      '<td>' + (x ? '<span class="pw-st' + (bad ? ' bad' : /^(LUNAS|CLOSE)/.test(x.status || '') ? ' ok' : '') + '">' + esc(x.status) + '</span>' + (x.sisa ? '<div class="sub">sisa ' + nfDot(x.sisa) + '</div>' : '') + (bad ? '<div class="sub" style="color:var(--red)">' + esc(x.cek) + '</div>' : '') : '') + '</td>' +
+      '<td style="width:24px"><button class="x" type="button" data-del="' + k + '" aria-label="Hapus baris">✕</button></td></tr>';
+  }).join('') + (R.length > 1 ? '<tr class="pw-tot"><td colspan="3">Total dialokasikan</td><td class="n">' + nfDot(tN) + '</td><td class="n">' + (tH ? 'PPh ' + nfDot(tH) : '') + '</td><td colspan="2"></td></tr>' : '') + '</tbody>'
+    : '<tbody><tr><td class="sub" style="padding:14px 6px">Belum ada invoice. Ketik nomor invoice, NPP atau nama pelanggan lalu klik <b>Tambah</b> — satu transfer bisa untuk beberapa invoice.</td></tr></tbody>';
   payBalance();
+}
+/** v2.10.2: panel kanan — ringkasan penerimaan, lampiran cetak, kartu piutang ringkas */
+function paySide() {
+  var el = $('paySum'); if (!el) return;
+  if (PAY.mode !== 'trf') { el.innerHTML = ''; $('payKp').innerHTML = ''; return; }
+  var T = Math.round(num($('pTrf').value)), S0 = PAY.rows.reduce(function (t, r) { return t + Math.round(num(r.nominal)); }, 0), pv = PAY.prev && PAY.prev.rows || [], rec = T || S0, un = rec - S0;
+  var sm = { P: 0, N: 0, h: 0, a: 0 }; pv.forEach(function (x) { sm.P += x.keP || 0; sm.N += x.keN || 0; sm.h += x.pph || 0; sm.a += x.adm || 0; });
+  var has = PAY.rows.length, ln = function (k, v, c) { return '<div class="pw-l' + (c || '') + '"><span>' + k + '</span><b>' + v + '</b></div>'; };
+  el.innerHTML = '<div class="pw-sum"><h4>Ringkasan penerimaan</h4>' + ln('Nilai diterima', nfDot(rec), ' big') + ln('→ PPN', has && pv.length ? nfDot(sm.P) : '–') + ln('→ Neto', has && pv.length ? nfDot(sm.N) : '–') + ln('PPh dipotong', has && pv.length ? nfDot(sm.h) : '–') + ln('Biaya adm bank', has && pv.length ? nfDot(sm.a) : '–') +
+    '<div class="pw-bal ' + (!has ? '' : un === 0 ? 'ok' : 'bad') + '"><div>Selisih<small>nilai diterima − dialokasikan</small></div><b>' + (has ? nfDot(un) + (un === 0 ? ' ✓' : '') : '–') + '</b></div></div>';
+  // lampiran cetak paket: invoice ber-TTD selalu, faktur pajak bila PPN ikut dibayar
+  var L = PAY.rows.map(function (r, k) { if (!(Math.round(num(r.nominal)) > 0)) return ''; var i = invBy(r.nomor) || {}, x = payPv(k), fp = x ? x.keP > 0.5 : sP0(i) > 0; return (i.link_inv ? '✓' : '✕') + ' invoice ber-TTD' + (fp ? ' · ' + (i.link_fp ? '✓' : '✕') + ' faktur pajak' : ' · FP tidak perlu (PPN tidak dibayar)') + (PAY.rows.length > 1 ? ' (' + esc(short(r.nomor)) + ')' : ''); }).filter(String);
+  var miss = PAY.rows.some(function (r, k) { if (!(Math.round(num(r.nominal)) > 0)) return false; var i = invBy(r.nomor) || {}, x = payPv(k); return !i.link_inv || ((x ? x.keP > 0.5 : sP0(i) > 0) && !i.link_fp); });
+  $('pAtt').innerHTML = L.length ? '<span class="' + (miss ? 'pw-miss' : 'pw-att') + '">📎 Lampiran cetak: ' + L.join(' | ') + (miss ? ' — upload di menu Dokumen' : '') + '</span>' : '';
+  var K = PAY.prev && PAY.prev.kartu || [];
+  $('pKpOpen').hidden = !K.length;
+  $('payKp').innerHTML = K.map(function (k) { var t = k.T || {}; return '<div class="pw-kp"><b>Kartu piutang ' + esc(k.npp) + '</b><small>' + esc(k.pelanggan) + '</small><div class="pw-l"><span>Ditagih (bruto)</span><b>' + nfDot(t.brutoProg) + '</b></div><div class="pw-l"><span>Diterima (termasuk ini)</span><b>' + nfDot(t.kas) + '</b></div><div class="pw-l"><span>PPh &amp; adm dipotong</span><b>' + nfDot(t.pot) + '</b></div><div class="pw-l g"><span>Sisa tagihan setelah ini</span><b>' + nfDot(t.saldo) + '</b></div></div>'; }).join('') + (K.length ? '<button class="linkbtn" type="button" onclick="payKpShow()">Lihat kartu piutang lengkap ›</button>' : '');
+}
+/** hasil pratinjau server untuk baris ke-k (server hanya mengembalikan baris bernilai > 0, jadi dicocokkan per nomor invoice) */
+function payPv(k) {
+  var pv = PAY.prev && PAY.prev.rows || [], r = PAY.rows[k]; if (!r || !(Math.round(num(r.nominal)) > 0)) return null;
+  var n = 0; for (var j = 0; j < k; j++) if (E.normInv(PAY.rows[j].nomor) === E.normInv(r.nomor) && Math.round(num(PAY.rows[j].nominal)) > 0) n++;
+  return pv.filter(function (x) { return E.normInv(x.inv) === E.normInv(r.nomor); })[n] || null;
+}
+function sP0(i) { return Math.max(0, (i.ppn || 0) - (i.keP || 0)); }
+function payKpShow() {
+  var K = PAY.prev && PAY.prev.kartu || []; if (!K.length) return;
+  var ov = $('lpPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'lpPrev'; document.body.appendChild(ov); }
+  ov.innerHTML = '<div class="bgp-bar"><b>Pratinjau kartu piutang proyek</b><span>baris kuning = penerimaan yang akan dicatat (belum disimpan)</span><i></i><button class="btn" type="button" id="lpPrevX">Tutup</button></div><div class="bgp-pg">' + K.map(function (k) { return pgKartu(k, null, true); }).join('') + '</div>';
+  ov.hidden = false; ov.scrollTop = 0; $('lpPrevX').onclick = function () { ov.hidden = true; }; ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; };
+}
+function payAllCust() {
+  var r0 = PAY.rows[0], i0 = r0 && invBy(r0.nomor); if (!i0) { toast('Tambahkan dulu satu invoice pelanggan tersebut.'); return; }
+  var add = B.invoices.filter(function (i) { return i.pelanggan === i0.pelanggan && i.status_inv !== 'BATAL' && !i.closed && i.sisa > 0.5 && !PAY.rows.some(function (r) { return E.normInv(r.nomor) === E.normInv(i.nomor); }); })
+    .sort(function (a, b) { return String(a.tgl).localeCompare(String(b.tgl)); });
+  if (!add.length) { toast('Tidak ada invoice terbuka lain untuk ' + i0.pelanggan + '.'); return; }
+  add.forEach(function (i) { PAY.rows.push({ nomor: i.nomor, nominal: Math.max(0, i.sisa), alokasi: 'OTOMATIS', lunas: false, manual: false }); });
+  toast(add.length + ' invoice ditambahkan.'); if (num($('pTrf').value)) splitAuto(); else renderPayRows(); payChanged();
 }
 function payBalance() {
   var T = Math.round(num($('pTrf').value)), S0 = PAY.rows.reduce(function (t, r) { return t + Math.round(num(r.nominal)); }, 0), el = $('pBal'), ok = true;
-  if (PAY.mode !== 'trf') return;
+  if (PAY.mode !== 'trf') { paySide(); return; }
   if (!PAY.rows.length) { el.className = 'note'; el.textContent = 'Isi nilai transfer, lalu tambahkan invoice. Nilai dibagi ke invoice secara otomatis dan masih bisa diubah.'; ok = false; }
   else if (PAY.rows.length > 1 && !$('pRef').value.trim()) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>referensi bank</b> (no. jurnal di rekening koran). Referensi mencegah transfer yang sama tercatat dua kali, jadi tidak dibuat otomatis.'; ok = false; }
   else if (PAY.rows.length > 1 && !T) { el.className = 'note err'; el.innerHTML = 'Satu transfer untuk ' + PAY.rows.length + ' invoice: isi <b>nilai transfer</b> sesuai rekening koran.'; ok = false; }
@@ -2410,6 +2491,7 @@ function payBalance() {
   var rec = T || S0, un = rec - S0;
   $('pRau').innerHTML = '<div><small>Diterima</small><b>' + nfDot(rec) + '</b></div><div><small>Dialokasikan</small><b>' + nfDot(S0) + '</b></div><div class="' + (!PAY.rows.length ? '' : un === 0 ? 'ok' : 'bad') + '"><small>Belum dialokasikan</small><b>' + nfDot(un) + (PAY.rows.length && un === 0 ? ' ✓' : '') + '</b></div>';
   steps('stPay', [!!($('pTgl').value && $('pRek').value && (T || PAY.rows.length)), ok, false]);
+  $('pOk1').hidden = !($('pTgl').value && $('pRek').value && T); $('pOk2').hidden = !(ok && PAY.rows.length); paySide();
   ['pTgl', 'pRek', 'pTrf', 'pRef'].forEach(function (id) { $(id).classList.toggle('okv', !!$(id).value); });
   return ok;
 }
@@ -2471,6 +2553,7 @@ function payPreview() {
 /** panel kanan saat mode Pembayaran: kartu piutang proyek yang terlibat, baris baru diberi warna */
 function renderPayView() {
   if (MODE !== 'bayar' || STACK) return;
+  paySide();
   var w = $('sheetwrap'), K = PAY.prev && PAY.prev.kartu || [];
   if (!K.length) { w.style.transform = ''; w.innerHTML = '<div class="empty">Kartu piutang proyek tampil di sini setelah invoice dipilih.<br>Baris kuning = penerimaan yang akan dicatat (belum disimpan).</div>'; return; }
   w.innerHTML = '<div class="stackwrap">' + K.map(function (k) { return pgKartu(k, null, true); }).join('') + '</div>'; fitZoom();
@@ -2814,7 +2897,7 @@ function bindSurat() {
 function setMode(m) {
   if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim', 'kp', 'bg'].indexOf(m) < 0) m = 'exec';
   if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'plan', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim', 'kp', 'bg'].indexOf(m) < 0) m = 'setuju';
-  MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc');
+  MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc'); document.body.classList.toggle('payw', m === 'bayar');
   document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'kp' || m === 'bg' || m === 'buka' || m === 'tbayar' || m === 'ho'); $('lstWrap').hidden = ['buka', 'tbayar', 'ho'].indexOf(m) < 0; $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('kpWrap').hidden = m !== 'kp'; $('bgWrap').hidden = m !== 'bg'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
@@ -2920,6 +3003,7 @@ function bind() {
   ['cNom', 'cPph'].forEach(function (id) { $(id).onblur = function () { var v = num(this.value); if (v) this.value = nfDot(v); }; });
   $('bNom').oninput = payChanged; $('bNom').onblur = function () { var v = num(this.value); if (v) this.value = nfDot(v); };
   $('btnPay').onclick = function () { SUBMIT_AFTER = false; savePay(); };
+  $('pAll').onclick = payAllCust; $('pKpOpen').onclick = payKpShow;
   $('btnPaySub').onclick = function () { SUBMIT_AFTER = true; savePay(); };
   $('btnKp').onclick = function () { var n = $('kNpp').value.trim(); if (!B.proyek.some(function (p) { return p.npp === n; })) { toast('Pilih NPP dari daftar.'); return; } openPackage('KP', n + '|' + ($('kTgl').value || today())); };
   $('btnPkgInv').onclick = function () { if (!SAVED) { toast('Simpan invoice ke Monitoring terlebih dahulu.'); return; } openPackage('INV', E.normInv(nomorStr())); };
@@ -3123,12 +3207,15 @@ function pgFaktur(f, i, pkg) {
 }
 function pgBukti(pkg) {
   var rows = pkg.rows, t = { n: 0, N: 0, P: 0, h: 0, a: 0 }, kom = rows.some(function (r) { return r.kom; });
-  var h = '<div class="page pg-flow land">' + (kom ? docHead('LEMBAR PENGESAHAN KOMPENSASI PIUTANG', 'Piutang dilunasi dengan utang perusahaan kepada pelanggan (bukan uang masuk; tidak dihitung inkaso), untuk diserahkan ke Akuntansi sebagai dasar jurnal FB01 di SAP.',
-    'No. BA / memo ' + esc(rows[0].ref)) : docHead('LEMBAR PENGESAHAN PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, untuk diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key))));
-  h += '<table class="t"><tr><th>ID</th><th>' + (kom ? 'Tanggal' : 'Tgl bayar') + '</th><th>Ref. transfer · rekening</th><th>NPP</th><th>No. invoice</th><th>Pelanggan</th><th>Nominal</th><th>→ Netto</th><th>→ PPN</th><th>PPh diakui</th><th>Adm bank</th><th>Status setelah bayar</th><th>Sisa</th></tr>';
-  rows.forEach(function (r) { h += '<tr><td>' + esc(r.idp) + '</td><td>' + tg(r.tgl) + '</td><td>' + esc(r.ref) + '<br>' + esc(r.pb ? 'PINDAH BUKU' : r.rekening || '') + '</td><td style="white-space:nowrap"><b>' + esc(r.npp) + '</b></td><td>' + esc(r.nomor) + '<br>' + esc(r.invke) + '</td><td>' + esc(r.pelanggan) + '</td><td class="n">' + nd(r.nominal) + '</td><td class="n">' + nd(r.keN) + '</td><td class="n">' + nd(r.keP) + '</td><td class="n">' + nd(r.pph) + '</td><td class="n">' + nd(r.adm) + '</td><td>' + esc(r.status) + '</td><td class="n">' + nd(r.sisa) + '</td></tr>';
-    t.n += r.nominal; t.N += r.keN; t.P += r.keP; t.h += r.pph; t.a += r.adm; });
-  h += '<tr class="tot"><td></td><td></td><td></td><td></td><td></td><td>TOTAL</td><td class="n">' + nd(t.n) + '</td><td class="n">' + nd(t.N) + '</td><td class="n">' + nd(t.P) + '</td><td class="n">' + nd(t.h) + '</td><td class="n">' + nd(t.a) + '</td><td></td><td></td></tr></table>';
+  var r0 = rows[0] || {}, rek = rows.filter(function (r) { return r.rekening && !r.pb && !r.kom; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ');
+  var pels = rows.map(function (r) { return r.pelanggan; }).filter(function (v, i, a) { return a.indexOf(v) === i; });
+  var h = '<div class="page pg-flow">' + (kom ? docHead('LEMBAR PENGESAHAN KOMPENSASI PIUTANG', 'Piutang dilunasi dengan utang perusahaan kepada pelanggan (bukan uang masuk; tidak dihitung inkaso), dasar jurnal FB01 di SAP.', 'No. BA / memo ' + esc(r0.ref)) : docHead('LEMBAR PENGESAHAN PENERIMAAN TERMIN', 'Bukti validasi internal atas uang masuk, diserahkan ke Akuntansi sebagai dasar pencatatan F-28 di SAP.', (/^REF /.test(pkg.key) ? 'Ref. transfer ' + esc(pkg.key.substring(4)) : 'ID ' + esc(pkg.key))));
+  rows.forEach(function (r) { t.n += r.nominal; t.N += r.keN; t.P += r.keP; t.h += r.pph; t.a += r.adm; });
+  h += '<div class="grid2" style="margin-bottom:3mm"><table class="kv"><tr><td class="k">Pelanggan</td><td class="v">' + esc(pels.join(', ')) + '</td></tr><tr><td class="k">NPP</td><td class="v">' + esc(rows.map(function (r) { return r.npp; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + '</td></tr><tr><td class="k">' + (kom ? 'Tanggal' : 'Tanggal valuta') + '</td><td class="v">' + tg(r0.tgl) + '</td></tr></table>'
+    + '<table class="kv"><tr><td class="k">' + (kom ? 'No. BA / memo' : 'Referensi bank') + '</td><td class="v">' + esc(r0.ref) + '</td></tr><tr><td class="k">Rekening penerima</td><td class="v">' + esc(kom ? 'KOMPENSASI' : r0.pb ? 'PINDAH BUKU' : rek) + '</td></tr><tr><td class="k">Nilai ' + (kom ? 'dikompensasi' : 'diterima') + '</td><td class="v" style="font-size:10.5pt">Rp ' + nd(t.n) + '</td></tr></table></div>';
+  h += '<table class="t"><tr><th>ID</th><th>No. invoice · tagihan</th><th>Nominal</th><th>→ PPN</th><th>→ Netto</th><th>PPh diakui</th><th>Adm bank</th><th>Status setelah bayar</th><th>Sisa</th></tr>';
+  rows.forEach(function (r) { h += '<tr><td style="white-space:nowrap">' + esc(r.idp) + '</td><td>' + esc(r.nomor) + '<br><span style="color:#4A5A72">' + esc(r.invke) + (pels.length > 1 ? ' · ' + esc(r.pelanggan) : '') + '</span></td><td class="n">' + nd(r.nominal) + '</td><td class="n">' + nd(r.keP) + '</td><td class="n">' + nd(r.keN) + '</td><td class="n">' + nd(r.pph) + '</td><td class="n">' + nd(r.adm) + '</td><td>' + esc(r.status) + '</td><td class="n">' + nd(r.sisa) + '</td></tr>'; });
+  h += '<tr class="tot"><td></td><td>TOTAL</td><td class="n">' + nd(t.n) + '</td><td class="n">' + nd(t.P) + '</td><td class="n">' + nd(t.N) + '</td><td class="n">' + nd(t.h) + '</td><td class="n">' + nd(t.a) + '</td><td></td><td></td></tr></table>';
   if (kom) h += '<h3>Lampiran</h3><ul class="chk"><li>Berita acara / memo kompensasi ' + esc(rows[0].ref) + ' beserta rincian klaim (lampirkan)</li>' + (rows.some(function (r) { return r.pph; }) ? '<li>Bukti potong PPh dari pelanggan</li>' : '') + '<li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (FB01 · SA): utang kepada pelanggan (D) / piutang usaha (K)</li></ul>';
   else h += '<h3>Lampiran</h3><ul class="chk"><li>Bukti penerimaan / mutasi rekening ' + esc(rows.filter(function (r) { return r.rekening && !r.pb && !r.kom; }).map(function (r) { return r.rekening; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).join(', ')) + ' (lampirkan)</li><li>Kartu piutang proyek per ' + tg(pkg.today) + '</li><li>Usulan jurnal SAP (F-28 · DZ)</li>' + attLampLi(pkg) + '</ul>';
   return h + signBlock(pkg, false, true) + docFoot(pkg) + '</div>';
