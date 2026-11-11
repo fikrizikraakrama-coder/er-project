@@ -179,6 +179,24 @@ function apiBgImport(it) { arRequireMaker_();
   try { arBootBust_(); } catch (e) { }
   return { ok: true, id: id };
 }
+/** v2.9.9 baca scan BG / jaminan asuransi: OCR Google Drive (file diubah sementara menjadi Google Docs, teksnya diambil, lalu dibuang).
+ *  scan = {b64, name, mime} → {text}. Pemetaan isian dilakukan di aplikasi (bgOcrParse) agar bisa diperiksa sebelum disimpan. */
+function apiBgOcr(scan) { arRequireMaker_();
+  if (!scan || !scan.b64) throw new Error('Select the scanned file.');
+  var mime = String(scan.mime || 'application/pdf'); if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Only PDF or image scans can be read.');
+  var bytes = Utilities.base64Decode(scan.b64); if (bytes.length > 20 * 1024 * 1024) throw new Error('File too large to read (max 20 MB).');
+  var bd = 'bgocr' + Date.now(), meta = JSON.stringify({ name: 'OCR sementara - ' + String(scan.name || 'scan').slice(0, 80), mimeType: 'application/vnd.google-apps.document' });
+  var head = Utilities.newBlob('--' + bd + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + meta + '\r\n--' + bd + '\r\nContent-Type: ' + mime + '\r\n\r\n').getBytes(), tail = Utilities.newBlob('\r\n--' + bd + '--').getBytes();
+  var tok = ScriptApp.getOAuthToken(), r = UrlFetchApp.fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&ocrLanguage=id&fields=id', {
+    method: 'post', contentType: 'multipart/related; boundary=' + bd, payload: head.concat(bytes, tail), headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true });
+  if (r.getResponseCode() >= 300) throw new Error('Google Drive could not read the scan (' + r.getResponseCode() + '): ' + String(r.getContentText()).slice(0, 200));
+  var id = JSON.parse(r.getContentText()).id, text = '';
+  try {
+    var e = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', { headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true });
+    text = e.getResponseCode() < 300 ? e.getContentText('UTF-8') : '';
+  } finally { try { DriveApp.getFileById(id).setTrashed(true); } catch (x) { } }
+  return { text: String(text || '').slice(0, 60000) };
+}
 /** ringkas untuk Overview / lonceng (dibaca saat bootstrap; ringan) */
 function bgSummary_(today) {
   try {

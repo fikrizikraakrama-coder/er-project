@@ -956,6 +956,16 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .bgi-t tr.bgi-fn td{padding:0 4px 8px;border-bottom:1px solid #EEF2F6;font-size:11px}.bgi-t tr.ok td{background:#EAF7EF}.bgi-t tr.er td{background:#FFF5F4}.bgi-t tr.bgi-fn.er td{color:#B42318;font-weight:700}.bgi-t tr.bgi-fn.ok td{color:#17733F;font-weight:700}
 .bgi-f{display:inline-block;border:1px dashed #9CCFD1;border-radius:7px;padding:5px 8px;font-size:11.5px;color:#0F6E78;font-weight:700;cursor:pointer;white-space:nowrap;margin-top:1px}.bgi-f.on{border-style:solid;background:#F1F8F8}
 .bgi-t select[data-bik="jenis"]{min-width:132px}.bgi-t select[data-bik="pen"]{min-width:112px}.bgi-t input[type=date]{min-width:128px}.bgx-imp .bgi-hd .btn{align-self:center}
+.bgu-drop{display:block;border:2px dashed #7FC3C7;background:#F4FAFA;border-radius:14px;padding:20px;text-align:center;margin-top:10px;cursor:pointer}.bgu-drop.on{background:#E1F3F4;border-color:#0F6E78}.bgu-drop b{display:block;font-size:14.5px;color:#0B4F56}.bgu-drop span{color:#4A6A70;font-size:12px}
+.bgu-it{display:grid;grid-template-columns:210px minmax(0,1fr);gap:14px;border:1.5px solid #CFE3E5;border-radius:12px;padding:12px;margin-top:10px}.bgu-it.done{opacity:.6;border-color:#B7E1C6}
+.bgu-pv{display:flex;flex-direction:column;gap:4px}.bgu-pv object,.bgu-pv img{width:100%;height:270px;border:1px solid #E3E9F0;border-radius:8px;background:#F7F9FC;object-fit:contain}.bgu-ic{height:150px;border:1px solid #E3E9F0;border-radius:8px;background:#F7F9FC;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:40px;color:#B42318}.bgu-ic b{font-size:13px;color:#14284B}.bgu-ic span{font-size:11px;color:#6A7A8E}.bgu-pv a{font-size:11.5px;color:#0F6E78;font-weight:700}
+.bgu-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.bgu-hd b{font-size:13.5px;word-break:break-all}.bgu-hd i{flex:1}
+.bgu-wait{margin-top:10px;color:#5B6B80;font-size:12.5px}.bgu-msg{margin-top:6px;background:#FFF5F4;border:1px solid #F6C7C2;color:#B42318;border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700}
+.bgu-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px 10px;margin-top:8px}.bgu-f label{display:block;font-size:10.5px;color:#5B6B80;font-weight:700;margin-bottom:2px}.bgu-f label i{font-style:normal;color:#17733F;float:right}.bgu-f label i.c{color:#8A6100}
+.bgu-f input,.bgu-f select{width:100%;border:1px solid #9CCFD1;border-radius:7px;padding:5px 7px;font:inherit;font-size:12.5px;background:#F1F8F8}.bgu-f.w input,.bgu-f.w select{background:#FFF8DB;border-color:#E6C35C}.bgu-f input.num{text-align:right}
+.bgu-pn{display:flex;gap:4px}.bgu-pn select{width:92px;flex:none}
+.bgu-m{margin-top:8px;background:#FFF8EC;border:1px solid #F0D9A8;border-radius:9px;padding:6px 10px;font-size:12px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}.bgu-m.on{background:#EEF4FF;border-color:#C9D9F5}.bgu-m select{max-width:420px;border:1px solid #CBD5E1;border-radius:7px;padding:3px 6px;font:inherit;font-size:12px}.bgu-m input{border:1px solid #CBD5E1;border-radius:7px;padding:3px 6px;font:inherit;font-size:12px}
+@media(max-width:900px){.bgu-it{grid-template-columns:1fr}.bgu-g{grid-template-columns:1fr 1fr}}
 .bgi-x{border:0;background:none;color:#B42318;font-size:18px;cursor:pointer;padding:4px 6px}
 .bgi-ft{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}.bgi-ft .sp{flex:1}.bgi-ft .tg{max-width:620px}
 #bgPrev{position:fixed;inset:0;z-index:60;background:rgba(20,30,50,.6);overflow:auto;padding:70px 20px 30px}#bgPrev[hidden]{display:none}
@@ -5161,7 +5171,7 @@ function kpTabTtd(npp) {
   }).join('') : '<tr><td colspan="6" class="kp-empty">Belum ada pengajuan TTD kartu untuk proyek ini.</td></tr>') + '</table>';
 }
 /* ====================================================== v2.9.6: Bank Garansi — permohonan jaminan ke pusat (memo PDF siap TTD) → BG terbit → dipantau di sheet Monitoring BG */
-var BG = { rows: null, def: null, sel: '', f: 'all', q: '', form: null, busy: false, act: '', sheetUrl: '', pen: 'all', penSel: 'BANK', dTab: 0, showList: false, imp: null };
+var BG = { rows: null, def: null, sel: '', f: 'all', q: '', form: null, busy: false, act: '', sheetUrl: '', pen: 'all', penSel: 'BANK', dTab: 0, showList: false, imp: null, up: null };
 var BG_JENIS = [['TENDER', 'a) Jaminan Tender'], ['PENAWARAN', 'b) Penawaran'], ['PELAKSANAAN', 'c) Pelaksanaan'], ['UANG MUKA', 'd) Uang Muka'], ['PEMELIHARAAN', 'e) Pemeliharaan'], ['PERUBAHAN', 'f) Perubahan/Perpanjangan Jaminan : Pelaksanaan / Uang Muka / Pemeliharaan.']];
 var BG_LAMP = [['a', 'Dokumen Tender (Untuk Jaminan Penawaran)'], ['b', 'Copy SPK / Letter Of Intent (Untuk Jaminan Pelaksana)'], ['c', 'Copy Kontrak/ SPK (Untuk Jaminan Uang Muka)'], ['d', 'Copy Berita Acara Penyerahan barang (Untuk Jaminan Pemeliharaan)'], ['e', 'Tender Documents ( Untuk Jaminan Tender)'], ['f', 'Surat Penawaran'], ['g', 'Surat Perintah Mulai Kerja (SPMK)']];
 var BG_STC = { 'DRAF': 'pz', 'DIKIRIM KE PUSAT': 'pb', 'AKTIF': 'pg', 'DIKEMBALIKAN': 'pp', 'ROYA': 'pp', 'DIPERPANJANG': 'pp', 'BATAL': 'pz' };
@@ -5301,13 +5311,14 @@ function bgRender() {
   var prov = R.filter(function (r) { return r.status !== 'BATAL' && r.status !== 'DRAF' && String(r.tgl_terbit || r.tgl || '').slice(0, 4) === B.today.slice(0, 4); }).reduce(function (t, r) { return t + (+r.provisi || 0); }, 0);
   var cnt = function (k) { var s = BG.f; BG.f = k; var n = bgDispRows().length; BG.f = s; return n; };
   var h = '<div class="bgx"><div class="bgx-hd"><div><h2>Bank Garansi (BG)</h2><p>Permohonan jaminan ke pusat (memo PDF siap tanda tangan) · monitoring BG terbit sampai dikembalikan / roya</p></div><span class="sp"></span>' +
-    (BG.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(BG.sheetUrl) + '">' + ico('grid') + 'Sheet Monitoring BG</a>' : '') + (maker ? '<button class="btn" type="button" data-bga="imp">⤒ Input jaminan terbit</button><button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>';
+    (BG.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(BG.sheetUrl) + '">' + ico('grid') + 'Sheet Monitoring BG</a>' : '') + (maker ? '<button class="btn" type="button" data-bga="up">⤒ Upload BG terbit</button><button class="btn primary" type="button" data-bga="new">+ Permohonan BG baru</button>' : '') + '</div>';
   h += '<div class="bgx-k"><div><small>BG / jaminan aktif</small><b>' + A.length + ' BG</b><span>Rp ' + nfDot(A.reduce(function (t, r) { return t + (+r.nilai || 0); }, 0)) + '</span></div>' +
     '<div><small>Berakhir ≤ 30 hari</small><b class="' + (exp.length ? 'bgred' : '') + '">' + exp.length + ' BG</b><span>perpanjang / kembalikan</span></div>' +
     '<div><small>Menunggu terbit di pusat</small><b>' + R.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length + ' memo</b><span>' + R.filter(function (r) { return r.status === 'DRAF'; }).length + ' draf belum dikirim</span></div>' +
     '<div><small>Provisi / premi ' + B.today.slice(0, 4) + '</small><b>Rp ' + nfDot(prov) + '</b><span>' + A.filter(function (r) { return r.penerbit === 'ASURANSI'; }).length + ' asuransi · ' + A.filter(function (r) { return r.penerbit !== 'ASURANSI'; }).length + ' bank aktif</span></div>' +
     '<div><small>Selesai (kembali / roya / perpanjang)</small><b>' + R.filter(function (r) { return ['DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG'].indexOf(r.status) >= 0; }).length + ' BG</b><span>tersimpan sebagai arsip</span></div></div>';
   h += '<div class="bgx-flow">' + [['Draf memo', 'AR isi form · data proyek otomatis dari NPP'], ['Memo dikirim ke pusat', 'unduh memo PDF · TTD Manager'], ['BG terbit', 'isi no. BG, bank, masa berlaku · upload scan'], ['Aktif · dipantau', 'pengingat ≤ 30 hari di Overview'], ['Selesai', 'dikembalikan / roya / diperpanjang']].map(function (x, i) { return (i ? '<hr>' : '') + '<div><i>' + (i + 1) + '</i><span><b>' + x[0] + '</b><small>' + x[1] + '</small></span></div>'; }).join('') + '</div>';
+  if (BG.up) { w.innerHTML = h + '<div style="margin-top:12px">' + bgUpHtml() + '</div></div>'; return bgBind(); }
   if (BG.imp) { w.innerHTML = h + '<div style="margin-top:12px">' + bgImpHtml() + '</div></div>'; return bgBind(); }
   var L = bgDispRows();
   h += '<div class="bgx-lay">' + (BG.form && !BG.showList ? bgDraftHtml(BG.form) + '<div class="bgx-main" hidden>' : '<div class="bgx-main">') + '<div class="bgx-tb"><input id="bgQ" placeholder="Cari jenis, NPP, bouwheer, no. BG, penerbit…" value="' + esc(BG.q) + '">' +
@@ -5543,6 +5554,156 @@ function bgImpXls(f) {
     bgRender(); toast(out.length + ' baris dari Excel dimuat — periksa, pilih file scan, lalu Simpan.');
   }).catch(function (e) { bgMsg(esc(e.message || e), true); });
 }
+/* ---------- v2.9.9: baca otomatis scan BG / jaminan asuransi (teks hasil OCR Google Drive) */
+var BG_OCR_PEN = [
+  ['ASURANSI', /JASA\s*RAHARJA/, 'Jasaraharja Putera'], ['ASURANSI', /JASINDO|ASURANSI\s+JASA\s+INDONESIA/, 'Jasindo'], ['ASURANSI', /ASKRINDO|ASURANSI\s+KREDIT\s+INDONESIA/, 'Askrindo'],
+  ['ASURANSI', /JAMKRINDO|JAMINAN\s+KREDIT\s+INDONESIA/, 'Jamkrindo'], ['ASURANSI', /ASKRIDA/, 'Askrida'], ['ASURANSI', /TUGU\s+(KRESNA|PRATAMA)/, 'Tugu Pratama'], ['ASURANSI', /BUMIDA|BUMIPUTERA\s+MUDA/, 'Bumida'],
+  ['ASURANSI', /RAKSA\s+PRATIKARA/, 'Raksa Pratikara'], ['ASURANSI', /ASURANSI\s+([A-Z][A-Z ]{3,30}?)(?:\s*[,.(]|\s+(?:GEDUNG|JL|BERKEDUDUKAN|SEBAGAI))/, null],
+  ['BANK', /BANK\s+MANDIRI|\bMANDIRI\b/, 'Bank Mandiri'], ['BANK', /BANK\s+RAKYAT\s+INDONESIA|\bBRI\b/, 'BRI'], ['BANK', /BANK\s+NEGARA\s+INDONESIA|\bBNI\b/, 'BNI'],
+  ['BANK', /BANK\s+TABUNGAN\s+NEGARA|\bBTN\b/, 'BTN'], ['BANK', /BANK\s+SYARIAH\s+INDONESIA|\bBSI\b/, 'BSI'], ['BANK', /BANK\s+CENTRAL\s+ASIA|\bBCA\b/, 'BCA'], ['BANK', /BANK\s+DKI/, 'Bank DKI'],
+  ['BANK', /PT\.?\s+BANK\s+([A-Z][A-Z ]{2,30}?)(?:\s*\(|\s+TBK|\s*,)/, null]];
+var BG_BLN = { JANUARI: 1, JANUARY: 1, JAN: 1, FEBRUARI: 2, FEBRUARY: 2, FEB: 2, PEBRUARI: 2, MARET: 3, MARCH: 3, MAR: 3, APRIL: 4, APR: 4, MEI: 5, MAY: 5, JUNI: 6, JUNE: 6, JUN: 6, JULI: 7, JULY: 7, JUL: 7, AGUSTUS: 8, AUGUST: 8, AGU: 8, AGS: 8, AUG: 8, SEPTEMBER: 9, SEP: 9, SEPT: 9, OKTOBER: 10, OCTOBER: 10, OKT: 10, OCT: 10, NOVEMBER: 11, NOPEMBER: 11, NOV: 11, DESEMBER: 12, DECEMBER: 12, DES: 12, DEC: 12 };
+var BG_DT = '(\\d{1,2})\\s*[-\\/ ]?\\s*(JANUARI|JANUARY|FEBRUARI|FEBRUARY|PEBRUARI|MARET|MARCH|APRIL|MEI|MAY|JUNI|JUNE|JULI|JULY|AGUSTUS|AUGUST|SEPTEMBER|OKTOBER|OCTOBER|NOVEMBER|NOPEMBER|DESEMBER|DECEMBER|JAN|FEB|MAR|APR|JUN|JUL|AGU|AGS|AUG|SEPT?|OKT|OCT|NOV|DES|DEC)\\s*[-\\/ ]?\\s*(\\d{4})';
+function bgOcrDate(m, i) { var d = +m[i], mo = BG_BLN[m[i + 1]], y = +m[i + 2]; return d >= 1 && d <= 31 && mo ? y + '-' + ('0' + mo).slice(-2) + '-' + ('0' + d).slice(-2) : ''; }
+function bgOcrNum(s) { s = String(s || '').replace(/\s/g, '').replace(/[.,-]+$/, ''); s = s.replace(/[.,]\d{1,2}$/, ''); s = s.replace(/[.,]/g, ''); return /^\d{4,}$/.test(s) ? +s : 0; }
+function bgOcrCore(s) { return String(s || '').toUpperCase().replace(/[.,]/g, ' ').replace(/\(\s*PERSERO\s*\)|\bPERSERO\b|\bTBK\b|^\s*(PT|CV)\s+/g, ' ').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim(); }
+/** teks OCR → { no, penerbit, bank, jenis, nilai, kepada, mulai, sampai, terbit, ok:{field:true} } (ok = terbaca dari pola yang jelas) */
+function bgOcrParse(txt, pelanggan) {
+  var T = String(txt || '').toUpperCase().replace(/\r/g, ''), F = T.replace(/\s+/g, ' '), o = { ok: {} }, m, k;
+  var set = function (key, v, sure) { if (v && !o[key]) { o[key] = v; o.ok[key] = !!sure; } };
+  // penerbit: asuransi dulu (teks BG bank jarang menyebut asuransi)
+  for (k = 0; k < BG_OCR_PEN.length; k++) { m = BG_OCR_PEN[k][1].exec(F); if (m) { o.penerbit = BG_OCR_PEN[k][0]; o.bank = BG_OCR_PEN[k][2] || titleCaseS(m[1].trim()); o.ok.bank = !!BG_OCR_PEN[k][2]; break; } }
+  if (!o.penerbit && /SURETY|PENJAMIN/.test(F)) o.penerbit = 'ASURANSI';
+  // jenis jaminan: judul di bagian atas
+  var top = F.slice(0, 900), J = [[/UANG\s+MUKA/, 'UANG MUKA'], [/PELAKSANAAN/, 'PELAKSANAAN'], [/PEMELIHARAAN/, 'PEMELIHARAAN'], [/PENAWARAN|TENDER|BID\s+BOND/, 'PENAWARAN']];
+  [top, F].some(function (S, pass) { return J.some(function (j) { if (j[0].test(S)) { set('jenis', j[1], pass === 0); return true; } }); });
+  // nomor
+  if ((m = /NOMOR\s+JAMINAN\s*[:.]?\s*([A-Z0-9][A-Z0-9\/.\-]{4,})/.exec(F))) set('no', m[1], true);
+  if ((m = /\bNO\.?\s*(BG[\s]?[0-9][A-Z0-9\/.\-]{4,})/.exec(F))) set('no', m[1].replace(/\s/g, ''), true);
+  if ((m = /(?:NOMOR|NO\.?)\s*(?:BANK\s+GARANSI|GARANSI\s+BANK|SURETY\s+BOND|JAMINAN|BG|SB)\s*[:.]?\s*([A-Z0-9][A-Z0-9\/.\-]{5,})/.exec(F))) set('no', m[1], true);
+  if ((m = /(?:NOMOR|NO\.?)\s*[:.]?\s*([A-Z]{0,4}[0-9][0-9A-Z\/.\-]{6,})/.exec(F))) set('no', m[1], false);
+  if (o.no) o.no = o.no.replace(/[.\-\/]+$/, '');
+  // nilai
+  var R = '[:.]?\\s*RP\\.?\\s*([0-9][0-9.,]{3,22}[0-9])';
+  [new RegExp('NILAI\\s*(?:JAMINAN|BANK GARANSI)?\\s*' + R), new RegExp('SETINGGI-?\\s*TINGGINYA\\s*' + R), new RegExp('(?:SEJUMLAH|SEBESAR|SENILAI)\\s*(?:UANG\\s*)?' + R)].some(function (re) { var x = re.exec(F); if (x && bgOcrNum(x[1])) { set('nilai', bgOcrNum(x[1]), true); return true; } });
+  if (!o.nilai) { var all = {}, re2 = /RP\.?\s*([0-9][0-9.,]{3,22}[0-9])/g, x2, best = 0; while ((x2 = re2.exec(F))) { var n2 = bgOcrNum(x2[1]); if (n2) { all[n2] = (all[n2] || 0) + 1; if (!best || all[n2] > all[best] || (all[n2] === all[best] && n2 > best)) best = n2; } } set('nilai', best, false); }
+  // masa berlaku
+  var D = BG_DT, re3 = new RegExp('(?:SEJAK|MULAI(?:\\s+DARI)?|DARI|BERLAKU)\\s+(?:TANGGAL\\s+|TGL\\.?\\s+)?' + D + '.{0,120}?(?:SAMPAI\\s+DENGAN|S\\.?\\s*\\/\\s*D\\.?|HINGGA|BERAKHIR\\s+PADA|SAMPAI)\\s+(?:TANGGAL\\s+|TGL\\.?\\s+)?' + D);
+  if ((m = re3.exec(F))) { set('mulai', bgOcrDate(m, 1), true); set('sampai', bgOcrDate(m, 4), true); }
+  // tanggal terbit
+  if ((m = new RegExp('(?:DIKELUARKAN|DITERBITKAN).{0,40}?TANGGAL\\s+' + D).exec(F))) set('terbit', bgOcrDate(m, 1), true);
+  if ((m = new RegExp('NO\\.?\\s*BG\\S*\\s+TANGGAL\\s+' + D).exec(F))) set('terbit', bgOcrDate(m, 1), true);
+  if (!o.terbit) { var re4 = new RegExp('[A-Z]{4,},\\s*' + D, 'g'), x4, last = ''; while ((x4 = re4.exec(F))) last = bgOcrDate(x4, 1); set('terbit', last, false); }
+  // ditujukan kepada: cocokkan dulu dengan daftar pelanggan
+  var core = ' ' + bgOcrCore(F) + ' ', hit = '';
+  var has = function (c) { var i = -1; while ((i = core.indexOf(' ' + c + ' ', i + 1)) >= 0) if (!/^(BETON|PRECAST)\b/.test(core.slice(i + c.length + 2))) return true; return false; };
+  (pelanggan || []).forEach(function (p) { var c = bgOcrCore(p); if (c.length >= 5 && !/WIJAYA KARYA BETON/.test(c) && c.length > bgOcrCore(hit).length && has(c)) hit = p; });
+  if (hit) set('kepada', hit, true);
+  [/TERHADAP\s+(.{4,80}?)\s+(?:BERALAMAT|BERKEDUDUKAN|,)/, /TERIKAT\s+PADA\s+(.{4,80}?)\s*,/, /(?:OBLIGEE|BENEFICIARY|PENERIMA\s+JAMINAN|PENERIMA\s+BANK\s+GARANSI)\s*:\s*(.{4,80}?)\s*(?:,|JL\.?\s|JALAN|GEDUNG|$)/, /BENEFICIARY\s+(?:APPLICANT\s+)?((?:PT|CV)\.?\s+.{3,60}?)\s+(?:PT\.?\s+WIJAYA|JL\.?\s|JALAN)/].some(function (re) {
+    var x = re.exec(F); if (x && !/WIJAYA KARYA BETON/.test(x[1])) { set('kepada', x[1].replace(/\s*-\s*/g, '-').replace(/-/g, ' - ').replace(/\s+/g, ' ').trim(), false); return true; } });
+  return o;
+}
+/* upload scan → OCR → isian otomatis → cocokkan dengan pengajuan → simpan */
+function bgUpPel() { return (B.pelanggan || []).map(function (p) { return p.inv || p.nama; }).concat((B.pelanggan || []).map(function (p) { return p.nama; })).concat((BG.rows || []).map(function (r) { return r.kepada; })).filter(function (v, i, A) { return v && A.indexOf(v) === i; }); }
+function bgUpMatch(x) {
+  var p = x.p, best = '', bs = 0, kc = bgOcrCore(p.kepada).split(' ').filter(function (w) { return w.length > 3; });
+  (BG.rows || []).forEach(function (r) {
+    if (['DRAF', 'DIKIRIM KE PUSAT'].indexOf(r.status) < 0) return;
+    var sc = 0; if (p.nilai && Math.abs((+r.nilai || 0) - p.nilai) <= 1) sc += 3; if (p.jenis && bgKode(r.jenis) === bgKode(p.jenis)) sc += 1;
+    var rc = ' ' + bgOcrCore(r.kepada) + ' '; if (kc.length && kc.filter(function (w) { return rc.indexOf(' ' + w + ' ') >= 0; }).length >= Math.min(2, kc.length)) sc += 2;
+    if (sc > bs) { bs = sc; best = r.id; }
+  });
+  return bs >= 4 ? best : '';
+}
+function bgUpAdd(files) {
+  var U = BG.up; Array.prototype.forEach.call(files || [], function (f) {
+    if (!/^(application\/pdf|image\/)/.test(f.type || '')) return toast(f.name + ': hanya PDF / gambar.');
+    if (f.size > 15 * 1024 * 1024) return toast(f.name + ': terlalu besar (maks 15 MB).');
+    U.items.push({ file: f, url: URL.createObjectURL(f), st: 'antri', p: { ok: {} }, match: '', msg: '' });
+  });
+  bgRender(); bgUpRun();
+}
+function bgUpRun() {
+  var U = BG.up; if (!U || U.reading) return; var x = U.items.filter(function (i) { return i.st === 'antri'; })[0]; if (!x) return;
+  U.reading = true; x.st = 'baca'; bgRender();
+  var rd = new FileReader(); rd.onload = function () {
+    x.b64 = String(rd.result).split(',')[1];
+    call('apiBgOcr', [{ b64: x.b64, name: x.file.name, mime: x.file.type || 'application/pdf' }], function (r) {
+      U.reading = false; var t = String(r && r.text || '');
+      if (t.replace(/\s/g, '').length < 40) { x.st = 'err'; x.msg = 'Teks tidak terbaca — scan terlalu buram / miring. Isi manual di bawah atau upload ulang.'; x.p = { ok: {}, penerbit: 'BANK', jenis: 'PELAKSANAAN' }; }
+      else { x.p = bgOcrParse(t, bgUpPel()); x.p.penerbit = x.p.penerbit || 'BANK'; x.p.jenis = x.p.jenis || 'PELAKSANAAN'; x.st = 'ok'; x.match = bgUpMatch(x); if (x.match) { var m = (BG.rows || []).filter(function (r) { return r.id === x.match; })[0]; if (m && !x.p.ok.kepada) { x.p.kepada = m.kepada; x.p.ok.kepada = true; } if (m && m.npp) x.p.npp = m.npp; } }
+      var dup = (BG.rows || []).filter(function (r) { return r.status !== 'BATAL' && x.p.no && String(r.no_bg).trim().toUpperCase() === String(x.p.no).toUpperCase(); })[0];
+      if (dup) x.msg = 'Nomor ini sudah tercatat di ' + dup.id + ' (' + String(dup.status).toLowerCase() + ').';
+      bgRender(); bgUpRun();
+    }, function (e) { U.reading = false; x.st = 'err'; x.msg = 'Gagal dibaca: ' + String(e.message || e) + ' — isi manual di bawah.'; x.p = { ok: {}, penerbit: 'BANK', jenis: 'PELAKSANAAN' }; bgRender(); bgUpRun(); });
+  };
+  rd.readAsDataURL(x.file);
+}
+function bgUpHtml() {
+  var U = BG.up, nOk = U.items.filter(function (x) { return (x.st === 'ok' || x.st === 'err') && !x.done; }).length, cand = (BG.rows || []).filter(function (r) { return ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(r.status) >= 0; });
+  var pro = (B.proyek || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.npp < b.npp ? -1 : 1; });
+  var h = '<div class="bgx-card bgu"><div class="bgi-hd"><div><h3>⤒ Upload BG / jaminan terbit <em>dibaca otomatis</em></h3><p class="s">Cukup upload scan — isi BG dibaca otomatis (OCR Google Drive), dicocokkan dengan pengajuan, diberi nama file, lalu dicatat ke Monitoring BG.</p></div><span class="sp"></span>' +
+    '<button class="btn" type="button" data-bga="imp">Isi manual / template Excel</button><button class="btn" type="button" data-bga="upx">Tutup</button></div>' +
+    '<label class="bgu-drop" id="bgUpDrop"><input type="file" id="bgUpF" accept="application/pdf,image/*" multiple hidden><b>⤒ Taruh scan BG / jaminan asuransi di sini, atau klik untuk memilih</b><span>PDF atau foto (JPG / PNG) · bisa beberapa file sekaligus</span></label>';
+  h += '<datalist id="bgPelL">' + bgUpPel().map(function (x) { return '<option value="' + esc(x) + '">'; }).join('') + '</datalist><datalist id="bgNppL">' + pro.map(function (p) { return '<option value="' + esc(p.npp) + '">' + esc(titleCaseS(p.pelanggan) + ' · ' + (p.singkat || '')) + '</option>'; }).join('') + '</datalist>' + bgPenList('bgPenLB', 'BANK') + bgPenList('bgPenLA', 'ASURANSI');
+  U.items.forEach(function (x, i) {
+    var p = x.p || { ok: {} }, a = ' data-bui="' + i + '"', cls = function (k) { return x.st === 'ok' && p.ok[k] ? 'g' : 'w'; };
+    var fld = function (k, lbl, inner) { return '<div class="bgu-f ' + cls(k) + '"><label>' + lbl + (x.st === 'ok' ? (p.ok[k] ? ' <i>✓</i>' : ' <i class="c">cek</i>') : '') + '</label>' + inner + '</div>'; };
+    var inp = function (k, v, ex) { return '<input' + a + ' data-buk="' + k + '" value="' + esc(v === undefined || v === null ? '' : v) + '"' + (ex || '') + '>'; };
+    var nOkF = ['no', 'bank', 'jenis', 'nilai', 'kepada', 'mulai', 'sampai', 'terbit'].filter(function (k) { return p.ok[k]; }).length;
+    h += '<div class="bgu-it' + (x.done ? ' done' : '') + '"><div class="bgu-pv">' + (/^image\//.test(x.file.type) ? '<img src="' + x.url + '">' : '<div class="bgu-ic">📄<b>PDF</b><span>' + esc(Math.round(x.file.size / 1024)) + ' KB</span></div>') + '<a href="' + x.url + '" target="_blank">buka scan ↗</a></div><div class="bgu-bd">';
+    h += '<div class="bgu-hd"><b>' + esc(x.file.name) + '</b>' + (x.st === 'baca' ? '<span class="pill pb"><span class="spin"></span> membaca isi scan…</span>' : x.st === 'antri' ? '<span class="pill pz">menunggu giliran</span>' : x.done ? '<span class="pill pg">✓ tersimpan ' + esc(x.done) + '</span>' : x.st === 'ok' ? '<span class="pill ' + (nOkF >= 7 ? 'pg' : 'py') + '">' + nOkF + ' dari 8 terbaca</span>' : '<span class="pill pr">tidak terbaca</span>') +
+      '<i></i>' + (x.done ? '' : '<button type="button" class="bgi-x" data-bud="' + i + '" title="hapus">×</button>') + '</div>';
+    if (x.st === 'baca' || x.st === 'antri') { h += '<div class="bgu-wait">Isi BG sedang dibaca oleh Google Drive (± 5–20 detik per file)…</div></div></div>'; return; }
+    if (x.msg) h += '<div class="bgu-msg">' + esc(x.msg) + '</div>';
+    h += '<div class="bgu-g">' + fld('no', 'No. BG / jaminan', inp('no', p.no)) +
+      fld('bank', 'Penerbit', '<div class="bgu-pn"><select' + a + ' data-buk="penerbit"><option value="BANK"' + (p.penerbit !== 'ASURANSI' ? ' selected' : '') + '>🏦 Bank</option><option value="ASURANSI"' + (p.penerbit === 'ASURANSI' ? ' selected' : '') + '>🛡 Asuransi</option></select>' + inp('bank', p.bank, ' list="' + (p.penerbit === 'ASURANSI' ? 'bgPenLA' : 'bgPenLB') + '"') + '</div>') +
+      fld('jenis', 'Jenis', '<select' + a + ' data-buk="jenis">' + BG_IMPJ.map(function (j) { return '<option' + (p.jenis === j ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select>') +
+      fld('nilai', 'Nilai jaminan (Rp)', inp('nilai', p.nilai ? nfDot(p.nilai) : '', ' class="num"')) +
+      fld('kepada', 'Ditujukan kepada', inp('kepada', p.kepada, ' list="bgPelL"')) + fld('mulai', 'Berlaku dari', inp('mulai', p.mulai, ' type="date"')) + fld('sampai', 'Berlaku s/d', inp('sampai', p.sampai, ' type="date"')) + fld('terbit', 'Tanggal terbit', inp('terbit', p.terbit, ' type="date"')) + '</div>';
+    h += '<div class="bgu-m ' + (x.match ? 'on' : '') + '">' + (x.match ? '🔗 Cocok dengan pengajuan' : '➕ Dicatat sebagai jaminan baru (tanpa memo)') + ' &nbsp;<select' + a + ' data-buk="match"><option value="">— jaminan baru (BG lama / langsung dari pusat) —</option>' + cand.map(function (r) { return '<option value="' + esc(r.id) + '"' + (x.match === r.id ? ' selected' : '') + '>' + esc(r.id + ' · ' + titleCaseS(r.jenis) + ' · ' + r.kepada + ' · Rp ' + nfDot(r.nilai) + ' · ' + String(r.status).toLowerCase()) + '</option>'; }).join('') + '</select>' +
+      (x.match ? ' → status menjadi <b>AKTIF</b>' : ' &nbsp;<span class="tg">NPP</span> ' + inp('npp', p.npp, ' list="bgNppL" placeholder="opsional" style="width:120px"')) + '</div>';
+    h += '<div class="bgx-fn"><small>Nama file otomatis · Drive › Bank Garansi › tahun terbit › Scan Jaminan Terbit</small><span id="bgUpN' + i + '">' + bgFileHtml(bgFileParts(p.no, x.match ? ((BG.rows || []).filter(function (r) { return r.id === x.match; })[0] || {}).kepada || p.kepada : p.kepada, x.match ? ((BG.rows || []).filter(function (r) { return r.id === x.match; })[0] || {}).jenis || p.jenis : p.jenis, p.bank), bgExt(x.file)) + '</span></div></div></div>';
+  });
+  if (!U.items.length) h += '<div class="bgx-empty">Belum ada scan. Nama file asli tidak masalah — nama baru dibuat otomatis.</div>';
+  h += '<div class="bgi-ft"><span class="tg">Hijau = terbaca jelas · kuning = mohon dicek (bisa langsung diubah). Hasil OCR bisa kurang tepat bila scan buram / miring.</span><span class="sp"></span><button class="btn primary" type="button" data-bga="upgo"' + (U.busy || !nOk || U.reading ? ' disabled' : '') + '>' + (U.busy ? '<span class="spin"></span>Menyimpan…' : '✓ Simpan ' + nOk + ' jaminan ke Monitoring BG') + '</button></div><div class="bgx-msg" id="bgMsg"></div></div>';
+  return h;
+}
+function bgUpBind(w) {
+  var U = BG.up, f = $('bgUpF'), dz = $('bgUpDrop');
+  if (f) f.onchange = function () { bgUpAdd(f.files); f.value = ''; };
+  if (dz) { dz.ondragover = function (e) { e.preventDefault(); dz.classList.add('on'); }; dz.ondragleave = function () { dz.classList.remove('on'); }; dz.ondrop = function (e) { e.preventDefault(); dz.classList.remove('on'); bgUpAdd(e.dataTransfer.files); }; }
+  w.querySelectorAll('[data-bud]').forEach(function (b) { b.onclick = function () { var x = U.items[+b.dataset.bud]; if (x.st === 'baca') return; try { URL.revokeObjectURL(x.url); } catch (e) { } U.items.splice(+b.dataset.bud, 1); bgRender(); }; });
+  w.querySelectorAll('[data-buk]').forEach(function (el) {
+    var x = U.items[+el.dataset.bui], k = el.dataset.buk, p = x.p;
+    var h = function () {
+      var v = el.value;
+      if (k === 'match') { x.match = v; var m = (BG.rows || []).filter(function (r) { return r.id === v; })[0]; if (m && !String(p.kepada || '').trim()) p.kepada = m.kepada; return bgRender(); }
+      if (k === 'penerbit') { p.penerbit = v; if (!p.bank || BG_PEN[v === 'ASURANSI' ? 'BANK' : 'ASURANSI'].indexOf(p.bank) >= 0) p.bank = v === 'ASURANSI' ? '' : 'Bank Mandiri'; return bgRender(); }
+      p[k] = k === 'nilai' ? num(v) : v; p.ok[k] = true; if (k === 'bank') { p.ok.bank = true; if (bgIsAs(v)) p.penerbit = 'ASURANSI'; }
+      var bx = el.closest('.bgu-f'); if (bx) { bx.classList.remove('w'); bx.classList.add('g'); }
+      var n = $('bgUpN' + el.dataset.bui); if (n) n.innerHTML = bgFileHtml(bgFileParts(p.no, p.kepada, p.jenis, p.bank), bgExt(x.file));
+      if (k === 'jenis' || k === 'nilai' || k === 'kepada') { var m2 = x.match; x.match = bgUpMatch(x) || (k === 'kepada' ? m2 : ''); if (x.match !== m2) bgRender(); }
+    };
+    if (el.tagName === 'SELECT' || el.type === 'date' || el.classList.contains('num')) el.onchange = h; else el.oninput = h;
+  });
+}
+function bgUpGo() {
+  var U = BG.up; if (U.busy || U.reading) return;
+  var L = U.items.filter(function (x) { return (x.st === 'ok' || x.st === 'err') && !x.done; }), bad = [];
+  L.forEach(function (x, i) { var p = x.p, m = []; if (!String(p.no || '').trim()) m.push('no. BG'); if (!String(p.bank || '').trim()) m.push('penerbit'); if (!x.match && !String(p.kepada || '').trim()) m.push('ditujukan kepada'); if (!(p.nilai > 0)) m.push('nilai'); if (!p.sampai) m.push('berlaku s/d'); if (m.length) bad.push(x.file.name + ': ' + m.join(', ')); });
+  if (bad.length) return bgMsg('Lengkapi dulu — ' + esc(bad.join(' · ')), true);
+  U.busy = true; bgRender(); var k = 0, ok = 0, er = 0;
+  var next = function () {
+    if (k >= L.length) { U.busy = false; toast(ok + ' jaminan tercatat AKTIF di Monitoring BG' + (er ? ' · ' + er + ' gagal' : '') + '.'); if (!U.items.some(function (x) { return !x.done; })) { BG.up = null; BG.f = 'aktif'; } return bgLoad(function () { if (window.refreshAll) try { refreshAll(); } catch (e) { } }); }
+    var x = L[k++], p = x.p, scan = { b64: x.b64, name: x.file.name, mime: x.file.type || 'application/pdf' };
+    var done = function (id) { x.done = id; ok++; next(); }, fail = function (e) { x.msg = 'Gagal disimpan: ' + String(e.message || e); er++; next(); };
+    bgMsg('<span class="spin"></span>Menyimpan ' + k + ' dari ' + L.length + ' · ' + esc(p.no) + '…');
+    if (x.match) call('apiBgStatus', [x.match, 'TERBIT', { penerbit: p.penerbit, no_bg: String(p.no).trim(), bank: String(p.bank).trim(), tgl_terbit: p.terbit || '', mulai: p.mulai || '', sampai: p.sampai, nilai: p.nilai || '', scan: scan }], function () { done(x.match); }, fail);
+    else call('apiBgImport', [{ penerbit: p.penerbit, bank: String(p.bank).trim(), no_bg: String(p.no).trim(), kepada: String(p.kepada).trim(), npp: String(p.npp || '').trim(), jenis: p.jenis, nilai: p.nilai, mulai: p.mulai || '', sampai: p.sampai, tgl_terbit: p.terbit || '', scan: scan }], function (r) { done(r.id); }, fail);
+  };
+  next();
+}
 function bgMsg(t, err) { var m = $('bgMsg'); if (m) { m.className = 'bgx-msg' + (err ? ' e' : ''); m.innerHTML = t; } if (err) toast(String(t).replace(/<[^>]+>/g, '')); }
 /* ---------- memo PDF — format memo permohonan jaminan yang selama ini dikirim ke pusat */
 function bgMemoHtml(f, hl) {
@@ -5649,7 +5810,10 @@ function bgAct(k) {
   if (k === 'new') { BG.form = bgNewForm(); BG.sel = ''; BG.act = ''; BG.imp = null; BG.showList = false; BG.dTab = 0; return bgRender(); }
   if (k === 'cancel') { BG.form = null; BG.showList = false; return bgRender(); }
   if (k === 'list') { BG.showList = !BG.showList; return bgRender(); }
-  if (k === 'imp') { if (BG.form && !confirm('Tutup form permohonan yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.imp = BG.imp || { rows: [bgImpRow()], busy: false }; return bgRender(); }
+  if (k === 'up') { if (BG.form && !confirm('Tutup form permohonan yang sedang diisi?')) return; BG.form = null; BG.act = ''; BG.imp = null; BG.up = BG.up || { items: [], busy: false, reading: false }; bgRender(); var fi = $('bgUpF'); if (fi && !BG.up.items.length) fi.click(); return; }
+  if (k === 'upx') { if (BG.up.reading || BG.up.busy) return toast('Tunggu proses selesai.'); if (BG.up.items.some(function (x) { return !x.done; }) && !confirm('Tutup tanpa menyimpan scan yang sudah dibaca?')) return; BG.up = null; return bgRender(); }
+  if (k === 'upgo') return bgUpGo();
+  if (k === 'imp') { if (BG.form && !confirm('Tutup form permohonan yang sedang diisi?')) return; if (BG.up && (BG.up.reading || BG.up.busy)) return toast('Tunggu proses selesai.'); BG.up = null; BG.form = null; BG.act = ''; BG.imp = BG.imp || { rows: [bgImpRow()], busy: false }; return bgRender(); }
   if (k === 'impx') { if (BG.imp.rows.some(function (x) { return x.no && !x.ok; }) && !confirm('Tutup tanpa menyimpan baris yang sudah diisi?')) return; BG.imp = null; return bgRender(); }
   if (k === 'impadd') { var lr = BG.imp.rows[BG.imp.rows.length - 1] || {}; BG.imp.rows.push(bgImpRow({ pen: lr.pen || 'BANK', bank: lr.bank || 'Bank Mandiri', kepada: lr.kepada || '', npp: lr.npp || '', pekerjaan: lr.pekerjaan || '', kontrak: lr.kontrak || '' })); return bgRender(); }
   if (k === 'imptpl') return bgImpTpl();
@@ -5683,6 +5847,7 @@ function bgBind() {
   w.querySelectorAll('[data-bga]').forEach(function (b) { b.onclick = function (e) { if (b.tagName === 'A') e.preventDefault(); bgAct(b.dataset.bga); }; });
   w.querySelectorAll('[data-bgpf]').forEach(function (b) { b.onclick = function () { BG.pen = b.dataset.bgpf; bgRender(); }; });
   w.querySelectorAll('[data-bgdt]').forEach(function (b) { b.onclick = function () { BG.dTab = +b.dataset.bgdt; w.querySelectorAll('[data-bgdt]').forEach(function (x) { x.classList.toggle('on', x === b); }); bgDraftUpd(); }; });
+  if (BG.up) return bgUpBind(w);
   if (BG.imp) return bgImpBind(w);
   if (BG.act === 'terbit' || BG.act === 'scan') bgPenBind(w);
   w.querySelectorAll('[data-bgf]').forEach(function (b) { b.onclick = function () { BG.f = b.dataset.bgf; bgRender(); }; });
