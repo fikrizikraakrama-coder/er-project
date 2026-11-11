@@ -11,7 +11,7 @@ function arSpreadsheet_() {
   var id = PropertiesService.getScriptProperties().getProperty('AR_SOURCE_ID');
   if (id) return AR28_SS_ = SpreadsheetApp.openById(id);
   var ss = SpreadsheetApp.getActive();
-  if (!ss || !ss.getSheetByName('Monitoring Invoice')) throw new Error('Run "Pasang pembaruan v2.8" from the main spreadsheet first.');
+  if (!ss || !ss.getSheetByName('Monitoring Invoice')) throw new Error('Jalankan "Pasang pembaruan v2.8" dari spreadsheet utama terlebih dahulu.');
   return AR28_SS_ = ss;
 }
 // Script lock works for both web app and triggers. Depth handles internal sync -> rebuild.
@@ -19,7 +19,7 @@ function arLock_() {
   var held = false;
   return {
     // v2.8.7: tunggu sampai 90 detik — pembaruan laporan (pengguna lain / jadwal 5 menit) bisa memegang kunci lebih dari 28 detik
-    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, ''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('The system is busy updating reports. Nothing was saved by this step — try again in a minute.'); } } AR28_LOCK_DEPTH_++; held = true; },
+    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, ''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('Sistem sedang memperbarui laporan. Langkah ini belum tersimpan — coba lagi dalam 1 menit.'); } } AR28_LOCK_DEPTH_++; held = true; },
     tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
     releaseLock: function(noBust) { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; if (!noBust) arBootBust_(); } } }
   };
@@ -46,17 +46,17 @@ function arParameters_() {
 /** view: true untuk API yang hanya membaca — peran MANAJEMEN (LIHAT) boleh, selain itu ditolak (tidak bisa mengubah apa pun) */
 function arRequireAccess_(view) {
   var email = email_(), p = arParameters_(), u = ENGINE.userBy(p,email);
-  if (email && u && /^MANAJEMEN/.test(u.peran)) { if (!view) throw new Error('This account is view-only (MANAJEMEN). Nothing can be entered or changed.'); return { email:email, maker:false, approver:false, viewer:true, role:u.peran }; }
-  if (!email) throw new Error('Your Google identity could not be read. Sign in with a registered account; the deployment must run as the user accessing the web app.');
+  if (email && u && /^MANAJEMEN/.test(u.peran)) { if (!view) throw new Error('Akun ini hanya untuk melihat (MANAJEMEN). Tidak bisa mengisi atau mengubah data.'); return { email:email, maker:false, approver:false, viewer:true, role:u.peran }; }
+  if (!email) throw new Error('Identitas Google Anda tidak terbaca. Masuk dengan akun terdaftar; deployment harus berjalan sebagai pengguna yang mengakses aplikasi.');
   // delegasi aktif (bukan PEMBUAT — dijaga ENGINE.delegasiFor) hanya membuka mode Otorisasi Dokumen
   if (u && !/^(PEMBUAT|PENYETUJU)/.test(u.peran) && ENGINE.delegasiFor(p,email,null,arToday_())) return { email:email, maker:false, approver:false, delegate:true, role:u.peran };
-  if (!u || !/^(PEMBUAT|PENYETUJU)/.test(u.peran)) throw new Error('This account has no access to the main AR app. Contact the Preparer.');
+  if (!u || !/^(PEMBUAT|PENYETUJU)/.test(u.peran)) throw new Error('Akun ini tidak punya akses ke aplikasi AR. Hubungi Pembuat (AR).');
   return { email:email, maker:/^PEMBUAT/.test(u.peran), approver:/^PENYETUJU/.test(u.peran), role:u.peran };
 }
-function arRequireMaker_() { var a = arRequireAccess_(); if (!a.maker) throw new Error('This action is for the Preparer only. The Section Head uses AR Document Approvals.'); return a; }
+function arRequireMaker_() { var a = arRequireAccess_(); if (!a.maker) throw new Error('Tindakan ini hanya untuk Pembuat (AR). Section Head memakai menu Persetujuan.'); return a; }
 function arRequireOwner_() {
   var email = email_(), ss = arSpreadsheet_(), owner = ss.getOwner();
-  if (!email || !(owner && owner.getEmail().toLowerCase() === email)) throw new Error('Installation and trigger setup must be done by the owner of the main spreadsheet.');
+  if (!email || !(owner && owner.getEmail().toLowerCase() === email)) throw new Error('Instalasi dan pengaturan jadwal harus dilakukan pemilik spreadsheet utama.');
 }
 function arValidDate_(s) {
   if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
@@ -67,48 +67,48 @@ function arToday_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
 function arDigest_(s) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,s,Utilities.Charset.UTF_8).map(function(b) { return ('0'+(b&255).toString(16)).slice(-2); }).join(''); }
 function arSafeCell_(v) { return typeof v === 'string' && /^[=+@]/.test(v) ? "'" + v : v; }
 function arValidateInvoice_(p) {
-  if (!p || !arValidDate_(p.tgl) || p.tgl > arToday_()) throw new Error('Invalid or future invoice date.');
-  ['dpp','ppn','bruto','umk','retensi'].forEach(function(k) { if (p[k] !== undefined && (!isFinite(Number(p[k])) || Number(p[k]) < 0)) throw new Error('Invalid ' + k + ' value.'); });
-  if (!(Number(p.dpp) > 0) || !String(p.uraian || '').trim()) throw new Error('DPP and billing description are required.');
+  if (!p || !arValidDate_(p.tgl) || p.tgl > arToday_()) throw new Error('Tanggal invoice tidak valid atau di masa depan.');
+  ['dpp','ppn','bruto','umk','retensi'].forEach(function(k) { if (p[k] !== undefined && (!isFinite(Number(p[k])) || Number(p[k]) < 0)) throw new Error('Tidak valid: ' + k + ' value.'); });
+  if (!(Number(p.dpp) > 0) || !String(p.uraian || '').trim()) throw new Error('DPP dan uraian tagihan wajib diisi.');
 }
 function arValidatePayments_(rows, input) {
   checkPayRows_(rows);
-  if (rows.length > 100) throw new Error('Maximum 100 allocations per save.');
+  if (rows.length > 100) throw new Error('Maksimal 100 alokasi per simpan.');
   var computed = ENGINE.compute(Object.assign({},input,{light:true}));
   var today = input.today, by = {}, p = computed.params, groups = {}, ctx = computed.ctx;
   ctx.invs.forEach(function(i) { by[ENGINE.normInv(i.nomor)] = i; });
   rows.forEach(function(r,i) {
     var n = Number(r.nominal), inv = by[ENGINE.normInv(r.inv)], jt = String(r.jenis_trx || '').toUpperCase(), pb = jt === 'PINDAH BUKU', kom = jt === 'KOMPENSASI', px = Number(r.pph_bupot) || 0;
-    if (!isFinite(n) || !Number.isSafeInteger(n) || Math.abs(n) > 1e15) throw new Error('Row '+(i+1)+': amount must be a valid whole rupiah value.');
-    if (!arValidDate_(r.tgl) || r.tgl > today) throw new Error('Row '+(i+1)+': invalid or future date.');
-    if (!inv || inv._batal) throw new Error('Row '+(i+1)+': invoice not found or cancelled.');
-    if (inv.tgl && r.tgl < inv.tgl) throw new Error('Payment date is before the invoice date.');
-    if (inv._closedManual) throw new Error('The invoice has been manually closed. Reconcile the manual close before recording a new receipt.');
-    if (r.jenis_trx && !pb && !kom && jt !== 'TRANSFER') throw new Error('Unrecognized transaction type.');
-    if (kom && !(n > 0)) throw new Error('Row '+(i+1)+': compensation amount must be positive.');
-    if (kom && String(r.ref || '').trim().length < 3) throw new Error('Row '+(i+1)+': enter the compensation BA / memo number as the reference.');
-    if (kom && String(r.rekening || '').trim()) throw new Error('Row '+(i+1)+': a compensation has no receiving bank account.');
-    if (r.pph_bupot !== undefined && r.pph_bupot !== '' && (!isFinite(px) || px < 0 || !Number.isSafeInteger(px))) throw new Error('Row '+(i+1)+': WHT per withholding slip must be a whole rupiah amount ≥ 0.');
-    if (px > 0 && pb) throw new Error('WHT per withholding slip cannot be entered on an offset / reclass row.');
-    if (px > 0 && inv._a && px > inv._a.netto) throw new Error('Row '+(i+1)+': WHT per withholding slip exceeds the invoice net amount.');
-    if (r.alokasi && ENGINE.OPT.alokasi.indexOf(String(r.alokasi).toUpperCase()) < 0) throw new Error('Allocation must be OTOMATIS, NETTO or PPN.');
-    if (!pb && !kom && !ENGINE.rekOf(p,r.rekening)) throw new Error('Bank account not found in Parameter.');
-    if (r.transfer !== undefined && r.transfer !== '' && (!isFinite(Number(r.transfer)) || Number(r.transfer) < 0)) throw new Error('Invalid transfer amount.');
-    if (String(r.ref || '').toUpperCase() === 'MIGRASI') throw new Error('Reference MIGRASI is reserved for legacy data.');
-    if (pb && !String(r.ref || '').trim()) throw new Error('An offset / reclass reference is required.');
+    if (!isFinite(n) || !Number.isSafeInteger(n) || Math.abs(n) > 1e15) throw new Error('Baris '+(i+1)+': amount must be a valid whole rupiah value.');
+    if (!arValidDate_(r.tgl) || r.tgl > today) throw new Error('Baris '+(i+1)+': invalid or future date.');
+    if (!inv || inv._batal) throw new Error('Baris '+(i+1)+': invoice not found or cancelled.');
+    if (inv.tgl && r.tgl < inv.tgl) throw new Error('Tanggal bayar sebelum tanggal invoice.');
+    if (inv._closedManual) throw new Error('Invoice sudah ditutup manual. Selesaikan tutup manual sebelum mencatat penerimaan baru.');
+    if (r.jenis_trx && !pb && !kom && jt !== 'TRANSFER') throw new Error('Jenis transaksi tidak dikenal.');
+    if (kom && !(n > 0)) throw new Error('Baris '+(i+1)+': compensation amount must be positive.');
+    if (kom && String(r.ref || '').trim().length < 3) throw new Error('Baris '+(i+1)+': isi nomor BA / memo kompensasi sebagai referensi.');
+    if (kom && String(r.rekening || '').trim()) throw new Error('Baris '+(i+1)+': a compensation has no receiving bank account.');
+    if (r.pph_bupot !== undefined && r.pph_bupot !== '' && (!isFinite(px) || px < 0 || !Number.isSafeInteger(px))) throw new Error('Baris '+(i+1)+': WHT per withholding slip must be a whole rupiah amount ≥ 0.');
+    if (px > 0 && pb) throw new Error('PPh per bukti potong tidak bisa diisi di baris pindah buku.');
+    if (px > 0 && inv._a && px > inv._a.netto) throw new Error('Baris '+(i+1)+': PPh per bukti potong melebihi netto invoice.');
+    if (r.alokasi && ENGINE.OPT.alokasi.indexOf(String(r.alokasi).toUpperCase()) < 0) throw new Error('Alokasi harus OTOMATIS, NETTO atau PPN.');
+    if (!pb && !kom && !ENGINE.rekOf(p,r.rekening)) throw new Error('Rekening bank tidak ditemukan di Parameter.');
+    if (r.transfer !== undefined && r.transfer !== '' && (!isFinite(Number(r.transfer)) || Number(r.transfer) < 0)) throw new Error('Nilai transfer tidak valid.');
+    if (String(r.ref || '').toUpperCase() === 'MIGRASI') throw new Error('Referensi MIGRASI khusus untuk data lama.');
+    if (pb && !String(r.ref || '').trim()) throw new Error('Referensi pindah buku wajib diisi.');
     var key = (pb ? 'PB|' : kom ? 'KOM|' : 'TRF|') + String(r.ref || '_TANPA_REF_').trim(), g = groups[key] || (groups[key] = {pb:pb,kom:kom,rows:[],total:0});
     g.rows.push(r); g.total += n; r.nominal = n;
   });
   Object.keys(groups).forEach(function(k) {
     var g = groups[k], a = g.rows, first = a[0];
-    if (a.some(function(r) { return r.tgl !== first.tgl || (!g.pb && !g.kom && ENGINE.rekOf(p,r.rekening).label !== ENGINE.rekOf(p,first.rekening).label); })) throw new Error('All rows under one reference must use the same date and bank account.');
+    if (a.some(function(r) { return r.tgl !== first.tgl || (!g.pb && !g.kom && ENGINE.rekOf(p,r.rekening).label !== ENGINE.rekOf(p,first.rekening).label); })) throw new Error('Semua baris dalam satu referensi harus bertanggal dan berekening sama.');
     if (g.pb) {
       var invoices = {}; a.forEach(function(r) { invoices[r.inv]=1; });
-      if (a.length < 2 || Object.keys(invoices).length < 2 || Math.abs(g.total) > 1 || !a.some(function(r){return r.nominal<0;}) || !a.some(function(r){return r.nominal>0;})) throw new Error('Each offset / reclass reference must balance and have different source and target invoices.');
+      if (a.length < 2 || Object.keys(invoices).length < 2 || Math.abs(g.total) > 1 || !a.some(function(r){return r.nominal<0;}) || !a.some(function(r){return r.nominal>0;})) throw new Error('Setiap referensi pindah buku harus seimbang dengan invoice asal dan tujuan yang berbeda.');
     } else if (!g.kom) {
       var totals = a.map(function(r) { return Number(r.transfer) || 0; }).filter(function(v){return v>0;});
-      if (a.length > 1 && (!String(first.ref || '').trim() || !totals.length)) throw new Error('A split transfer requires a bank reference and the total transfer amount.');
-      if (totals.some(function(v) { return Math.abs(v-g.total)>1; })) throw new Error('Total allocations differ from the transfer amount.');
+      if (a.length > 1 && (!String(first.ref || '').trim() || !totals.length)) throw new Error('Transfer untuk beberapa invoice wajib mengisi referensi bank dan total transfer.');
+      if (totals.some(function(v) { return Math.abs(v-g.total)>1; })) throw new Error('Total alokasi berbeda dengan nilai transfer.');
     }
   });
 }
@@ -131,7 +131,7 @@ function arSavePayments_(rows, requestId, opt) {
   var koreksi = arCheckPeriod_(rows.map(function(r){return r.tgl;}), (opt||{}).periodeAlasan, 'Cash receipt');
   if (koreksi) rows.forEach(function(r) { r.ket = (koreksi + ' ' + String(r.ket || '')).trim(); });
   var hash = arDigest_(arPaymentCanonical_(rows)), token = requestId || 'legacy-' + hash;
-  if (!/^[A-Za-z0-9_-]{12,100}$/.test(token)) throw new Error('Invalid request ID. Reload the app.');
+  if (!/^[A-Za-z0-9_-]{12,100}$/.test(token)) throw new Error('ID permintaan tidak valid. Muat ulang aplikasi.');
   lock.waitLock(28000);
   try {
     var sh = sheet_('Log Penerimaan');
@@ -139,21 +139,21 @@ function arSavePayments_(rows, requestId, opt) {
     if (!colMap_(sh,ENGINE.LOG).pph_bupot && rows.some(function(r){return Number(r.pph_bupot)>0;})) ensureSchema_(sh,ENGINE.LOG,null,4);
     if (rows.some(function(r){return String(r.jenis_trx||'').toUpperCase()==='KOMPENSASI';})) arEnsureAkunKompensasi_();
     var input = readAll_(), map = colMap_(sh,ENGINE.LOG), cols = ENGINE.LOG.cols;
-    if (!map.request_id || !map.request_hash || !map.request_user) throw new Error('The v2.8 update has not been installed on the spreadsheet.');
+    if (!map.request_id || !map.request_hash || !map.request_user) throw new Error('Pembaruan v2.8 belum dipasang di spreadsheet.');
     var ix = function(k) { return ENGINE.colIndex(ENGINE.LOG,k); };
     var existing = input.log.filter(function(r) { return String(r[ix('request_id')] || '') === token; });
     if (existing.length) {
-      if (existing.length !== rows.length || existing.some(function(r) { return r[ix('request_hash')] !== hash || r[ix('request_user')] !== access.email; })) throw new Error('This save ID was already used for different or incomplete data. Check the Log Penerimaan sheet; do not re-enter it as a new transaction.');
+      if (existing.length !== rows.length || existing.some(function(r) { return r[ix('request_hash')] !== hash || r[ix('request_user')] !== access.email; })) throw new Error('ID simpan ini sudah dipakai untuk data lain / tidak lengkap. Periksa sheet Log Penerimaan; jangan dicatat ulang sebagai transaksi baru.');
       var stored = existing.map(function(r){var o={};cols.forEach(function(c,j){o[c[0]]=r[j];});return o;});
-      if (arDigest_(arPaymentCanonical_(stored)) !== hash) throw new Error('The transaction was saved but later modified. Check the Log Penerimaan sheet.');
+      if (arDigest_(arPaymentCanonical_(stored)) !== hash) throw new Error('Transaksi tersimpan tetapi kemudian diubah. Periksa sheet Log Penerimaan.');
       saved = {ok:true,saved:true,duplicate:true,requestId:token,invoices:[],payments:[],key:ENGINE.payKey(stored[stored.length-1])};
     } else {
-      if (arProps_().getProperty('VOID_'+token)) throw new Error('The earlier request was cancelled. Resend with a new request ID.');
+      if (arProps_().getProperty('VOID_'+token)) throw new Error('Permintaan sebelumnya dibatalkan. Kirim ulang.');
       arValidatePayments_(rows,input);
       // Existing bank references identify a transfer, including all split allocations.
       var refs = {}; rows.forEach(function(r){if(r.ref) refs[String(r.ref).trim()]=true;});
-      if (input.log.some(function(r) { return refs[String(r[ix('ref')] || '').trim()]; })) throw new Error('This bank reference is already recorded. Check the Log Penerimaan sheet before recording it again.');
-      if (input.log.some(function(r) { return r[ix('request_hash')] === hash; })) throw new Error('Identical payment data is already recorded. Check the earlier transaction.');
+      if (input.log.some(function(r) { return refs[String(r[ix('ref')] || '').trim()]; })) throw new Error('Referensi bank ini sudah tercatat. Periksa sheet Log Penerimaan sebelum mencatat ulang.');
+      if (input.log.some(function(r) { return r[ix('request_hash')] === hash; })) throw new Error('Data penerimaan yang sama sudah tercatat. Periksa transaksi sebelumnya.');
       var maxId = 0;
       input.log.forEach(function(r) { var m=String(r[ix('idp')] || '').match(/^PNR-(\d+)$/); if(m) maxId=Math.max(maxId,+m[1]); });
       // Include legacy blank IDs deterministically, so new IDs do not collide after rebuild.
@@ -237,7 +237,7 @@ function arAfterSave_(npps,months,noDerived) {
   if (!noDerived) try {
     var a=paramKV_('FILE_AKUNTANSI_ID'),b=paramKV_('FILE_PE_ID'),c=paramKV_('FILE_PAJAK_ID');
     // sinkron lain sedang berjalan bukan kegagalan: file Akuntansi/P&E/Pajak ikut diperbarui oleh sinkron itu / jadwal berikutnya
-    if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}),re=r.err.filter(function(x){return !/another sync is running|system busy/.test(x);}); if(re.length) {out.reportPending=true;out.warnings=out.warnings.concat(re);} }
+    if ((a&&a.val)||(b&&b.val)||(c&&c.val)) { var r=syncTurunan_({npps:npps,months:months,noPull:true}),re=r.err.filter(function(x){return !/another sync is running|system busy|Sistem sedang memperbarui/.test(x);}); if(re.length) {out.reportPending=true;out.warnings=out.warnings.concat(re);} }
   } catch(e) {out.reportPending=true;out.warnings.push('Derived files: '+e.message);}
   return out;
 }
@@ -513,9 +513,9 @@ function onPEEditV28(e) {
 }
 
 // ---------------- Monthly snapshots: immutable revisions; AI is opt-in and aggregate-only.
-function arMonthEnd_(month) {if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('Month must be yyyy-mm.');var p=month.split('-');return new Date(Date.UTC(+p[0],+p[1],0)).toISOString().slice(0,10);}
+function arMonthEnd_(month) {if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw new Error('Bulan harus berformat yyyy-mm.');var p=month.split('-');return new Date(Date.UTC(+p[0],+p[1],0)).toISOString().slice(0,10);}
 function arMonthlyArchive_() {
-  var sh=sheet_('Arsip Analisis AR');if(!sh)throw new Error('Install the v2.8 update first.');return sh;
+  var sh=sheet_('Arsip Analisis AR');if(!sh)throw new Error('Pasang pembaruan v2.8 terlebih dahulu.');return sh;
 }
 function arMonthlyRows_() {var sh=arMonthlyArchive_();return sh.getLastRow()>1?sh.getRange(2,1,sh.getLastRow()-1,12).getValues():[];}
 function arMonthlyNarrative_(m) {
@@ -545,12 +545,12 @@ function arAINarrative_(metrics) {
   }catch(e){return {status:'GAGAL KONEKSI AI — analisis aturan tetap tersedia',text:''};}
 }
 function arCreateMonthly_(month,revise,reason) {
-  var cutoff=arMonthEnd_(month);if(cutoff>=arToday_())throw new Error('A snapshot can only be created after the month ends.');
+  var cutoff=arMonthEnd_(month);if(cutoff>=arToday_())throw new Error('Snapshot hanya bisa dibuat setelah bulan berakhir.');
   var lock=arLock_();lock.waitLock(28000);
   try {
     var rows=arMonthlyRows_(),old=rows.filter(function(r){return r[1]===month;});
     if(old.length&&!revise){arRenderMonthly_(old[old.length-1]);return {created:false,id:old[old.length-1][0]};}
-    if(revise&&String(reason||'').trim().length<10)throw new Error('The revision reason must be at least 10 characters.');
+    if(revise&&String(reason||'').trim().length<10)throw new Error('Alasan revisi minimal 10 karakter.');
     var input=readAll_(),m=ENGINE.monthlyMetrics(input,cutoff),n=arMonthlyNarrative_(m),ai=arAINarrative_(m),rev=old.length,id=month+'-Rev.'+('0'+rev).slice(-2),digest=arDigest_(JSON.stringify(m));
     var row=[id,month,rev,cutoff,arNow_(),email_()||Session.getEffectiveUser().getEmail(),digest,reason||'Snapshot otomatis akhir bulan',JSON.stringify(m),n,ai.text,ai.status],sh=arMonthlyArchive_();
     roomFor_(sh,sh.getLastRow()+1);sh.getRange(sh.getLastRow()+1,1,1,12).setNumberFormat('@').setValues([row.map(arSafeCell_)]);
@@ -613,11 +613,11 @@ function applyV28() {
   }finally{lock.releaseLock();}
 }
 function apiResolvePayment(requestId) {
-  var a=arRequireMaker_();if(!/^[A-Za-z0-9_-]{12,100}$/.test(requestId||''))throw new Error('Invalid ID.');
+  var a=arRequireMaker_();if(!/^[A-Za-z0-9_-]{12,100}$/.test(requestId||''))throw new Error('ID tidak valid.');
   var l=arLock_();l.waitLock(28000);
   try {
     var rows=readSchema_(sheet_('Log Penerimaan'),ENGINE.LOG),ri=ENGINE.colIndex(ENGINE.LOG,'request_id'),ui=ENGINE.colIndex(ENGINE.LOG,'request_user'),found=rows.filter(function(r){return r[ri]===requestId;});
-    if(found.some(function(r){return r[ui]!==a.email;}))throw new Error('The request belongs to another user.');
+    if(found.some(function(r){return r[ui]!==a.email;}))throw new Error('Permintaan ini milik pengguna lain.');
     if(found.length)return {saved:true,count:found.length};
     // Cancel outstanding writes with this token under the same lock; a delayed RPC cannot commit later.
     arProps_().setProperty('VOID_'+requestId,a.email+'|'+arToday_());
@@ -693,8 +693,8 @@ function arPeriodState_(P) {
 function arCheckPeriod_(dates, alasan, what) {
   var st = arPeriodState_(), hit = (dates || []).filter(function(d){return st.tutup && d && String(d) <= st.tutup;}).sort();
   if (!hit.length) return '';
-  if (!st.koreksi) throw new Error('PERIODE_TERTUTUP: ' + what + ' dated ' + hit[0] + ' falls in a closed period (through ' + st.tutup + '). Ask the Section Head to open a temporary correction window in the app (Approvals).');
-  if (String(alasan || '').trim().length < 10) throw new Error('PERIODE_TERTUTUP_ALASAN: ' + what + ' dated ' + hit[0] + ' falls in a closed period (through ' + st.tutup + '). Enter a correction reason of at least 10 characters.');
+  if (!st.koreksi) throw new Error('PERIODE_TERTUTUP: ' + what + ' bertanggal ' + hit[0] + ' masuk periode yang sudah ditutup (s.d. ' + st.tutup + '). Minta Section Head membuka izin koreksi sementara di aplikasi (Persetujuan).');
+  if (String(alasan || '').trim().length < 10) throw new Error('PERIODE_TERTUTUP_ALASAN: ' + what + ' bertanggal ' + hit[0] + ' masuk periode yang sudah ditutup (s.d. ' + st.tutup + '). Isi alasan koreksi minimal 10 karakter.');
   return '[KOREKSI PERIODE TERTUTUP s.d. ' + st.tutup + ' · izin ' + st.oleh + ' s.d. ' + st.koreksi + ' · ' + String(alasan).trim().replace(/[\[\]]/g, '') + ']';
 }
 /** aplikasi: tutup (PEMBUAT/PENYETUJU, hanya maju) · buka koreksi / cabut (hanya PENYETUJU, bukan delegasi) */
@@ -704,24 +704,24 @@ function apiPeriode(action, tanggal, alasan) {
   try {
     st = arPeriodState_();
     if (action === 'tutup') {
-      if (!a.maker && !a.approver) throw new Error('Not authorized to close the period.');
-      if (!arValidDate_(tanggal) || tanggal >= arToday_()) throw new Error('The close date must be a past date.');
-      if (st.tutup && tanggal <= st.tutup) throw new Error('The period is already closed through ' + st.tutup + ' (closed automatically on day ' + ((paramKV_('TUTUP_BUKU_TANGGAL') || {}).val || 3) + ' of each month at 00:00). The period cannot be moved back; use a Section Head correction permit.');
+      if (!a.maker && !a.approver) throw new Error('Tidak berwenang menutup periode.');
+      if (!arValidDate_(tanggal) || tanggal >= arToday_()) throw new Error('Tanggal tutup harus tanggal yang sudah lewat.');
+      if (st.tutup && tanggal <= st.tutup) throw new Error('Periode sudah ditutup s.d. ' + st.tutup + ' (closed automatically on day ' + ((paramKV_('TUTUP_BUKU_TANGGAL') || {}).val || 3) + ' of each month at 00:00). The period cannot be moved back; use a Section Head correction permit.');
       setParamKV_('PERIODE_DITUTUP_SAMPAI', tanggal, 'Transaksi bertanggal s.d. tanggal ini ditolak (tutup buku)');
       msg = ['Periode ditutup s.d. ' + tanggal + ' oleh ' + a.email + '.'];
     } else if (action === 'buka' || action === 'cabut') {
-      if (!a.approver) throw new Error('Only the Section Head (PENYETUJU) can open corrections for a closed period.');
+      if (!a.approver) throw new Error('Hanya Section Head (PENYETUJU) yang bisa membuka koreksi periode tertutup.');
       if (action === 'buka') {
         var maxD = ENGINE.addDays(arToday_(), 7);
-        if (!st.tutup) throw new Error('No period has been closed yet.');
-        if (!arValidDate_(tanggal) || tanggal < arToday_() || tanggal > maxD) throw new Error('A correction permit can last at most 7 days (through ' + maxD + ').');
-        if (String(alasan || '').trim().length < 10) throw new Error('Enter a reason for opening corrections of at least 10 characters.');
+        if (!st.tutup) throw new Error('Belum ada periode yang ditutup.');
+        if (!arValidDate_(tanggal) || tanggal < arToday_() || tanggal > maxD) throw new Error('Izin koreksi paling lama 7 hari (s.d. ' + maxD + ').');
+        if (String(alasan || '').trim().length < 10) throw new Error('Isi alasan membuka koreksi (min. 10 karakter).');
         setParamKV_('PERIODE_KOREKSI_SAMPAI', tanggal, 'Izin koreksi transaksi di periode tertutup (diatur Section Head di aplikasi)');
         setParamKV_('PERIODE_KOREKSI_OLEH', a.email, 'Pemberi izin koreksi periode');
         setParamKV_('PERIODE_KOREKSI_ALASAN', String(alasan).trim(), 'Alasan izin koreksi periode');
         msg = ['Koreksi periode tertutup (s.d. ' + st.tutup + ') DIBUKA oleh ' + a.email + ' sampai ' + tanggal + '.', 'Alasan: ' + String(alasan).trim()];
       } else { setParamKV_('PERIODE_KOREKSI_SAMPAI', '', 'Izin koreksi transaksi di periode tertutup (diatur Section Head di aplikasi)'); msg = ['Izin koreksi periode tertutup DICABUT oleh ' + a.email + '.']; }
-    } else throw new Error('Unrecognized period action.');
+    } else throw new Error('Tindakan periode tidak dikenal.');
   } finally { lock.releaseLock(); }
   var w = arNotify_('Periode — ' + msg[0], msg);
   return plain_({ ok: true, periode: arPeriodState_(), warnings: w ? [w] : [] });
@@ -737,17 +737,17 @@ function arTutupPeriodeMenu() {
 
 // ---------------- Angka invoice dihitung ulang di server dari isian form + Master Proyek; aplikasi tidak dipercaya begitu saja.
 function arCheckInvoiceNumbers_(p, nomor) {
-  if (!p || !p.form) throw new Error('Invoice form data is missing. Save from the app.');
+  if (!p || !p.form) throw new Error('Data form invoice tidak ada. Simpan dari aplikasi.');
   var b = ENGINE.bootstrap(computeLight_(), email_()), pr = b.proyek.filter(function(x){return x.npp===p.npp;})[0];
-  if (!pr) throw new Error('NPP ' + p.npp + ' not found in Master Proyek.');
-  if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Form entries do not match the invoice data. Reload the app.');
+  if (!pr) throw new Error('NPP ' + p.npp + ' tidak ditemukan di Master Proyek.');
+  if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Isian form tidak sesuai data invoice. Muat ulang aplikasi.');
   var ex = b.invoices.filter(function(i){return ENGINE.normInv(i.nomor)===nomor;})[0];
   var c = ENGINE.calcInvoice(ENGINE.invoiceInput(pr, Object.assign({}, p.form, { tgl: p.tgl, jenis: p.jenis }), ex ? ex.umk : 0, nomor));
   var want = { bruto: c.bruto, umk: c.umk || 0, retensi: c.retensi || 0, dpp: c.dpp, ppn: c.ppn, tagih: c.bayar }, beda = [];
   Object.keys(want).forEach(function(k) { if (Math.abs((Number(p[k]) || 0) - (Number(want[k]) || 0)) > 1) beda.push(k.toUpperCase() + ' in app Rp ' + ENGINE.fmtRp(Number(p[k]) || 0) + ' ≠ server Rp ' + ENGINE.fmtRp(Number(want[k]) || 0)); });
-  if (beda.length) throw new Error('Invoice amounts differ from the server calculation (' + beda.join('; ') + '). Project data or the remaining down payment may have changed — reload the app and check again.');
+  if (beda.length) throw new Error('Nilai invoice berbeda dengan perhitungan server (' + beda.join('; ') + '). Project data or the remaining down payment may have changed — reload the app and check again.');
   if (p.jenis === 'RETENSI' && (pr.template === 'IKK' || pr.template === 'KIDOH') && Number(pr.ret_pct) > 0 && want.ppn > 0 && !String((p.form || {}).ppnRetensiAlasan || '').trim())
-    throw new Error('Retention release for project ' + p.npp + ' (retention position AKHIR, template ' + pr.template + ') is charged VAT, but retention VAT was already billed on the progress invoices. Turn off the VAT option, or enter the written basis from Tax / Accounting in the field below it.');
+    throw new Error('Pencairan retensi proyek ' + p.npp + ' (posisi retensi AKHIR, template ' + pr.template + ') dikenai PPN, padahal PPN retensi sudah ditagih di invoice progres. Matikan pilihan PPN, atau isi dasar tertulis dari Pajak / Akuntansi di kolom bawahnya.');
   // atribut pajak & template selalu dari Master Proyek
   p.template = pr.template; p.tarif = pr.tarif; p.dasar = pr.dasar_pph; p.retpos = c.retPos || 'TIDAK ADA';
   ['bruto','umk','retensi','dpp','ppn'].forEach(function(k){ p[k] = Number(want[k]) || 0; }); p.tagih = Number(want.tagih) || 0;
@@ -781,7 +781,7 @@ function arPeriodDateOf_(kind, d) {
 function arGuardClosed_(kind, d, what) {
   var t = arPeriodDateOf_(kind, d), st = arPeriodState_();
   if (!t || !st.tutup || t > st.tutup) return '';
-  if (!st.koreksi) throw new Error(what + ' concerns a period already closed (through ' + st.tutup + '). After month-end close, data in that period cannot be changed or cancelled unless the Section Head opens a correction permit.');
+  if (!st.koreksi) throw new Error(what + ' menyangkut periode yang sudah ditutup (s.d. ' + st.tutup + '). Setelah tutup buku, data periode itu tidak bisa diubah / dibatalkan kecuali Section Head membuka izin koreksi.');
   return t;
 }
 
@@ -1001,13 +1001,13 @@ function arArsipKembalikanMenu() {
 function apiAnalisis(month, buat) {
   var acc = arRequireAccess_(!buat);
   month = String(month || '');
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
   var st = arPeriodState_(), tutup = !!st.tutup && st.tutup >= arMonthEnd_(month), rows;
   try { rows = arMonthlyRows_(); } catch (e) { return { ada: false, tutup: tutup, err: 'Analysis archive not installed' }; }
   var L = rows.filter(function(r) { return String(r[1]) === month; });
   if (!L.length && buat) {
-    if (!acc.maker) throw new Error('Monthly analysis is created by the Preparer.');
-    if (!tutup) throw new Error('Month ' + month + ' is not closed yet. The analysis is created after month-end close (day 3 of the following month).');
+    if (!acc.maker) throw new Error('Analisis bulanan dibuat oleh Pembuat (AR).');
+    if (!tutup) throw new Error('Bulan ' + month + ' belum ditutup. Analisis dibuat setelah tutup buku (tanggal 3 bulan berikutnya).');
     arCreateMonthly_(month, false, '');
     L = arMonthlyRows_().filter(function(r) { return String(r[1]) === month; });
   }
@@ -1019,14 +1019,14 @@ function apiAnalisis(month, buat) {
 /** v2.8.8: checklist Month-End AR Closing (bulan yyyy-mm; kosong = bulan lalu bila sudah lewat tanggal tutup, selain itu bulan berjalan) */
 function apiClosing(month) {
   arRequireAccess_(true);
-  month = String(month || ''); if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
+  month = String(month || ''); if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
   return arCached_('closing|' + month, function () { var res = computeLight_('memo'), m = month || res.ctx.today.substring(0, 7); return plain_(ENGINE.closingData(res.ctx, m)); });
 }
 /** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
 function apiOverview(month) {
   arRequireAccess_(true);
   month = String(month || '');
-  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Month must be yyyy-mm.');
+  if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
   var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key), t0 = Date.now();
   if (hit) { arPerfLog_('overview', Date.now() - t0, 'cache'); return JSON.parse(hit); }
   var res = computeLight_(true), o = ENGINE.overview(res.ctx, month);
@@ -1164,13 +1164,13 @@ function arMdSaveCore_(ss, all, kind, orig, data, reason, who, now, log) {
   var schema = kind === 'PEL' ? ENGINE.MPEL : ENGINE.MPRO, alias = kind === 'PEL' ? null : ENGINE.MPRO_ALIAS, list = kind === 'PEL' ? all.pel : all.pro, key = kind === 'PEL' ? 'nama' : 'npp';
   data = JSON.parse(JSON.stringify(data || {})); if (data[key] !== undefined) data[key] = kind === 'PEL' ? String(data[key]).toUpperCase().trim() : String(data[key]).toUpperCase().replace(/\s+/g, ' ').trim();
   var ex = orig ? list.filter(function (r) { return String(r[key]).toUpperCase().trim() === String(orig).toUpperCase().trim(); })[0] : null;
-  if (orig && !ex) throw new Error((kind === 'PEL' ? 'Customer ' : 'Project ') + orig + ' not found — reload the list.');
+  if (orig && !ex) throw new Error((kind === 'PEL' ? 'Customer ' : 'Project ') + orig + ' tidak ditemukan — muat ulang daftar.');
   if (ex) data[key] = ex[key]; // kunci tidak diganti lewat form (NPP: menu Ganti NPP proyek)
   var errs = ENGINE.masterChecks(kind, Object.assign({}, ex || {}, data), all, orig).filter(function (x) { return x.lvl === 'E'; });
   if (errs.length) throw new Error(errs.map(function (x) { return x.t + (x.m ? ' (' + x.m + ')' : ''); }).join('; '));
   var diff = ENGINE.masterDiff(kind, ex, data), sens = diff.filter(function (x) { return x.sens; });
   if (!diff.length) return { key: data[key], diff: [], sens: [] };
-  if (sens.length && String(reason || '').trim().length < 5) throw new Error('Sensitive fields changed (' + sens.map(function (x) { return x.label; }).join(', ') + ') — enter the basis for the change (document / reason).');
+  if (sens.length && String(reason || '').trim().length < 5) throw new Error('Kolom penting berubah (' + sens.map(function (x) { return x.label; }).join(', ') + ') — enter the basis for the change (document / reason).');
   if (kind === 'PRO' && (data.pola_uraian !== undefined || data.pola_kw !== undefined)) { var mpx = ss.getSheetByName('Master Proyek'); if (!colMap_(mpx, ENGINE.MPRO, ENGINE.MPRO_ALIAS).pola_uraian) ensureSchema_(mpx, ENGINE.MPRO, ENGINE.MPRO_ALIAS, null); }
   arMdWrite_(ss.getSheetByName(kind === 'PEL' ? 'Master Pelanggan' : 'Master Proyek'), schema, alias, ex ? ex._row : 0, data);
   diff.forEach(function (x) { log.push([now, who, kind === 'PEL' ? 'PELANGGAN' : 'PROYEK', data[key], x.label, ex ? x.from : '(baru)', x.to, x.sens ? 'YA' : '', reason || '']); });
@@ -1183,7 +1183,7 @@ function arMdFinish_(ss, log, sensRows, subject) {
 }
 /** simpan pelanggan / proyek. kind PEL | PRO · orig = kunci asal (kosong = baru) */
 function apiMasterSave(kind, orig, data, reason) {
-  var acc = arRequireMaker_(); if (['PEL', 'PRO'].indexOf(kind) < 0) throw new Error('Invalid master type.');
+  var acc = arRequireMaker_(); if (['PEL', 'PRO'].indexOf(kind) < 0) throw new Error('Jenis master tidak valid.');
   var lock = arLock_(), out, log = []; lock.waitLock(28000);
   try { var ss = arSpreadsheet_(); out = arMdSaveCore_(ss, arMdRead_(ss), kind, orig, data, reason, acc.email, arNow_(), log); }
   finally { lock.releaseLock(); }

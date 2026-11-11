@@ -937,7 +937,7 @@ function doGet() {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
-function include(name) { if (['Index','EngineClient','PdfLib'].indexOf(name) < 0) throw new Error('Template not allowed.'); return HtmlService.createHtmlOutputFromFile(name).getContent(); }
+function include(name) { if (['Index','EngineClient','PdfLib'].indexOf(name) < 0) throw new Error('Template tidak diizinkan.'); return HtmlService.createHtmlOutputFromFile(name).getContent(); }
 /** pustaka pembuat PDF (html2canvas + jsPDF) untuk arsip — dimuat aplikasi hanya saat dibutuhkan */
 function apiPdfLib() { arRequireAccess_(true); return HtmlService.createHtmlOutputFromFile('PdfLib').getContent(); }
 function openAppDialog() {
@@ -1010,24 +1010,24 @@ function apiSaveInvoice_(p, opt) { arRequireMaker_();
   try {
     var ss = arSpreadsheet_(), sh = ss.getSheetByName('Monitoring Invoice'), cols = ENGINE.REG.cols, map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
     var nomor = ENGINE.normInv(p.nomor);
-    if (!/^KU\.02\.02\/WB-4C\.\d{4}[A-Z]?\/\d{4}$/.test(nomor)) throw new Error('Invalid invoice number format: ' + p.nomor);
+    if (!/^KU\.02\.02\/WB-4C\.\d{4}[A-Z]?\/\d{4}$/.test(nomor)) throw new Error('Format nomor invoice tidak valid: ' + p.nomor);
     var row = findRegisterRow_(sh, nomor, map);
     if (row && !opt.revisi) { var ex = apiGetInvoice(nomor); return { needConfirm: true, existing: { nomor: nomor, pelanggan: ex.pelanggan, tgl: ex.tgl, dpp: ex.dpp, ppn: ex.ppn, rev: ex.rev || 0 } }; }
-    if (row && opt.revisi && !String(opt.alasan || '').trim()) throw new Error('A revision reason is required.');
-    if (row && map.status_inv && /^BATAL/i.test(String(sh.getRange(row, map.status_inv).getValue()))) throw new Error('Invoice ' + nomor + ' has been cancelled — it cannot be revised. Create a new invoice with a different number.');
+    if (row && opt.revisi && !String(opt.alasan || '').trim()) throw new Error('Alasan revisi wajib diisi.');
+    if (row && map.status_inv && /^BATAL/i.test(String(sh.getRange(row, map.status_inv).getValue()))) throw new Error('Invoice ' + nomor + ' sudah dibatalkan — tidak bisa direvisi. Buat invoice baru dengan nomor lain.');
     checkNppSave_(p.npp, p.pelanggan);
     arCheckInvoiceNumbers_(p, nomor);
     var lc = sh.getLastColumn(), old = row ? sh.getRange(row, 1, 1, lc).getValues()[0] : null, oo = {};
     if (row) cols.forEach(function (c) { var j = map[c[0]]; oo[c[0]] = j ? (isDate_(old[j - 1]) ? dstr_(old[j - 1]) : old[j - 1]) : ''; });
     // jenis revisi ditentukan dari perubahan sebenarnya: NILAI / INVOICE (teks invoice-kwitansi) → Rev naik & ajukan ulang; BAP saja → cukup tercatat
     var rj = row ? revisiJenis_(oo, p) : null;
-    if (rj && !rj.jenis) throw new Error('No changes to save.');
+    if (rj && !rj.jenis) throw new Error('Tidak ada perubahan untuk disimpan.');
     // tutup periode hanya untuk invoice baru / revisi yang mengubah nilai atau tanggal (revisi teks tidak berdampak akuntansi)
     var koreksi = !row || rj.jenis === 'NILAI' ? arCheckPeriod_([p.tgl, row ? String(oo.tgl || '') : ''], opt.periodeAlasan, 'Invoice') : '';
     var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), user = email_() || 'pengguna';
     p.nomor = nomor; p.json = JSON.stringify(p.form || {}); p.dibuat = now + ' · ' + user + (koreksi ? ' · ' + koreksi : ''); p.sumber = 'APLIKASI';
     if (row) {
-      if (opt.expectedRev !== undefined && Number(opt.expectedRev) !== (Number(oo.rev) || 0)) throw new Error('The invoice was revised by another user. Reopen it before saving.');
+      if (opt.expectedRev !== undefined && Number(opt.expectedRev) !== (Number(oo.rev) || 0)) throw new Error('Invoice sudah direvisi pengguna lain. Buka ulang sebelum menyimpan.');
       // revisi BAP saja: nomor revisi tetap → sidik & persetujuan paket invoice tetap sah
       var rev = rj.jenis === 'BAP' ? (Number(oo.rev) || 0) : (Number(oo.rev) || 0) + 1; p.rev = rev;
       var perluFP = (Math.round(Number(oo.dpp) || 0) !== Math.round(p.dpp) || Math.round(Number(oo.ppn) || 0) !== Math.round(p.ppn)) ? 'YA — DPP/PPN berubah' : 'TIDAK';
@@ -1100,15 +1100,15 @@ function revisiHeader_(rr) {
 /** baris Log Penerimaan dari aplikasi → array sesuai urutan skema LOG */
 function payRow_(p) { return ENGINE.LOG.cols.map(function (c) { var v = p[c[0]]; return v === undefined || v === null ? '' : v; }); }
 function checkPayRows_(rows) {
-  if (!rows || !rows.length) throw new Error('No payment rows yet.');
+  if (!rows || !rows.length) throw new Error('Belum ada baris penerimaan.');
   rows.forEach(function (p, i) {
     var jt = String(p.jenis_trx || '').toUpperCase(), pb = jt === 'PINDAH BUKU', kom = jt === 'KOMPENSASI', n = Number(p.nominal) || 0;
-    if (!p.inv || !p.tgl || !n || (!pb && n < 0)) throw new Error('Row ' + (i + 1) + ': date, invoice number and amount are required (negative amounts only for offset / reclass).');
-    if (!pb && !kom && !String(p.rekening || '').trim()) throw new Error('Row ' + (i + 1) + ': select the receiving bank account.');
+    if (!p.inv || !p.tgl || !n || (!pb && n < 0)) throw new Error('Baris ' + (i + 1) + ': date, invoice number and amount are required (negative amounts only for offset / reclass).');
+    if (!pb && !kom && !String(p.rekening || '').trim()) throw new Error('Baris ' + (i + 1) + ': pilih rekening penerima.');
     p.inv = ENGINE.normInv(p.inv);
   });
   var pbs = rows.filter(function (p) { return String(p.jenis_trx || '').toUpperCase() === 'PINDAH BUKU'; });
-  if (pbs.length && Math.abs(pbs.reduce(function (t, p) { return t + Number(p.nominal); }, 0)) > 1) throw new Error('Offset / reclass does not balance: rows must sum to 0 (source negative, target positive).');
+  if (pbs.length && Math.abs(pbs.reduce(function (t, p) { return t + Number(p.nominal); }, 0)) > 1) throw new Error('Pindah buku tidak seimbang: jumlah baris harus 0 (asal negatif, tujuan positif).');
 }
 /** simpan beberapa baris sekaligus (satu transfer untuk beberapa invoice, atau pindah buku) */
 function apiSavePayments(rows, requestId, opt) { var t0 = Date.now(), r = arSavePayments_(rows, requestId, opt); arPerfLog_('simpan penerimaan', Date.now() - t0, ''); return r; }
@@ -1142,7 +1142,7 @@ function sign_(r) {
   return hex.substring(0, 5) + '-' + hex.substring(5, 10);
 }
 function apprRows_() {
-  var sh = sheet_('Log Persetujuan'); if (!sh) throw new Error('Sheet "Log Persetujuan" does not exist yet. Run menu AR CSU ▸ Upgrade struktur file ke versi 2.');
+  var sh = sheet_('Log Persetujuan'); if (!sh) throw new Error('Sheet "Log Persetujuan" belum ada. Jalankan menu AR CSU ▸ Upgrade struktur file ke versi 2.');
   var map = colMap_(sh, ENGINE.APPR), last = sh.getLastRow(), rows = [];
   if (last >= ENGINE.APPR.firstRow) {
     var v = sh.getRange(ENGINE.APPR.firstRow, 1, last - ENGINE.APPR.firstRow + 1, sh.getLastColumn()).getValues();
@@ -1159,7 +1159,7 @@ function apiPackage(kind, ref) { arRequireAccess_(true);
   if (kind === 'VAL' && /^\d{4}-\d{2}$/.test(String(ref || ''))) { try { raAutoFinal_(String(ref)); } catch (e) { arDiag_('RA', 'Finalisasi otomatis ' + ref + ' gagal: ' + e.message); } }
   return arCached_('lembar ' + kind + '|' + ref, function () { // v2.9.2: disimpan 5 menit, gugur setiap ada penyimpanan
   var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
-  if (!d) throw new Error('Data not found: ' + kind + ' ' + ref);
+  if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
   if (kind === 'VAL') { d.draft = valDraft_(d.ref); d.plan = raPlan_(d.ref); }
   if (d.appr) verifyAppr_(d.appr);
   d.user = ENGINE.userBy(res.params, email_()) || { email: email_() };
@@ -1170,20 +1170,20 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
   var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
-    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Account ' + (me || '(unknown)') + ' is not registered as PEMBUAT in Parameter ▸ Pengguna & Peran.');
+    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     var d = ENGINE.packageFor(res.ctx, kind, ref);
-    if (!d) throw new Error('Data not found: ' + kind + ' ' + ref);
-    if (kind === 'TUTUP' && !String(d.alasan || '').trim()) throw new Error('Fill in ALASAN TUTUP MANUAL in the Monitoring Invoice sheet first.');
-    if ((kind === 'VAL') && !d.items.filter(function (x) { return !x.gone; }).length) throw new Error('No open invoices for ' + d.label + '.');
+    if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
+    if (kind === 'TUTUP' && !String(d.alasan || '').trim()) throw new Error('Isi alasan tutup manual terlebih dahulu.');
+    if ((kind === 'VAL') && !d.items.filter(function (x) { return !x.gone; }).length) throw new Error('Tidak ada invoice terbuka untuk ' + d.label + '.');
     var raSh = kind === 'VAL' && extra && extra.flow === 'SH';
     if (raSh) { // v2.9.5: AR menyusun RA (keputusan, cicilan, tanggal) lalu mengajukan ke Section Head untuk approval; cicilan, alasan & penjelasan dari draf
       var rp = raPlan_(String(d.ref));
-      if (!rp || !rp.init) throw new Error('Save the RA draft for ' + d.label + ' first.');
-      if (rp.st === 'WAIT') throw new Error('RA ' + d.label + ' is already submitted and awaits Section Head approval.');
+      if (!rp || !rp.init) throw new Error('Simpan draf RA untuk ' + d.label + ' first.');
+      if (rp.st === 'WAIT') throw new Error('RA ' + d.label + ' sudah diajukan dan menunggu persetujuan Section Head.');
       extra.plan = { cic: rp.cic || {}, al: rp.al || {}, pj: rp.pj || {}, note: rp.note || '' };
       extra.dasar = rp.rev ? String(rp.dasar || '') : ''; extra.tglRapat = rp.rev && rp.dasar === 'PUSAT' ? String(rp.tglRapat || '') : '';
-      if (rp.rev && !extra.dasar) throw new Error('Select the revision basis (head-office meeting or internal correction).');
-      if (extra.dasar === 'PUSAT' && !/^\d{4}-\d{2}-\d{2}$/.test(extra.tglRapat)) throw new Error('Enter the head-office meeting date.');
+      if (rp.rev && !extra.dasar) throw new Error('Pilih dasar revisi (rapat pusat atau koreksi internal).');
+      if (extra.dasar === 'PUSAT' && !/^\d{4}-\d{2}-\d{2}$/.test(extra.tglRapat)) throw new Error('Isi tanggal rapat pusat.');
       (extra.items || []).forEach(function (x) { delete x.c; delete x.p; });
       extra.noDraft = true;
     }
@@ -1203,15 +1203,15 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
     if (kTgl && extra && extra.alasan !== undefined) extra.alasan = '[KOREKSI PERIODE TERTUTUP] ' + String(extra.alasan).trim();
     if (kind === 'VALX') {
       if (!d.canSubmit) throw new Error(d.blok);
-      if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
+      if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('Alasan pembatalan wajib diisi (min. 10 karakter).');
     }
     if (kind === 'REVP') {
       if (!d.canSubmit) throw new Error(d.blok);
-      if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('A reversal reason is required (at least 10 characters).');
+      if (String((extra && extra.alasan) || '').trim().length < 10) throw new Error('Alasan reverse wajib diisi (min. 10 karakter).');
     }
     if (kind === 'BATAL') {
       if (!d.canSubmit) throw new Error(d.blok);
-      var als = String((extra && extra.alasan) || '').trim(); if (als.length < 10) throw new Error('A cancellation reason is required (at least 10 characters).');
+      var als = String((extra && extra.alasan) || '').trim(); if (als.length < 10) throw new Error('Alasan pembatalan wajib diisi (min. 10 karakter).');
     }
     var snap = { label: d.label, nilai: d.nilai || d.total || 0 };
     if (kind === 'VAL') { snap = ENGINE.valSnapshot(d, extra || {}); var raRev = raSh && !!(rp && rp.rev) && !!d.curId; if (raSh && !raRev) snap.ap = 1; /* v2.9.5: RA awal menunggu approval Section Head; revisi oleh AR langsung final (Section Head mengetahui di rapat) */ try { arProps_().deleteProperty('VALDRAFT_' + d.ref); } catch (e) { } }
@@ -1277,31 +1277,31 @@ function arSahkanTtdBasah() { arRequireMaker_();
 }
 function apiSahkanTtdBasah() { arRequireMaker_(); var r = arSahkanCore_(false); r.background = true; return r; }
 function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_(); var tP = Date.now();
-  if (['SETUJU','TOLAK'].indexOf(String(keputusan).toUpperCase()) < 0) throw new Error('Invalid decision.');
+  if (['SETUJU','TOLAK'].indexOf(String(keputusan).toUpperCase()) < 0) throw new Error('Keputusan tidak valid.');
   var lock = arLock_(); lock.waitLock(28000);
   var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
     var A = apprRows_(), r = A.rows.filter(function (x) { return String(x.id) === String(id); })[0];
-    if (!r) throw new Error('Request ' + id + ' not found.');
+    if (!r) throw new Error('Pengajuan ' + id + ' tidak ditemukan.');
     var kind = Object.keys(ENGINE.DOC).filter(function (k) { return ENGINE.DOC[k] === String(r.jenis).toUpperCase(); })[0];
     // delegasi sementara (Parameter DELEGASI_*): diputuskan a.n. Section Head, tercatat jelas sebagai delegasi
     var dl = (!u || u.peran.indexOf('PENYETUJU') !== 0) ? ENGINE.delegasiFor(P, me, kind, res.ctx.today) : null;
-    if ((!u || u.peran.indexOf('PENYETUJU') !== 0) && !dl) throw new Error('Only users with the PENYETUJU role (Section Head) can decide' + (String(P.DELEGASI_EMAIL || '').toLowerCase() === me ? ' (your delegation does not cover this type or expired on ' + P.DELEGASI_SAMPAI + ')' : '') + '. Your account: ' + (me || '(unknown)'));
-    if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Request ' + id + ' already has status ' + r.status + '.');
+    if ((!u || u.peran.indexOf('PENYETUJU') !== 0) && !dl) throw new Error('Hanya pengguna dengan peran PENYETUJU (Section Head) yang bisa memutuskan' + (String(P.DELEGASI_EMAIL || '').toLowerCase() === me ? ' (your delegation does not cover this type or expired on ' + P.DELEGASI_SAMPAI + ')' : '') + '. Your account: ' + (me || '(unknown)'));
+    if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Pengajuan ' + id + ' sudah berstatus ' + r.status + '.');
     // pemisahan tugas: berlaku juga untuk delegasi — pengaju tidak pernah memutuskan pengajuannya sendiri
-    if (String(r.oleh).toLowerCase() === me) throw new Error('A request cannot be approved by its own preparer.');
+    if (String(r.oleh).toLowerCase() === me) throw new Error('Pengajuan tidak bisa disetujui oleh pembuatnya sendiri.');
     var kTglD = arGuardClosed_(kind, kind === 'BATAL' || kind === 'REVP' ? ENGINE.packageFor(res.ctx, kind, r.ref) : { ref: r.ref }, 'Decision ' + r.id);
     if (dl) catatan = '[DELEGASI a.n. ' + dl.atas + ' s.d. ' + dl.sampai + (dl.dasar ? ' · dasar: ' + dl.dasar : '') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : '');
     if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX' || kind === 'REVP') {
       var d = ENGINE.packageFor(res.ctx, kind, r.ref);
       if (!d || d.fp !== String(r.sidik)) {
         A.sh.getRange(r._row, A.map.status).setValue('DIBATALKAN'); A.sh.getRange(r._row, A.map.catatan).setValue('Data berubah sebelum diputuskan — perlu diajukan ulang');
-        throw new Error('Data for ' + r.ref + ' has changed since submission. The request was cancelled; ask the preparer to resubmit.');
+        throw new Error('Data ' + r.ref + ' berubah setelah diajukan. Pengajuan dibatalkan; minta AR mengajukan ulang.');
       }
     }
     var now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), st = String(keputusan).toUpperCase() === 'SETUJU' ? 'DISETUJUI' : 'DITOLAK';
-    if (st === 'DITOLAK' && !String(catatan || '').replace(/^\[DELEGASI[^\]]*\]/, '').trim()) throw new Error('Enter a rejection reason.');
+    if (st === 'DITOLAK' && !String(catatan || '').replace(/^\[DELEGASI[^\]]*\]/, '').trim()) throw new Error('Isi alasan penolakan.');
     // v2.5: validasi rencana cair — keputusan per invoice ikut disimpan & ditandatangani (kolom SIDIK = sidik data / sidik keputusan)
     var data = null; try { data = JSON.parse(String(r.data || '')); } catch (e) { data = null; }
     // v2.9: alur Section Head — keputusan = pilihan Section Head yang sudah ada di lembar (AR hanya menambah tanggal)
@@ -1374,12 +1374,12 @@ function setupArsipFolder() {
 function archiveFolder_(P, kind, month) {
   var folderName = String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU'), sub = function (parent, name) { var it = parent.getFoldersByName(name); return it.hasNext() ? it.next() : parent.createFolder(name); };
   var root = null, x = paramKV_('ARSIP_FOLDER_ID');
-  if (x && x.val) { try { root = DriveApp.getFolderById(x.val); } catch (e) { throw new Error('This account cannot open the archive folder — ask the folder owner to share it, or clear ARSIP_FOLDER_ID in Parameter.'); } }
+  if (x && x.val) { try { root = DriveApp.getFolderById(x.val); } catch (e) { throw new Error('Akun ini tidak bisa membuka folder arsip — minta pemilik folder membagikannya, atau kosongkan ARSIP_FOLDER_ID di Parameter.'); } }
   if (!root) {
     var it = DriveApp.getFoldersByName(folderName); root = it.hasNext() ? it.next() : DriveApp.createFolder(folderName);
     // ID wajib tersimpan: tanpa itu setiap akun membuat folder arsip sendiri di Drive-nya dan arsip tercecer
     try { setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)'); }
-    catch (e) { throw new Error('The archive folder is not set up. Spreadsheet owner: run menu AR CSU ▸ Siapkan folder arsip PDF, then try again.'); }
+    catch (e) { throw new Error('Folder arsip belum disiapkan. Pemilik spreadsheet: jalankan menu AR CSU ▸ Siapkan folder arsip PDF, lalu coba lagi.'); }
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
     try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
@@ -1422,27 +1422,27 @@ function docFileName_(inv, kind, ext) {
 /** v2.9.10 isi berkas invoice ber-TTD / faktur pajak (link_inv / link_fp di Monitoring Invoice) untuk dilampirkan di paket penerimaan. Hanya berkas yang tercatat di register. */
 function apiDocFile(nomor, kind) { arRequireAccess_();
   var res = computeLight_(), k = ENGINE.normInv(nomor), inv = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; })[0];
-  if (!inv) throw new Error('Invoice ' + nomor + ' not found.');
+  if (!inv) throw new Error('Invoice ' + nomor + ' tidak ditemukan.');
   var url = String(kind === 'FP' ? inv.link_fp || '' : inv.link_inv || ''), id = (/[-\w]{25,}/.exec(url) || [])[0];
   if (!id) return { none: true };
   var f = DriveApp.getFileById(id), b = f.getBlob(), mime = b.getContentType() || '';
-  if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('The filed document is not a PDF or image.');
-  if (f.getSize() > 15 * 1024 * 1024) throw new Error('The filed document is larger than 15 MB.');
+  if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Berkas bukan PDF atau gambar.');
+  if (f.getSize() > 15 * 1024 * 1024) throw new Error('Berkas lebih dari 15 MB.');
   return { b64: Utilities.base64Encode(b.getBytes()), mime: mime, name: f.getName(), url: url };
 }
 function apiFileDoc(nomor, kind, m) {
   arRequireMaker_(); m = m || {};
-  if (['PACK', 'FP'].indexOf(kind) < 0) throw new Error('Unknown document type.');
+  if (['PACK', 'FP'].indexOf(kind) < 0) throw new Error('Jenis dokumen tidak dikenal.');
   var mime = String(m.mime || ''), ext = mime === 'application/pdf' ? 'pdf' : mime === 'image/jpeg' ? 'jpg' : mime === 'image/png' ? 'png' : '';
-  if (!ext || (kind === 'FP' && ext !== 'pdf')) throw new Error(kind === 'FP' ? 'The tax invoice must be the PDF from Coretax.' : 'Only PDF, JPG or PNG files can be filed.');
+  if (!ext || (kind === 'FP' && ext !== 'pdf')) throw new Error(kind === 'FP' ? 'Faktur pajak harus PDF dari Coretax.' : 'Hanya file PDF, JPG atau PNG yang bisa disimpan.');
   var bytes = Utilities.base64Decode(String(m.b64 || ''));
-  if (!bytes.length) throw new Error('The file is empty.');
-  if (bytes.length > 10 * 1024 * 1024) throw new Error('The file is larger than 10 MB. Scan at 150–200 dpi or compress the PDF, then try again.');
+  if (!bytes.length) throw new Error('File kosong.');
+  if (bytes.length > 10 * 1024 * 1024) throw new Error('File lebih dari 10 MB. Scan dengan 150–200 dpi atau kompres PDF, lalu coba lagi.');
   var res = computeLight_(), ctx = res.ctx, key = ENGINE.normInv(nomor), inv = ctx.invs.filter(function (i) { return ENGINE.normInv(i.nomor) === key && !i._batal; })[0];
-  if (!inv) throw new Error('Invoice ' + nomor + ' not found (or cancelled).');
+  if (!inv) throw new Error('Invoice ' + nomor + ' tidak ditemukan (atau sudah dibatalkan).');
   var warn = [], fp = m.fp || null;
   if (kind === 'FP' && fp) {
-    if (fp.ref && ENGINE.normInv(String(fp.ref).split(/\s+-\s+/)[0]) !== key && !m.force) throw new Error('REF_MISMATCH: This tax invoice refers to ' + fp.ref + ', not ' + inv.nomor + '.');
+    if (fp.ref && ENGINE.normInv(String(fp.ref).split(/\s+-\s+/)[0]) !== key && !m.force) throw new Error('REF_MISMATCH: Faktur pajak ini merujuk ke ' + fp.ref + ', not ' + inv.nomor + '.');
     if (fp.harga && Math.abs(Number(fp.harga) - inv._a.dpp) > 1) warn.push('Selling price on the tax invoice (' + ENGINE.fmtRp(fp.harga) + ') differs from the invoice tax base (' + ENGINE.fmtRp(inv._a.dpp) + ').');
     if (fp.ppn && Math.abs(Number(fp.ppn) - inv._a.ppn) > 1) warn.push('VAT on the tax invoice (' + ENGINE.fmtRp(fp.ppn) + ') differs from the invoice VAT (' + ENGINE.fmtRp(inv._a.ppn) + ').');
   }
@@ -1451,7 +1451,7 @@ function apiFileDoc(nomor, kind, m) {
     var folder = archiveFolder_(res.params, 'DOK', String(inv.tgl).substring(0, 7)), fn = docFileName_(inv, kind, ext), moved = 0, old = null, files = folder.getFiles();
     while (files.hasNext()) { var f0 = files.next(); if (String(f0.getName()).indexOf(fn.prefix) === 0) { if (!old) { var it = folder.getFoldersByName('Revisi lama'); old = it.hasNext() ? it.next() : folder.createFolder('Revisi lama'); } f0.moveTo(old); moved++; } }
     var f = folder.createFile(Utilities.newBlob(bytes, mime, fn.name)), sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, inv.nomor, map), was = {};
-    if (!row) throw new Error('Invoice row not found in Monitoring Invoice.');
+    if (!row) throw new Error('Baris invoice tidak ditemukan di Monitoring Invoice.');
     var set = function (k, v, fmt) { if (!map[k]) return; var c = sh.getRange(row, map[k]); was[k] = c.getDisplayValue(); if (fmt) c.setNumberFormat(fmt); c.setValue(v); };
     set(kind === 'FP' ? 'link_fp' : 'link_inv', f.getUrl());
     if (kind === 'FP' && fp && /^\d{16,17}$/.test(String(fp.no || ''))) {
@@ -1473,32 +1473,32 @@ function apiSuratSimpan(m) {
   // mode: 'baru' · 'revisi' (belum dikirim: nomor sama, Rev.N) · 'ganti' (sudah sampai pelanggan: nomor + huruf, mis. 212A)
   var mode = ['revisi', 'ganti'].indexOf(m.mode) >= 0 ? m.mode : 'baru', alasan = String(m.alasan || '').trim();
   var nomor = String(m.nomor || '').trim(), tgl = String(m.tgl || ''), tenggat = String(m.tenggat || ''), list = (m.invoices || []).map(function (x) { return ENGINE.normInv(x); });
-  if (nomor.length < 5) throw new Error('Letter number is required.');
-  if (!arValidDate_(tgl)) throw new Error('Invalid letter date.');
-  if (tenggat && (!arValidDate_(tenggat) || tenggat < tgl)) throw new Error('The payment deadline cannot be before the letter date.');
-  if (!list.length) throw new Error('Select at least one invoice.');
-  if (!m.b64) throw new Error('The letter PDF has not been generated.');
-  if (mode !== 'baru' && alasan.length < 10) throw new Error('Enter a ' + (mode === 'revisi' ? 'revision' : 'replacement') + ' reason of at least 10 characters.');
+  if (nomor.length < 5) throw new Error('Nomor surat wajib diisi.');
+  if (!arValidDate_(tgl)) throw new Error('Tanggal surat tidak valid.');
+  if (tenggat && (!arValidDate_(tenggat) || tenggat < tgl)) throw new Error('Batas waktu bayar tidak boleh sebelum tanggal surat.');
+  if (!list.length) throw new Error('Pilih minimal satu invoice.');
+  if (!m.b64) throw new Error('PDF surat belum dibuat.');
+  if (mode !== 'baru' && alasan.length < 10) throw new Error('Isi ' + (mode === 'revisi' ? 'revision' : 'replacement') + ' reason of at least 10 characters.');
   var allNo = function () { return readSchema_(sheet_(ENGINE.SURAT.sheet), ENGINE.SURAT).map(function (r) { return String(r[0]).trim(); }).filter(String); };
   var used = function (n) { return allNo().some(function (x) { return x.toUpperCase() === n.toUpperCase(); }); };
   var d = ENGINE.suratData(computeLight_().ctx, m.pelanggan), ok = {}, total = 0, ke = 1, ruj = {}, asal = null;
   if (mode !== 'baru') {
     asal = d.letters.filter(function (l) { return l.nomor.toUpperCase() === String(m.asal || '').trim().toUpperCase(); })[0];
-    if (!asal) throw new Error('Original letter ' + m.asal + ' not found for ' + d.nama + '.');
-    if (asal.tutup || asal.ganti) throw new Error('Letter ' + asal.nomor + ' has already been ' + (asal.ganti ? 'replaced by letter ' + asal.ganti : 'closed') + '.');
-    if (mode === 'revisi' && nomor.toUpperCase() !== asal.nomor.toUpperCase()) throw new Error('A revision of an unsent letter must keep the same number (' + asal.nomor + ').');
-    if (mode === 'ganti') { var exp = ENGINE.suratNoGanti(asal.nomor, arParameters_().SURAT_NOMOR_FORMAT, allNo()); if (!exp || nomor.toUpperCase() !== exp.toUpperCase()) throw new Error('The replacement letter number should be ' + (exp || '(original number format not recognized)') + '. Reload the app.'); }
-  } else if (sheet_(ENGINE.SURAT.sheet) && used(nomor)) throw new Error('Letter number ' + nomor + ' is already recorded in the Log Surat Penagihan sheet.');
+    if (!asal) throw new Error('Surat asal ' + m.asal + ' tidak ditemukan untuk ' + d.nama + '.');
+    if (asal.tutup || asal.ganti) throw new Error('Surat ' + asal.nomor + ' sudah ' + (asal.ganti ? 'diganti surat ' + asal.ganti : 'ditutup') + '.');
+    if (mode === 'revisi' && nomor.toUpperCase() !== asal.nomor.toUpperCase()) throw new Error('Revisi surat yang belum dikirim harus memakai nomor yang sama (' + asal.nomor + ').');
+    if (mode === 'ganti') { var exp = ENGINE.suratNoGanti(asal.nomor, arParameters_().SURAT_NOMOR_FORMAT, allNo()); if (!exp || nomor.toUpperCase() !== exp.toUpperCase()) throw new Error('Nomor surat pengganti seharusnya ' + (exp || '(format nomor asal tidak dikenali)') + '. Muat ulang aplikasi.'); }
+  } else if (sheet_(ENGINE.SURAT.sheet) && used(nomor)) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di sheet Log Surat Penagihan.');
   d.projects.forEach(function (p) { p.invoices.forEach(function (i) { ok[ENGINE.normInv(i.nomor)] = i; }); });
   list.forEach(function (n) {
-    if (!ok[n]) throw new Error('Invoice ' + n + ' is not overdue or does not belong to ' + d.nama + '. Reload the app.');
+    if (!ok[n]) throw new Error('Invoice ' + n + ' tidak lewat jatuh tempo atau bukan milik ' + d.nama + '. Muat ulang aplikasi.');
     total += ok[n].sisa; ke = Math.max(ke, Math.min(3, ok[n].stage.ke || 1));
     (ok[n].stage.chain || []).forEach(function (c) { ruj[c.nomor] = c; });
   });
   var rujukan = Object.keys(ruj).map(function (k) { return ruj[k]; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; }).map(function (c) { return c.nomor + ' (' + c.tgl + ')'; }).join('; ');
   // revisi / pengganti tetap di tingkat surat asal (tidak naik ke surat berikutnya) dan merujuk surat yang sama
   if (asal) { ke = asal.ke; rujukan = asal.rujukan; }
-  if (m.ke && Number(m.ke) !== ke) throw new Error('Previous letter data has changed (this should be letter no. ' + ke + '). Reload the app and check again.');
+  if (m.ke && Number(m.ke) !== ke) throw new Error('Data surat sebelumnya berubah (seharusnya surat no. ' + ke + '). Muat ulang aplikasi dan periksa lagi.');
   var base = 'Surat Penagihan_' + d.nama + '_' + nomor, rev = mode === 'revisi' ? (asal.rev || 0) + 1 : 0;
   // revisi: PDF lama (awalan nama sama) dipindah ke subfolder "Revisi lama"
   var ar = apiArchive('SURAT', nomor, { b64: m.b64, name: base + (rev ? ' Rev.' + rev : ''), month: tgl.slice(0, 7), prefix: mode === 'revisi' ? base.replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim() : '' });
@@ -1512,7 +1512,7 @@ function apiSuratSimpan(m) {
     var lock = arLock_(); lock.waitLock(28000);
     try {
       var ss = arSpreadsheet_(), sh = setupDataSheet_(ss, ENGINE.SURAT, 'LOG SURAT PERMOHONAN PERCEPATAN PEMBAYARAN', 'Dicatat otomatis saat surat dibuat di aplikasi ▸ Surat Penagihan. Dasar alert pelanggan & peringatan TENGGAT SURAT TERLEWAT. Jangan diubah manual.', 'Log Persetujuan', '#C55A11').sh;
-      if (used(nomor)) throw new Error('Letter number ' + nomor + ' is already recorded in the Log Surat Penagihan sheet.');
+      if (used(nomor)) throw new Error('Nomor surat ' + nomor + ' sudah tercatat di sheet Log Surat Penagihan.');
       var map = colMap_(sh, ENGINE.SURAT), lc = Math.max(sh.getLastColumn(), ENGINE.SURAT.cols.length), row = Array(lc).fill('');
       ENGINE.SURAT.cols.forEach(function (c) { var j = map[c[0]]; if (j) row[j - 1] = arSafeCell_(toCell_(rec[c[0]], colFmt_(c))); });
       var at = lastDataRow_(sh, ENGINE.SURAT.firstRow, [map.nomor]) + 1; roomFor_(sh, at);
@@ -1529,14 +1529,14 @@ function apiSuratSimpan(m) {
 function suratUpdate_(nomor, fields) {
   var lock = arLock_(); lock.waitLock(28000);
   try {
-    var sh = sheet_(ENGINE.SURAT.sheet); if (!sh) throw new Error('The Log Surat Penagihan sheet does not exist yet.');
+    var sh = sheet_(ENGINE.SURAT.sheet); if (!sh) throw new Error('Sheet Log Surat Penagihan belum ada.');
     setupDataSheet_(arSpreadsheet_(), ENGINE.SURAT, 'LOG SURAT PERMOHONAN PERCEPATAN PEMBAYARAN', 'Dicatat otomatis saat surat dibuat di aplikasi ▸ Surat Penagihan. Dasar alert pelanggan & peringatan TENGGAT SURAT TERLEWAT. Jangan diubah manual.', 'Log Persetujuan', '#C55A11');
     var map = colMap_(sh, ENGINE.SURAT), last = sh.getLastRow(), f0 = ENGINE.SURAT.firstRow;
     var nos = last >= f0 ? sh.getRange(f0, map.nomor, last - f0 + 1, 1).getValues() : [], at = -1;
     nos.forEach(function (r, i) { if (String(r[0]).trim().toUpperCase() === String(nomor).trim().toUpperCase()) at = f0 + i; });
-    if (at < 0) throw new Error('Letter ' + nomor + ' not found in the Log Surat Penagihan sheet.');
-    if (String(sh.getRange(at, map.tutup).getValue()).trim()) throw new Error('Letter ' + nomor + ' is already closed.');
-    if (map.ganti && String(sh.getRange(at, map.ganti).getValue()).trim()) throw new Error('Letter ' + nomor + ' has already been replaced by letter ' + sh.getRange(at, map.ganti).getValue() + '.');
+    if (at < 0) throw new Error('Surat ' + nomor + ' tidak ditemukan di sheet Log Surat Penagihan.');
+    if (String(sh.getRange(at, map.tutup).getValue()).trim()) throw new Error('Surat ' + nomor + ' sudah ditutup.');
+    if (map.ganti && String(sh.getRange(at, map.ganti).getValue()).trim()) throw new Error('Surat ' + nomor + ' sudah diganti surat ' + sh.getRange(at, map.ganti).getValue() + '.');
     ENGINE.SURAT.cols.forEach(function (c) { if (fields[c[0]] !== undefined && map[c[0]]) sh.getRange(at, map[c[0]]).setNumberFormat(colFmt_(c) === 'date' ? NUMF.date : '@').setValue(arSafeCell_(toCell_(fields[c[0]], colFmt_(c)))); });
   } finally { lock.releaseLock(); }
   try { arMarkDirty_(); } catch (e) { }
@@ -1546,16 +1546,16 @@ function suratUpdate_(nomor, fields) {
 function apiSuratTanggapan(nomor, t) {
   var a = arRequireMaker_(); t = t || {};
   var tgl = String(t.tgl || ''), janji = String(t.janji || ''), isi = String(t.isi || '').trim(), jenis = String(t.jenis || '').trim().toUpperCase();
-  if (!arValidDate_(tgl) || tgl > arToday_()) throw new Error('Invalid or future response date.');
-  if (['SURAT BALASAN', 'EMAIL', 'TELEPON', 'RAPAT', 'LAINNYA'].indexOf(jenis) < 0) throw new Error('Select the response type.');
-  if (isi.length < 5) throw new Error('Enter a response summary.');
-  if (janji && (!arValidDate_(janji) || janji < tgl)) throw new Error('The promised payment date cannot be before the response date.');
+  if (!arValidDate_(tgl) || tgl > arToday_()) throw new Error('Tanggal tanggapan tidak valid atau di masa depan.');
+  if (['SURAT BALASAN', 'EMAIL', 'TELEPON', 'RAPAT', 'LAINNYA'].indexOf(jenis) < 0) throw new Error('Pilih jenis tanggapan.');
+  if (isi.length < 5) throw new Error('Isi ringkasan tanggapan.');
+  if (janji && (!arValidDate_(janji) || janji < tgl)) throw new Error('Tanggal janji bayar tidak boleh sebelum tanggal tanggapan.');
   return suratUpdate_(nomor, { tanggap_tgl: tgl, tanggap_jenis: jenis, tanggap_isi: (isi + ' · dicatat ' + a.email).slice(0, 500), janji: janji });
 }
 /** hentikan penagihan lewat surat untuk invoice di surat ini (sengketa, rekonsiliasi, invoice dibatalkan/diganti) */
 function apiSuratTutup(nomor, alasan) {
   var a = arRequireMaker_(); alasan = String(alasan || '').trim();
-  if (alasan.length < 10) throw new Error('The reason for closing the letter must be at least 10 characters.');
+  if (alasan.length < 10) throw new Error('Alasan menutup surat minimal 10 karakter.');
   return suratUpdate_(nomor, { tutup: alasan.slice(0, 500), tutup_oleh: a.email + ' · ' + arNow_() });
 }
 
@@ -1762,7 +1762,7 @@ function derivedFile_(key, title) {
   var x = paramKV_(key), ss = null;
   if (x && x.val) {
     // file sudah pernah dibuat: jangan pernah membuat file pengganti (bisa jadi akun ini tidak punya akses)
-    try { return SpreadsheetApp.openById(x.val); } catch (e) { throw new Error(title + ' cannot be opened by this account (' + e.message + '). Run it from the file owner account, or clear ' + key + ' in Parameter to create a new file.'); }
+    try { return SpreadsheetApp.openById(x.val); } catch (e) { throw new Error(title + ' tidak bisa dibuka akun ini (' + e.message + '). Jalankan dari akun pemilik file, atau kosongkan ' + key + ' di Parameter untuk membuat file baru.'); }
   }
   {
     ss = SpreadsheetApp.create(title);
@@ -1954,9 +1954,9 @@ function fillSapFromTempel() { arRequireMaker_();
 function checkNppSave_(npp, pelanggan) {
   var rows = readSchema_(sheet_('Master Proyek'), ENGINE.MPRO, ENGINE.MPRO_ALIAS), iN = ENGINE.colIndex(ENGINE.MPRO, 'npp'), iP = ENGINE.colIndex(ENGINE.MPRO, 'pelanggan');
   var hit = rows.filter(function (r) { return String(r[iN]).trim() === String(npp).trim(); });
-  if (!hit.length) throw new Error('NPP not found in Master Proyek: ' + npp);
-  if (hit.length > 1) throw new Error('NPP ' + npp + ' is used by ' + hit.length + ' projects in Master Proyek (' + hit.map(function (r) { return r[iP]; }).join(' / ') + '). Give each project a unique NPP (for a temporary NPP use e.g. ' + String(npp).replace(/ \d{4} /, ' 9001 ') + '), then save again.');
-  if (hit.length === 1 && String(hit[0][iP]).trim().toUpperCase() !== String(pelanggan).trim().toUpperCase()) throw new Error('Invoice customer (' + pelanggan + ') differs from the customer of project ' + npp + ' in Master Proyek (' + hit[0][iP] + '). Check the selected project / NPP.');
+  if (!hit.length) throw new Error('NPP tidak ditemukan di Master Proyek: ' + npp);
+  if (hit.length > 1) throw new Error('NPP ' + npp + ' dipakai ' + hit.length + ' proyek di Master Proyek (' + hit.map(function (r) { return r[iP]; }).join(' / ') + '). Beri NPP berbeda untuk setiap proyek (NPP sementara mis. ' + String(npp).replace(/ \d{4} /, ' 9001 ') + '), lalu simpan lagi.');
+  if (hit.length === 1 && String(hit[0][iP]).trim().toUpperCase() !== String(pelanggan).trim().toUpperCase()) throw new Error('Pelanggan invoice (' + pelanggan + ') berbeda dengan pelanggan proyek ' + npp + ' di Master Proyek (' + hit[0][iP] + '). Periksa proyek / NPP yang dipilih.');
 }
 
 // =====================================================================  PEMBARUAN v2.4
@@ -2266,7 +2266,7 @@ function apiSaveUsulan(ref, pl) { arRequireMaker_();
   var lock = arLock_(); lock.waitLock(28000); var out;
   try {
     var P = computeLight_().params, me = email_(), u = ENGINE.userBy(P, me);
-    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Account ' + (me || '(unknown)') + ' is not registered as PEMBUAT in Parameter ▸ Pengguna & Peran.');
+    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     pl = pl || {}; pl.ref = ref;
     var n = writeUsulan_(pl);
     out = { ok: true, n: n, at: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm') };
@@ -2319,25 +2319,25 @@ function raAutoFinal_(ref) {
  *  action: ar-save (simpan draf) · ar-pull (tarik pengajuan yang menunggu) · ar-cancelrev (batal revisi; draf kembali ke RA yang berlaku).
  *  pl: { items:[{nomor,u,d}], cic:{key:{pct,ke,kn}}, al:{key:alasan}, pj:{key:teks}, note, rev, dasar, tglRapat } */
 function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
-  ref = String(ref || ''); if (!/^\d{4}-\d{2}$/.test(ref)) throw new Error('Invalid month.');
+  ref = String(ref || ''); if (!/^\d{4}-\d{2}$/.test(ref)) throw new Error('Bulan tidak valid.');
   pl = pl || {}; action = String(action || '');
   var lock = arLock_(), tP = Date.now(); lock.waitLock(28000); var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), R = raPlanRole_(P, me, res.ctx.today), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
-    if (!R.ar) throw new Error('Only the AR Officer prepares and revises the RA.');
+    if (!R.ar) throw new Error('Hanya AR Officer yang menyusun dan merevisi RA.');
     var A = apprRows_(), pend = A.rows.filter(function (r) { return String(r.jenis).toUpperCase() === ENGINE.DOC.VAL && String(r.ref) === ref && String(r.status).toUpperCase() === 'MENUNGGU'; })[0];
     var rp = raPlan_(ref) || { st: 'AR' }, nm = function (x) { return ENGINE.normInv(x); };
     if (action === 'ar-pull') {
-      if (!pend) throw new Error('There is no pending RA submission for ' + ref + '.');
+      if (!pend) throw new Error('Tidak ada pengajuan RA yang menunggu untuk ' + ref + '.');
       A.sh.getRange(pend._row, A.map.status).setValue('DIBATALKAN'); A.sh.getRange(pend._row, A.map.catatan).setNumberFormat('@').setValue('Ditarik kembali AR ' + now + ' untuk diubah');
       rp.st = 'AR'; rp.back = ''; rp.pullAt = now;
     } else if (action === 'ar-cancelrev') {
-      if (pend) throw new Error('The revision is already submitted (' + pend.id + '). Withdraw it first.');
+      if (pend) throw new Error('Revisi sudah diajukan (' + pend.id + '). Tarik kembali dulu.');
       if (pl.items && pl.items.length) writeUsulan_({ items: pl.items.map(function (x) { return { nomor: x.nomor, u: /^[CSHN]$/.test(String(x.u || '')) ? x.u : '', d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')) ? x.d : '' }; }), noDraft: true });
       if (pl.cic) rp.cic = pl.cic;
       rp.st = 'DONE'; rp.rev = false; rp.dasar = ''; rp.tglRapat = ''; rp.back = '';
     } else if (action === 'ar-save') {
-      if (pend) throw new Error('RA ' + ref + ' is already submitted (' + pend.id + ') and awaits Section Head approval. Withdraw it first to change it.');
+      if (pend) throw new Error('RA ' + ref + ' sudah diajukan (' + pend.id + ') dan menunggu persetujuan Section Head. Tarik kembali dulu untuk mengubahnya.');
       var items = (pl.items || []).map(function (x) { return { nomor: x.nomor, u: /^[CSHN]$/.test(String(x.u || '')) ? x.u : '', d: /^\d{4}-\d{2}-\d{2}$/.test(String(x.d || '')) ? x.d : '' }; });
       var cic = {}; Object.keys(pl.cic || {}).forEach(function (k) { var c = pl.cic[k] || {}, p = Number(c.pct); if (p > 0 && p < 100) cic[nm(k)] = { pct: Math.round(p * 100) / 100, ke: Math.max(1, Number(c.ke) || 1), kn: Math.max(2, Number(c.kn) || 2) }; });
       var al = {}; Object.keys(pl.al || {}).forEach(function (k) { var t = String(pl.al[k] || '').trim().slice(0, 200); if (t) al[nm(k)] = t; });
@@ -2345,7 +2345,7 @@ function apiRaPlanSave(ref, pl, action) { arRequireAccess_();
       if (items.length) writeUsulan_({ items: items, noDraft: true });
       rp.cic = cic; rp.al = al; rp.pj = pj; rp.note = String(pl.note || '').trim().slice(0, 500); rp.init = true; rp.arAt = now; rp.arBy = me; rp.st = 'AR';
       rp.rev = !!pl.rev; rp.dasar = rp.rev && /^(PUSAT|INTERNAL)$/.test(String(pl.dasar || '')) ? String(pl.dasar) : ''; rp.tglRapat = rp.dasar === 'PUSAT' && /^\d{4}-\d{2}-\d{2}$/.test(String(pl.tglRapat || '')) ? String(pl.tglRapat) : '';
-    } else throw new Error('Unknown action.');
+    } else throw new Error('Tindakan tidak dikenal.');
     raPlanSet_(ref, rp);
     out = { ok: true, at: now, plan: rp };
   } finally { lock.releaseLock(); }
@@ -2371,14 +2371,14 @@ function apiHandoverData() { arRequireAccess_();
 }
 /** catat satu lembar tanda terima untuk dokumen terpilih (hanya yang sudah disahkan & belum diserahkan) */
 function apiHandoverCreate(items, opt) { var acc = arRequireMaker_(); opt = opt || {};
-  if (!items || !items.length) throw new Error('Select at least one document.');
+  if (!items || !items.length) throw new Error('Pilih minimal satu dokumen.');
   var lock = arLock_(), out; lock.waitLock(28000);
   try {
     var ss = arSpreadsheet_(), res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), want = {};
     items.forEach(function (x) { want[String(x.jenis) + '|' + String(x.ref)] = 1; });
     var L = d.pending.filter(function (x) { return want[x.jenis + '|' + x.ref]; });
-    if (!L.length) throw new Error('The selected documents were already handed over or are no longer approved. Reload the list.');
-    var J = {}; L.forEach(function (x) { J[x.jenis] = 1; }); if (Object.keys(J).length > 1) throw new Error('Invoices and receipts are handed over on separate sheets. Select one type only.');
+    if (!L.length) throw new Error('Dokumen terpilih sudah diserahkan atau tidak lagi disahkan. Muat ulang daftar.');
+    var J = {}; L.forEach(function (x) { J[x.jenis] = 1; }); if (Object.keys(J).length > 1) throw new Error('Invoice dan penerimaan diserahkan dengan tanda terima terpisah. Pilih satu jenis saja.');
     var sh = ss.getSheetByName(ENGINE.HO.sheet);
     if (!sh) sh = setupDataSheet_(ss, ENGINE.HO, 'SERAH TERIMA DOKUMEN KE AKUNTANSI', 'Dibuat aplikasi (Month-End Close ▸ Handover to Accounting). Satu baris per dokumen; satu NO. SERAH TERIMA per lembar tanda terima yang ditandatangani Akuntansi. Jangan diubah manual — batalkan lewat aplikasi.', 'Log Persetujuan', '#137C8B').sh || ss.getSheetByName(ENGINE.HO.sheet);
     var map = colMap_(sh, ENGINE.HO), no = ENGINE.hoNextNo(res.ctx, L[0].jenis), tgl = res.ctx.today, R = ENGINE.roles(res.params), pen = String(opt.penerima || (R.PENERIMA ? R.PENERIMA.nama : '')).trim().slice(0, 80);
@@ -2393,14 +2393,14 @@ function apiHandoverCreate(items, opt) { var acc = arRequireMaker_(); opt = opt 
 }
 /** batalkan satu lembar serah terima (salah cetak / belum jadi diserahkan) — baris tidak dihapus, STATUS = BATAL */
 function apiHandoverCancel(no, alasan) { arRequireMaker_();
-  alasan = String(alasan || '').trim(); if (alasan.length < 5) throw new Error('Enter a reason (at least 5 characters).');
+  alasan = String(alasan || '').trim(); if (alasan.length < 5) throw new Error('Isi alasan (min. 5 karakter).');
   var lock = arLock_(), n = 0; lock.waitLock(28000);
   try {
-    var sh = sheet_(ENGINE.HO.sheet); if (!sh) throw new Error('No handover records yet.');
-    var map = colMap_(sh, ENGINE.HO), last = sh.getLastRow(); if (last < ENGINE.HO.firstRow) throw new Error('Handover ' + no + ' not found.');
+    var sh = sheet_(ENGINE.HO.sheet); if (!sh) throw new Error('Belum ada catatan serah terima.');
+    var map = colMap_(sh, ENGINE.HO), last = sh.getLastRow(); if (last < ENGINE.HO.firstRow) throw new Error('Tanda terima ' + no + ' tidak ditemukan.');
     var nos = sh.getRange(ENGINE.HO.firstRow, map.no, last - ENGINE.HO.firstRow + 1, 1).getValues();
     nos.forEach(function (r, i) { if (String(r[0]).trim() === String(no)) { var rr = ENGINE.HO.firstRow + i; sh.getRange(rr, map.status).setValue('BATAL'); sh.getRange(rr, map.catatan).setNumberFormat('@').setValue(('BATAL ' + arNow_() + ': ' + alasan).slice(0, 300)); n++; } });
-    if (!n) throw new Error('Handover ' + no + ' not found.');
+    if (!n) throw new Error('Tanda terima ' + no + ' tidak ditemukan.');
   } finally { lock.releaseLock(); }
   var q = arQueueAfterSave_(); return { ok: true, n: n, background: q.background };
 }

@@ -61,7 +61,7 @@ function bgDefaults_() {
 function apiBgList() { arRequireAccess_(true);
   return plain_({ rows: bgRows_(), def: bgDefaults_(), sheetUrl: arSpreadsheet_().getUrl() + '#gid=' + (bgSheet_(false) ? bgSheet_(false).getSheetId() : 0) });
 }
-function bgLock_() { var l = LockService.getUserLock(); if (!l.tryLock(20000)) throw new Error('Another save is in progress. Try again in a moment.'); return l; }
+function bgLock_() { var l = LockService.getUserLock(); if (!l.tryLock(20000)) throw new Error('Penyimpanan lain sedang berjalan. Coba lagi sebentar lagi.'); return l; }
 function bgWrite_(sh, row, o) {
   var m = colMap_(sh, BG_SCHEMA_), now = arNow_().slice(0, 16);
   o.ubah = now;
@@ -92,15 +92,15 @@ function bgNum_(x) { return Math.round(Number(x) || 0); }
 function bgProvisi_(nilai, mulai, sampai) { var a = Date.parse(mulai), b = Date.parse(sampai); if (!(nilai > 0) || isNaN(a) || isNaN(b) || b < a) return 0; return Math.round(nilai * 0.00125 * (Math.round((b - a) / 864e5) + 1) / 91); }
 /** simpan permohonan (baru / ubah draf). D = isian memo dari aplikasi, atau daftar isian (beberapa jaminan sekaligus → satu baris BG per jaminan) */
 function apiBgSave(D) { arRequireMaker_();
-  var L = Array.isArray(D) ? D : [D || {}]; if (!L.length) throw new Error('Select the guarantee type.');
-  L.forEach(function (d) { if (!String(d.jenisTxt || '').trim()) throw new Error('Select the guarantee type.'); if (!String(d.kepada || '').trim()) throw new Error('Fill in "Ditujukan kepada".'); });
+  var L = Array.isArray(D) ? D : [D || {}]; if (!L.length) throw new Error('Pilih jenis jaminan.');
+  L.forEach(function (d) { if (!String(d.jenisTxt || '').trim()) throw new Error('Pilih jenis jaminan.'); if (!String(d.kepada || '').trim()) throw new Error('Isi "Ditujukan kepada".'); });
   var lock = bgLock_(), ids = [];
   try {
     var sh = bgSheet_(true), rows = bgRows_(), me = email_(), idc = colMap_(sh, BG_SCHEMA_).id || 1, nextRow = lastDataRow_(sh, BG_SCHEMA_.firstRow, [idc]) + 1;
     L.forEach(function (d) {
       var x = d.id ? rows.filter(function (r) { return r.id === d.id; })[0] : null;
-      if (d.id && !x) throw new Error('BG ' + d.id + ' not found.');
-      if (x && ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(String(x.status)) < 0) throw new Error('BG ' + x.id + ' is already ' + x.status + ' — the memo can no longer be changed.');
+      if (d.id && !x) throw new Error('BG ' + d.id + ' tidak ditemukan.');
+      if (x && ['DRAF', 'DIKIRIM KE PUSAT'].indexOf(String(x.status)) < 0) throw new Error('BG ' + x.id + ' sudah berstatus ' + x.status + ' — memo tidak bisa diubah lagi.');
       var id = x ? x.id : bgNextId_(rows, d.tglMemo || bgDefaults_().today, ids);
       var row = x ? x._row : nextRow++; roomFor_(sh, row);
       var nilai = bgNum_(d.nilai), o = { id: id, tgl: d.tglMemo || '', jenis: String(d.jenisTxt).toUpperCase(), npp: d.npp || '', kepada: d.kepada, pekerjaan: [d.pekerjaan, d.proyek].filter(String).join(' — '),
@@ -118,9 +118,9 @@ function apiBgSave(D) { arRequireMaker_();
 }
 /** memo PDF (dibuat aplikasi; boleh berisi beberapa memo) disimpan ke arsip Drive: <arsip>/Bank Garansi/<tahun>/<bulan>; link dicatat untuk setiap ID */
 function apiBgMemoPdf(ids, b64, name) { arRequireMaker_();
-  ids = [].concat(ids || []).map(String); if (!ids.length) throw new Error('BG ID missing.');
+  ids = [].concat(ids || []).map(String); if (!ids.length) throw new Error('ID BG kosong.');
   var res = { params: arParameters_(), ctx: { today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') } }, rows = bgRows_(), X = rows.filter(function (r) { return ids.indexOf(r.id) >= 0; });
-  if (!X.length) throw new Error('BG ' + ids.join(', ') + ' not found.');
+  if (!X.length) throw new Error('BG ' + ids.join(', ') + ' tidak ditemukan.');
   var folder = archiveFolder_(res.params, 'BG', String(X[0].tgl || res.ctx.today).slice(0, 7)), nm = String(name || ('Memo Permohonan Jaminan ' + ids.join('+'))).replace(/[\\\/:*?"<>|]/g, '-') + (/\.pdf$/i.test(name || '') ? '' : '.pdf');
   var files = folder.getFiles(), old = null; while (files.hasNext()) { var f0 = files.next(), n0 = String(f0.getName()); if (ids.some(function (id) { return n0.indexOf(id + ' ') === 0 || n0.indexOf(id + '+') === 0 || n0.indexOf(id + '_') === 0; })) { if (!old) { var it2 = folder.getFoldersByName('Revisi lama'); old = it2.hasNext() ? it2.next() : folder.createFolder('Revisi lama'); } f0.moveTo(old); } }
   var f = folder.createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'application/pdf', nm));
@@ -139,9 +139,9 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
   p = p || {}; act = String(act || '').toUpperCase();
   var res = { params: arParameters_(), ctx: { today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') } }, lock = bgLock_(), out = { ok: true };
   try {
-    var sh = bgSheet_(true), all = bgRows_(), x = all.filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('BG ' + id + ' not found.');
+    var sh = bgSheet_(true), all = bgRows_(), x = all.filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('BG ' + id + ' tidak ditemukan.');
     var st = String(x.status), o = {}, today = res.ctx.today, me = email_(), now = arNow_().slice(0, 16), d = x.d || {}, ket = function (t) { return (String(x.ket || '') + (x.ket ? ' · ' : '') + t).slice(0, 500); };
-    var why = function (min) { var a = String(p.alasan || '').trim(); if (a.length < (min || 5)) throw new Error('Enter the reason (at least ' + (min || 5) + ' characters).'); return a.slice(0, 300); };
+    var why = function (min) { var a = String(p.alasan || '').trim(); if (a.length < (min || 5)) throw new Error('Isi alasan (min. ' + (min || 5) + ' characters).'); return a.slice(0, 300); };
     var snap = function () { var s0 = { at: now, act: act }; BG_SNAP_.forEach(function (k) { s0[k] = x[k] === undefined ? '' : x[k]; }); d.prev = s0; };
     var base = function (no, pen, suf) { return bgFileBase_(no || x.no_bg || id, x.kepada, x.jenis, pen || x.bank || '') + (suf || ''); };
     var saveScan = function (suf) {
@@ -149,15 +149,15 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       return bgSaveScan_(res.params, p.tgl_terbit || x.tgl_terbit || x.tgl || today, base(p.no_bg, p.bank, suf), p.scan);
     };
     var hist = '';
-    if (act === 'KIRIM') { if (st !== 'DRAF') throw new Error('Only a draft can be marked as sent.'); snap(); o.status = 'DIKIRIM KE PUSAT'; o.tgl_kirim = bgIsD_(p.tgl) ? p.tgl : today; hist = 'Memo dikirim ke pusat (' + o.tgl_kirim + ')'; }
+    if (act === 'KIRIM') { if (st !== 'DRAF') throw new Error('Hanya draf yang bisa ditandai terkirim.'); snap(); o.status = 'DIKIRIM KE PUSAT'; o.tgl_kirim = bgIsD_(p.tgl) ? p.tgl : today; hist = 'Memo dikirim ke pusat (' + o.tgl_kirim + ')'; }
     else if (act === 'PUSAT') {
-      if (st !== 'DIKIRIM KE PUSAT') throw new Error('Only a memo that was sent to head office can be returned.');
+      if (st !== 'DIKIRIM KE PUSAT') throw new Error('Hanya memo yang sudah dikirim ke pusat yang bisa dikembalikan.');
       var a0 = why(5); snap(); o.status = 'DRAF'; d.memoRev = (+d.memoRev || 0) + 1; hist = 'Dikembalikan pusat untuk revisi memo (Rev.' + ('0' + d.memoRev).slice(-2) + '): ' + a0;
     }
     else if (act === 'TERBIT') {
-      if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' is ' + st + '.');
-      if (!String(p.no_bg || '').trim()) throw new Error('Fill in the BG number.');
-      if (!bgIsD_(p.sampai)) throw new Error('Fill in the BG expiry date.');
+      if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' berstatus ' + st + '.');
+      if (!String(p.no_bg || '').trim()) throw new Error('Isi nomor BG.');
+      if (!bgIsD_(p.sampai)) throw new Error('Isi tanggal berakhir BG.');
       snap(); o.status = 'AKTIF'; o.no_bg = String(p.no_bg).trim(); o.bank = String(p.bank || '').trim(); o.penerbit = p.penerbit === 'ASURANSI' ? 'ASURANSI' : 'BANK'; o.tgl_terbit = p.tgl_terbit || ''; o.mulai = p.mulai || x.mulai; o.sampai = p.sampai;
       if (p.nilai) o.nilai = bgNum_(p.nilai); o.provisi = +p.biaya > 0 ? bgNum_(p.biaya) : bgProvisi_(o.nilai || +x.nilai, o.mulai, o.sampai); if (!x.tgl_kirim) o.tgl_kirim = o.tgl_terbit || today;
       var sc = saveScan(); if (sc) o.scan = sc;
@@ -165,21 +165,21 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       // BG perpanjangan / perubahan terbit → BG lama otomatis DIPERPANJANG
       if (x.bg_lama) all.forEach(function (r) { if (r.id !== id && String(r.no_bg).trim() && String(r.no_bg).trim() === String(x.bg_lama).trim() && r.status === 'AKTIF') { var dd = bgHist_(r.d || {}, 'DIPERPANJANG', 'Diganti ' + id + ' (' + o.no_bg + ')', me, now); bgWrite_(sh, r._row, { status: 'DIPERPANJANG', tgl_selesai: o.tgl_terbit || today, ket: (String(r.ket || '') + (r.ket ? ' · ' : '') + 'diganti ' + id + ' (' + o.no_bg + ')').slice(0, 500), data: dd }); } });
     }
-    else if (act === 'NPP') { var np = String(p.npp || '').trim(); if (!np) throw new Error('Select the NPP.'); o.npp = np; d.npp = np; hist = 'NPP dihubungkan: ' + np; }
-    else if (act === 'SCAN') { o.scan = saveScan(); if (!o.scan) throw new Error('Select the scanned BG file.'); hist = x.scan ? 'Scan diganti' : 'Scan diupload'; }
-    else if (act === 'SELESAI') { if (st !== 'AKTIF') throw new Error('Only an active BG can be returned / released.'); snap(); o.status = p.hasil === 'ROYA' ? 'ROYA' : 'DIKEMBALIKAN'; o.tgl_selesai = bgIsD_(p.tgl) ? p.tgl : today; if (p.catatan) o.ket = ket(String(p.catatan).slice(0, 200)); hist = titleCase_(o.status) + ' (' + o.tgl_selesai + ')' + (p.catatan ? ': ' + p.catatan : ''); }
+    else if (act === 'NPP') { var np = String(p.npp || '').trim(); if (!np) throw new Error('Pilih NPP.'); o.npp = np; d.npp = np; hist = 'NPP dihubungkan: ' + np; }
+    else if (act === 'SCAN') { o.scan = saveScan(); if (!o.scan) throw new Error('Pilih file scan BG.'); hist = x.scan ? 'Scan diganti' : 'Scan diupload'; }
+    else if (act === 'SELESAI') { if (st !== 'AKTIF') throw new Error('Hanya BG aktif yang bisa dikembalikan / roya.'); snap(); o.status = p.hasil === 'ROYA' ? 'ROYA' : 'DIKEMBALIKAN'; o.tgl_selesai = bgIsD_(p.tgl) ? p.tgl : today; if (p.catatan) o.ket = ket(String(p.catatan).slice(0, 200)); hist = titleCase_(o.status) + ' (' + o.tgl_selesai + ')' + (p.catatan ? ': ' + p.catatan : ''); }
     else if (act === 'BATAL') {
-      if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' is ' + st + ' and cannot be cancelled.');
+      if (['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF'].indexOf(st) < 0) throw new Error('BG ' + id + ' berstatus ' + st + ' dan tidak bisa dibatalkan.');
       var a1 = why(5); snap(); o.status = 'BATAL'; o.ket = ket('Batal: ' + a1); hist = 'Catatan dibatalkan: ' + a1;
     }
     else if (act === 'AMEND') {
-      if (st !== 'AKTIF') throw new Error('Only an active BG can be amended.');
+      if (st !== 'AKTIF') throw new Error('Hanya BG aktif yang bisa diamandemen.');
       var ch = [];
       if (bgIsD_(p.mulai) && p.mulai !== x.mulai) { o.mulai = p.mulai; ch.push('mulai ' + (x.mulai || '-') + ' → ' + p.mulai); }
       if (bgIsD_(p.sampai) && p.sampai !== x.sampai) { o.sampai = p.sampai; ch.push('s/d ' + (x.sampai || '-') + ' → ' + p.sampai); }
       if (+p.nilai > 0 && bgNum_(p.nilai) !== bgNum_(x.nilai)) { o.nilai = bgNum_(p.nilai); ch.push('nilai ' + bgNum_(x.nilai) + ' → ' + o.nilai); }
-      if (!ch.length) throw new Error('Nothing changed — fill in the new expiry date or value.');
-      if ((o.mulai || x.mulai) && (o.sampai || x.sampai) < (o.mulai || x.mulai)) throw new Error('Expiry date is before the start date.');
+      if (!ch.length) throw new Error('Belum ada perubahan — isi tanggal berakhir atau nilai yang baru.');
+      if ((o.mulai || x.mulai) && (o.sampai || x.sampai) < (o.mulai || x.mulai)) throw new Error('Tanggal berakhir sebelum tanggal mulai.');
       snap(); d.amd = (+d.amd || 0) + 1; var tag = 'Amd.' + ('0' + d.amd).slice(-2);
       var url = saveScan('_' + tag.replace('.', '')); if (url) { d.amdLinks = (d.amdLinks || []).concat([url]); }
       o.provisi = bgProvisi_(o.nilai || +x.nilai, o.mulai || x.mulai, o.sampai || x.sampai);
@@ -187,21 +187,21 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       hist = tag + (bgIsD_(p.tgl) ? ' (' + p.tgl + ')' : '') + ': ' + ch.join(', ') + (p.ket ? ' · ' + p.ket : '') + (url ? ' · surat amandemen diupload' : '');
     }
     else if (act === 'KLAIM') {
-      if (st !== 'AKTIF') throw new Error('Only an active BG can be claimed.');
+      if (st !== 'AKTIF') throw new Error('Hanya BG aktif yang bisa dicatat klaim.');
       var a2 = why(5); snap(); o.status = 'DICAIRKAN'; o.tgl_selesai = bgIsD_(p.tgl) ? p.tgl : today;
       var url2 = saveScan('_KLAIM'); if (url2) d.klaimLink = url2; d.klaim = { tgl: o.tgl_selesai, nilai: bgNum_(p.nilai) || bgNum_(x.nilai), alasan: a2 };
       o.ket = ket('DICAIRKAN ' + o.tgl_selesai + ' Rp ' + d.klaim.nilai + ': ' + a2); hist = 'Diklaim / dicairkan bouwheer Rp ' + d.klaim.nilai + ' (' + o.tgl_selesai + '): ' + a2;
     }
     else if (act === 'KOREKSI') {
-      if (st === 'BATAL') throw new Error('A cancelled record cannot be corrected.');
+      if (st === 'BATAL') throw new Error('Catatan yang sudah dibatalkan tidak bisa dikoreksi.');
       var a3 = why(5), ch2 = [], F = { no_bg: 'no. BG', bank: 'penerbit', penerbit: 'jenis penerbit', kepada: 'ditujukan kepada', npp: 'NPP', tgl_terbit: 'tgl terbit', mulai: 'mulai', sampai: 's/d', nilai: 'nilai', provisi: 'provisi / premi' };
       Object.keys(F).forEach(function (k) {
         if (p[k] === undefined || p[k] === null) return; var v = ['nilai', 'provisi'].indexOf(k) >= 0 ? bgNum_(p[k]) : String(p[k]).trim(), old = ['nilai', 'provisi'].indexOf(k) >= 0 ? bgNum_(x[k]) : String(x[k] || '').trim();
-        if (['tgl_terbit', 'mulai', 'sampai'].indexOf(k) >= 0 && v && !bgIsD_(v)) throw new Error('Date "' + F[k] + '" is not valid.');
+        if (['tgl_terbit', 'mulai', 'sampai'].indexOf(k) >= 0 && v && !bgIsD_(v)) throw new Error('Tanggal "' + F[k] + '" tidak valid.');
         if (k === 'penerbit') v = v === 'ASURANSI' ? 'ASURANSI' : 'BANK';
         if (v !== old) { o[k] = v; ch2.push(F[k] + ' ' + (old || '-') + ' → ' + (v || '-')); if (k === 'npp' || k === 'kepada') d[k] = v; }
       });
-      if (!ch2.length) throw new Error('Nothing changed.');
+      if (!ch2.length) throw new Error('Tidak ada perubahan.');
       if ((o.no_bg !== undefined || o.bank !== undefined || o.kepada !== undefined) && x.scan) {
         try { var fid = (/[-\w]{25,}/.exec(String(x.scan)) || [])[0], f = DriveApp.getFileById(fid), ext = (/\.(\w{2,5})$/.exec(f.getName()) || [0, 'pdf'])[1];
           f.setName(bgFileBase_(o.no_bg !== undefined ? o.no_bg : x.no_bg, o.kepada !== undefined ? o.kepada : x.kepada, x.jenis, o.bank !== undefined ? o.bank : x.bank) + '.' + ext); ch2.push('nama file scan disesuaikan'); } catch (e) { }
@@ -209,8 +209,8 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       hist = 'Koreksi data: ' + ch2.join(', ') + ' · alasan: ' + a3;
     }
     else if (act === 'UNDO') {
-      var pv = d.prev; if (!pv) throw new Error('There is no step to undo.');
-      var age = (Date.parse(now.replace(' ', 'T')) - Date.parse(String(pv.at).replace(' ', 'T'))) / 864e5; if (!(age <= 7)) throw new Error('The last step is older than 7 days and can no longer be undone. Use "Koreksi data".');
+      var pv = d.prev; if (!pv) throw new Error('Tidak ada langkah yang bisa dibatalkan.');
+      var age = (Date.parse(now.replace(' ', 'T')) - Date.parse(String(pv.at).replace(' ', 'T'))) / 864e5; if (!(age <= 7)) throw new Error('Langkah terakhir sudah lebih dari 7 hari dan tidak bisa dibatalkan. Gunakan "Koreksi data".');
       var a4 = why(5); BG_SNAP_.forEach(function (k) { if (k in pv) o[k] = pv[k]; });
       if (pv.act === 'PUSAT') d.memoRev = Math.max(0, (+d.memoRev || 0) - 1);
       if (pv.act === 'AMEND') d.amd = Math.max(0, (+d.amd || 0) - 1);
@@ -219,7 +219,7 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       if (pv.act === 'TERBIT' && x.bg_lama) all.forEach(function (r) { if (r.status === 'DIPERPANJANG' && String(r.no_bg).trim() === String(x.bg_lama).trim() && String(r.ket || '').indexOf('diganti ' + id) >= 0) { var dd = bgHist_(r.d || {}, 'UNDO', 'Aktif kembali — terbit ' + id + ' dibatalkan', me, now); bgWrite_(sh, r._row, { status: 'AKTIF', tgl_selesai: '', data: dd }); } });
       delete d.prev; hist = 'Langkah terakhir dibatalkan (' + String(pv.act || '').toLowerCase() + ', status kembali ' + String(pv.status || '').toLowerCase() + '): ' + a4;
     }
-    else throw new Error('Unknown action.');
+    else throw new Error('Tindakan tidak dikenal.');
     o.data = bgHist_(d, act, hist, me, now);
     bgWrite_(sh, x._row, o); out.status = o.status || st; out.scan = o.scan || '';
   } finally { lock.releaseLock(); }
@@ -230,14 +230,14 @@ function titleCase_(s) { return String(s || '').toLowerCase().replace(/\b\w/g, f
 /** jaminan yang sudah terbit tanpa memo dari aplikasi (BG lama / terbit langsung dari pusat) → baris AKTIF. Satu jaminan per panggilan (scan bisa besar). */
 function apiBgImport(it) { arRequireMaker_();
   it = it || {}; var s = function (k) { return String(it[k] === undefined || it[k] === null ? '' : it[k]).trim(); }, isD = function (v) { return /^\d{4}-\d{2}-\d{2}$/.test(v); };
-  if (!s('no_bg')) throw new Error('Fill in the BG / guarantee number.'); if (!s('kepada')) throw new Error('Fill in the customer (ditujukan kepada).');
-  if (!s('jenis')) throw new Error('Select the guarantee type.'); if (!(+it.nilai > 0)) throw new Error('Fill in the guarantee value.');
-  if (!isD(s('sampai'))) throw new Error('Fill in the expiry date (berlaku s/d).'); if (s('mulai') && !isD(s('mulai'))) throw new Error('Start date is not valid.');
-  if (s('mulai') && s('sampai') < s('mulai')) throw new Error('Expiry date is before the start date.');
+  if (!s('no_bg')) throw new Error('Isi nomor BG / jaminan.'); if (!s('kepada')) throw new Error('Isi pelanggan (ditujukan kepada).');
+  if (!s('jenis')) throw new Error('Pilih jenis jaminan.'); if (!(+it.nilai > 0)) throw new Error('Isi nilai jaminan.');
+  if (!isD(s('sampai'))) throw new Error('Isi tanggal berlaku s/d.'); if (s('mulai') && !isD(s('mulai'))) throw new Error('Tanggal mulai tidak valid.');
+  if (s('mulai') && s('sampai') < s('mulai')) throw new Error('Tanggal berakhir sebelum tanggal mulai.');
   var res = { params: arParameters_(), today: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') }, lock = bgLock_(), id;
   try {
     var sh = bgSheet_(true), rows = bgRows_(), dup = rows.filter(function (r) { return r.status !== 'BATAL' && String(r.no_bg).trim().toUpperCase() === s('no_bg').toUpperCase(); })[0];
-    if (dup) throw new Error('BG number ' + s('no_bg') + ' is already recorded (' + dup.id + ').');
+    if (dup) throw new Error('Nomor BG ' + s('no_bg') + ' sudah tercatat (' + dup.id + ').');
     var tt = isD(s('tgl_terbit')) ? s('tgl_terbit') : '', pen = s('penerbit').toUpperCase() === 'ASURANSI' ? 'ASURANSI' : 'BANK', nilai = bgNum_(it.nilai);
     id = bgNextId_(rows, tt || res.today); var row = lastDataRow_(sh, BG_SCHEMA_.firstRow, [colMap_(sh, BG_SCHEMA_).id || 1]) + 1; roomFor_(sh, row);
     var o = { id: id, tgl: '', jenis: s('jenis').toUpperCase(), npp: s('npp'), kepada: s('kepada'), pekerjaan: s('pekerjaan'), kontrak: s('kontrak'), omzet: '', pct: '', nilai: nilai,
@@ -253,14 +253,14 @@ function apiBgImport(it) { arRequireMaker_();
 /** v2.9.9 baca scan BG / jaminan asuransi: OCR Google Drive (file diubah sementara menjadi Google Docs, teksnya diambil, lalu dibuang).
  *  scan = {b64, name, mime} → {text}. Pemetaan isian dilakukan di aplikasi (bgOcrParse) agar bisa diperiksa sebelum disimpan. */
 function apiBgOcr(scan) { arRequireMaker_();
-  if (!scan || !scan.b64) throw new Error('Select the scanned file.');
-  var mime = String(scan.mime || 'application/pdf'); if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Only PDF or image scans can be read.');
-  var bytes = Utilities.base64Decode(scan.b64); if (bytes.length > 20 * 1024 * 1024) throw new Error('File too large to read (max 20 MB).');
+  if (!scan || !scan.b64) throw new Error('Pilih file scan.');
+  var mime = String(scan.mime || 'application/pdf'); if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Hanya scan PDF atau gambar yang bisa dibaca.');
+  var bytes = Utilities.base64Decode(scan.b64); if (bytes.length > 20 * 1024 * 1024) throw new Error('File terlalu besar untuk dibaca (maks. 20 MB).');
   var bd = 'bgocr' + Date.now(), meta = JSON.stringify({ name: 'OCR sementara - ' + String(scan.name || 'scan').slice(0, 80), mimeType: 'application/vnd.google-apps.document' });
   var head = Utilities.newBlob('--' + bd + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n' + meta + '\r\n--' + bd + '\r\nContent-Type: ' + mime + '\r\n\r\n').getBytes(), tail = Utilities.newBlob('\r\n--' + bd + '--').getBytes();
   var tok = ScriptApp.getOAuthToken(), r = UrlFetchApp.fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&ocrLanguage=id&fields=id', {
     method: 'post', contentType: 'multipart/related; boundary=' + bd, payload: head.concat(bytes, tail), headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true });
-  if (r.getResponseCode() >= 300) throw new Error('Google Drive could not read the scan (' + r.getResponseCode() + '): ' + String(r.getContentText()).slice(0, 200));
+  if (r.getResponseCode() >= 300) throw new Error('Google Drive tidak bisa membaca scan (' + r.getResponseCode() + '): ' + String(r.getContentText()).slice(0, 200));
   var id = JSON.parse(r.getContentText()).id, text = '';
   try {
     var e = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + id + '/export?mimeType=text%2Fplain', { headers: { Authorization: 'Bearer ' + tok }, muteHttpExceptions: true });
