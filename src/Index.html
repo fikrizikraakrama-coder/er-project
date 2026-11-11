@@ -3236,6 +3236,7 @@ function lpBind(w) {
   if (LP.menu) setTimeout(function () { var off = function (e) { if (!e.target.closest('.lp-mw')) { document.removeEventListener('click', off, true); if (LP.menu) { LP.menu = ''; lpRender(); } } }; document.addEventListener('click', off, true); }, 0);
 }
 function lpAct(a, id) {
+  id = String(id || '').replace(/^[ip]:/, ''); // id menu ⋯ diberi awalan i:/p:
   if (a === 'inv') return openPackage('INV', E.normInv(id));
   if (a === 'rev') return openInvoice(id);
   if (a === 'df') return dfOpen(id);
@@ -3287,7 +3288,7 @@ function lpInv() {
   var docs = all.filter(function (i) { return regMatch(i, 'docs'); });
   var L = base.filter(function (i) { return lpInvMatch(i, st.f); }).sort(function (a, b) { return st.f === 'od' ? String(a.jt).localeCompare(String(b.jt)) : String(b.tgl || '').localeCompare(String(a.tgl || '')) || String(b.nomor).localeCompare(String(a.nomor)); });
   var rows = L.slice(0, 300).map(function (i) {
-    var id = i.nomor, act = i.status_inv !== 'BATAL', M = [['inv', '👁 Lihat invoice · kwitansi · lembar pengesahan']];
+    var id = i.nomor, act = i.status_inv !== 'BATAL', M = [['inv', ico('doc') + ' Lihat invoice · kwitansi · lembar pengesahan']];
     if (maker && act) { M.push(['rev', '✎ Revisi invoice']); if (dfNeed(i) || i.link_inv || i.link_fp) M.push(['df', '📎 Berkas tagihan & faktur pajak']); if (!i.closed) M.push(['surat', '✉ Surat penagihan']); M.push('-'); if (!i.closed && !i.tutup && (+i.sisa || 0) > 0) M.push(['tutup', 'Tutup manual (sisa kecil)']); if (!i.batalPend) M.push(['batal', '✕ Batalkan invoice', 'red']); }
     return '<tr data-lpo="inv|' + esc(id) + '" class="' + (act ? '' : 'lp-x') + '"><td><b>' + esc(short(i.nomor)) + '</b><div class="lp-s">' + esc(tg(i.tgl)) + (i.rev ? ' · Rev.' + ('0' + i.rev).slice(-2) : '') + '</div></td><td>' + esc(bgPelS(i.pelanggan)) + '<div class="lp-s">' + esc(i.npp + ' · ' + (i.proyek || '')) + '</div></td><td>' + esc(i.invke || '') + '</td>' +
       '<td class="n">' + nfDot(i.total) + '</td><td class="n"><b>' + (act ? nfDot(i.sisa) : '—') + '</b></td><td>' + lpJt(i) + '</td><td>' + lpDocs(i) + '</td><td>' + lpInvStat(i) + '</td><td>' + lpMenu('i:' + id, M.map(function (m) { return m === '-' ? m : [m[0] + '', m[1], m[2]]; })) + '</td></tr>';
@@ -3336,7 +3337,7 @@ function lpPay() {
     if (g.rv) return '<tr data-lpo="revpv|' + esc(g.key) + '" class="lp-x"><td><b>' + esc(no) + '</b><div class="lp-s">' + esc(tg(g.tgl)) + '</div></td><td>' + esc(bgPelS(g.pel)) + '<div class="lp-s">' + esc(g.npp.join(', ')) + '</div></td><td>' + esc(g.inv.join(', ')) + '</td><td>' + esc(g.rek || '') + '</td><td class="n"><s>' + nfDot(g.n) + '</s></td><td class="n"></td><td class="n"></td><td><span class="pill pz">↺ dibalik ' + esc(tg(g.rv.tglRev)) + '</span></td><td></td><td></td></tr>';
     var ho = /^✓/.test(g.ho) ? '<span class="pill pg">' + esc(String(g.ho).replace(/^✓\s*/, '✓ ').slice(0, 26)) + '</span>' : /BELUM|LAGI/.test(g.ho) ? (function (a) { return '<span class="pill ' + (a > 7 ? 'pr' : a > 3 ? 'py' : 'pz') + '">belum · ' + a + ' hari</span>'; })(lpHoAge(g)) : '<span class="lp-mut">—</span>';
     var apv = /^✓/.test(g.appr || '') ? '<span class="pill pg">✓ disahkan</span>' : g.appr ? '<span class="pill py">' + esc(apprId(g.appr)) + '</span>' : '<span class="pill py">belum diajukan</span>';
-    var M = [['pay', '👁 Lihat & cetak paket penerimaan']]; if (maker) { if (/BELUM|LAGI/.test(g.ho) && /^✓/.test(g.appr || '')) M.push(['ho', '⇄ Serahkan ke Akuntansi']); M.push('-'); if (!g.revPend) M.push(['revp', '↺ Reverse penerimaan', 'red']); }
+    var M = [['pay', ico('print') + ' Lihat & cetak paket penerimaan']]; if (maker) { if (/BELUM|LAGI/.test(g.ho) && /^✓/.test(g.appr || '')) M.push(['ho', '⇄ Serahkan ke Akuntansi']); M.push('-'); if (!g.revPend) M.push(['revp', '↺ Reverse penerimaan', 'red']); }
     return '<tr data-lpo="pay|' + esc(g.key) + '"><td><b>' + esc(no) + (g.ids.length > 1 ? ' +' + (g.ids.length - 1) : '') + '</b><div class="lp-s">' + esc(tg(g.tgl)) + (g.revPend ? ' · <span style="color:#B42318">reverse diajukan</span>' : '') + '</div></td><td>' + esc(bgPelS(g.pel)) + '<div class="lp-s">' + esc(g.npp.join(', ')) + '</div></td><td>' + esc(g.inv.join(', ')) + '<div class="lp-s">' + esc(g.invke.join(', ')) + '</div></td>' +
       '<td>' + (g.kom ? 'kompensasi' : g.pb ? 'pindah buku' : esc(g.rek || '')) + '<div class="lp-s">' + esc(g.ref || '') + '</div></td><td class="n"><b>' + nfDot(g.n) + '</b></td><td class="n">' + nfDot(g.N) + '</td><td class="n">' + nfDot(g.P) + '</td><td>' + apv + '</td><td>' + ho + '</td><td>' + lpMenu('p:' + g.key, M) + '</td></tr>';
   }).join('');
@@ -4111,6 +4112,8 @@ function openPackage(kind, ref, quiet, after) {
   if (isPhone() && !STACK) document.body.classList.add('m-view');
   AP_SEL = kind + '|' + ref; document.querySelectorAll('.ap-row,#payList tr[data-open]').forEach(function (x) { x.classList.toggle('sel', x.dataset.open === AP_SEL); });
   if (!quiet) { var w0 = $('sheetwrap'); w0.style.transform = ''; w0.style.width = ''; w0.style.height = ''; w0.innerHTML = skelHtml(kind, ref); }
+  // v2.10.1: dibuka dari halaman lebar (Daftar Invoice / Penerimaan / Serah Terima) → tampilkan layar dokumen langsung (dengan tombol kembali) selama memuat
+  if (!quiet && document.body.classList.contains('full') && !STACK) { STACK = true; document.body.classList.add('stack'); $('sheetwrap').insertAdjacentHTML('afterbegin', '<div style="margin:0 0 10px"><button class="btn" type="button" onclick="closePackage()">‹ Kembali ke daftar</button></div>'); }
   var my = openPackage.seq = (openPackage.seq || 0) + 1; // klik beruntun: hanya lembar terakhir yang ditampilkan
   call('apiPackage', [kind, ref], function (pkg) {
     if (kind === 'VAL' && pkg.flowSH && MODE !== 'plan') { PLAN.ref = pkg.ref; if (STACK) closePackage(); setMode('plan'); return; } // v2.9: RA alur Section Head dibuka di layar Rencana Termin
@@ -4119,7 +4122,7 @@ function openPackage(kind, ref, quiet, after) {
     if (kind !== 'INV') return show('');
     if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
     call('apiGetInvoice', [pkg.inv.nomor], function (o) { show(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { show(''); });
-  }, function (e) { if (my !== openPackage.seq) return; $('sheetwrap').innerHTML = '<div class="empty">Gagal memuat dokumen: ' + esc(e.message || e) + '</div>'; if (MODE === 'setuju') apRender(); });
+  }, function (e) { if (my !== openPackage.seq) return; $('sheetwrap').innerHTML = '<div style="margin:0 0 10px"><button class="btn" type="button" onclick="closePackage()">‹ Kembali ke daftar</button></div><div class="empty">Gagal memuat dokumen: ' + esc(e.message || e) + '</div>'; if (MODE === 'setuju') apRender(); });
 }
 function showPackage() {
   if (!PKG) return;
@@ -5725,7 +5728,7 @@ function bgDetailHtml(r) {
   h += '<div class="bgx-dl">' + row('Ditujukan kepada', esc(r.kepada)) + row('NPP · pekerjaan', esc((r.npp || 'belum ada NPP') + (r.pekerjaan ? ' · ' + String(r.pekerjaan).split(' — ')[0].slice(0, 60) : ''))) +
     (r.no_bg ? row(asr ? 'Premi asuransi' : 'Biaya provisi', 'Rp ' + nfDot(r.provisi)) + row('ID', esc(r.id)) : row('Perkiraan provisi', r.provisi ? 'Rp ' + nfDot(r.provisi) : '')) +
     (dd.klaim ? row('Dicairkan', esc(tg(dd.klaim.tgl)) + ' · Rp ' + nfDot(dd.klaim.nilai)) : '') + (r.tgl_selesai && s !== 'DICAIRKAN' ? row(esc(titleCaseS(s)), esc(tg(r.tgl_selesai))) : '') + (dd.amd ? row('Amandemen', 'Amd.' + ('0' + dd.amd).slice(-2)) : '') + '</div>';
-  h += '<div class="bgx-links">' + (r.scan ? '<a target="_blank" href="' + esc(r.scan) + '">🛡 Scan ' + (asr ? 'jaminan' : 'BG') + '</a>' : '') + (r.memo ? '<a target="_blank" href="' + esc(r.memo) + '">📄 Memo</a>' : '') + (imp ? '' : '<a href="#" data-bga="lihat">👁 Lihat memo</a>') +
+  h += '<div class="bgx-links">' + (r.scan ? '<a target="_blank" href="' + esc(r.scan) + '">🛡 Scan ' + (asr ? 'jaminan' : 'BG') + '</a>' : '') + (r.memo ? '<a target="_blank" href="' + esc(r.memo) + '">📄 Memo</a>' : '') + (imp ? '' : '<a href="#" data-bga="lihat">📄 Lihat memo</a>') +
     (dd.amdLinks || []).map(function (u, i) { return '<a target="_blank" href="' + esc(u) + '">✎ Amd.' + ('0' + (i + 1)).slice(-2) + '</a>'; }).join('') + (dd.klaimLink ? '<a target="_blank" href="' + esc(dd.klaimLink) + '">⚠ Surat klaim</a>' : '') + '</div>';
   if (maker) {
     var pv = bgUndoOk(r), b = function (k, t, c) { return '<button class="btn' + (c ? ' ' + c : '') + '" type="button" data-bga="' + k + '">' + t + '</button>'; };
