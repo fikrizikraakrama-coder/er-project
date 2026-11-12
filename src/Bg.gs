@@ -273,9 +273,10 @@ function bgSummary_(today) {
   try {
     var rows = bgRows_(); if (!rows.length) return null;
     var t = Date.parse(today), A = rows.filter(function (r) { return r.status === 'AKTIF'; }), exp = [];
-    A.forEach(function (r) { var s = Date.parse(r.sampai); if (!isNaN(s)) { var d = Math.round((s - t) / 864e5); if (d <= 30) exp.push({ id: r.id, jenis: r.jenis, kepada: r.kepada, nilai: +r.nilai || 0, sampai: r.sampai, sisa: d, no_bg: r.no_bg }); } });
+    var list = []; A.forEach(function (r) { var s = Date.parse(r.sampai); if (!isNaN(s)) { var d = Math.round((s - t) / 864e5), x = { id: r.id, jenis: r.jenis, kepada: r.kepada, nilai: +r.nilai || 0, sampai: r.sampai, sisa: d, no_bg: r.no_bg }; list.push(x); if (d <= 30) exp.push(x); } });
+    list.sort(function (a, b) { return a.sisa - b.sisa; });
     exp.sort(function (a, b) { return a.sisa - b.sisa; });
     var tanpaScan = A.filter(function (r) { return !String(r.scan || '').trim(); }).length;
-    return { tanpaScan: tanpaScan, aktif: A.length, nilai: A.reduce(function (s, r) { return s + (+r.nilai || 0); }, 0), exp: exp, proses: rows.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length, draf: rows.filter(function (r) { return r.status === 'DRAF'; }).length };
+    return { list: list.slice(0, 12), tanpaScan: tanpaScan, aktif: A.length, nilai: A.reduce(function (s, r) { return s + (+r.nilai || 0); }, 0), exp: exp, proses: rows.filter(function (r) { return r.status === 'DIKIRIM KE PUSAT'; }).length, draf: rows.filter(function (r) { return r.status === 'DRAF'; }).length };
   } catch (e) { return null; }
 }
