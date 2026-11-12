@@ -1423,14 +1423,28 @@ function docFileName_(inv, kind, ext) {
  *  m = { b64, mime, size, fp: { no, tgl, ref, harga, ppn } (hasil baca PDF Coretax di aplikasi), force } */
 /** v2.9.10 isi berkas invoice ber-TTD / faktur pajak (link_inv / link_fp di Monitoring Invoice) untuk dilampirkan di paket penerimaan. Hanya berkas yang tercatat di register. */
 function apiDocFile(nomor, kind) { arRequireAccess_();
-  var res = computeLight_(), k = ENGINE.normInv(nomor), inv = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; })[0];
+  var res = computeLight_(), k = ENGINE.normInv(nomor), L = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; });
+  var inv = L.filter(function (x) { return !x._batal; })[0] || L[0];
   if (!inv) throw new Error('Invoice ' + nomor + ' tidak ditemukan.');
-  var url = String(kind === 'FP' ? inv.link_fp || '' : inv.link_inv || ''), id = (/[-\w]{25,}/.exec(url) || [])[0];
-  if (!id) return { none: true };
-  var f = DriveApp.getFileById(id), b = f.getBlob(), mime = b.getContentType() || '';
+  var col = kind === 'FP' ? 'link_fp' : 'link_inv', idOf = function (u) { return (/[-\w]{25,}/.exec(String(u || '').replace(/^https?:\/\/[^\/]+/, '')) || [])[0] || ''; };
+  var url = String(inv[col] || ''), id = idOf(url), how = 'sel';
+  // v2.11.1: sel berisi teks bertautan / chip file Drive → getValues() hanya memberi teks tampilan; ambil URL tautannya
+  if (!id) try {
+    var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, inv.nomor, map);
+    if (row && map[col]) { var rt = sh.getRange(row, map[col]).getRichTextValue(), lu = rt && (rt.getLinkUrl() || (rt.getRuns() || []).map(function (r) { return r.getLinkUrl() || ''; }).filter(String)[0]); if (lu) { url = lu; id = idOf(lu); how = 'tautan'; } }
+  } catch (e) { }
+  // cadangan terakhir: cari di folder arsip menurut nama file baku ("4C.0194.26 - INV …" / "4C.0194.26 - FP …")
+  if (!id) try {
+    var fn = docFileName_(inv, kind === 'FP' ? 'FP' : 'PACK', 'pdf'), fo = archiveFolder_(res.params, 'DOK', String(inv.tgl).substring(0, 7)), it = fo.getFiles(), best = null;
+    while (it.hasNext()) { var f1 = it.next(); if (String(f1.getName()).indexOf(fn.prefix) === 0 && (!best || f1.getDateCreated() > best.getDateCreated())) best = f1; }
+    if (best) { id = best.getId(); url = best.getUrl(); how = 'folder'; }
+  } catch (e) { }
+  if (!id) return url || String(inv[col] || '') ? { none: true, reason: 'Isi kolom ' + (kind === 'FP' ? 'FAKTUR PAJAK (PDF)' : 'BERKAS TAGIHAN (TTD)') + ' di Monitoring Invoice bukan tautan file Drive ("' + String(inv[col]).substring(0, 60) + '"). Upload ulang lewat tombol Ganti.' } : { none: true };
+  var f; try { f = DriveApp.getFileById(id); } catch (e) { throw new Error('Berkas tidak bisa dibuka akun ini (belum dibagikan atau sudah dihapus): ' + url); }
+  var b = f.getBlob(), mime = b.getContentType() || '';
   if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Berkas bukan PDF atau gambar.');
   if (f.getSize() > 15 * 1024 * 1024) throw new Error('Berkas lebih dari 15 MB.');
-  return { b64: Utilities.base64Encode(b.getBytes()), mime: mime, name: f.getName(), url: url };
+  return { b64: Utilities.base64Encode(b.getBytes()), mime: mime, name: f.getName(), url: url, via: how };
 }
 function apiFileDoc(nomor, kind, m) {
   arRequireMaker_(); m = m || {};

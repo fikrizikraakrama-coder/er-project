@@ -3023,7 +3023,7 @@ function bind() {
   $('btnPayPkg').onclick = function () { if (LASTPAY) { setMode('setuju'); openPackage('PAY', LASTPAY); } };
   $('btnPkgPrint').onclick = function () { var pk = PKG; if (!pk) return; if (pk._attP && !pk._attDone) { toast('Menunggu lampiran invoice / faktur pajak dimuat…'); pk._attP.then(function () { if (PKG === pk) printHtml(PKG._pages.all); }); return; } printHtml(pk._pages.all); };
   $('sheetwrap').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-dfopen]'); if (b) { e.preventDefault(); dfOpen(b.dataset.dfopen); } });
-  $('dfDlg').addEventListener('close', function () { if (PKG && PKG.kind === 'PAY' && STACK && (PKG._att || []).some(function (x) { return x.st === 'miss'; })) payAttLoad(PKG); });
+  $('dfDlg').addEventListener('close', function () { if (PKG && PKG.kind === 'PAY' && STACK && (PKG._att || []).some(function (x) { return x.st === 'miss' || x.st === 'err'; })) payAttLoad(PKG); });
   $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(MODE); };
   $('btnPkgSubmit').onclick = submitPkg; $('btnPkgOk').onclick = function () { decidePkg(true); }; $('btnPkgNo').onclick = function () { decidePkg(false); };
   $('mSel').onchange = function () { renderDok(); };
@@ -3272,24 +3272,22 @@ function payAttList(pkg) {
   (pkg.rows || []).forEach(function (r) { if (r.kom || !r.nomor) return; var k = E.normInv(r.nomor); if (!by[k]) { by[k] = { nomor: r.nomor, ppn: 0 }; ord.push(k); } by[k].ppn += +r.keP || 0; });
   ord.forEach(function (k) {
     var x = by[k], i = invBy(x.nomor) || {};
-    L.push({ kind: 'INV', nomor: x.nomor, url: i.link_inv || '', st: i.link_inv ? 'load' : 'miss' });
-    L.push(x.ppn > 0.5 ? { kind: 'FP', nomor: x.nomor, url: i.link_fp || '', no_fp: i.no_fp || '', ppn: x.ppn, st: i.link_fp ? 'load' : 'miss' } : { kind: 'FP', nomor: x.nomor, st: 'skip' });
+    L.push({ kind: 'INV', nomor: x.nomor, url: i.link_inv || '', st: 'load' }); // v2.11.1: selalu tanya server (tautan sel / folder arsip), bukan hanya data di layar
+    L.push(x.ppn > 0.5 ? { kind: 'FP', nomor: x.nomor, url: i.link_fp || '', no_fp: i.no_fp || '', ppn: x.ppn, st: 'load' } : { kind: 'FP', nomor: x.nomor, st: 'skip' });
   });
   return L;
 }
 function payAttLoad(pkg) {
   var L = pkg._att = payAttList(pkg), todo = L.filter(function (x) { return x.st === 'load'; });
   var redraw = function () { if (PKG !== pkg) return; var sw = $('sheetwrap'), sy = sw ? sw.parentNode.scrollTop : 0; PKG._pages = buildPages(pkg, ''); showPackage(); try { sw.parentNode.scrollTop = sy; } catch (e) { } };
-  var miss = L.filter(function (x) { return x.st === 'miss'; });
-  if (miss.length) toast(miss.map(function (x) { return (x.kind === 'INV' ? 'Invoice ber-TTD ' : 'Faktur pajak ') + x.nomor; }).join(', ') + ' belum diupload — klik "Upload" di daftar lampiran.');
   pkg._attDone = !todo.length;
   pkg._attP = new Promise(function (done) {
     var k = 0, next = function () {
-      if (k >= todo.length) { pkg._attDone = true; redraw(); return done(); }
-      var x = todo[k++], key = x.kind + '|' + x.url;
+      if (k >= todo.length) { pkg._attDone = true; redraw(); var ms = L.filter(function (x) { return x.st === 'miss'; }); if (ms.length && PKG === pkg) toast(ms.map(function (x) { return (x.kind === 'INV' ? 'Invoice ber-TTD ' : 'Faktur pajak ') + x.nomor; }).join(', ') + ' belum diupload — klik "Upload" di daftar lampiran.'); return done(); }
+      var x = todo[k++], key = x.kind + '|' + x.nomor + '|' + x.url;
       if (ATT_CACHE[key]) { x.imgs = ATT_CACHE[key]; x.st = 'ok'; return next(); }
       call('apiDocFile', [x.nomor, x.kind], function (f) {
-        if (!f || f.none) { x.st = 'miss'; return next(); }
+        if (!f || f.none) { if (f && f.reason) { x.st = 'err'; x.err = f.reason; } else x.st = 'miss'; return next(); }
         attImgs(f).then(function (im) { x.imgs = ATT_CACHE[key] = im; x.st = 'ok'; next(); }).catch(function (e) { x.st = 'err'; x.err = String(e.message || e); next(); });
       }, function (e) { x.st = 'err'; x.err = String(e.message || e); next(); });
     };
