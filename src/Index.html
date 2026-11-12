@@ -463,6 +463,8 @@ body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.
 .lp-seg{display:inline-flex;border:1px solid #CBD5E1;border-radius:9px;overflow:hidden;margin:0 0 0 10px}.lp-seg button{border:0;background:#fff;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;color:#4A5A6E;cursor:pointer}.lp-seg button.on{background:#14284B;color:#fff}
 .lp-t{width:100%;border-collapse:collapse;font-size:12.5px}.lp-t input[type=checkbox]{width:auto!important}.lp-t th{color:#6A7A8E;font-size:10.5px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid #E5EAF0;white-space:nowrap;background:#fff;position:sticky;top:0;z-index:1}.lp-t td{padding:9px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}.lp-t .n{text-align:right;white-space:nowrap}
 .rp-tg{color:#0F6E78;font-weight:700;cursor:pointer;white-space:nowrap}.rp-tgt{width:100%;border-collapse:collapse;margin-top:6px}.rp-tgt th{text-align:left;font-size:11px;color:#64748B;padding:6px;border-bottom:1px solid #E3E8EF}.rp-tgt td{padding:6px;border-bottom:1px solid #F0F3F7}.rp-tgt input{width:100%;text-align:right}
+.kc-wrap{background:#fff;border:1px solid #E3E9F0;border-radius:12px;padding:14px 16px}.kc-new{border-bottom:1px solid #EEF2F6;padding-bottom:12px;margin-bottom:12px}.kc-new label{display:block;font-weight:700;font-size:12px;margin:4px 0}.kc-new textarea,.kc-new select,.kc-new input{width:100%}.kc-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin:6px 0 4px}
+.kc-tl{border-left:2px solid #E3E8EF;margin-left:6px;padding-left:14px}.kc-it{position:relative;margin-bottom:12px;font-size:13px}.kc-it:before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:#14A8A0}.kc-it small{display:block;color:#7C3AED;font-weight:600;margin-top:2px}
 .lp-add{display:inline-flex;align-items:center;gap:4px;border:1.5px dashed #14A8A0;color:#0F6E78;background:#F0FBFA;border-radius:8px;padding:3px 9px;font:inherit;font-weight:700;font-size:12px;white-space:nowrap;cursor:pointer}.lp-add.y{border-color:#E0A21B;color:#9A6700;background:#FFF8EA}.lp-add:hover{background:#E0F5F2}.lp-ed{border:0;background:none;color:#0F6E78;cursor:pointer;font-size:12px;padding:0 2px}
 .sb-res{margin:6px 0 10px;background:#EEFAF4;border:1px solid #BFE8D3;border-radius:10px;padding:9px 12px;font-size:12.5px}.sb-res.w{background:#FFF8EA;border-color:#F5DCA0}.sb-res small{color:#0E7A55}.sb-ck{display:flex!important;gap:8px;align-items:flex-start;font-weight:500!important;font-size:12.5px;margin-top:6px}.sb-ck input{width:auto!important;margin-top:2px}
 .lp-t tr[data-lpo]{cursor:pointer}.lp-t tr[data-lpo]:hover td{background:#F4FAFA}.lp-t tr.sel td{background:#F1F8F8}.lp-t tr.lp-x td{color:#94A3B8}.lp-s{color:#6A7A8E;font-size:11.5px;margin-top:2px}.lp-mut{color:#9AA7B8}
@@ -3501,11 +3503,35 @@ function lpPayMatch(g, f) {
   return f === 'all' ? true : f === 'trf' ? !g.pb && !g.kom : f === 'off' ? g.pb || g.kom : f === 'noho' ? /BELUM DISERAHKAN|SERAHKAN LAGI/.test(g.ho) : f === 'rev' ? !!g.revPend : f === 'nosub' ? !/^✓/.test(g.appr) : true;
 }
 function lpHoAge(g) { var a = /^✓/.test(g.appr || '') ? (String(g.appr).match(/\d{4}-\d{2}-\d{2}/) || [g.tgl])[0] : g.tgl; return Math.max(0, lpDays(B.today, a) || 0); }
+/* v2.13 bukti potong PPh yang belum diterima (dulu diketik di Log Penerimaan) */
+function lpBupotRows(q) {
+  return B.payments.filter(function (p) { return (+p.pph || 0) > 0.5 && !p.bupot && !p.migr && (!q || (p.idp + ' ' + p.nomor + ' ' + p.pelanggan + ' ' + (p.ref || '')).toUpperCase().indexOf(q) >= 0); })
+    .map(function (p) { return { p: p, umur: Math.max(0, lpDays(p.tgl, B.today) * -1) }; }).sort(function (a, b) { return b.umur - a.umur; });
+}
+function lpBupotBody(L, maker) {
+  if (!L.length) return '<div class="lp-empty">✓ Semua bukti potong PPh sudah tercatat.</div>';
+  return '<table class="lp-t"><tr><th>No. penerimaan</th><th>Pelanggan · invoice</th><th>Ref. bank</th><th class="n">PPh dipotong</th><th>Umur</th><th></th></tr>' + L.map(function (x) { var p = x.p;
+    return '<tr><td><b>' + esc(p.idp) + '</b><div class="lp-s">' + esc(tg(p.tgl)) + '</div></td><td>' + esc(bgPelS(p.pelanggan)) + '<div class="lp-s">' + esc(short(p.nomor)) + '</div></td><td>' + esc(p.ref || '') + '</td><td class="n"><b>' + nfDot(p.pph) + '</b></td><td><span class="pill ' + (x.umur > 30 ? 'pr' : x.umur > 14 ? 'py' : 'pg') + '">' + x.umur + ' hari</span></td><td>' + (maker ? '<button type="button" class="lp-add" data-bpi="' + esc(p.idp) + '">＋ Bupot</button>' : '') + '</td></tr>'; }).join('') + '</table><div class="lp-more">Bupot lebih dari 30 hari ikut muncul di Tutup Buku (bukti potong belum diterima).</div>';
+}
+function lpBupotDlg(idp) {
+  var p = B.payments.filter(function (x) { return x.idp === idp; })[0]; if (!p) return;
+  var h = '<p class="s">' + esc(p.idp) + ' · ' + esc(bgPelS(p.pelanggan)) + ' · ' + esc(short(p.nomor)) + ' · ' + esc(tg(p.tgl)) + '</p><label>No. bukti potong</label><input id="bpN" placeholder="nomor pada bukti potong">' +
+    '<label>PPh sesuai bupot (Rp)</label><input id="bpV" inputmode="numeric" value="' + nfDot(p.pph) + '"><div class="lp-s" style="margin:3px 0 8px">PPh yang diakui saat penerimaan: Rp ' + nfDot(p.pph) + '</div><div class="sb-res" id="bpR"></div>';
+  confirmDlg('🧾 Lengkapi bukti potong PPh', h, 'Simpan', function () {
+    var v = +String($('bpV').value).replace(/\D/g, '') || 0;
+    call('apiSetBupot', [p.idp, bgV('bpN'), Math.abs(v - p.pph) > 1 ? v : null], function () { toast('Bukti potong ' + p.idp + ' tercatat.'); refreshAll(); }, function (e) { toast(e.message || e); });
+  }, function () { if (bgV('bpN').length < 4) { toast('Isi nomor bukti potong.'); return false; } });
+  var upd = function () { var el = $('bpV'), d = String(el.value).replace(/\D/g, ''), v = +d || 0, r = $('bpR'); el.value = d ? nfDot(v) : ''; var df = v - p.pph;
+    if (Math.abs(df) <= 1) { r.className = 'sb-res'; r.innerHTML = '✓ Sama dengan PPh yang diakui — tidak ada selisih.'; }
+    else { r.className = 'sb-res w'; r.innerHTML = 'Beda Rp ' + nfDot(Math.abs(df)) + ' (' + (df > 0 ? 'bupot lebih besar' : 'bupot lebih kecil') + '). PPh mengikuti bupot, sisa piutang dihitung ulang, dan lembar penerimaan perlu diajukan ulang.'; } };
+  $('bpV').oninput = upd; upd();
+}
 function lpPay() {
   var w = $('lstWrap'); if (!w || !B) return;
   var st = LP.pay, q = st.q.toUpperCase().trim(), pm = st.m === 'CUR' ? B.today.slice(0, 7) : st.m, maker = lpIsMaker();
   var base = lpPayGroups(pm, q), cur = lpPayGroups(B.today.slice(0, 7), ''), allG = lpPayGroups('ALL', ''), noho = allG.filter(function (g) { return lpPayMatch(g, 'noho'); }), nosap = allG.filter(function (g) { return !g.rv && !g.sap; });
-  var L = base.filter(function (g) { return lpPayMatch(g, st.f); });
+  var L = st.f === 'bupot' ? [] : base.filter(function (g) { return lpPayMatch(g, st.f); });
+  var BP = lpBupotRows(q);
   var cash = cur.filter(function (g) { return !g.rv && !g.pb && !g.kom; }), off = cur.filter(function (g) { return !g.rv && (g.pb || g.kom); }), rv = cur.filter(function (g) { return g.rv; });
   var rows = L.slice(0, 300).map(function (g) {
     var no = g.ids[0] || String(g.key).replace(/^REF\s+/, '');
@@ -3519,11 +3545,12 @@ function lpPay() {
   w.innerHTML = lpShell({ key: 'pay', t: 'Daftar Penerimaan', s: 'Kas masuk · lembar pengesahan, cetak paket (dengan invoice ber-TTD &amp; faktur pajak), serah terima ke Akuntansi, pembalikan · klik baris untuk membuka',
     act: '<button class="btn" type="button" id="lpPrint">' + ico('print') + 'Cetak rekap</button>' + (maker ? '<button class="btn primary" type="button" id="lpNewP">+ Catat Penerimaan</button>' : ''),
     k: [{ l: 'Penerimaan bulan ini', v: (cash.length + off.length) + ' · ' + bgRpS(cash.reduce(function (t, g) { return t + g.n; }, 0)), s: cash.length + ' transfer bank' + (off.length ? ' · ' + off.length + ' pindah buku / kompensasi' : '') }, { l: 'Belum diserahkan ke Akuntansi', v: noho.length + ' penerimaan', s: noho.length ? 'terlama ' + noho.reduce(function (m, g) { return Math.max(m, lpHoAge(g)); }, 0) + ' hari' : 'semua sudah diserahkan', c: noho.length ? 'ky' : '', f: 'noho' }, { l: 'Belum ada no. dokumen SAP', v: nosap.length, s: 'diisi setelah posting F-28' }, { l: 'Dibalik (reverse)', v: rv.length, s: 'bulan ini', f: 'rev' }],
-    tabs: [['all', 'Semua', base.length], ['trf', 'Transfer bank', base.filter(function (g) { return lpPayMatch(g, 'trf'); }).length], ['off', 'Pindah buku / kompensasi', base.filter(function (g) { return lpPayMatch(g, 'off'); }).length], ['noho', 'Belum diserahkan', base.filter(function (g) { return lpPayMatch(g, 'noho'); }).length, 1], ['rev', 'Dibalik', base.filter(function (g) { return lpPayMatch(g, 'rev'); }).length]],
+    tabs: [['all', 'Semua', base.length], ['trf', 'Transfer bank', base.filter(function (g) { return lpPayMatch(g, 'trf'); }).length], ['off', 'Pindah buku / kompensasi', base.filter(function (g) { return lpPayMatch(g, 'off'); }).length], ['noho', 'Belum diserahkan', base.filter(function (g) { return lpPayMatch(g, 'noho'); }).length, 1], ['rev', 'Dibalik', base.filter(function (g) { return lpPayMatch(g, 'rev'); }).length], ['bupot', 'Bupot belum diterima', BP.length, 1]],
     month: '<select id="lpMon" class="lp-sel">' + monthOpts(st.m, [['ALL', 'Semua bulan']]) + '</select>', ph: '🔍 No. penerimaan, invoice, ref. bank…',
-    body: L.length ? '<table class="lp-t"><tr><th>No. penerimaan</th><th>Pelanggan · NPP</th><th>Invoice dibayar</th><th>Rekening · ref. bank</th><th class="n">Nominal</th><th class="n">→ DPP netto</th><th class="n">→ PPN</th><th>Pengesahan</th><th>Serah terima</th><th></th></tr>' + rows + '</table>' : '<div class="lp-empty">' + (q ? 'Tidak ada penerimaan yang cocok.' : 'Tidak ada penerimaan di tab ini.') + '</div>' });
+    body: st.f === 'bupot' ? lpBupotBody(BP, maker) : L.length ? '<table class="lp-t"><tr><th>No. penerimaan</th><th>Pelanggan · NPP</th><th>Invoice dibayar</th><th>Rekening · ref. bank</th><th class="n">Nominal</th><th class="n">→ DPP netto</th><th class="n">→ PPN</th><th>Pengesahan</th><th>Serah terima</th><th></th></tr>' + rows + '</table>' : '<div class="lp-empty">' + (q ? 'Tidak ada penerimaan yang cocok.' : 'Tidak ada penerimaan di tab ini.') + '</div>' });
   lpBind(w);
   if ($('lpNewP')) $('lpNewP').onclick = function () { setMode('bayar'); };
+  w.querySelectorAll('[data-bpi]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); lpBupotDlg(b.dataset.bpi); }; });
   if ($('lpPrint')) $('lpPrint').onclick = function () { renderPayReg.last = { L: L.filter(function (g) { return !g.rv; }), pm: pm, q: q, cash: L.reduce(function (t, g) { return t + (g.rv || g.pb || g.kom ? 0 : g.n); }, 0), off: L.reduce(function (t, g) { return t + (!g.rv && (g.pb || g.kom) ? g.n : 0); }, 0) }; printHtml(pgPayReg()); };
 }
 function apprId(a) { var m = /APV-\d+/.exec(String(a || '')); return m ? 'diajukan ' + m[0] : String(a || '').toLowerCase().slice(0, 30); }
@@ -5738,6 +5765,14 @@ function kpRender() {
   w.querySelectorAll('[data-kpn]').forEach(function (b) { b.onclick = function () { if (KP.npp !== b.dataset.kpn) { KP.npp = b.dataset.kpn; KP.open = {}; KP.lunas = false; KP.tab = 'mut'; } KP.mlist = false; w.querySelectorAll('.kp-it').forEach(function (x) { x.classList.toggle('on', x === b); }); w.querySelector('.kp').classList.remove('mlist'); kpLoad(); if (isPhone()) window.scrollTo(0, 0); }; });
   kpLoad();
 }
+/* v2.13 catatan tindak lanjut (dulu diketik di tabel kanan sheet Input Tagbrut) */
+function kpTabCat(k, maker) {
+  var N = k.notes || [], h = '<div class="kc-wrap">';
+  if (maker) h += '<div class="kc-new"><label>Catatan baru</label><textarea id="kcT" rows="2" placeholder="mis. konfirmasi ke bagian keuangan pelanggan: termin dijadwalkan cair 20 Nov"></textarea><div class="kc-row"><div><label>Jenis</label><select id="kcJ"><option value="">—</option><option>telepon</option><option>surat</option><option>rapat</option><option>kunjungan</option><option>email / WA</option></select></div><div><label>Janji bayar (opsional)</label><input type="date" id="kcD" min="' + B.today + '"></div><button class="btn primary" type="button" id="kcSave">Simpan catatan</button></div><div class="lp-s">janji bayar otomatis tampil di kalender termin Ringkasan</div></div>';
+  h += N.length ? '<div class="kc-tl">' + N.map(function (n) { var j = /^\[([^\]]+)\]\s*/.exec(n.catatan), t = j ? n.catatan.slice(j[0].length) : n.catatan, jb = /janji bayar (\d{2}-\d{2}-\d{4})/i.exec(t);
+    return '<div class="kc-it"><b>' + esc(n.tgl ? tg(n.tgl) : '—') + (n.pic ? ' · ' + esc(n.pic) : '') + '</b>' + (j ? ' <span class="pill pb">' + esc(j[1]) + '</span>' : '') + '<div>' + esc(t.replace(/\s*·\s*janji bayar \d{2}-\d{2}-\d{4}/i, '')) + '</div>' + (jb ? '<small>🤝 janji bayar ' + esc(jb[1]) + '</small>' : '') + '</div>'; }).join('') + '</div>' : '<div class="kp-empty">Belum ada catatan tindak lanjut untuk proyek ini.</div>';
+  return h + '</div>';
+}
 function kpAsOf() { return KP.asOf || B.today; }
 function kpLoad() {
   var m = $('kpMain'); if (!m) return;
@@ -5800,9 +5835,10 @@ function kpDetail(k) {
     '<div class="kp-lg" style="border-color:#7FC3C9"><small>Retensi tertahan</small><b class="num">' + kpRp(ret) + '</b><em>belum ditagih · cair saat serah terima</em></div>' +
     '<div class="kp-lg" style="border-color:#C3CEDB"><small>Belum ditagih (DPP)</small><b class="num">' + kpRp(belum) + '</b><em>sisa nilai kontrak</em></div></div></div></div>' +
     '<div class="kp-row2"><div class="kp-pan"><h3>Umur saldo per ' + esc(kpTglS(A)) + ' <span class="num">Rp ' + kpRp(sal) + '</span></h3>' + ageRows.map(function (r) { return '<div class="kp-age"><span>' + r[0] + '</span><span class="tr"><i style="width:' + (r[2] > 0 ? Math.max(1.5, r[2] / agMax * 100) : 0).toFixed(1) + '%;background:' + r[1] + '"></i></span><span class="v num">' + kpRp(r[2]) + '</span></div>'; }).join('') + '</div>' + apH + '</div>' +
-    '<div class="kp-sec"><h2>Invoice &amp; mutasi</h2><div class="kp-tabs">' + [['mut', 'Per invoice'], ['A', 'Rincian tagihan'], ['ttd', 'Riwayat TTD']].map(function (t) { return '<button type="button" data-kpt="' + t[0] + '" class="' + (KP.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
+    '<div class="kp-sec"><h2>Invoice &amp; mutasi</h2><div class="kp-tabs">' + [['mut', 'Per invoice'], ['A', 'Rincian tagihan'], ['ttd', 'Riwayat TTD'], ['cat', 'Catatan tindak lanjut' + ((k.notes || []).length ? ' · ' + k.notes.length : '')]].map(function (t) { return '<button type="button" data-kpt="' + t[0] + '" class="' + (KP.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div></div>';
   if (KP.tab === 'A') h += kpTabA(k);
   else if (KP.tab === 'ttd') h += kpTabTtd(npp);
+  else if (KP.tab === 'cat') h += kpTabCat(k, maker);
   else {
     var card = function (x) {
       var on = !!KP.open[x.nomor], pc = x.deb ? Math.max(0, Math.min(100, x.terima / x.deb * 100)) : 0;
@@ -5824,6 +5860,7 @@ function kpDetail(k) {
   if ($('kpToday')) $('kpToday').onclick = function (e) { e.preventDefault(); KP.asOf = ''; KP.open = {}; kpLoad(); };
   if ($('kpPick')) $('kpPick').onclick = function () { KP.mlist = true; document.querySelector('.kp').classList.add('mlist'); window.scrollTo(0, 0); };
   m.querySelectorAll('[data-kpt]').forEach(function (b) { b.onclick = function () { KP.tab = b.dataset.kpt; kpDetail(k); }; });
+  if ($('kcSave')) $('kcSave').onclick = function () { var c = bgV('kcT'); if (c.length < 5) { toast('Tulis catatan (min. 5 karakter).'); return; } var bt = this; bt.disabled = true; call('apiAddNote', [npp, $('kcJ').value, c, $('kcD').value], function () { toast('Catatan tersimpan.'); KP.cache = {}; OV = {}; refreshAll(function () { KP.tab = 'cat'; kpLoad(); }); }, function (e) { bt.disabled = false; toast(e.message || e); }); };
   m.querySelectorAll('[data-kpo]').forEach(function (b) { b.onclick = function () { var n = b.dataset.kpo; if (KP.open[n]) delete KP.open[n]; else KP.open[n] = 1; var sc = m.scrollTop; kpDetail(k); m.scrollTop = sc; }; });
   m.querySelectorAll('[data-kpl]').forEach(function (b) { b.onclick = function () { KP.lunas = b.dataset.kpl === '1'; var sc = m.scrollTop; kpDetail(k); m.scrollTop = sc; }; });
   m.querySelectorAll('[data-kpa]').forEach(function (b) { b.onclick = function () {
@@ -6702,13 +6739,14 @@ function ovRender(d) {
   var cal = (function () {
     var y = +d.ref.substring(0, 4), m = +d.ref.substring(5, 7), n = new Date(Date.UTC(y, m, 0)).getUTCDate(), f = (new Date(Date.UTC(y, m - 1, 1)).getUTCDay() + 6) % 7, byD = {};
     I.forEach(function (x) { if (x.rencana && x.rencana.substring(0, 7) === d.ref) (byD[+x.rencana.substring(8, 10)] = byD[+x.rencana.substring(8, 10)] || []).push(x); });
+    var JJ = {}; (d.janji || []).forEach(function (x) { (JJ[+x.tgl.substring(8, 10)] = JJ[+x.tgl.substring(8, 10)] || []).push(x); });
     var c = '<div class="d3-cal">' + ['Sn', 'Sl', 'Rb', 'Km', 'Jm', 'Sb', 'Mg'].map(function (x) { return '<span class="h">' + x + '</span>'; }).join('');
     for (var k = 0; k < f; k++) c += '<span></span>';
-    for (var dd = 1; dd <= n; dd++) { var L = byD[dd] || [], we = (f + dd - 1) % 7 >= 5, td = d.cur && +B.today.substring(8, 10) === dd;
-      c += '<span class="d' + (we ? ' we' : '') + (L.length ? ' has' : '') + (td ? ' td' : '') + '"' + (L.length ? ' title="' + esc(L.map(function (x) { return titleCaseS(x.pelanggan) + ' · ' + M2(x.nilai) + ' · ' + STC[x.st][3]; }).join('\n')) + '"' : '') + '>' + dd + '<i>' + L.slice(0, 4).map(function (x) { return '<u style="background:' + STC[x.st][0] + '"></u>'; }).join('') + '</i></span>'; }
+    for (var dd = 1; dd <= n; dd++) { var L = byD[dd] || [], JL = JJ[dd] || [], we = (f + dd - 1) % 7 >= 5, td = d.cur && +B.today.substring(8, 10) === dd;
+      c += '<span class="d' + (we ? ' we' : '') + (L.length || JL.length ? ' has' : '') + (td ? ' td' : '') + '"' + (L.length || JL.length ? ' title="' + esc(L.map(function (x) { return titleCaseS(x.pelanggan) + ' · ' + M2(x.nilai) + ' · ' + STC[x.st][3]; }).concat(JL.map(function (x) { return '🤝 janji bayar ' + titleCaseS(x.pelanggan); })).join('\n')) + '"' : '') + '>' + dd + '<i>' + L.slice(0, 4).map(function (x) { return '<u style="background:' + STC[x.st][0] + '"></u>'; }).join('') + (JL.length ? '<u style="background:#7C3AED"></u>' : '') + '</i></span>'; }
     c += '</div>';
     var nx = I.filter(function (x) { return x.st !== 'ok' && x.rencana && x.rencana >= tday; }).sort(function (a, b) { return a.rencana < b.rencana ? -1 : 1; }).slice(0, 3);
-    return '<div class="ov-p d3-c"><h3>🗓 Kalender termin · ' + monEn(d.ref, true) + '<span class="r"><a data-ovgo="' + (maker || viewer ? 'plan' : 'ap:VAL') + '">Rencana Termin →</a></span></h3><div class="d3-lg">' + ['ok', 'pa', 'lt', 'no'].map(function (k) { return '<span><u style="background:' + STC[k][0] + '"></u>' + STC[k][3].replace(' jadwal', '') + '</span>'; }).join('') + '</div>' + c +
+    return '<div class="ov-p d3-c"><h3>🗓 Kalender termin · ' + monEn(d.ref, true) + '<span class="r"><a data-ovgo="' + (maker || viewer ? 'plan' : 'ap:VAL') + '">Rencana Termin →</a></span></h3><div class="d3-lg">' + ['ok', 'pa', 'lt', 'no'].map(function (k) { return '<span><u style="background:' + STC[k][0] + '"></u>' + STC[k][3].replace(' jadwal', '') + '</span>'; }).join('') + ((d.janji || []).length ? '<span><u style="background:#7C3AED"></u>janji bayar</span>' : '') + '</div>' + c +
       (nx.length ? '<div class="d3-nx"><b>Berikutnya</b>' + nx.map(function (x) { return '<div><span><em style="color:' + STC[x.st][0] + '">' + dt(x.rencana)[0] + ' ' + monEn(d.ref, true) + '</em> · ' + pel(x.pelanggan) + '</span><b>' + M2(x.kas - x.masuk > 0.5 && x.kas ? x.nilai * (x.kas - x.masuk) / x.kas : x.nilai) + '</b></div>'; }).join('') + '</div>' : '') + '</div>';
   })();
   // Bank Garansi

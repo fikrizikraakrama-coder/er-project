@@ -575,6 +575,38 @@ function apiSetTarget(ref, nilai) { arRequireMaker_();
   } finally { lock.releaseLock(); }
   return { ok: true, background: arQueueAfterSave_().background };
 }
+/** v2.13 bukti potong PPh yang datang belakangan: nomor bupot + PPh sesuai bupot (diisi hanya bila beda dari PPh yang diakui) */
+function apiSetBupot(idp, no, pph) { arRequireMaker_();
+  idp = String(idp || '').trim(); no = String(no || '').trim(); if (!idp) throw new Error('ID penerimaan kosong.'); if (no.length < 4) throw new Error('Isi nomor bukti potong.');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var sh = sheet_('Log Penerimaan'), map = colMap_(sh, ENGINE.LOG), r = logRows_(sh, map).filter(function (x) { return String(x.idp).trim() === idp; })[0];
+    if (!r) throw new Error('Penerimaan ' + idp + ' tidak ditemukan.'); if (!map.bupot) throw new Error('Kolom NO. BUKTI POTONG belum ada di Log Penerimaan.');
+    sh.getRange(r._row, map.bupot).setNumberFormat('@').setValue(no.slice(0, 60));
+    if (pph !== null && pph !== undefined && pph !== '' && map.pph_bupot) { var v = Math.round(Number(pph) || 0); if (v < 0) throw new Error('PPh tidak boleh negatif.'); sh.getRange(r._row, map.pph_bupot).setValue(v || ''); }
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true, background: arQueueAfterSave_().background };
+}
+/** v2.13 catatan tindak lanjut per proyek / pelanggan (tabel kanan sheet Input Tagbrut) */
+function apiAddNote(npp, jenis, catatan, janji) { var a = arRequireMaker_();
+  npp = String(npp || '').trim().toUpperCase(); catatan = String(catatan || '').trim(); jenis = String(jenis || '').trim(); janji = isoDate_(janji, 'Tanggal janji bayar');
+  if (!npp) throw new Error('Proyek belum dipilih.'); if (catatan.length < 5) throw new Error('Tulis catatan (min. 5 karakter).');
+  var txt = (jenis ? '[' + jenis + '] ' : '') + catatan + (janji ? ' · janji bayar ' + janji.split('-').reverse().join('-') : '');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var sh = sheet_('Input Tagbrut'), map = colMap_(sh, ENGINE.NOTE), f = ENGINE.NOTE.firstRow;
+    if (!map.catatan || !map.npp) throw new Error('Tabel catatan tindak lanjut belum ada di sheet Input Tagbrut.');
+    var t = lastDataRow_(sh, f, [map.npp, map.catatan]) + 1; roomFor_(sh, t);
+    var u0 = ENGINE.userBy(arParameters_(), a.email) || {}, nm = String(u0.nama || a.email || '').split(/\s+/)[0];
+    sh.getRange(t, map.npp).setNumberFormat('@').setValue(npp);
+    if (map.tgl) sh.getRange(t, map.tgl).setNumberFormat('dd/mm/yyyy').setValue(dateAt_(+arToday_().slice(0, 4), +arToday_().slice(5, 7), +arToday_().slice(8, 10)));
+    if (map.pic) sh.getRange(t, map.pic).setValue(nm);
+    sh.getRange(t, map.catatan).setNumberFormat('@').setValue(txt.slice(0, 480));
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true, background: arQueueAfterSave_().background };
+}
 function setRegisterValue_(nomor, key, value) {
   var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
   var row = findRegisterRow_(sh, nomor, map);
