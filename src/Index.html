@@ -462,6 +462,9 @@ body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.
 .lp-q{border:1px solid #D3DCE6;border-radius:9px;padding:6px 10px;width:250px!important;flex:none;font:inherit;font-size:12.5px;background:#F8FAFC;margin:4px 0}.lp-sel{width:auto!important;flex:none;border:1px solid #D3DCE6;border-radius:9px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff;margin:4px 6px 4px 0}
 .lp-seg{display:inline-flex;border:1px solid #CBD5E1;border-radius:9px;overflow:hidden;margin:0 0 0 10px}.lp-seg button{border:0;background:#fff;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;color:#4A5A6E;cursor:pointer}.lp-seg button.on{background:#14284B;color:#fff}
 .lp-t{width:100%;border-collapse:collapse;font-size:12.5px}.lp-t input[type=checkbox]{width:auto!important}.lp-t th{color:#6A7A8E;font-size:10.5px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid #E5EAF0;white-space:nowrap;background:#fff;position:sticky;top:0;z-index:1}.lp-t td{padding:9px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}.lp-t .n{text-align:right;white-space:nowrap}
+.rp-tg{color:#0F6E78;font-weight:700;cursor:pointer;white-space:nowrap}.rp-tgt{width:100%;border-collapse:collapse;margin-top:6px}.rp-tgt th{text-align:left;font-size:11px;color:#64748B;padding:6px;border-bottom:1px solid #E3E8EF}.rp-tgt td{padding:6px;border-bottom:1px solid #F0F3F7}.rp-tgt input{width:100%;text-align:right}
+.lp-add{display:inline-flex;align-items:center;gap:4px;border:1.5px dashed #14A8A0;color:#0F6E78;background:#F0FBFA;border-radius:8px;padding:3px 9px;font:inherit;font-weight:700;font-size:12px;white-space:nowrap;cursor:pointer}.lp-add.y{border-color:#E0A21B;color:#9A6700;background:#FFF8EA}.lp-add:hover{background:#E0F5F2}.lp-ed{border:0;background:none;color:#0F6E78;cursor:pointer;font-size:12px;padding:0 2px}
+.sb-res{margin:6px 0 10px;background:#EEFAF4;border:1px solid #BFE8D3;border-radius:10px;padding:9px 12px;font-size:12.5px}.sb-res.w{background:#FFF8EA;border-color:#F5DCA0}.sb-res small{color:#0E7A55}.sb-ck{display:flex!important;gap:8px;align-items:flex-start;font-weight:500!important;font-size:12.5px;margin-top:6px}.sb-ck input{width:auto!important;margin-top:2px}
 .lp-t tr[data-lpo]{cursor:pointer}.lp-t tr[data-lpo]:hover td{background:#F4FAFA}.lp-t tr.sel td{background:#F1F8F8}.lp-t tr.lp-x td{color:#94A3B8}.lp-s{color:#6A7A8E;font-size:11.5px;margin-top:2px}.lp-mut{color:#9AA7B8}
 .lp .pill{border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;white-space:nowrap;display:inline-block}.lp .pr{background:#FDE4E2;color:#B3261E}.lp .py{background:#FFF1D6;color:#9A6200}.lp .pg{background:#E2F4EA;color:#1E7A45}.lp .pb{background:#E4EEFA;color:#1F5BA8}.lp .pz{background:#EEF1F5;color:#5B6B80}
 .lp-dk{display:inline-block;font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 6px;margin-right:3px;white-space:nowrap}.lp-dk.y{background:#E3F5EA;color:#17733F}.lp-dk.n{background:#FDE2E2;color:#B42318}.lp-dk.z{background:#EEF1F5;color:#9AA7B8}
@@ -3376,6 +3379,8 @@ function lpAct(a, id) {
   if (a === 'surat') return setMode('surat');
   if (a === 'batal') return openPackage('BATAL', E.normInv(id));
   if (a === 'tutup') return lpTutup(id);
+  if (a === 'sub') return lpSubDlg(id);
+  if (a === 'ba') return lpBaDlg(id);
   if (a === 'pay') return openPackage('PAY', id);
   if (a === 'revp') return openPackage('REVP', id);
   if (a === 'revpv') return openPackage('REVP', id);
@@ -3401,16 +3406,52 @@ function lpInvStat(i) {
 function lpJt(i) {
   if (i.status_inv === 'BATAL') return '';
   if (i.closed) return '<span class="lp-mut">—</span>';
-  if (!i.jt) return '<span class="lp-mut">belum ada</span>';
+  var mk = lpIsMaker(), nm = esc(i.nomor), sub = '';
+  if (!i.jt) {
+    var needTT = i.basisTT && i.submit && !i.tt, lbl = needTT ? '＋ Tgl tanda terima' : '＋ Tgl submit';
+    sub = '<div class="lp-s">' + (i.submit ? 'submit ' + esc(tg(i.submit)) + ' ✓ · ' : '') + 'TOP ' + (i.top || 30) + ' hari dari ' + (i.basisTT ? 'tanda terima' : 'submit') + '</div>';
+    return (mk ? '<button type="button" class="lp-add' + (needTT ? ' y' : '') + '" data-lpsub="' + nm + '">' + lbl + '</button>' : '<span class="lp-mut">belum ada</span>') + sub;
+  }
   var d = lpDays(i.jt, B.today);
-  return '<span class="pill ' + (d < 0 ? 'pr' : d <= 7 ? 'py' : 'pg') + '">' + (d < 0 ? 'lewat ' + (-d) + ' hari' : d === 0 ? 'hari ini' : tg(i.jt) + ' · ' + d + ' hari lagi') + '</span>';
+  return '<span class="pill ' + (d < 0 ? 'pr' : d <= 7 ? 'py' : 'pg') + '">' + (d < 0 ? 'lewat ' + (-d) + ' hari' : d === 0 ? 'hari ini' : tg(i.jt) + ' · ' + d + ' hari lagi') + '</span>' +
+    '<div class="lp-s">' + (i.basisTT && i.tt ? 'tanda terima ' + esc(tg(i.tt)) : i.submit ? 'submit ' + esc(tg(i.submit)) : '') + (mk ? ' <button type="button" class="lp-ed" data-lpsub="' + nm + '" title="Ubah tanggal submit / tanda terima">✎</button>' : '') + '</div>';
+}
+/* v2.13 tanggal submit & tanda terima (dulu diketik di Monitoring Invoice) */
+function lpSubDlg(no) {
+  var i = invBy(no); if (!i) return;
+  var others = B.invoices.filter(function (x) { return x.nomor !== i.nomor && x.pelanggan === i.pelanggan && !x.closed && x.status_inv !== 'BATAL' && !x.jt && (!x.submit || (x.basisTT && !x.tt)); });
+  var h = '<p class="s">' + esc(short(i.nomor)) + ' · ' + esc(bgPelS(i.pelanggan)) + ' · ' + esc(i.invke || '') + ' · sisa Rp ' + nfDot(i.sisa) + '</p>' +
+    '<label>Tanggal submit dokumen ke pelanggan</label><input type="date" id="sbD" value="' + esc(i.submit || '') + '" max="' + B.today + '"><div class="lp-s" style="margin:3px 0 10px">tanggal berkas tagihan diterima / di-submit ke pelanggan</div>' +
+    (i.basisTT ? '<label>Tanggal tanda terima <span class="pill pb">dasar jatuh tempo pelanggan ini</span></label><input type="date" id="sbT" value="' + esc(i.tt || '') + '"><div class="lp-s" style="margin:3px 0 10px">' + esc(bgPelS(i.pelanggan)) + ': jatuh tempo dihitung dari tanggal tanda terima (Master Pelanggan ▸ dasar jatuh tempo)</div>' : '') +
+    '<div class="sb-res" id="sbR"></div>' + (others.length ? '<label class="sb-ck"><input type="checkbox" id="sbAll"> Terapkan tanggal yang sama ke ' + others.length + ' invoice lain pelanggan ini yang belum diisi (' + esc(others.map(function (x) { return short(x.nomor); }).join(', ')) + ')</label>' : '');
+  confirmDlg('📅 Tanggal submit & tanda terima', h, 'Simpan', function () {
+    var sb = $('sbD').value, tt = $('sbT') ? $('sbT').value : undefined, L = [{ nomor: i.nomor, submit: sb, tt: tt }];
+    if ($('sbAll') && $('sbAll').checked) others.forEach(function (x) { L.push({ nomor: x.nomor, submit: x.submit || sb, tt: x.basisTT ? (x.tt || tt || '') : undefined }); });
+    call('apiSetTglTagih', [L], function (r) { toast('Tanggal tersimpan untuk ' + r.n + ' invoice — jatuh tempo diperbarui.'); refreshAll(); }, function (e) { toast(e.message || e); });
+  }, function () { var sb = $('sbD').value, tt = $('sbT') ? $('sbT').value : ''; if (tt && !sb) { toast('Isi tanggal submit terlebih dahulu.'); return false; } if (sb && tt && tt < sb) { toast('Tanggal tanda terima tidak boleh sebelum tanggal submit.'); return false; } if (sb > B.today) { toast('Tanggal submit tidak boleh di masa depan.'); return false; } });
+  var upd = function () {
+    var sb = $('sbD').value, tt = $('sbT') ? $('sbT').value : '', basis = i.basisTT ? tt : sb, top = i.top || 30, r = $('sbR');
+    if (!basis) { r.className = 'sb-res w'; r.innerHTML = i.basisTT && sb ? 'Jatuh tempo dihitung setelah tanggal tanda terima diisi.' : 'Isi tanggal ' + (i.basisTT ? 'submit lalu tanggal tanda terima' : 'submit') + ' untuk menghitung jatuh tempo.'; return; }
+    var jt = new Date(Date.parse(basis) + top * 864e5).toISOString().slice(0, 10);
+    r.className = 'sb-res'; r.innerHTML = 'Jatuh tempo menjadi <b>' + esc(tg(jt)) + '</b> · TOP ' + top + ' hari dari ' + (i.basisTT ? 'tanda terima' : 'submit') + ' ' + esc(tg(basis)) + '<br><small>otomatis dipakai di Monitoring Invoice, Aging, Ringkasan, RA–RI &amp; surat penagihan</small>';
+  };
+  $('sbD').oninput = upd; if ($('sbT')) $('sbT').oninput = upd; upd();
+}
+/* v2.13 kekurangan bayar ditagih via BA / memo */
+function lpBaDlg(no) {
+  var i = invBy(no); if (!i) return;
+  var h = '<p class="s">' + esc(short(i.nomor)) + ' · ' + esc(bgPelS(i.pelanggan)) + ' · sisa Rp ' + nfDot(i.sisa) + '</p><div class="sb-res w">Pelanggan membayar kurang Rp ' + nfDot(i.sisa) + '. Kekurangan ditagih terpisah lewat berita acara / memo — invoice tetap tercatat sebagai piutang sampai dibayar.</div>' +
+    '<label>No. BA / memo</label><input id="baN" value="' + esc(i.ba_no && !/BELUM DIISI/i.test(i.ba_no) ? i.ba_no : '') + '" placeholder="mis. BA.012/WB-4C/XI/2026"><label>Tanggal BA / memo</label><input type="date" id="baT" value="' + esc(i.ba_tgl || B.today) + '" max="' + B.today + '"><label>Keterangan (opsional)</label><textarea id="baK" rows="2" placeholder="mis. potongan denda, disepakati ditagih ulang"></textarea>';
+  confirmDlg('📄 Kekurangan ditagih via BA / memo', h, 'Simpan', function () {
+    call('apiSetBA', [i.nomor, bgV('baN'), $('baT').value, bgV('baK')], function () { toast('BA / memo dicatat — status menjadi kurang bayar ditagih via BA/memo.'); refreshAll(); }, function (e) { toast(e.message || e); });
+  }, function () { if (bgV('baN').length < 3) { toast('Isi nomor BA / memo.'); return false; } if (!$('baT').value) { toast('Isi tanggal BA / memo.'); return false; } });
 }
 function lpDocs(i) { if (!dfNeed(i)) return '<span class="lp-mut">—</span>'; var s = dfState(i); return '<span class="lp-dk ' + (s.pack ? 'y' : 'n') + '">TTD ' + (s.pack ? '✓' : '✗') + '</span>' + (s.needFp ? '<span class="lp-dk ' + (i.link_fp ? 'y' : 'n') + '">FP ' + (i.link_fp ? '✓' : '✗') + '</span>' : '<span class="lp-dk z">FP –</span>'); }
 function lpInvMatch(i, f) {
   var open = !i.closed && i.status_inv !== 'BATAL';
   if (f === 'open') return open; if (f === 'od') return open && i.jt && i.jt < B.today;
   if (f === 'docs') return regMatch(i, 'docs'); if (f === 'notsub') return regMatch(i, 'notsub');
-  if (f === 'done') return i.closed || i.status_inv === 'BATAL'; return true;
+  if (f === 'nojt') return open && !i.jt; if (f === 'done') return i.closed || i.status_inv === 'BATAL'; return true;
 }
 function lpInv() {
   var w = $('lstWrap'); if (!w || !B) return;
@@ -3422,19 +3463,20 @@ function lpInv() {
   var L = base.filter(function (i) { return lpInvMatch(i, st.f); }).sort(function (a, b) { return st.f === 'od' ? String(a.jt).localeCompare(String(b.jt)) : String(b.tgl || '').localeCompare(String(a.tgl || '')) || String(b.nomor).localeCompare(String(a.nomor)); });
   var rows = L.slice(0, 300).map(function (i) {
     var id = i.nomor, act = i.status_inv !== 'BATAL', M = [['inv', ico('doc') + ' Lihat invoice · kwitansi · lembar pengesahan']];
-    if (maker && act) { M.push(['rev', '✎ Revisi invoice']); if (dfNeed(i) || i.link_inv || i.link_fp) M.push(['df', '📎 Berkas tagihan & faktur pajak']); if (!i.closed) M.push(['surat', '✉ Surat penagihan']); M.push('-'); if (!i.closed && !i.tutup && (+i.sisa || 0) > 0) M.push(['tutup', 'Tutup manual (sisa kecil)']); if (!i.batalPend) M.push(['batal', '✕ Batalkan invoice', 'red']); }
+    if (maker && act) { M.push(['rev', '✎ Revisi invoice']); if (dfNeed(i) || i.link_inv || i.link_fp) M.push(['df', '📎 Berkas tagihan & faktur pajak']); if (!i.closed) M.push(['surat', '✉ Surat penagihan']); M.push('-'); if (!i.closed) M.push(['sub', '📅 Tgl submit &amp; tanda terima']); if (/^KURANG BAYAR/.test(i.status || '')) M.push(['ba', '📄 Kurang bayar ditagih via BA/memo']); if (!i.closed && !i.tutup && (+i.sisa || 0) > 0) M.push(['tutup', 'Tutup manual (sisa kecil)']); if (!i.batalPend) M.push(['batal', '✕ Batalkan invoice', 'red']); }
     return '<tr data-lpo="inv|' + esc(id) + '" class="' + (act ? '' : 'lp-x') + '"><td><b>' + esc(short(i.nomor)) + '</b><div class="lp-s">' + esc(tg(i.tgl)) + (i.rev ? ' · Rev.' + ('0' + i.rev).slice(-2) : '') + '</div></td><td>' + esc(bgPelS(i.pelanggan)) + '<div class="lp-s">' + esc(i.npp + ' · ' + (i.proyek || '')) + '</div></td><td>' + esc(i.invke || '') + '</td>' +
       '<td class="n">' + nfDot(i.total) + '</td><td class="n"><b>' + (act ? nfDot(i.sisa) : '—') + '</b></td><td>' + lpJt(i) + '</td><td>' + lpDocs(i) + '</td><td>' + lpInvStat(i) + '</td><td>' + lpMenu('i:' + id, M.map(function (m) { return m === '-' ? m : [m[0] + '', m[1], m[2]]; })) + '</td></tr>';
   }).join('');
   var mo = '<select id="lpMon" class="lp-sel">' + monthOpts(st.m, [['ALL', 'Semua bulan']]) + '</select>';
-  w.innerHTML = lpShell({ key: 'inv', t: 'Daftar Invoice', s: 'Invoice keluar · revisi, berkas tagihan &amp; faktur pajak, pembatalan, tutup manual · klik baris untuk membuka dokumen',
+  w.innerHTML = lpShell({ key: 'inv', t: 'Daftar Invoice', s: 'Invoice keluar · revisi, berkas tagihan &amp; faktur pajak, tanggal submit / tanda terima, pembatalan, tutup manual · klik baris untuk membuka dokumen',
     act: (maker ? '<button class="btn" type="button" id="lpRekap">' + ico('print') + 'Rekap bulan</button><button class="btn primary" type="button" id="lpNew">+ Buat Invoice</button>' : ''),
     k: [{ l: 'Invoice bulan ini', v: cur.length + ' · ' + bgRpS(sum(cur, 'total')), s: 'DPP ' + bgRpS(sum(cur, 'dpp')) + ' · PPN ' + bgRpS(sum(cur, 'ppn')) }, { l: 'Belum jatuh tempo', v: bgRpS(sum(openL, 'sisa') - sum(od, 'sisa')), s: (openL.length - od.length) + ' invoice terbuka', f: 'open' },
       { l: 'Lewat jatuh tempo', v: bgRpS(sum(od, 'sisa')), s: od.length ? od.length + ' invoice · terlama ' + oldest + ' hari' : 'tidak ada', c: od.length ? 'kr' : '', f: 'od' }, { l: 'Berkas belum lengkap', v: docs.length + ' invoice', s: 'invoice ber-TTD / faktur pajak belum diupload', c: docs.length ? 'ky' : '', f: 'docs' }],
-    tabs: [['open', 'Terbuka', base.filter(function (i) { return lpInvMatch(i, 'open'); }).length], ['od', 'Lewat jatuh tempo', base.filter(function (i) { return lpInvMatch(i, 'od'); }).length, 1], ['docs', 'Berkas belum lengkap', base.filter(function (i) { return lpInvMatch(i, 'docs'); }).length], ['notsub', 'Belum disahkan', base.filter(function (i) { return lpInvMatch(i, 'notsub'); }).length, 1], ['done', 'Lunas / ditutup', base.filter(function (i) { return lpInvMatch(i, 'done'); }).length], ['all', 'Semua', base.length]],
+    tabs: [['open', 'Terbuka', base.filter(function (i) { return lpInvMatch(i, 'open'); }).length], ['od', 'Lewat jatuh tempo', base.filter(function (i) { return lpInvMatch(i, 'od'); }).length, 1], ['docs', 'Berkas belum lengkap', base.filter(function (i) { return lpInvMatch(i, 'docs'); }).length], ['nojt', 'Jatuh tempo belum ada', base.filter(function (i) { return lpInvMatch(i, 'nojt'); }).length, 1], ['notsub', 'Belum disahkan', base.filter(function (i) { return lpInvMatch(i, 'notsub'); }).length, 1], ['done', 'Lunas / ditutup', base.filter(function (i) { return lpInvMatch(i, 'done'); }).length], ['all', 'Semua', base.length]],
     month: mo, ph: '🔍 No. invoice, NPP, pelanggan…',
     body: L.length ? '<table class="lp-t"><tr><th>No. invoice</th><th>Pelanggan · proyek</th><th>Tagihan</th><th class="n">Nilai (incl. PPN)</th><th class="n">Sisa piutang</th><th>Jatuh tempo</th><th>Berkas</th><th>Status</th><th></th></tr>' + rows + '</table>' + (L.length > 300 ? '<div class="lp-more">Menampilkan 300 terbaru dari ' + L.length + ' — persempit dengan pencarian / bulan.</div>' : '') : '<div class="lp-empty">' + (q ? 'Tidak ada invoice yang cocok.' : 'Tidak ada invoice di tab ini.') + '</div>' });
   lpBind(w);
+  w.querySelectorAll('[data-lpsub]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); lpSubDlg(b.dataset.lpsub); }; });
   if ($('lpNew')) $('lpNew').onclick = function () { setMode('buat'); };
   if ($('lpRekap')) $('lpRekap').onclick = function () { var b = $('btnRekap') || document.querySelector('[data-rekap]'); if (b) b.click(); else toast('Rekap bulan tersedia di menu Tutup Buku ▸ Dokumen.'); };
 }
@@ -3920,7 +3962,7 @@ function planRender() {
   h += '</div>';
   // panel kanan
   var pT = tgt ? T.C.v / tgt : 0, pT2 = tgt ? (T.C.v + T.S.v) / tgt : 0, R = 40, Cc = 2 * Math.PI * R;
-  h += '<div class="rp-side"><div><h3>RA Termin ' + esc(planBln(ref)) + '</h3><p>' + (tgt ? 'Committed dibandingkan target inkaso' : 'Committed · DPP − PPh') + '</p><div class="rp-dn"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="#EAF0F5" stroke-width="11"/><circle cx="48" cy="48" r="40" fill="none" stroke="#1E9E5A" stroke-width="11" stroke-dasharray="' + (Math.min(1, pT) * Cc).toFixed(1) + ' ' + Cc.toFixed(1) + '" transform="rotate(-90 48 48)"/><text x="48" y="53" text-anchor="middle" font-size="16" font-weight="800" fill="#14284B">' + (tgt ? pctId(pT) : T.C.n) + '</text></svg><div><b>' + rpShort(T.C.v) + '</b><small>' + T.C.n + ' invoice' + ' · DPP − PPh' + (tgt ? '<br>target ' + rpShort(tgt) + (T.C.v < tgt ? ' · kurang ' + rpShort(tgt - T.C.v) : '') + '<br>RA + Upside ' + pctId(pT2) : '') + '<br>prakiraan kas (incl. PPN) ' + rpShort(T.C.k) + '</small></div></div></div>' +
+  h += '<div class="rp-side"><div><h3>RA Termin ' + esc(planBln(ref)) + '</h3><p>' + (tgt ? 'Committed dibandingkan target inkaso' : 'Committed · DPP − PPh') + (B.access && B.access.maker ? ' · <a class="rp-tg" data-rptg="1">🎯 ' + (tgt ? 'ubah' : 'isi') + ' target</a>' : '') + '</p><div class="rp-dn"><svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="#EAF0F5" stroke-width="11"/><circle cx="48" cy="48" r="40" fill="none" stroke="#1E9E5A" stroke-width="11" stroke-dasharray="' + (Math.min(1, pT) * Cc).toFixed(1) + ' ' + Cc.toFixed(1) + '" transform="rotate(-90 48 48)"/><text x="48" y="53" text-anchor="middle" font-size="16" font-weight="800" fill="#14284B">' + (tgt ? pctId(pT) : T.C.n) + '</text></svg><div><b>' + rpShort(T.C.v) + '</b><small>' + T.C.n + ' invoice' + ' · DPP − PPh' + (tgt ? '<br>target ' + rpShort(tgt) + (T.C.v < tgt ? ' · kurang ' + rpShort(tgt - T.C.v) : '') + '<br>RA + Upside ' + pctId(pT2) : '') + '<br>prakiraan kas (incl. PPN) ' + rpShort(T.C.k) + '</small></div></div></div>' +
     '<div><h3>Komposisi</h3><p>' + items.length + ' invoice' + ' terbuka</p><div class="rp-bk">' + RAK.concat(['']).map(function (k) { return '<div><i style="background:' + RAC[k] + '"></i>' + esc(raLbl(k)) + '<small>' + T[k].n + '</small><b>' + rpShort(T[k].v).replace('Rp ', '') + '</b></div>'; }).join('') + '</div>' + (st === 1 && T[''].n ? '<p style="margin:6px 0 0">yang belum dipilih otomatis menjadi → Rescheduled</p>' : '') + '</div>';
   if (TT.nc) {
     var wk = [0, 0, 0, 0, 0], wn = [0, 0, 0, 0, 0]; items.forEach(function (x) { var v = PLAN.W[x.nomor]; if (v.u !== 'C') return; var i = v.d >= P.start && v.d <= P.end ? Math.min(3, Math.floor((+v.d.substring(8, 10) - 1) / 7)) : 4; wk[i] += planVal(x, v); wn[i]++; });
@@ -4013,8 +4055,22 @@ function planBind() {
   w.querySelectorAll('[data-rpa]').forEach(function (i) { i.oninput = function () { PLAN.W[i.dataset.rpa].al = this.value; }; });
   w.querySelectorAll('[data-rpj]').forEach(function (i) { i.oninput = function () { PLAN.W[i.dataset.rpj].pj = this.value; }; });
   w.querySelectorAll('[data-rpa2]').forEach(function (b) { b.onclick = function () { planAct(b.dataset.rpa2); }; });
+  w.querySelectorAll('[data-rptg]').forEach(function (b) { b.onclick = rpTargetDlg; });
 }
 /** v2.9.5: data Lembar RA–RI (satu sumber untuk PDF & Excel). Istilah cetak mengikuti format laporan pusat (bahasa Indonesia). */
+/* v2.13 target inkaso per bulan (dulu diketik di Parameter I:K) */
+function rpTargetDlg() {
+  var ref0 = PLAN.ref || B.today.slice(0, 7), refs = [], y = +ref0.slice(0, 4), m = +ref0.slice(5, 7) - 1;
+  for (var k = 0; k < 4; k++) { var yy = y + Math.floor((m + k - 1) / 12), mm = ((m + k - 1) % 12 + 12) % 12 + 1; refs.push(yy + '-' + ('0' + mm).slice(-2)); }
+  var h = '<p class="s">Diisi sekali per bulan · dipakai di Ringkasan, RA–RI &amp; Lembar RA–RI. Kosongkan bila belum ada target.</p><table class="rp-tgt"><tr><th>Bulan</th><th>Target inkaso (Rp)</th></tr>' +
+    refs.map(function (r) { var v = +((B.targets || {})[r] || 0); return '<tr><td><b>' + esc(planBln(r)) + ' ' + r.slice(0, 4) + '</b>' + (r === ref0 ? ' <span class="pill pb">bulan ini</span>' : '') + '</td><td><input class="rp-tgi" data-tref="' + r + '" inputmode="numeric" value="' + (v ? nfDot(v) : '') + '" placeholder="0"></td></tr>'; }).join('') + '</table>';
+  confirmDlg('🎯 Target inkaso', h, 'Simpan', function () {
+    var ch = []; document.querySelectorAll('.rp-tgi').forEach(function (el) { var v = +String(el.value).replace(/\D/g, '') || 0, r = el.dataset.tref; if (v !== +((B.targets || {})[r] || 0)) ch.push([r, v]); });
+    if (!ch.length) { toast('Tidak ada perubahan.'); return; }
+    var k2 = 0, next = function () { if (k2 >= ch.length) { toast('Target inkaso tersimpan (' + ch.length + ' bulan).'); refreshAll(); return; } var c = ch[k2++]; call('apiSetTarget', c, next, function (e) { toast(e.message || e); }); }; next();
+  });
+  document.querySelectorAll('.rp-tgi').forEach(function (el) { el.oninput = function () { var d = String(el.value).replace(/\D/g, ''); el.value = d ? nfDot(+d) : ''; }; });
+}
 function raSheetData() {
   var P = PKG, ref = PLAN.ref, a = P.appr, st = planStage(), TT = planTot(), T = TT.T, R0 = P.roles || {}, isRev = planIsRev();
   var bln = planBln(ref).toUpperCase() + ' ' + ref.substring(0, 4), nx = planNextRef(ref);

@@ -526,6 +526,55 @@ function apiTutupManual(nomor, alasan) { arRequireMaker_();
   } finally { lock.releaseLock(); }
   return { ok: true, background: arQueueAfterSave_().background };
 }
+// v2.13: isian yang dulu diketik manual di Monitoring Invoice — sekarang dari aplikasi
+function isoDate_(s, label) { s = String(s || '').trim(); if (!s) return ''; if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) throw new Error(label + ' harus tanggal yang valid.'); return s; }
+/** tanggal submit & tanda terima: L = [{ nomor, submit, tt }] (string kosong = kosongkan) */
+function apiSetTglTagih(L) { arRequireMaker_(); L = (L || []).slice(0, 60); if (!L.length) throw new Error('Tidak ada invoice.');
+  var lock = arLock_(), n = 0; lock.waitLock(28000);
+  try {
+    var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
+    if (!map.submit) throw new Error('Kolom TGL SUBMIT DOKUMEN belum ada di Monitoring Invoice.');
+    L.forEach(function (x) {
+      var sb = isoDate_(x.submit, 'Tanggal submit'), tt = isoDate_(x.tt, 'Tanggal tanda terima'), row = findRegisterRow_(sh, x.nomor, map);
+      if (!row) throw new Error('Invoice ' + x.nomor + ' tidak ditemukan.');
+      if (sb && tt && tt < sb) throw new Error(x.nomor + ': tanggal tanda terima tidak boleh sebelum tanggal submit.');
+      if (sb && sb > arToday_()) throw new Error(x.nomor + ': tanggal submit tidak boleh di masa depan.');
+      var put = function (k, v) { if (!map[k]) return; var c = sh.getRange(row, map[k]); if (v) { var p = v.split('-'); c.setNumberFormat('dd/mm/yyyy').setValue(dateAt_(+p[0], +p[1], +p[2])); } else c.setValue(''); };
+      put('submit', sb); if (x.tt !== undefined) put('tt', tt); n++;
+    });
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true, n: n, background: arQueueAfterSave_().background };
+}
+/** kekurangan bayar ditagih via BA / memo */
+function apiSetBA(nomor, no, tgl, ket) { arRequireMaker_();
+  no = String(no || '').trim(); tgl = isoDate_(tgl, 'Tanggal BA / memo'); ket = String(ket || '').trim();
+  if (no.length < 3) throw new Error('Isi nomor BA / memo.'); if (!tgl) throw new Error('Isi tanggal BA / memo.');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS), row = findRegisterRow_(sh, nomor, map);
+    if (!row) throw new Error('Invoice ' + nomor + ' tidak ditemukan.'); if (!map.ba_no) throw new Error('Kolom NO. BA / MEMO belum ada di Monitoring Invoice.');
+    sh.getRange(row, map.ba_no).setNumberFormat('@').setValue(no.slice(0, 120));
+    if (map.ba_tgl) { var p = tgl.split('-'); sh.getRange(row, map.ba_tgl).setNumberFormat('dd/mm/yyyy').setValue(dateAt_(+p[0], +p[1], +p[2])); }
+    if (ket && map.catatan) { var c = sh.getRange(row, map.catatan), old = String(c.getDisplayValue() || ''); c.setNumberFormat('@').setValue(((old ? old + ' · ' : '') + 'BA ' + no + ': ' + ket).slice(0, 480)); }
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true, background: arQueueAfterSave_().background };
+}
+/** target inkaso bulanan (Parameter ▸ TARGET, kolom I:K = tahun · bulan · nilai) */
+function apiSetTarget(ref, nilai) { arRequireMaker_();
+  var m = /^(\d{4})-(\d{2})$/.exec(String(ref || '')); if (!m) throw new Error('Bulan tidak valid.');
+  nilai = Math.round(Number(nilai) || 0); if (nilai < 0) throw new Error('Target tidak boleh negatif.');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var par = sheet_('Parameter'), rg = par.getRange('I4:K100'), v = rg.getValues(), y = +m[1], mo = +m[2], at = -1, empty = -1;
+    for (var i = 0; i < v.length; i++) { if (+v[i][0] === y && +v[i][1] === mo) { at = i; break; } if (empty < 0 && v[i][0] === '' && v[i][1] === '' && v[i][2] === '') empty = i; }
+    if (at < 0) at = empty; if (at < 0) throw new Error('Tabel target di Parameter sudah penuh (I4:K100).');
+    par.getRange(4 + at, 9, 1, 3).setValues([[y, mo, nilai || '']]);
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true, background: arQueueAfterSave_().background };
+}
 function setRegisterValue_(nomor, key, value) {
   var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
   var row = findRegisterRow_(sh, nomor, map);
