@@ -14,14 +14,17 @@ function arSpreadsheet_() {
   if (!ss || !ss.getSheetByName('Monitoring Invoice')) throw new Error('Jalankan "Pasang pembaruan v2.8" dari spreadsheet utama terlebih dahulu.');
   return AR28_SS_ = ss;
 }
+var AR28_LOCK_T0_ = 0, AR28_LOCK_WHO_ = '';
+/** v2.15 nama fungsi pemegang kunci (untuk Catatan diagnosa) — fungsi api / jadwal pertama di tumpukan panggilan */
+function arLockWho_(d) { try { var L = String(new Error().stack || '').split('\n'), out = ''; L.forEach(function (x) { var m = /at (\w+)/.exec(x); if (m && !/^(arLock|arLockWho|waitLock|tryLock|Object|new|__)/.test(m[1])) out = m[1]; }); return (out || d).slice(0, 24); } catch (e) { return d; } }
 // Script lock works for both web app and triggers. Depth handles internal sync -> rebuild.
 function arLock_() {
   var held = false;
   return {
     // v2.8.7: tunggu sampai 90 detik — pembaruan laporan (pengguna lain / jadwal 5 menit) bisa memegang kunci lebih dari 28 detik
-    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, ''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('Sistem sedang memperbarui laporan. Langkah ini belum tersimpan — coba lagi dalam 1 menit.'); } } AR28_LOCK_DEPTH_++; held = true; },
-    tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; } AR28_LOCK_DEPTH_++; held = true; return true; },
-    releaseLock: function(noBust) { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; if (!noBust) arBootBust_(); } } }
+    waitLock: function(ms) { if (held) return; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); var tw = Date.now(); try { AR28_NATIVE_LOCK_.waitLock(Math.max(ms || 0, 90000)); if (Date.now() - tw > 1500) arPerfLog_('⏳ antre kunci', Date.now() - tw, arLockWho_('')); AR28_LOCK_T0_ = Date.now(); AR28_LOCK_WHO_ = arLockWho_(''); } catch (e) { arPerfLog_('⛔ kunci penuh', Date.now() - tw, '');  AR28_NATIVE_LOCK_ = null; throw new Error('Sistem sedang memperbarui laporan. Langkah ini belum tersimpan — coba lagi dalam 1 menit.'); } } AR28_LOCK_DEPTH_++; held = true; },
+    tryLock: function(ms) { if (held) return true; if (!AR28_LOCK_DEPTH_) { AR28_NATIVE_LOCK_ = LockService.getScriptLock(); if (!AR28_NATIVE_LOCK_.tryLock(ms)) return false; AR28_LOCK_T0_ = Date.now(); AR28_LOCK_WHO_ = arLockWho_(''); } AR28_LOCK_DEPTH_++; held = true; return true; },
+    releaseLock: function(noBust) { if (!held) return; held = false; AR28_LOCK_DEPTH_--; if (!AR28_LOCK_DEPTH_ && AR28_NATIVE_LOCK_) { try { SpreadsheetApp.flush(); } finally { AR28_NATIVE_LOCK_.releaseLock(); AR28_NATIVE_LOCK_ = null; if (!noBust) arBootBust_(); try { var dur = Date.now() - AR28_LOCK_T0_; if (AR28_LOCK_T0_ && dur > 20000) arPerfLog_("🔒 kunci dipegang", dur, AR28_LOCK_WHO_); } catch (e) { } AR28_LOCK_T0_ = 0; } } }
   };
 }
 // Keep legacy document properties readable; new prefixed properties also work in web apps.
@@ -257,7 +260,7 @@ function apiAfterSave() {
   //   (Section Head belum tentu punya akses ke file itu — jadwal per jam tetap memperbarui)
   var acc=arRequireAccess_(),pr=PropertiesService.getScriptProperties(),q=null,t=pr.getProperty(AR_DIRTY_KEY_);
   try{q=JSON.parse(pr.getProperty('AFTER_SAVE')||'null');}catch(e){}
-  if(!q&&!t)return {reportPending:false,warnings:[],skipped:true}; // sudah diperbarui oleh panggilan lain
+  if(!q&&!t){arWarmInput_();return {reportPending:false,warnings:[],skipped:true};} // sudah diperbarui oleh panggilan lain
   pr.deleteProperty('AFTER_SAVE');
   var t0=Date.now(),out=arAfterSave_(q&&q.npps.length?q.npps:null,q&&q.months.length?q.months:null,!acc.maker); arPerfLog_('update laporan',Date.now()-t0,'latar');
   if(!out.reportPending&&t&&pr.getProperty(AR_DIRTY_KEY_)===t)pr.deleteProperty(AR_DIRTY_KEY_);
@@ -1021,7 +1024,7 @@ function apiAnalisis(month, buat) {
 function apiClosing(month) {
   arRequireAccess_(true);
   month = String(month || ''); if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
-  return arCached_('closing|' + month, function () { var res = computeLight_('memo'), m = month || res.ctx.today.substring(0, 7); return plain_(ENGINE.closingData(res.ctx, m)); });
+  return arCached_('closing|' + month, function () { var res = computeLight_('memo', true), m = month || res.ctx.today.substring(0, 7); return plain_(ENGINE.closingData(res.ctx, m)); });
 }
 /** v2.8.5: data layar Overview (bulan yyyy-mm; kosong = bulan berjalan). Hitungan ringan + cache 5 menit (gugur setiap ada penyimpanan). */
 function apiOverview(month) {
@@ -1030,7 +1033,7 @@ function apiOverview(month) {
   if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
   var key = arBootKey_('OVERVIEW|' + ENGINE.VERSION + '|' + month + '|' + arToday_()), hit = arCacheGet_(key), t0 = Date.now();
   if (hit) { arPerfLog_('overview', Date.now() - t0, 'cache'); return JSON.parse(hit); }
-  var res = computeLight_(true), o = ENGINE.overview(res.ctx, month);
+  var res = computeLight_(true, true), o = ENGINE.overview(res.ctx, month);
   o.reportTime = ''; try { o.reportTime = arProps_().getProperty('REPORT_TIME') || ''; } catch (e) {}
   var out = plain_(o); arCachePut_(key, JSON.stringify(out), 300); arPerfLog_('overview', Date.now() - t0, 'hitung');
   return out;

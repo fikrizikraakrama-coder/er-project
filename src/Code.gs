@@ -195,7 +195,21 @@ function readLK_() {
   if (last >= 8) { var n = last - 7; out.pu = sh.getRange(8, 1, n, 14).getValues(); out.ppn = sh.getRange(8, 17, n, 15).getValues(); out.ret = sh.getRange(8, 33, n, 13).getValues(); }
   return nd_(out);
 }
-function readAll_() {
+/** v2.15 kecepatan: hasil baca semua sheet disimpan sementara (cache 10 menit) dan dipakai bersama oleh semua layar baca-saja.
+ *  Kunci cache = versi data (BOOT_VER) — berganti setiap ada penyimpanan / edit sheet / pembaruan laporan, jadi data lama tidak pernah dipakai.
+ *  Hanya dipakai bila diminta (opt.cache) oleh layar baca-saja aplikasi; di dalam kunci, menu spreadsheet & proses yang menulis SELALU dibaca langsung dari sheet. */
+function readAll_(opt) {
+  var t0 = Date.now(), inLock = AR28_LOCK_DEPTH_ > 0, key = inLock || !(opt && opt.cache) ? '' : arInputKey_();
+  if (key) { var hit = arCacheGet_(key); if (hit) { try { var o = JSON.parse(hit); o.today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'); return o; } catch (e) { } } }
+  var out = readAllRaw_();
+  if (key && key === arInputKey_()) { var js = JSON.stringify(out); if (js.length <= 85 * 30000) arCachePut_(key, js, 600); else arPerfLog_('cache data terlalu besar', js.length / 1000, ''); }
+  arPerfLog_('baca sheet', Date.now() - t0, inLock ? 'di kunci' : 'baca');
+  return out;
+}
+function arInputKey_() { var v = '0'; try { v = PropertiesService.getScriptProperties().getProperty('BOOT_VER') || '0'; } catch (e) { return ''; } return 'INPUT_' + v; }
+/** isi cache data setelah pembaruan laporan / simpan (di latar belakang) — pengguna berikutnya tidak menunggu baca sheet */
+function arWarmInput_() { if (AR28_LOCK_DEPTH_ > 0) return; try { var k = arInputKey_(); if (k && !arCacheGet_(k)) readAll_({ cache: true }); } catch (e) { } }
+function readAllRaw_() {
   var ss = arSpreadsheet_(), par = ss.getSheetByName('Parameter'), it = ss.getSheetByName('Input Tagbrut');
   var sel = {};
   SELECTOR_SHEETS.forEach(function (n) { var s = ss.getSheetByName(n); if (s) sel[n] = nd_(s.getRange('C5').getValue()); });
@@ -266,6 +280,7 @@ function rebuildAll_(opt) {
         try { if (dp.getProperty('REG_HO_V287') !== '1') { var mi7 = ss.getSheetByName('Monitoring Invoice'), lp7 = ss.getSheetByName('Log Penerimaan'); if (mi7) ensureSchema_(mi7, ENGINE.REG, ENGINE.REG_ALIAS, 6); if (lp7) ensureSchema_(lp7, ENGINE.LOG, null, 6); dp.setProperty('REG_HO_V287', '1'); } } catch (err) { }
       }
     } finally { lock.releaseLock(true); }
+    arBootBust_(); // v2.15 kolom otomatis / memorial baru ditulis → cache data aplikasi diganti
     // ---- fase 2: tanpa kunci utama
     arEnrichReports_(res);
     try { var cj = JSON.stringify(arDashboardCharts_(res)); if (cj.length < 8500) dp.setProperty('DASH_CHARTS', cj); } catch (err) { }
@@ -291,6 +306,7 @@ function rebuildAll_(opt) {
     SpreadsheetApp.flush();
     if (daily) try { dp.setProperty('RB_DAY', today); } catch (err) { }
     LAST_RES_ = res;
+    arWarmInput_();
     if (repErr.length) throw new Error('Laporan gagal ditulis — ' + repErr.join(' · '));
     return { ok: true, issues: res.issues.length };
   } finally { arReportRelease_(); }
@@ -309,7 +325,8 @@ var REPORT_SUB_ = {
 };
 function compute_() { return ENGINE.compute(readAll_()); }
 /** hitungan tanpa laporan (cepat) — untuk aplikasi; mode 'memo' ikut menghitung memorial */
-function computeLight_(mode) { var i = readAll_(); i.light = mode || true; return ENGINE.compute(i); }
+/** cache = true hanya untuk layar baca-saja (lihat readAll_) */
+function computeLight_(mode, cache) { var i = readAll_({ cache: !!cache }); i.light = mode || true; return ENGINE.compute(i); }
 
 /** dropdown pemilih (bulan / NPP) di sel C5 */
 function ensureSelectors_(ss, res) {
@@ -639,7 +656,7 @@ function apiRekonMark(o) { var a = arRequireMaker_(); o = o || {};
   } finally { lock.releaseLock(); }
   return { ok: true };
 }
-function lkCompute_(pl) { var input = readAll_(); input.lk = pl.lk; input.light = true; return ENGINE.compute(input); }
+function lkCompute_(pl) { var input = readAll_({ cache: true }); input.lk = pl.lk; input.light = true; return ENGINE.compute(input); }
 function apiLkPreview(pl) { arRequireMaker_(); pl = lkCheck_(pl); var res = lkCompute_(pl); return plain_(ENGINE.lkPreview(res.ctx, pl)); }
 function apiLkSave(pl, opt) { var a = arRequireMaker_(); pl = lkCheck_(pl); opt = opt || {};
   var lock = arLock_(), out = { sap: 0, tag: 0 }; lock.waitLock(28000);
@@ -1118,7 +1135,7 @@ function apiBootstrap() {
   var access = arRequireAccess_(true), em = email_(), key = arBootKey_(em), hit = arCacheGet_(key);
   var t0 = Date.now();
   if (hit) { var b0 = JSON.parse(hit); b0.access = access; b0.cached = true; arPerfLog_('buka aplikasi', Date.now() - t0, 'cache'); return b0; }
-  var input = readAll_(); input.light = true;
+  var input = readAll_({ cache: true }); input.light = true;
   var res = ENGINE.compute(input), b = ENGINE.bootstrap(res, em);
   b.appUrl = arAppUrl_().url;
   b.charts = access.maker ? arChartsCached_() : null;
@@ -1257,7 +1274,7 @@ function apiSavePayment(p) { var r = apiSavePayments([p]); return plain_({ ok: t
 function apiPayPreview(rows) { arRequireMaker_();
   rows = (rows || []).filter(function (p) { return p && p.inv && Number(p.nominal); });
   rows.forEach(function (p) { p.inv = ENGINE.normInv(p.inv); });
-  var input = readAll_(), n0 = input.log.length;
+  var input = readAll_({ cache: true }), n0 = input.log.length;
   rows.forEach(function (p) { input.log.push(payRow_(p)); });
   input.newFrom = n0; input.light = true;
   var res = ENGINE.compute(input), ctx = res.ctx, keys = rows.map(function (p) { return p.inv; }), npps = {};
@@ -1267,7 +1284,7 @@ function apiPayPreview(rows) { arRequireMaker_();
   });
   return plain_({ rows: out, kartu: Object.keys(npps).map(function (n) { return ENGINE.kartuPlain(ctx, n, ctx.today); }) });
 }
-function apiKartu(npp, asOf) { arRequireAccess_(true); var res = computeLight_(); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
+function apiKartu(npp, asOf) { arRequireAccess_(true); var res = computeLight_(true, true); return plain_(ENGINE.kartuPlain(res.ctx, npp, asOf || res.ctx.today)); }
 
 // =====================================================================  PERSETUJUAN DIGITAL
 function secret_() {
@@ -1297,7 +1314,7 @@ function verifyAppr_(a) {
 function apiPackage(kind, ref) { arRequireAccess_(true);
   if (kind === 'VAL' && /^\d{4}-\d{2}$/.test(String(ref || ''))) { try { raAutoFinal_(String(ref)); } catch (e) { arDiag_('RA', 'Finalisasi otomatis ' + ref + ' gagal: ' + e.message); } }
   return arCached_('lembar ' + kind + '|' + ref, function () { // v2.9.2: disimpan 5 menit, gugur setiap ada penyimpanan
-  var res = computeLight_('memo'), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
+  var res = computeLight_('memo', true), d = ENGINE.packageFor(res.ctx, kind, ref); // lembar pengesahan tidak memerlukan laporan
   if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
   if (kind === 'VAL') { d.draft = valDraft_(d.ref); d.plan = raPlan_(d.ref); }
   if (d.appr) verifyAppr_(d.appr);
@@ -1562,7 +1579,7 @@ function docFileName_(inv, kind, ext) {
  *  m = { b64, mime, size, fp: { no, tgl, ref, harga, ppn } (hasil baca PDF Coretax di aplikasi), force } */
 /** v2.9.10 isi berkas invoice ber-TTD / faktur pajak (link_inv / link_fp di Monitoring Invoice) untuk dilampirkan di paket penerimaan. Hanya berkas yang tercatat di register. */
 function apiDocFile(nomor, kind) { arRequireAccess_();
-  var res = computeLight_(), k = ENGINE.normInv(nomor), L = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; });
+  var res = computeLight_(true, true), k = ENGINE.normInv(nomor), L = res.ctx.invs.filter(function (x) { return ENGINE.normInv(x.nomor) === k; });
   var inv = L.filter(function (x) { return !x._batal; })[0] || L[0];
   if (!inv) throw new Error('Invoice ' + nomor + ' tidak ditemukan.');
   var col = kind === 'FP' ? 'link_fp' : 'link_inv', idOf = function (u) { return (/[-\w]{25,}/.exec(String(u || '').replace(/^https?:\/\/[^\/]+/, '')) || [])[0] || ''; };
@@ -1621,7 +1638,7 @@ function apiFileDoc(nomor, kind, m) {
 
 // =====================================================================  SURAT PERMOHONAN PERCEPATAN PEMBAYARAN
 /** invoice lewat jatuh tempo milik satu pelanggan, dikelompokkan per proyek (untuk menyusun surat di aplikasi) */
-function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.suratData(computeLight_().ctx, pelanggan)); }
+function apiSuratData(pelanggan) { arRequireMaker_(); return plain_(ENGINE.suratData(computeLight_(true, true).ctx, pelanggan)); }
 /** arsipkan PDF surat ke Drive lalu catat di Log Surat Penagihan (nomor surat unik; invoice diperiksa ulang di server) */
 function apiSuratSimpan(m) {
   var a = arRequireMaker_(); m = m || {};
@@ -1938,16 +1955,21 @@ function dropDefaultSheet_(ss) { var s1 = ss.getSheetByName('Sheet1') || ss.getS
 function memoTabName_(bulan, jenis) { var p = String(bulan).split('-'); return (jenis === 'TRM' ? 'TRM ' : 'INV ') + ENGINE.MONTHS[+p[1] - 1].toUpperCase() + ' ' + p[0].substring(2); }
 
 /** tarik centang verifikasi dari file Akuntansi → kolom VERIFIKASI di sheet Memorial AR */
-function pullVerif_() {
-  var x = paramKV_('FILE_AKUNTANSI_ID'); if (!x || !x.val) return 0;
-  var ss; try { ss = SpreadsheetApp.openById(x.val); } catch (e) { return 0; }
+function pullVerif_(got0) {
+  if (got0) return applyVerif_(got0);
+  var g = readVerif_(); return g ? applyVerif_(g) : 0;
+}
+/** v2.15 baca centang VERIF di file Akuntansi TANPA kunci (membuka file lain bisa puluhan detik) */
+function readVerif_() {
+  var x = paramKV_('FILE_AKUNTANSI_ID'); if (!x || !x.val) return null;
+  var ss; try { ss = SpreadsheetApp.openById(x.val); } catch (e) { return null; }
   var got = {};
   ss.getSheets().forEach(function (sh) {
     if (!/^(INV|TRM) /.test(sh.getName())) return;
     var last = sh.getLastRow(); if (last < 4) return;
     sh.getRange(4, 15, last - 3, 2).getValues().forEach(function (r) { var k = String(r[1]).trim(); if (k && (r[0] === true || r[0] === false)) got[k] = got[k] || r[0] === true; });
   });
-  return applyVerif_(got);
+  return got;
 }
 function applyVerif_(got) {
   var M = ENGINE.MEMO, sh = sheet_(M.sheet); if (!sh) return 0;
@@ -2063,10 +2085,11 @@ function syncRun_(opt, out) {
   var res;
   if (opt.noPull) res = LAST_RES_ || compute_(); // setelah simpan: hasil pembaruan laporan barusan (eksekusi yang sama) dipakai ulang
   else {
-    var sl = arLock_();
+    var sl = arLock_(), got = null;
+    try { got = readVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); }
     // v2.8.7: sistem sibuk atau satu laporan gagal tidak lagi membatalkan pengiriman ke file Akuntansi / P&E / Pajak
     if (sl.tryLock(30000)) {
-      try { try { out.verif = pullVerif_(); } catch (e) { out.err.push('verification pull: ' + e.message); } } finally { sl.releaseLock(); }
+      try { try { if (got) out.verif = applyVerif_(got); } catch (e) { out.err.push('verification pull: ' + e.message); } } finally { sl.releaseLock(); }
       try { rebuildAll_(); } catch (e) { out.err.push('reports: ' + e.message); }
       res = LAST_RES_ || compute_();
     } else { out.err.push('system busy — verification pull postponed to the next schedule'); res = compute_(); }
@@ -2520,7 +2543,7 @@ function moveValPdfs_(P, ref) {
 // =====================================================================  v2.8.7: SERAH TERIMA DOKUMEN KE AKUNTANSI
 function apiHandoverData() { arRequireAccess_();
   return arCached_('handover', function () {
-  var res = computeLight_('memo'), d = ENGINE.handoverData(res.ctx), R = ENGINE.roles(res.params);
+  var res = computeLight_('memo', true), d = ENGINE.handoverData(res.ctx), R = ENGINE.roles(res.params);
   d.penerima = R.PENERIMA ? R.PENERIMA.nama : ''; d.nextNo = { INV: ENGINE.hoNextNo(res.ctx, 'INV'), PAY: ENGINE.hoNextNo(res.ctx, 'PAY') };
   return plain_(d); });
 }
