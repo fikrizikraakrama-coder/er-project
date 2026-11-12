@@ -450,7 +450,7 @@ button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(25
 body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body.full #stage{display:none!important}
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 #lstWrap{flex:1;overflow:auto;background:#EEF2F6}
-body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.stack #planWrap,body.full.stack #execWrap,body.full.stack #closeWrap,body.full.stack #mdWrap,body.full.stack #custWrap,body.full.stack #kpWrap,body.full.stack #bgWrap,body.full.stack #lstWrap{display:none!important}
+body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.stack #planWrap,body.full.stack #execWrap,body.full.stack #closeWrap,body.full.stack #mdWrap,body.full.stack #custWrap,body.full.stack #kpWrap,body.full.stack #bgWrap,body.full.stack #lstWrap,body.full.stack #dokWrap{display:none!important}
 .mdk-p{display:inline-block;border-radius:9px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap}.mdk-p.pg{background:#E3F5EA;color:#17733F}.mdk-p.pr{background:#FDE2E2;color:#B42318}.mdk-p.pb{background:#E4EEFA;color:#1F5BA8}.mdk-p.pz{background:#EEF1F5;color:#5B6B80}
 .mdk td small{display:block;color:#6A7A8E;font-size:11px}.mdk tr.mdk-x td{color:#94A3B8;text-decoration:line-through}.mdk-n{color:#B42318;font-weight:700;font-size:12px}.mdk-del{color:#B42318;text-decoration:none;font-weight:800;margin-left:4px}
 .mdk-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}.mdk-seg button{border:1px solid #CBD5E1;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12px;font-weight:700;color:#4A5A6E;cursor:pointer}.mdk-seg button.on{background:#0F6E78;border-color:#0F6E78;color:#fff}
@@ -462,6 +462,15 @@ body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.
 .lp-q{border:1px solid #D3DCE6;border-radius:9px;padding:6px 10px;width:250px!important;flex:none;font:inherit;font-size:12.5px;background:#F8FAFC;margin:4px 0}.lp-sel{width:auto!important;flex:none;border:1px solid #D3DCE6;border-radius:9px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff;margin:4px 6px 4px 0}
 .lp-seg{display:inline-flex;border:1px solid #CBD5E1;border-radius:9px;overflow:hidden;margin:0 0 0 10px}.lp-seg button{border:0;background:#fff;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;color:#4A5A6E;cursor:pointer}.lp-seg button.on{background:#14284B;color:#fff}
 .lp-t{width:100%;border-collapse:collapse;font-size:12.5px}.lp-t input[type=checkbox]{width:auto!important}.lp-t th{color:#6A7A8E;font-size:10.5px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid #E5EAF0;white-space:nowrap;background:#fff;position:sticky;top:0;z-index:1}.lp-t td{padding:9px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}.lp-t .n{text-align:right;white-space:nowrap}
+.dk{max-width:1500px;margin:0 auto;padding:18px 22px}.dk-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px;flex-wrap:wrap}.dk-hd h2{margin:0;font-size:22px}.dk-hd p{margin:4px 0 0;color:#5B6B80}
+.dk-flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;background:#fff;border:1px solid #E3E8EF;border-radius:14px;padding:14px 16px;margin-bottom:14px}.dk-fs{display:flex;gap:10px;align-items:center;min-width:0}.dk-fs i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;flex:none}.dk-fs b{display:block;font-size:12.5px}.dk-fs small{display:block;color:#64748B;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk-fs.ok i{background:#DDF5EA;color:#0E7A55}.dk-fs.now i{background:#14A8A0;color:#fff}.dk-fs.no i{background:#EEF1F6;color:#94A3B8}
+.dk-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.dk-c{background:#fff;border:1px solid #E3E8EF;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}.dk-c .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px}.dk-c h3{margin:0;font-size:15px}.dk-c p{margin:0;color:#64748B;font-size:12px;flex:1}.dk-b{display:flex;gap:6px;flex-wrap:wrap}
+.dk-ch{display:inline-block;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;width:fit-content;white-space:nowrap}.dk-ch.cg{background:#DDF5EA;color:#0E7A55}.dk-ch.cy{background:#FFF1D6;color:#9A6700}.dk-ch.cz{background:#EEF1F6;color:#64748B}.dk-ch.cr{background:#FDE3E3;color:#B42323}
+.dk-r2{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-top:14px;align-items:start}.dk-p{background:#fff;border:1px solid #E3E8EF;border-radius:14px;padding:16px 18px;min-width:0}.dk-pt{font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dk-t{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}.dk-t th{font-size:11px;color:#64748B;text-align:left;padding:7px 8px;border-bottom:1px solid #E3E8EF;text-transform:uppercase}.dk-t td{padding:8px;border-bottom:1px solid #F0F3F7;vertical-align:middle}.dk-t .n{text-align:right;white-space:nowrap}
+.dk-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.dk-two>div{border-radius:11px;padding:10px 12px}.dk-two .w{background:#FFF8EA}.dk-two .g{background:#EEFAF4}.dk-two small{color:#64748B;display:block}.dk-two b{font-size:20px;display:block}.dk-two span{font-size:11.5px;color:#475569}
+@media(max-width:1100px){.dk-g{grid-template-columns:1fr 1fr}.dk-flow{grid-template-columns:1fr 1fr}.dk-r2{grid-template-columns:1fr}}@media(max-width:700px){.dk{padding:12px}.dk-g,.dk-flow,.dk-two{grid-template-columns:1fr}}
 .lku{max-width:1400px;margin:0 auto;padding:18px 22px}.lku-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.lku-hd h2{margin:0;font-size:22px}.lku-hd p{margin:4px 0 0;color:#5B6B80}
 .lku-steps{display:flex;gap:8px;margin-bottom:14px}.lku-st{flex:1;background:#fff;border:1px solid #E3E8EF;border-radius:11px;padding:9px 12px;font-weight:700;color:#94A3B8}.lku-st.on{border-color:#14A8A0;color:#0F6E78;background:#E9F8F6}.lku-st.ok{color:#0E7A55}
 .lku-g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.lku-c{background:#fff;border:1px solid #E3E8EF;border-radius:14px;padding:16px 18px;min-width:0}.lku-ct{font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center}
@@ -487,7 +496,7 @@ body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.
 #lpPrev{position:fixed;inset:0;z-index:60;background:rgba(20,30,50,.6);overflow:auto;padding:70px 20px 30px}#lpPrev[hidden]{display:none}#lpPrev .bgp-bar{position:fixed;left:0;right:0;top:0;height:56px;background:#14284B;color:#fff;display:flex;align-items:center;gap:12px;padding:0 20px;z-index:2}#lpPrev .bgp-bar span{opacity:.7;font-size:12px}#lpPrev .bgp-bar i{flex:1}#lpPrev .bgp-bar .btn{background:#fff;color:#14284B;border:0}#lpPrev .bgp-bar .btn.primary{background:#2EC4C4;color:#0B2D3A}#lpPrev .page{margin:0 auto 20px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 @media(max-width:900px){.lp{padding:12px 10px 90px}.lp-q{width:100%}.lp-t{font-size:12px}.lp-box{overflow-x:auto}}
 /* v2.8.7: Collection Plan (menu sendiri, layar penuh) */
-#planWrap,#execWrap,#closeWrap,#custWrap{flex:1;overflow:auto;background:#EEF2F6}
+#planWrap,#execWrap,#closeWrap,#custWrap,#dokWrap{flex:1;overflow:auto;background:#EEF2F6}
 #mdWrap{flex:1;overflow:hidden;background:#EEF2F6}
 .md{display:grid;grid-template-columns:390px 1fr;height:100%;color:#16263D}.md-left{background:#fff;border-right:1px solid #DCE3EB;display:flex;flex-direction:column;min-height:0}
 .md-lh{padding:14px 16px 6px}.md-lh h2{margin:0;font-size:17px}.md-lh p{margin:2px 0 0;color:#5B6B80;font-size:11.5px}
@@ -1385,6 +1394,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
     <div id="planWrap" hidden></div>
     <div id="execWrap" hidden></div>
     <div id="closeWrap" hidden></div>
+    <div id="dokWrap" hidden></div>
     <div id="mdWrap" hidden></div>
     <div id="custWrap" hidden></div>
     <div id="kpWrap" hidden></div>
@@ -2958,7 +2968,7 @@ function setMode(m) {
   if (B && B.access && B.access.viewer && ['exec', 'dashboard', 'plan', 'dok', 'close', 'bal', 'lim', 'kp', 'bg'].indexOf(m) < 0) m = 'exec';
   if (B && B.access && !B.access.maker && !B.access.viewer && ['setuju', 'plan', 'dashboard', 'dok', 'exec', 'close', 'bal', 'lim', 'kp', 'bg'].indexOf(m) < 0) m = 'setuju';
   MODE = m; document.body.setAttribute('data-m', m); document.body.classList.remove('m-view', 'm-doc'); document.body.classList.toggle('payw', m === 'bayar');
-  document.body.classList.toggle('full', m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'kp' || m === 'bg' || m === 'buka' || m === 'tbayar' || m === 'ho'); $('lstWrap').hidden = ['buka', 'tbayar', 'ho'].indexOf(m) < 0; $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('kpWrap').hidden = m !== 'kp'; $('bgWrap').hidden = m !== 'bg'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('mdWrap').hidden = m !== 'md';
+  document.body.classList.toggle('full', m === 'dok' || m === 'dashboard' || m === 'plan' || m === 'exec' || m === 'close' || m === 'md' || m === 'bal' || m === 'lim' || m === 'kp' || m === 'bg' || m === 'buka' || m === 'tbayar' || m === 'ho'); $('lstWrap').hidden = ['buka', 'tbayar', 'ho'].indexOf(m) < 0; $('custWrap').hidden = m !== 'bal' && m !== 'lim'; $('kpWrap').hidden = m !== 'kp'; $('bgWrap').hidden = m !== 'bg'; $('ovWrap').hidden = m !== 'dashboard'; $('planWrap').hidden = m !== 'plan'; $('execWrap').hidden = m !== 'exec'; $('closeWrap').hidden = m !== 'close'; $('dokWrap').hidden = m !== 'dok'; $('mdWrap').hidden = m !== 'md';
   $('kpiBar').hidden = m !== 'setuju';
   $('mode-buat').hidden = m !== 'buat'; $('mode-buka').hidden = m !== 'buka'; $('mode-bayar').hidden = m !== 'bayar'; $('mode-setuju').hidden = m !== 'setuju'; $('mode-dok').hidden = m !== 'dok'; $('mode-tbayar').hidden = m !== 'tbayar'; $('mode-surat').hidden = m !== 'surat'; $('act-surat').hidden = m !== 'surat';
   if (STACK && m !== 'setuju') closePackage();
@@ -2978,7 +2988,7 @@ function setMode(m) {
   if (m === 'bayar' && !STACK) renderPayView();
   if (m === 'buat' && !STACK) renderDocs();
   if (m === 'setuju') { renderSetuju(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">' + (B && B.access && B.access.maker ? 'Pilih item di daftar sebelah kiri untuk melihat lembar pengesahan dan mengajukannya.' : 'Pilih permintaan di daftar sebelah kiri untuk ditinjau dan diputuskan.') + '</div>'; }
-  if (m === 'dok') { renderDok(); if (!STACK) $('sheetwrap').innerHTML = '<div class="empty">Pilih dokumen bulanan atau kartu piutang untuk pratinjau.</div>'; }
+  if (m === 'dok') dkRender();
 }
 
 /* ====================================================== event */
@@ -4935,6 +4945,43 @@ function renderDok(quiet) {
   if (!quiet && !(B.access && B.access.viewer)) hoLoad(); else if (B.access && B.access.viewer && $('hoBox')) $('hoBox').innerHTML = '<div class="note">' + plural(B.hoPending || 0, 'dokumen disahkan') + ' belum diserahkan ke Akuntansi.</div>';
   if (!an && !quiet) call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && $('mSel').value === m) renderDok(true); }, function (e) { DOK_AN[m] = { err: 'gagal memuat' }; renderDok(true); });
 }
+/* ====================================================== v2.14 Dokumen bulanan (halaman lebar): alur 5 langkah, kartu dokumen, kartu piutang TTD, serah terima */
+var DK = { m: '' };
+function dkRender() {
+  var w = $('dokWrap'); if (!w || !B) return;
+  var maker = !!(B.access && B.access.maker), viewer = !!(B.access && B.access.viewer), cur = B.today.slice(0, 7), m = DK.m || ($('mSel') && $('mSel').value) || cur; DK.m = m;
+  if ($('mSel')) { if (![].some.call($('mSel').options, function (o) { return o.value === m; })) $('mSel').insertAdjacentHTML('afterbegin', '<option value="' + m + '">' + m + '</option>'); $('mSel').value = m; }
+  var an = DOK_AN[m]; if (!an) { DOK_AN[m] = { loading: true }; call('apiAnalisis', [m, false], function (d) { DOK_AN[m] = d; if (MODE === 'dok' && DK.m === m) dkRender(); }, function () { DOK_AN[m] = { err: 'gagal memuat' }; if (MODE === 'dok') dkRender(); }); an = DOK_AN[m]; }
+  if (!HO.d && !viewer && !dkRender.ho) { dkRender.ho = 1; call('apiHandoverData', [], function (d) { HO.d = d; if (MODE === 'dok') dkRender(); }, function () { }); }
+  var opts = ''; for (var k = 0; k < 13; k++) { var y = +cur.slice(0, 4), mm = +cur.slice(5, 7) - k; while (mm < 1) { mm += 12; y--; } var r = y + '-' + ('0' + mm).slice(-2); opts += '<option value="' + r + '"' + (r === m ? ' selected' : '') + '>' + monEn(r) + (k === 0 ? ' (bulan ini)' : '') + '</option>'; }
+  var va = dokStatus(B.DOC.VAL, m), rk = dokStatus(B.DOC.REK, m), lk = B.lk, lkOk = lk && lk.C && lk.C.slice(0, 7) === m, lkSel = lk ? Math.abs(lk.selPU) + Math.abs(lk.selPPN) : 0;
+  var K = (typeof kpRows === 'function' ? kpRows() : []).filter(function (x) { return x.saldo > 0.5; }), kOk = K.filter(function (x) { return x.ttdBulan; }).length;
+  var anSt = !an || an.loading ? ['no', 'memeriksa…'] : an.err ? ['bad', an.err] : an.ada ? ['ok', '✓ Tersedia' + (an.rev ? ' · Rev.' + an.rev : '')] : ['no', an.tutup ? 'Belum dibuat' : 'Bulan belum ditutup'];
+  var stp = [[va[0] === 'ok', 'RA disetujui', va[1].replace(/^✓\s*/, '')], [lkOk, 'LK &amp; Bapepam', lkOk ? 'per ' + tg(lk.C) + (lk.nBad ? ' · ' + lk.nBad + ' dok selisih' : ' · cocok') : 'belum diupload untuk bulan ini'], [rk[0] === 'ok', 'Rekap Akuntansi', rk[1].replace(/^✓\s*/, '')], [K.length && kOk === K.length, 'Kartu piutang TTD', kOk + ' dari ' + K.length + ' proyek'], [!!(an && an.ada), 'Analisis AR', anSt[1]]];
+  var nowI = stp.findIndex ? stp.findIndex(function (x) { return !x[0]; }) : -1;
+  var chip = function (st) { var c = { ok: 'cg', wt: 'cy', bad: 'cr', no: 'cz' }[st[0]] || 'cz'; return '<span class="dk-ch ' + c + '">' + esc(st[1]) + '</span>'; };
+  var card = function (ic, bg, t, sub, st, btns) { return '<div class="dk-c"><div class="ic" style="background:' + bg + '">' + ic + '</div><h3>' + t + '</h3><p>' + sub + '</p>' + chip(st) + '<div class="dk-b">' + btns + '</div></div>'; };
+  var h = '<div class="dk"><div class="dk-hd"><div><h2>Dokumen bulanan · ' + esc(monEn(m)) + '</h2><p>semua dokumen yang harus selesai sebelum tutup buku — klik untuk membuka, mengajukan, atau mengunduh</p></div><label class="ov-sel">' + ico('cal') + '<select id="dkMon">' + opts + '</select></label></div>' +
+    '<div class="dk-flow">' + stp.map(function (x, i) { return '<div class="dk-fs ' + (x[0] ? 'ok' : i === nowI ? 'now' : 'no') + '"><i>' + (x[0] ? '✓' : i + 1) + '</i><div><b>' + x[1] + '</b><small>' + esc(String(x[2]).replace(/&amp;/g, '&')) + '</small></div></div>'; }).join('') + '</div>' +
+    '<div class="dk-g">' +
+    card('📅', '#DDF5EA', 'Lembar Validasi Rencana Cair', 'rencana penerimaan kas bulan ini · Lembar RA–RI (PDF / Excel / gambar)', va, '<button class="btn sm" type="button" data-dk="plan">Buka</button><button class="btn sm" type="button" data-dk="plan">⬇ PDF / Excel / Gambar</button>') +
+    card('🧾', '#FFF1D6', 'Rekap Bulanan Akuntansi', 'invoice keluar, penerimaan kas, CKPN · diserahkan ke Akuntansi', rk, '<button class="btn sm' + (maker && rk[0] !== 'ok' ? ' primary' : '') + '" type="button" data-dk="rek">' + (maker && rk[0] === 'no' ? 'Buka &amp; ajukan' : 'Buka') + '</button>') +
+    card('📘', '#E7EEFC', 'Upload LK &amp; Bapepam', 'rekonsiliasi AR vs buku besar · No. dok SAP · tagbrut', lkOk ? [lkSel > 1000 ? 'wt' : 'ok', (lkSel > 1000 ? 'Selisih ' + rpShort(lkSel) : '✓ Cocok') + ' · per ' + tg(lk.C)] : ['no', lk && lk.C ? 'Terakhir per ' + tg(lk.C) : 'Belum diupload'], (maker ? '<button class="btn sm' + (lkOk ? '' : ' primary') + '" type="button" data-dk="lk">' + (lkOk ? 'Upload ulang' : 'Upload') + '</button>' : '') + '<button class="btn sm" type="button" data-dk="close">Lihat di Tutup Buku</button>') +
+    card('📊', '#EEF1F6', 'Analisis AR Bulanan', 'untuk rapat bulanan · dibuat setelah tutup buku', anSt, an && an.ada ? '<button class="btn sm" type="button" data-dk="an">Buka</button>' : an && !an.ada && an.tutup && maker ? '<button class="btn sm primary" type="button" data-dk="anb">Buat</button>' : '<button class="btn sm" type="button" disabled>Buka</button>') + '</div>';
+  var KS = K.slice().sort(function (a, b) { return (a.ttdBulan ? 1 : 0) - (b.ttdBulan ? 1 : 0) || b.saldo - a.saldo; }), kc = { ok: 'cg', wt: 'cy', bk: 'cr', no: 'cz' };
+  h += '<div class="dk-r2"><div class="dk-p"><div class="dk-pt">🗂 Kartu piutang proyek · TTD AR Officer &amp; Section Head <span class="dk-ch ' + (kOk === K.length ? 'cg' : 'cy') + '">' + kOk + ' / ' + K.length + ' selesai</span></div>' +
+    (K.length ? '<table class="dk-t"><tr><th>Proyek</th><th class="n">Saldo</th><th>Status TTD</th><th></th></tr>' + KS.slice(0, 8).map(function (x) { return '<tr><td><b>' + esc(x.npp) + '</b> · ' + esc(x.nm) + '<div class="lp-s">' + esc(bgPelS(x.pel)) + '</div></td><td class="n">' + nfDot(Math.round(x.saldo)) + '</td><td><span class="dk-ch ' + (x.ttdBulan ? 'cg' : kc[x.st] || 'cz') + '">' + esc(x.stTx) + '</span></td><td><button class="btn sm' + (maker && !x.ttdBulan && x.st !== 'wt' ? ' primary' : '') + '" type="button" data-dkn="' + esc(x.npp) + '">' + (maker && !x.ttdBulan && x.st !== 'wt' ? 'Ajukan' : 'Buka') + '</button></td></tr>'; }).join('') + '</table>' + (K.length > 8 ? '<button class="d3-more" type="button" data-dk="kp">+ ' + (K.length - 8) + ' proyek lain · buka menu Kartu Piutang →</button>' : '') : '<div class="lp-empty">Tidak ada proyek bersaldo.</div>') + '</div>';
+  var hd = HO.d, done = hd ? (hd.history || []).filter(function (b) { return String(b.tgl || '').slice(0, 7) === m; }).reduce(function (t, b) { return t + (b.n || 0); }, 0) : null;
+  h += '<div class="dk-p"><div class="dk-pt">⇄ Serah terima ke Akuntansi ' + (viewer ? '' : '<button class="btn sm" type="button" data-dk="ho">Buka →</button>') + '</div><div class="dk-two"><div class="w"><small>Belum diserahkan</small><b>' + plural(B.hoPending || 0, 'dokumen') + '</b><span>' + (B.hoOld ? B.hoOld + ' lebih dari 3 hari' : 'disahkan, menunggu diserahkan') + '</span></div><div class="g"><small>Sudah diserahkan · ' + esc(monEn(m, true)) + '</small><b>' + (done === null ? '…' : plural(done, 'dokumen')) + '</b><span>ditandatangani Akuntansi</span></div></div>' +
+    '<div class="dk-pt" style="margin-top:14px">🔒 Status tutup buku</div><div id="dkPer"></div></div></div></div>';
+  w.innerHTML = h;
+  try { renderPeriode(); var pb = $('perBox'); if (pb && $('dkPer')) $('dkPer').innerHTML = pb.innerHTML; } catch (e) { }
+  $('dkMon').onchange = function () { DK.m = this.value; dkRender(); };
+  w.querySelectorAll('[data-dk]').forEach(function (b) { b.onclick = function () { var a = b.dataset.dk;
+    if (a === 'plan') { PLAN.ref = m; setMode('plan'); } else if (a === 'rek') openPackage('REK', m); else if (a === 'close') { CL.m = m; setMode('close'); }
+    else if (a === 'lk') { CL.m = m; setMode('close'); lkuOpen(); } else if (a === 'an' || a === 'anb') { STACK = true; document.body.classList.add('stack'); openAnalisis(a === 'anb'); } else setMode(a); }; });
+  w.querySelectorAll('[data-dkn]').forEach(function (b) { b.onclick = function () { KP.npp = b.dataset.dkn; KP.tab = 'mut'; setMode('kp'); }; });
+}
 /* ====================================================== v2.8.7: serah terima dokumen ke Akuntansi */
 var HO = { d: null, sel: {}, last: null, tab: 'INV', f: 'all', q: '' };
 function hoKey(x) { return x.jenis + '|' + x.ref; }
@@ -5046,7 +5093,7 @@ function renderAnalisis(d) {
     '<table class="t"><thead><tr><th style="text-align:left">Ukuran</th><th>Nilai (Rp)</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="n">' + nd(r[1]) + '</td></tr>'; }).join('') + '</tbody></table>' +
     '<h3>Analisis otomatis</h3>' + String(d.narasi || '').split('\n\n').map(function (p) { return '<p style="font-size:8.6pt;line-height:1.5">' + esc(p) + '</p>'; }).join('') +
     (d.ai ? '<h3>Narasi AI</h3><p style="font-size:8.6pt;line-height:1.5">' + esc(d.ai) + '</p>' : '') + docFoot(null) + '</div>';
-  $('sheetwrap').innerHTML = h; if (typeof fitZoom === 'function') fitZoom();
+  $('sheetwrap').innerHTML = (STACK ? '<div style="margin:0 0 10px"><button class="btn" type="button" onclick="closePackage()">‹ Kembali</button></div>' : '') + h; if (typeof fitZoom === 'function') fitZoom();
 }
 /* ====================================================== v2.8.4: Status Persetujuan (Pembuat) / Otorisasi (Section Head) */
 var AP_TABS = [['PAY', 'Penerimaan'], ['INV', 'Invoice'], ['VAL', 'Validasi'], ['LAIN', 'Lainnya']], AP_TAB = '', AP_SEL = '', AP_HIST = false, AP_NEXT = false;
@@ -5497,6 +5544,7 @@ function closeLoad(m, force) {
 var CL_ST = { g: '✓ SIAP', y: '⚠ PERLU CEK', r: '✕ MENGHAMBAT', n: '— BELUM' };
 var CL_ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs Buku Besar (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
 function closeRender(d) {
+  if (LKU) return lkuRender();
   var w = $('closeWrap'), maker = !!(B.access && B.access.maker), pct = d.n ? d.ready / d.n : 0, R = d.report || {};
   var opts = closeMonths().map(function (m) { return '<option value="' + m + '"' + (m === d.ref ? ' selected' : '') + '>' + esc(monEn(m)) + '</option>'; }).join('');
   var openN = d.steps.filter(function (x) { return x.st === 'y' || x.st === 'r'; }).length, canClose = !d.blocking.length && d.end < B.today;

@@ -2890,7 +2890,7 @@ var ENGINE = (function () {
     for (var k2 = -12; k2 <= 2; k2++) { var yy = y + Math.floor((m - 1 + k2) / 12), mm = ((m - 1 + k2) % 12 + 12) % 12 + 1; months.push({ ref: yy + '-' + pad(mm, 2), label: monthLabel(yy, mm) }); }
     var dl = delegasiFor(P, me.email, null, ctx.today);
     return { version: VERSION, today: ctx.today, user: me, roles: roles(P), delegasi: dl, suratAlerts: suratAlerts(ctx), pelanggan: pel, proyek: pro, params: params, signers: P.signers, invoices: invoices, payments: payments,
-      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, targets: P.targets || {}, raManual: ctx.raManual || {}, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup, reversed: reversed };
+      approvals: approvalsPlain(ctx).slice(-200), hoPending: handoverData(ctx).pending.length, lk: (function () { try { var R = rekon(ctx); if (!R) return null; var sel = function (L) { return rnd(sumBy(L, function (r) { return r.sel || 0; })); }; return { C: R.C, selPU: sel(R.pu), selPPN: sel(R.ppn), selRet: sel(R.ret), nBad: R.pu.concat(R.ppn).filter(function (r) { return !r.ok; }).length }; } catch (e) { return null; } })(), targets: P.targets || {}, raManual: ctx.raManual || {}, months: months, DOC: DOC, rek: P.rek, nextPB: 'PB-' + pad(pbMax + 1, 4), pendTutup: pendTutup, reversed: reversed };
   }
   function packageFor(ctx, kind, ref, opt) {
     var d = kind === 'INV' ? invPackage(ctx, ref) : kind === 'PAY' ? payPackage(ctx, ref) : kind === 'VAL' ? validasiData(ctx, ref, opt) : kind === 'REK' ? rekapData(ctx, ref) :
