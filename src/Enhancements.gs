@@ -1028,7 +1028,7 @@ function apiOverview(month) {
   arRequireAccess_(true);
   month = String(month || '');
   if (month && !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Bulan harus berformat yyyy-mm.');
-  var key = arBootKey_('OVERVIEW|' + month + '|' + arToday_()), hit = arCacheGet_(key), t0 = Date.now();
+  var key = arBootKey_('OVERVIEW|' + ENGINE.VERSION + '|' + month + '|' + arToday_()), hit = arCacheGet_(key), t0 = Date.now();
   if (hit) { arPerfLog_('overview', Date.now() - t0, 'cache'); return JSON.parse(hit); }
   var res = computeLight_(true), o = ENGINE.overview(res.ctx, month);
   o.reportTime = ''; try { o.reportTime = arProps_().getProperty('REPORT_TIME') || ''; } catch (e) {}

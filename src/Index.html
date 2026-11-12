@@ -6628,7 +6628,7 @@ function ovRender(d) {
   it.sort(function (a, b) { return a.sev - b.sev; });
   // ==== v2.12 Ringkasan baru: AR = papan status + per minggu + kalender kecil · SH/Manajemen/Koordinator = panel RA–RI besar + kalender kecil
   var M2 = function (v) { v = Number(v) || 0; var a = Math.abs(v); return a >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' M' : a >= 1e6 ? 'Rp ' + Math.round(v / 1e6) + ' jt' : 'Rp ' + nfDot(Math.round(v)); };
-  var I = (d.raItems || []).slice(), pRA = R.raFinal ? R.totalRI / R.raFinal : 0, sisaRA = Math.max(0, R.raFinal - R.totalRI), lain = R.riCad + R.riLuar, tday = d.cur ? B.today : d.end;
+  var I = (d.raItems || (R.belum || []).map(function (x) { /* server lama (tanpa raItems): pakai daftar belum cair */ return { nomor: x.nomor, pelanggan: x.pelanggan, proyek: x.proyek, rencana: x.rencana, nilai: x.nilai, kas: x.nilai, masuk: x.sebagian ? 0.5 * x.nilai : 0, umur: 0, lunas: false }; })).slice(), pRA = R.raFinal ? R.totalRI / R.raFinal : 0, sisaRA = Math.max(0, R.raFinal - R.totalRI), lain = R.riCad + R.riLuar, tday = d.cur ? B.today : d.end;
   var stOf = function (x) { return x.lunas ? 'ok' : x.masuk > 0.5 ? 'pa' : (!d.cur || (x.rencana && x.rencana < tday)) ? 'lt' : 'no'; };
   var STC = { ok: ['#14A8A0', '#DDF5EA', '#0E7A55', 'lunas'], pa: ['#E0A21B', '#FFF1D6', '#9A6700', 'sebagian'], lt: ['#E05252', '#FDE3E3', '#B42323', 'lewat jadwal'], no: ['#94A3B8', '#EEF1F6', '#475569', 'menunggu'] };
   I.forEach(function (x) { x.st = stOf(x); });
