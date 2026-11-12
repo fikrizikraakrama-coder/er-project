@@ -214,7 +214,7 @@ function readAll_() {
     surat: readSchema_(ss.getSheetByName(ENGINE.SURAT.sheet), ENGINE.SURAT),
     handover: readSchema_(ss.getSheetByName(ENGINE.HO.sheet), ENGINE.HO),
     ramanual: readSchema_(ss.getSheetByName(ENGINE.RAM.sheet), ENGINE.RAM),
-    lk: readLK_(), selectors: sel,
+    lk: readLK_(), selectors: sel, rekonlk: readSchema_(ss.getSheetByName(ENGINE.RKL.sheet), ENGINE.RKL),
     memo: ss.getSheetByName(ENGINE.MEMO.sheet) ? readSchema_(ss.getSheetByName(ENGINE.MEMO.sheet), ENGINE.MEMO) : undefined,
     peref: readSchema_(ss.getSheetByName(ENGINE.PEREF.sheet), ENGINE.PEREF),
     arsipKeys: readArsipKeys_()
@@ -616,6 +616,28 @@ function lkCheck_(pl) {
   if (!lk.pu.length && !lk.ppn.length && !lk.ret.length) throw new Error('Sheet piutang usaha / PPN / retensi tidak ditemukan di file LK.');
   pl.tag = Array.isArray(pl.tag) ? pl.tag.slice(0, 3000) : []; pl.master = Array.isArray(pl.master) ? pl.master.slice(0, 3000) : [];
   return pl;
+}
+/** v2.15 ceklis penyelesaian rekonsiliasi LK & retensi sesuai LK (sheet "Rekon LK"; satu baris per periode + kunci, ditimpa bila diubah) */
+function apiRekonMark(o) { var a = arRequireMaker_(); o = o || {};
+  var per = isoDate_(o.periode, 'Periode LK'), kunci = String(o.kunci || '').trim().slice(0, 80), jenis = String(o.jenis || 'DOK').toUpperCase() === 'RET' ? 'RET' : 'DOK';
+  if (!per || !kunci) throw new Error('Periode / kunci rekonsiliasi kosong.');
+  var st = ['BELUM', 'KONFIRMASI', 'SELESAI'].indexOf(String(o.status || '').toUpperCase()) >= 0 ? String(o.status).toUpperCase() : 'BELUM';
+  var nilai = Math.round(Number(o.nilai) || 0); if (Math.abs(nilai) > 1e13) throw new Error('Nilai tidak wajar.');
+  var lock = arLock_(); lock.waitLock(28000);
+  try {
+    var ss = arSpreadsheet_(), SC = ENGINE.RKL, sh = ss.getSheetByName(SC.sheet);
+    if (!sh) sh = setupDataSheet_(ss, SC, 'REKON LK — TINDAK LANJUT & RETENSI SESUAI LK', 'Diisi dari aplikasi (Tutup Buku ▸ Upload LK & Bapepam). JENIS DOK = ceklis penyelesaian selisih per dokumen untuk dicocokkan dengan Akuntansi. JENIS RET = retensi sesuai LK yang belum tercatat di invoice aplikasi (NILAI = tambahan retensi per NPP, berlaku mulai PERIODE).', 'Data LK (Tempel)', '#147F89').sh;
+    var map = colMap_(sh, SC), f = SC.firstRow, last = Math.max(sh.getLastRow(), f - 1), row = 0;
+    if (last >= f) { var P = sh.getRange(f, map.periode, last - f + 1, 1).getValues(), K = sh.getRange(f, map.kunci, last - f + 1, 1).getDisplayValues();
+      for (var i = 0; i < K.length; i++) if (String(K[i][0]).trim() === kunci && String(nd_(P[i][0]) || '').slice(0, 10) === per) { row = f + i; break; } }
+    if (!row) { row = lastDataRow_(sh, f, [map.kunci]) + 1; roomFor_(sh, row); }
+    var u0 = ENGINE.userBy(arParameters_(), a.email) || {}, put = function (k, v, fmt) { if (map[k]) { var r = sh.getRange(row, map[k]); if (fmt) r.setNumberFormat(fmt); r.setValue(v); } }, tx = function (v, n) { return String(v || '').slice(0, n || 300); };
+    put('periode', dateAt_(+per.slice(0, 4), +per.slice(5, 7), +per.slice(8, 10)), 'dd/mm/yyyy'); put('jenis', jenis); put('kunci', kunci, '@');
+    put('pelanggan', tx(o.pelanggan, 120), '@'); put('npp', tx(o.npp, 30), '@'); put('dokumen', tx(o.dokumen, 80), '@'); put('sebab', tx(o.sebab), '@'); put('tindakan', tx(o.tindakan), '@');
+    put('nilai', nilai || ''); put('status', st); put('catatan', tx(o.catatan), '@'); put('oleh', String(u0.nama || a.email)); put('waktu', Utilities.formatDate(new Date(), TZ, 'dd-MM-yyyy HH:mm'), '@');
+    if (jenis === 'RET') arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  return { ok: true };
 }
 function lkCompute_(pl) { var input = readAll_(); input.lk = pl.lk; input.light = true; return ENGINE.compute(input); }
 function apiLkPreview(pl) { arRequireMaker_(); pl = lkCheck_(pl); var res = lkCompute_(pl); return plain_(ENGINE.lkPreview(res.ctx, pl)); }
