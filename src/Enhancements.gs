@@ -5,7 +5,7 @@
  */
 var AR28_LOCK_DEPTH_ = 0, AR28_NATIVE_LOCK_ = null, AR28_SS_ = null;
 // Akun pengguna tidak ditulis di kode: PEMBUAT / PENYETUJU / delegasi diatur di Parameter ▸ Pengguna & Peran.
-function arMakerEmails_(p) { return (p || arParameters_()).users.filter(function(u){return u.email&&/^PEMBUAT/.test(u.peran);}).map(function(u){return u.email;}); }
+function arMakerEmails_(p) { return (p || arParameters_()).users.filter(function(u){return u.email&&/^(PEMBUAT|KOORDINATOR)/.test(u.peran);}).map(function(u){return u.email;}); }
 function arSpreadsheet_() {
   if (AR28_SS_) return AR28_SS_;
   var id = PropertiesService.getScriptProperties().getProperty('AR_SOURCE_ID');
@@ -49,9 +49,10 @@ function arRequireAccess_(view) {
   if (email && u && /^MANAJEMEN/.test(u.peran)) { if (!view) throw new Error('Akun ini hanya untuk melihat (MANAJEMEN). Tidak bisa mengisi atau mengubah data.'); return { email:email, maker:false, approver:false, viewer:true, role:u.peran }; }
   if (!email) throw new Error('Identitas Google Anda tidak terbaca. Masuk dengan akun terdaftar; deployment harus berjalan sebagai pengguna yang mengakses aplikasi.');
   // delegasi aktif (bukan PEMBUAT — dijaga ENGINE.delegasiFor) hanya membuka mode Otorisasi Dokumen
-  if (u && !/^(PEMBUAT|PENYETUJU)/.test(u.peran) && ENGINE.delegasiFor(p,email,null,arToday_())) return { email:email, maker:false, approver:false, delegate:true, role:u.peran };
-  if (!u || !/^(PEMBUAT|PENYETUJU)/.test(u.peran)) throw new Error('Akun ini tidak punya akses ke aplikasi AR. Hubungi Pembuat (AR).');
-  return { email:email, maker:/^PEMBUAT/.test(u.peran), approver:/^PENYETUJU/.test(u.peran), role:u.peran };
+  if (u && !/^(PEMBUAT|PENYETUJU|KOORDINATOR)/.test(u.peran) && ENGINE.delegasiFor(p,email,null,arToday_())) return { email:email, maker:false, approver:false, delegate:true, role:u.peran };
+  if (!u || !/^(PEMBUAT|PENYETUJU|KOORDINATOR)/.test(u.peran)) throw new Error('Akun ini tidak punya akses ke aplikasi AR. Hubungi Pembuat (AR).');
+  // v2.11: KOORDINATOR (asisten Section Head) = bisa mengisi seperti AR dan menyetujui a.n. Section Head, kecuali pengajuannya sendiri
+  return { email:email, maker:/^(PEMBUAT|KOORDINATOR)/.test(u.peran), approver:/^(PENYETUJU|KOORDINATOR)/.test(u.peran), coord:/^KOORDINATOR/.test(u.peran), role:u.peran };
 }
 function arRequireMaker_() { var a = arRequireAccess_(); if (!a.maker) throw new Error('Tindakan ini hanya untuk Pembuat (AR). Section Head memakai menu Persetujuan.'); return a; }
 function arRequireOwner_() {
@@ -660,10 +661,10 @@ function arEditRebuild_() { arMarkDirty_(); arRebuildIfDirty_(2000); }
 
 // ---------------- Notifikasi email: bukti keputusan di luar spreadsheet & proyek Apps Script.
 function arNotify_(subject, lines) {
-  var P = arParameters_(), to = P.users.filter(function(u){return /^PENYETUJU/.test(u.peran)&&u.email;}).map(function(u){return u.email;});
+  var P = arParameters_(), to = P.users.filter(function(u){return /^(PENYETUJU|KOORDINATOR)/.test(u.peran)&&u.email;}).map(function(u){return u.email;});
   String(P.NOTIF_PERSETUJUAN_CC || '').split(/[,;\s]+/).forEach(function(x){ x=x.trim().toLowerCase(); if(/^[^@\s]+@[^@\s]+$/.test(x)) to.push(x); });
   to = to.filter(function(v,i,a){return a.indexOf(v)===i;});
-  if (!to.length) return 'Email notification not sent: no PENYETUJU email is set in Parameter.';
+  if (!to.length) return 'Email notifikasi tidak dikirim: email PENYETUJU belum diisi di Parameter.';
   try {
     MailApp.sendEmail({ to: to.join(','), subject: '[AR CSU] ' + subject,
       body: lines.join('\n') + '\n\n— Email otomatis Sistem AR CSU (' + arNow_() + ' WIB). Simpan email ini: ini bukti di luar sistem. Bila Log Persetujuan berbeda dengan email ini, yang berlaku adalah email ini dan perbedaan harus diperiksa.' });
@@ -710,7 +711,7 @@ function apiPeriode(action, tanggal, alasan) {
       setParamKV_('PERIODE_DITUTUP_SAMPAI', tanggal, 'Transaksi bertanggal s.d. tanggal ini ditolak (tutup buku)');
       msg = ['Periode ditutup s.d. ' + tanggal + ' oleh ' + a.email + '.'];
     } else if (action === 'buka' || action === 'cabut') {
-      if (!a.approver) throw new Error('Hanya Section Head (PENYETUJU) yang bisa membuka koreksi periode tertutup.');
+      if (!a.approver || a.coord) throw new Error('Hanya Section Head (PENYETUJU) yang bisa membuka koreksi periode tertutup.');
       if (action === 'buka') {
         var maxD = ENGINE.addDays(arToday_(), 7);
         if (!st.tutup) throw new Error('Belum ada periode yang ditutup.');

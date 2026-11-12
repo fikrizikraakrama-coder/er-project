@@ -393,7 +393,7 @@ test('Month-End AR Closing: 10 langkah, invoice lebih bayar menghambat (merah), 
   input.log = [row(ENGINE.LOG, { idp: 'PNR-00001', tgl: '2026-10-05', ref: 'T1', inv: NOMOR, nominal: 200e6 })];
   const ctx = ENGINE.compute(input).ctx, d = ENGINE.closingData(ctx, '2026-10');
   assert.strictEqual(d.steps.length, 10);
-  const rc = d.steps.find(x => x.k === 'recon'); assert.strictEqual(rc.st, 'r'); assert.ok(d.blocking.includes('Customer reconciliation'));
+  const rc = d.steps.find(x => x.k === 'recon'); assert.strictEqual(rc.st, 'r'); assert.ok(d.blocking.includes('Rekonsiliasi per pelanggan'));
   assert.ok(d.ready < d.n); assert.ok(d.report.lebih > 0);
 });
 
@@ -487,4 +487,10 @@ test('pengembalian UM kumulatif setelah adendum kurang (kasus NPP 254C 1092 JT, 
   const u1 = Math.round(500000000 / 2067813621 * 137363000), p3 = Object.assign({}, p, { umSisa: 137363000 - u1, prog: [['A', 500000000, 1, '2026-06-01', u1]] });
   const c3 = ENGINE.calcInvoice(ENGINE.invoiceInput(p3, Object.assign({}, S, { progres: '300000000' }), 0, 'B'));
   assert.ok(Math.abs(c3.umk - 300000000 / 2067813621 * 137363000) <= 1 && !c3.umKum);
+});
+
+test('v2.11: peran KOORDINATOR tersedia & keputusan koordinator tercatat a.n. Section Head', () => {
+  assert.strictEqual(ENGINE.isKoord({ catatan: '[KOORDINATOR a.n. Anas Afifudin] ok' }), true);
+  assert.strictEqual(ENGINE.isKoord({ catatan: '[DELEGASI a.n. Anas]' }), false);
+  assert.strictEqual(ENGINE.isDelegasi({ catatan: '[KOORDINATOR a.n. Anas Afifudin]' }), false);
 });

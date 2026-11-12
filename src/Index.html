@@ -1058,6 +1058,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
   body.payw .row4{grid-template-columns:150px 1.3fr 1fr 1fr}
   body.payw #pRau{display:none}
 }
+.tb-sw{display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:2px;margin-right:8px}.tb-sw span{font-size:10.5px;opacity:.7;padding:0 6px 0 4px}.tb-sw button{border:0;background:none;color:#CFD8E3;font:inherit;font-size:12px;font-weight:800;padding:4px 10px;border-radius:7px;cursor:pointer}.tb-sw button.on{background:#2EC4C4;color:#0B2D3A}.tb-sw[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -1690,6 +1691,17 @@ var BAP_HEADER = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAACbAAAAE9CAMAAADn
   'gK/g8hBqd30fkH5AAAAABJRU5ErkJggg==';
 var E = ENGINE;
 var B = null;            // data bootstrap dari spreadsheet
+/* v2.11: KOORDINATOR (asisten Section Head) — satu akun, dua tampilan: AR (mengisi) dan SH (persetujuan). Hak sebenarnya dijaga server;
+   di tampilan SH menu & layar mengikuti Section Head, tetapi tetap boleh memutuskan kapan pun (kecuali pengajuannya sendiri). */
+var CVIEW = (function () { try { return localStorage.getItem('arCoordView') === 'sh' ? 'sh' : 'ar'; } catch (e) { return 'ar'; } })();
+function isCoord() { return !!(B && B.access && B.access.coord); }
+function coordFix(b) { if (b && b.access && b.access.coord) b.access.maker = CVIEW === 'ar'; return b; }
+function rMk(role) { return /^PEMBUAT/.test(role || '') || (isCoord() && CVIEW === 'ar'); }
+function rAp(role) { return /^PENYETUJU/.test(role || '') || isCoord(); }
+function coordSwitch(v) {
+  if (!isCoord() || v === CVIEW) return; CVIEW = v; try { localStorage.setItem('arCoordView', v); } catch (e) { }
+  if (STACK) closePackage(); coordFix(B); applyAccess(); setMode(v === 'sh' ? 'setuju' : 'dashboard'); toast('Tampilan ' + (v === 'sh' ? 'Section Head' : 'AR') + ' aktif.');
+}
 var S = {};              // status form
 var CUR = null;          // hasil hitung terakhir
 var SAVED = false;       // invoice di form sudah tersimpan
@@ -1725,7 +1737,7 @@ function nextDigit(year) { var mx = 0; B.invoices.forEach(function (i) { var m =
 /* ====================================================== boot */
 function boot() {
   call('apiBootstrap', [], function (b) {
-    B = b; checkEngineVersion(); srBadge(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
+    B = coordFix(b); checkEngineVersion(); srBadge(); fillPelanggan(); resetForm(); renderList(); fillOpenList(); renderSetuju(); renderPayRows();
     applyAccess(); setMode(B.access && B.access.viewer ? 'exec' : B.access && B.access.maker ? 'dashboard' : 'setuju'); showRecovery();
     if (RUN && google.script.url && (B.access.viewer || B.access.approver)) try { google.script.url.getLocation(function (l) { if (l && l.parameter && /^manaj|^exec/i.test(l.parameter.v || '')) setMode('exec'); }); } catch (e) { }
     $('pTgl').value = today(); $('kTgl').value = today();
@@ -2260,7 +2272,7 @@ function submitAfterSave(kind, ref, statusId, after) {
   var st = $(statusId); st.insertAdjacentHTML('beforeend', '<br><span style="color:var(--steel)">Mengajukan pengesahan…</span>');
   call('apiSubmit', [kind, ref], function (r) {
     toast(r.basah ? 'Tersimpan dan disahkan (TTD basah): ' + r.id : 'Tersimpan dan diajukan untuk pengesahan: ' + r.id); st.innerHTML += '<br><span style="color:var(--green)">' + (r.basah ? '✓ Disahkan · ' + esc(r.id) + ' · Section Head menandatangani lembar cetak (TTD basah)' : '✓ Diajukan untuk pengesahan · ' + esc(r.id) + ' · menunggu persetujuan') + '</span>';
-    call('apiBootstrap', [], function (b) { B = b; OV = {}; navBadges(); renderSetuju(); if (after) after(); });
+    call('apiBootstrap', [], function (b) { B = coordFix(b); OV = {}; navBadges(); renderSetuju(); if (after) after(); });
   }, function (e) { bgReports(); st.innerHTML += '<br><span style="color:var(--red)">Tersimpan, tetapi belum diajukan: ' + esc(e.message || e) + ' — buka lembar pengesahan untuk mengajukan.</span>'; call('apiBootstrap', [], function (b) { B = b; navBadges(); if (after) after(); }); });
 }
 function save(revisi) {
@@ -2297,7 +2309,7 @@ function save(revisi) {
     toast('Invoice ' + r.nomor + ' tersimpan.' + (r.background ? ' Laporan sedang diperbarui di latar belakang.' : r.reportPending ? ' Laporan perlu diperbarui.' : ' Laporan sudah terbaru.'));
     if (SUBMIT_AFTER && r.jenis !== 'BAP') { SUBMIT_AFTER = false; submitAfterSave('INV', E.normInv(r.nomor), 'saveStatus', function () { renderList(); fillOpenList(); update(); }); return; }
     SUBMIT_AFTER = false;
-    call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); update(); });
+    call('apiBootstrap', [], function (b) { B = coordFix(b); renderList(); fillOpenList(); update(); });
   }, function (e) { save._busy = false; SUBMIT_AFTER = false; $('btnSave').disabled = false;
     if (askPeriodReason(e, function (al) { save._periode = al; save(revisi); })) { $('saveStatus').textContent = ''; return; }
     save._periode = ''; $('saveStatus').innerHTML = '<span style="color:var(--red)">Gagal menyimpan: ' + esc(periodMsg(e)) + '</span>'; });
@@ -2609,7 +2621,7 @@ function savePay() {
     var keep = rows.map(function (x) { return x.inv; });
     PAY.rows = []; PAY.splitNote = ''; $('pTrf').value = ''; $('pRef').value = ''; $('pKet').value = ''; $('bFrom').value = ''; $('bTo').value = ''; $('bNom').value = ''; $('bKet').value = ''; ['cInv', 'cNom', 'cRef', 'cKet', 'cPph', 'cBupot'].forEach(function (id) { $(id).value = ''; }); $('cLunas').checked = false;
     var seq0 = PAY.seq, fresh = function () { return PAY.seq === seq0 && !PAY.rows.length; }; // v2.8.7: entri baru sudah dimulai → jangan ditimpa
-    call('apiBootstrap', [], function (b) { B = b; renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB;
+    call('apiBootstrap', [], function (b) { B = coordFix(b); renderList(); fillOpenList(); renderSetuju(); if (PAY.mode === 'pb') $('bRef').value = B.nextPB;
       if (!fresh()) { payChanged(); return; } // saldo invoice diperbarui → pratinjau entri baru dihitung ulang
       renderPayRows();
       // tampilkan kartu sesudah tersimpan
@@ -3081,10 +3093,12 @@ function signBlock(pkg, withManager, withReceiver) {
   var dig = mode !== 'BASAH';
   // pembuat: cukup satu baris kecil (ruang tanda tangan basah tetap lega); cap Section Head tetap sebagai bukti persetujuan
   var ok = a && a.status === 'DISETUJUI' && !a.berubah && a.valid !== false;
-  box.push(cell('Dibuat oleh,', R.PEMBUAT, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '', a ? tglOf(a.waktu) : ''));
+  var mkW = a && /^KOORDINATOR/.test(a.oleh_peran || '') ? { nama: a.oleh_nama, jabatan: a.oleh_jabatan || 'Koordinator' } : R.PEMBUAT;
+  box.push(cell('Dibuat oleh,', mkW, '', dig && a ? '<div class="ajx">diajukan elektronik ' + esc(tgJam(a.waktu)) + '</div>' : '', a ? tglOf(a.waktu) : ''));
   // menunggu: cukup satu baris kecil agar ruang tanda tangan basah tetap lega; cap DISETUJUI tetap sebagai bukti
   var wait = dig && a && a.status === 'MENUNGGU';
-  box.push(cell('Diperiksa &amp; disetujui oleh,' + basahLine(a), R.PENYETUJU, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : '', ok ? tglOf(a.putus_waktu) : ''));
+  var apW = ok && a.koord ? { nama: a.putus_nama, jabatan: 'a.n. Section Head · ' + (a.putus_jabatan || 'Koordinator') } : R.PENYETUJU;
+  box.push(cell('Diperiksa &amp; disetujui oleh,' + basahLine(a), apW, dig && !wait ? stampHtml(a) : '', wait ? waitLine(a) : '', ok ? tglOf(a.putus_waktu) : ''));
   // v2.8.7: tanggal kotak tanda tangan lain diisi tanggal pengajuan (tidak dibiarkan titik-titik)
   var tAju = a ? tglOf(a.putus_waktu || a.waktu) : '';
   if (withManager) box.push(cell('Disetujui oleh,', R.MENGETAHUI, '<span style="color:#9AA5B5;font-size:7pt">tanda tangan basah</span>', '', tAju));
@@ -3795,7 +3809,7 @@ function planRender() {
   var P = PKG, a = P.appr, pl = P.plan || {}, st = planStage(), eDec = st === 1 && role === 'ar', eDate = eDec, ePj = eDec, isRev = planIsRev();
   var who = st === 1 ? (role === 'ar' ? '👤 Giliran Anda · ' + (isRev ? 'susun revisi RA' : 'susun RA') : '⏳ AR sedang menyusun RA') : st === 3 ? (role === 'sh' ? '👤 Giliran Anda · approval' : '⏳ Menunggu approval Section Head') : '✓ RA final';
   h = h.replace('<h2>Rencana Termin (RA)</h2>', '<h2>Rencana Termin (RA) <span class="rp-who' + (/Giliran/.test(who) ? ' on' : '') + '">' + who + '</span></h2>');
-  h += '<span class="sp"></span><button class="btn" type="button" data-rpdl="pdf">' + ico('download') + 'PDF Lembar RA–RI</button><button class="btn rp-xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel Lembar RA–RI</button></div>';
+  h += '<span class="sp"></span><button class="btn" type="button" data-rpdl="pdf">' + ico('download') + 'PDF Lembar RA–RI</button><button class="btn rp-xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel Lembar RA–RI</button><button class="btn" type="button" data-rpdl="png" title="Gambar PNG untuk management review (WhatsApp / presentasi)">' + ico('download') + 'Gambar RA–RI</button></div>';
   // alur 3 langkah (v2.9.5): AR menyusun → Section Head approval → RA final (unduh PDF / Excel, TTD basah)
   var fs = isRev ? [['AR Officer', 'menyusun revisi · dasar rapat pusat / internal'], ['Finalkan revisi', 'tanpa approval — Section Head mengetahui di rapat'], ['RA final', 'unduh PDF / Excel · TTD basah']]
     : [['AR Officer', 'menyusun RA: Committed / Upside / Rescheduled / On Hold'], ['Section Head', 'melihat & approve (atau kembalikan + catatan)'], ['RA final', 'unduh PDF / Excel · TTD basah']], fi = st === 1 ? 0 : st === 3 ? 1 : 2;
@@ -3888,7 +3902,7 @@ function planRender() {
   var act = '';
   if (st === 1 && role === 'ar') act = (isRev ? '<button class="btn" type="button" data-rpa2="cancelrev">Batal revisi</button>' : '') + '<button class="btn" type="button" data-rpa2="arsave">Simpan draf</button><button class="btn go" type="button" data-rpa2="arsubmit">' + (isRev ? '✓ Finalkan revisi' : 'Ajukan ke Section Head ➜') + '</button>';
   else if (st === 3 && role === 'sh') act = '<button class="btn red" type="button" data-rpa2="reject">↩ Kembalikan ke AR</button><button class="btn ok" type="button" data-rpa2="approve">✓ Approve RA</button>';
-  else if (st === 4) act = '<button class="btn go" type="button" data-rpdl="pdf">' + ico('download') + 'PDF (TTD basah)</button><button class="btn xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel</button>';
+  else if (st === 4) act = '<button class="btn go" type="button" data-rpdl="pdf">' + ico('download') + 'PDF (TTD basah)</button><button class="btn xl" type="button" data-rpdl="xlsx">' + ico('download') + 'Excel</button><button class="btn" type="button" data-rpdl="png">' + ico('download') + 'Gambar</button>';
   var msg = st === 1 ? (role === 'ar' ? (T[''].n ? T[''].n + ' belum dipilih → Rescheduled' : 'tanggal cair ' + TT.nd + ' / ' + TT.nc) : 'AR sedang menyusun RA') : st === 3 ? (role === 'sh' ? 'RA ' + revTxt(P) + ' menunggu approval Anda' : 'menunggu approval Section Head') : 'RA berlaku';
   h += '<div class="rp-ft"><div><small>✓ Committed (RA)</small><b>' + T.C.n + ' · ' + rpShort(T.C.v).replace('Rp ', '') + '</b></div><i></i><div><small>◇ Upside</small><b>' + T.S.n + ' · ' + rpShort(T.S.v).replace('Rp ', '') + '</b></div><div><small>→ Rescheduled</small><b>' + (T.N.n + T[''].n) + ' · ' + rpShort(T.N.v + T[''].v).replace('Rp ', '') + '</b></div><div><small>⏸ On Hold</small><b>' + T.H.n + ' · ' + rpShort(T.H.v).replace('Rp ', '') + '</b></div><span class="sp"></span><span class="rp-msg" id="rpMsg">' + esc(msg) + '</span>' + act + '</div></div>';
   w.innerHTML = h; w.scrollTop = sy; planBind();
@@ -3985,7 +3999,7 @@ function raSheetData() {
   });
   var H = items.filter(function (x) { return PLAN.W[x.nomor].u === 'H'; }).map(function (x) { var v = PLAN.W[x.nomor]; return { pel: x.pelanggan, nomor: x.nomor, nilai: planVal(x, v), ket: v.al || '' }; });
   var K = items.filter(function (x) { return mark(x) === '-'; }).map(function (x) { var v = PLAN.W[x.nomor]; return { pel: x.pelanggan, nomor: x.nomor, nilai: planVal(x, v), ket: (pus ? 'digeser rapat pusat' : 'dikeluarkan (revisi)') + ' → ' + ({ S: 'Potensi Inkaso Tambahan', H: 'Dalam Proses Penyelesaian' + (v.al ? ': ' + v.al : ''), N: 'Rencana Inkaso ' + planBln(nx) + ' ' + nx.substring(0, 4) }[v.u || 'N'] || 'Rencana Inkaso ' + planBln(nx)) }; });
-  var mk = R0.MENGETAHUI || { nama: 'Yusqi Audah Firdaus', jabatan: 'Manager of Concrete Service Unit' }, ap = R0.PENYETUJU || {}, pb = R0.PEMBUAT || {};
+  var mk = R0.MENGETAHUI || { nama: 'Yusqi Audah Firdaus', jabatan: 'Manager of Concrete Service Unit' }, ap = (st === 4 && a && a.koord) ? { nama: a.putus_nama, jabatan: 'a.n. Section Head · ' + (a.putus_jabatan || 'Koordinator') } : (R0.PENYETUJU || {}), pb = (a && /^KOORDINATOR/.test(a.oleh_peran || '')) ? { nama: a.oleh_nama, jabatan: a.oleh_jabatan || 'Koordinator' } : (R0.PEMBUAT || {});
   return { ref: ref, bln: bln, blnN: planBln(nx) + ' ' + nx.substring(0, 4), blnS: planBln(ref), st: st, a: a, stTxt: stTxt, rev: 'Rev.' + ('0' + revNo).slice(-2), dasTxt: dasTxt, pus: pus, rows: rows, H: H, K: K,
     totRA: T.C.v, riRA: C.reduce(function (t, x) { return t + (+x.paid || 0); }, 0), riAll: items.reduce(function (t, x) { return t + (+x.paid || 0); }, 0),
     S: sumK('S'), Hs: sumK('H'), N: { n: T.N.n + T[''].n, v: T.N.v + T[''].v }, tgt: +((B.targets || {})[ref] || 0), sign: [['Mengetahui,', mk], ['Diperiksa & disetujui oleh,', ap], ['Dibuat oleh,', pb]],
@@ -4024,8 +4038,9 @@ function b64Blob(b64, type) { var bin = atob(b64), n = bin.length, u = new Uint8
 function raDownload(kind, btn) {
   if (!PKG || PKG.kind !== 'VAL') return;
   var D = raSheetData(), old = btn ? btn.innerHTML : ''; if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Menyiapkan…'; }
-  var end = function (ok, e) { if (btn) { btn.disabled = false; btn.innerHTML = old; } if (ok) toast((kind === 'pdf' ? 'PDF' : 'Excel') + ' diunduh: ' + D.name); else toast('Gagal membuat file: ' + (e && e.message || e)); };
+  var end = function (ok, e) { if (btn) { btn.disabled = false; btn.innerHTML = old; } if (ok) toast((kind === 'pdf' ? 'PDF' : kind === 'png' ? 'Gambar' : 'Excel') + ' diunduh: ' + D.name); else toast('Gagal membuat file: ' + (e && e.message || e)); };
   if (kind === 'xlsx') { try { saveFile(raXlsx(D), D.name + '.xlsx'); end(true); } catch (e) { end(false, e); } return; }
+  if (kind === 'png') { makePng(pgRaTermin(D)).then(function (blob) { saveFile(blob, D.name + '.png'); end(true); }).catch(function (e) { end(false, e); }); return; }
   makePdf(pgRaTermin(D), D.name).then(function (b64) { saveFile(b64Blob(b64, 'application/pdf'), D.name + '.pdf'); end(true); }).catch(function (e) { end(false, e); });
 }
 /* ---------- penulis .xlsx mini (tanpa pustaka luar): zip STORE + CRC32, inline string, gaya, gabung sel, pengaturan cetak */
@@ -4219,7 +4234,7 @@ function showPackage() {
     if (vDecideMode()) { vInit(); PKG._mode = 'dec'; PKG._view = 'dec'; vRender(false); pkgActions(); return; }
     var a0 = PKG.appr, pend0 = a0 && a0.status === 'MENUNGGU';
     // v2.7: AR mengisi usulan di aplikasi (lembar belum ada / ditolak); sesudah disetujui → tampil lembar, tombol "Ajukan revisi" membuka layar usulan
-    if (!pend0 && /^PEMBUAT/.test((B.user || {}).peran || '') && !(a0 && a0.status === 'DISETUJUI' && !a0.berubah && !PKG.legacy)) { vusInit(); PKG._mode = 'usul'; PKG._view = 'usul'; vRender(false); pkgActions(); return; }
+    if (!pend0 && rMk((B.user || {}).peran) && !(a0 && a0.status === 'DISETUJUI' && !a0.berubah && !PKG.legacy)) { vusInit(); PKG._mode = 'usul'; PKG._view = 'usul'; vRender(false); pkgActions(); return; }
   }
   var w = $('sheetwrap'); w.style.transform = ''; w.innerHTML = '<div class="stackwrap">' + PKG._pages.all + '</div>';
   pkgTabsInit(); fitZoom();
@@ -4248,12 +4263,12 @@ function pkgTabsInit() {
 function canDecideNow() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah;
   var dlg = B.delegasi && B.delegasi.jenis && (B.delegasi.jenis.indexOf(PKG.kind) >= 0 || B.delegasi.jenis.indexOf('SEMUA') >= 0);
-  return !!(pend && String(a.oleh).toLowerCase() !== String(me.email).toLowerCase() && (/^PENYETUJU/.test(role) || dlg));
+  return !!(pend && String(a.oleh).toLowerCase() !== String(me.email).toLowerCase() && (rAp(role) || dlg));
 }
 function pkgActions() {
   var a = PKG.appr, me = B.user || {}, role = me.peran || '', pend = a && a.status === 'MENUNGGU' && !a.berubah, ok = a && a.status === 'DISETUJUI' && !a.berubah;
-  var canSubmit = /^PEMBUAT/.test(role) && !pend && (!ok || PKG.kind === 'VAL'), canDecide = canDecideNow();
-  if (PKG.kind === 'BATAL' || PKG.kind === 'VALX' || PKG.kind === 'REVP') canSubmit = /^PEMBUAT/.test(role) && !!PKG.canSubmit;
+  var canSubmit = rMk(role) && !pend && (!ok || PKG.kind === 'VAL'), canDecide = canDecideNow();
+  if (PKG.kind === 'BATAL' || PKG.kind === 'VALX' || PKG.kind === 'REVP') canSubmit = rMk(role) && !!PKG.canSubmit;
   $('btnPkgSubmit').textContent = PKG.kind === 'REVP' ? 'Reverse & ajukan pengesahan' : PKG.kind === 'BATAL' || PKG.kind === 'VALX' ? 'Ajukan pembatalan ke Section Head' : PKG.kind === 'VAL' && PKG._mode === 'usul' ? 'Ajukan ke Section Head' : PKG.kind === 'VAL' && (ok || PKG.legacy || (a && a.status === 'DISETUJUI')) ? 'Ajukan revisi (Rev.' + ('0' + (PKG.revNext || 0)).slice(-2) + ')' : 'Ajukan ke Section Head';
   $('pkgTitle').innerHTML = '<b>' + esc(lblEn(PKG.label)) + '</b><br><span style="color:var(--steel)">' + (a ? esc(a.teks || a.status) + (a.valid === false ? ' · <b style="color:var(--red)">kode tidak valid</b>' : '') : 'Belum diajukan') + '</span>';
   $('btnPkgSubmit').hidden = !canSubmit; $('btnPkgOk').hidden = !canDecide; $('btnPkgNo').hidden = !canDecide;
@@ -4331,6 +4346,17 @@ function pdfLibs() {
   // pustaka PDF disimpan di proyek Apps Script (PdfLib.html) — tidak bergantung pada CDN / jaringan kantor
   return new Promise(function (ok, no) {
     call('apiPdfLib', [], function (code) { try { var s = document.createElement('script'); s.text = code; document.head.appendChild(s); } catch (e) { } if (window.jspdf && window.html2canvas) ok(); else cdn().then(ok, no); }, function () { cdn().then(ok, no); });
+  });
+}
+/** v2.11: satu halaman dokumen → gambar PNG utuh (untuk management review: WhatsApp / presentasi) */
+function makePng(html) {
+  return pdfLibs().then(function () {
+    var root = $('pdf-root'); if (!root) { root = document.createElement('div'); root.id = 'pdf-root'; document.body.appendChild(root); }
+    root.innerHTML = '<div style="display:inline-block;padding:9mm 10mm;background:#fff">' + theadify(html) + '</div>'; var el = root.firstElementChild;
+    return window.html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false }).then(function (cv) {
+      root.innerHTML = '';
+      return new Promise(function (ok, no) { cv.toBlob(function (b) { b ? ok(b) : no(new Error('Gambar tidak bisa dibuat.')); }, 'image/png'); });
+    });
   });
 }
 function makePdf(html, label, opt) {
@@ -4446,7 +4472,7 @@ function decidePkg(setuju) {
     var items = PKG.items || [], miss = items.filter(function (x) { return vDec(x) === 'H' && !String(vAls(x)).trim(); });
     if (miss.length) { toast('Isi alasan HOLD untuk ' + miss.length + ' invoice'); var inp = document.querySelector('.vreason'); var em = miss[0] && document.querySelector('.vreason[data-vr="' + miss[0].nomor.replace(/"/g, '\\"') + '"]'); if (em) em.focus(); else if (inp) inp.focus(); return; }
     var T = vTot(items), dec = items.map(function (x) { return { nomor: x.nomor, d: vDec(x), a: vDec(x) === 'H' ? vAls(x) : '' }; });
-    var dl = B.delegasi && !/^PENYETUJU/.test((B.user || {}).peran || '');
+    var dl = B.delegasi && !rAp((B.user || {}).peran);
     confirmDlg('Setujui keputusan rencana cair ' + esc(lblEn(PKG.label)) + '?', '<ul style="margin:4px 0 8px;padding-left:18px">' + DECO.map(function (d) { return '<li><b>' + DECL[d] + '</b>: ' + T[d].n + ' invoice' + (d === 'C' || d === 'S' ? ' · Rp ' + nfDot(T[d].nilai) + ' (DPP − PPh)' : '') + '</li>'; }).join('') + '</ul>' +
       '<div style="font-size:12px;color:var(--steel)">' + (dl ? 'Disetujui atas nama Section Head (delegasi). ' : '') + 'Setelah disetujui, kolom VALIDASI SECTION HEAD F&HR di Pareto terisi otomatis, RA-RI Termin memakai keputusan ini, dan PDF disimpan ke Drive.</div>' +
       '<textarea id="dlgNote" style="margin-top:8px" placeholder="catatan (opsional)"></textarea>', 'Setujui', function () {
@@ -4467,7 +4493,7 @@ function decidePkg(setuju) {
       function (e) { $('pkgStatus').innerHTML = '<span style="color:var(--red)">' + esc(e.message || e) + '</span>'; refreshAll(); });
   });
 }
-function refreshAll(cb) { call('apiBootstrap', [], function (b) { var ho = B && B.hoPending, hoO = B && B.hoOld; B = b; if (ho != null && B.hoPending == null) { B.hoPending = ho; B.hoOld = hoO; } OV = {}; srBadge(); applyAccess(); renderList(); fillOpenList(); renderSetuju(); if (['buka', 'tbayar'].indexOf(MODE) >= 0 && !STACK) lpRender(); if (cb) cb(); }); }
+function refreshAll(cb) { call('apiBootstrap', [], function (b) { var ho = B && B.hoPending, hoO = B && B.hoOld; B = coordFix(b); if (ho != null && B.hoPending == null) { B.hoPending = ho; B.hoOld = hoO; } OV = {}; srBadge(); applyAccess(); renderList(); fillOpenList(); renderSetuju(); if (['buka', 'tbayar'].indexOf(MODE) >= 0 && !STACK) lpRender(); if (cb) cb(); }); }
 
 /* ====================================================== v2: mode Otorisasi Dokumen AR */
 var KIND_OF = { 'PAKET INVOICE': 'INV', 'PAKET PENERIMAAN': 'PAY', 'VALIDASI RENCANA CAIR': 'VAL', 'REKAP BULANAN AKUNTANSI': 'REK', 'KARTU PIUTANG': 'KP', 'PENUTUPAN MANUAL': 'TUTUP', 'PEMBATALAN INVOICE': 'BATAL', 'PEMBATALAN LEMBAR VALIDASI': 'VALX', 'PEMBALIKAN PENERIMAAN': 'REVP' };
@@ -4911,10 +4937,13 @@ function applyAccess() {
   buildNav(maker); navBadges();
   var me = B.user || {}, nm = me.nama || me.email || '';
   var viewer = !!(B.access && B.access.viewer);
-  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(viewer ? (me.jabatan || 'Manajemen') + ' · Hanya lihat' : maker ? (me.jabatan || 'AR Officer') + ' · Pembuat' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegasi' : '')) + '</small>';
+  $('tbWho').innerHTML = esc(nm) + '<small>' + esc(isCoord() ? (me.jabatan || 'Koordinator') + ' · Koordinator' : viewer ? (me.jabatan || 'Manajemen') + ' · Hanya lihat' : maker ? (me.jabatan || 'AR Officer') + ' · Pembuat' : (me.jabatan || 'Section Head') + (B.access && B.access.delegate ? ' · delegasi' : '')) + '</small>';
+  var sw = $('tbSw'); if (!sw) { sw = document.createElement('div'); sw.id = 'tbSw'; sw.className = 'tb-sw'; $('tbWho').parentNode.insertBefore(sw, $('tbWho')); }
+  sw.hidden = !isCoord(); sw.innerHTML = isCoord() ? '<span>Tampilan</span><button type="button" data-cv="ar"' + (CVIEW === 'ar' ? ' class="on"' : '') + ' title="Menu AR: input invoice, penerimaan, dokumen">AR</button><button type="button" data-cv="sh"' + (CVIEW === 'sh' ? ' class="on"' : '') + ' title="Menu Section Head: persetujuan, rencana termin, ringkasan">SH</button>' : '';
+  sw.querySelectorAll('[data-cv]').forEach(function (b) { b.onclick = function () { coordSwitch(b.dataset.cv); }; });
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
   $('tbVer').textContent = 'Manajemen Piutang · v' + String(E.VERSION).split(' ')[0];
-  $('accessBadge').textContent = (viewer ? 'Manajemen · Hanya lihat' : maker ? 'Pembuat · Semua menu' : 'Section Head · Persetujuan dokumen') + ' · ' + ((B.user || {}).nama || '');
+  $('accessBadge').textContent = (isCoord() ? 'Koordinator · tampilan ' + (CVIEW === 'sh' ? 'Section Head' : 'AR') : viewer ? 'Manajemen · Hanya lihat' : maker ? 'Pembuat · Semua menu' : 'Section Head · Persetujuan dokumen') + ' · ' + ((B.user || {}).nama || '');
 }
 /* ====================================================== v2.8.8: Master Data — pelanggan, proyek, adendum (padanan BP / FD01–03) */
 var MD = { d: null, tab: 'PEL', q: '', f: 'all', sel: '', sub: 'main', edit: false, form: null, orig: '', reason: '', wiz: null, add: null, busy: false };
@@ -5138,7 +5167,7 @@ function closeLoad(m, force) {
     function (e) { if (my === CL.seq) w.innerHTML = '<div class="cl"><div class="note err" style="margin-top:20px">Pemeriksaan gagal dijalankan: ' + esc(e.message || e) + '</div></div>'; });
 }
 var CL_ST = { g: '✓ SIAP', y: '⚠ PERLU CEK', r: '✕ MENGHAMBAT', n: '— BELUM' };
-var CL_ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs GL (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
+var CL_ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs Buku Besar (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
 function closeRender(d) {
   var w = $('closeWrap'), maker = !!(B.access && B.access.maker), pct = d.n ? d.ready / d.n : 0, R = d.report || {};
   var opts = closeMonths().map(function (m) { return '<option value="' + m + '"' + (m === d.ref ? ' selected' : '') + '>' + esc(monEn(m)) + '</option>'; }).join('');
@@ -5155,7 +5184,7 @@ function closeRender(d) {
       (x.fix && x.fix.length ? '<div class="cl-fx">' + x.fix.map(function (f) { return clFixRow(f, maker); }).join('') + '</div>' : '') +
       ((x.st === 'y' || x.st === 'r') && x.go ? '<button type="button" class="act" data-mgo2="' + x.go + '">→ Buka ' + esc({ setuju: 'Persetujuan', buka: 'Daftar Invoice', tbayar: 'Daftar Penerimaan', dashboard: 'Ringkasan', surat: 'Surat Penagihan', dok: 'Dokumen & Serah Terima' }[x.go] || x.go) + '</button>' : '') + '<span class="auto">' + esc(x.auto || '') + '</span></div>';
   }).join('') + '</div><div>' +
-    '<div class="card cl-card"><h3>Laporan akhir tutup buku AR</h3><div class="cl-rep">' + [['Total piutang', R.total], ['Belum jatuh tempo', R.current], ['Lewat jatuh tempo', R.overdue], ['> 90 hari', R.od90, 'r'], ['Lebih bayar / saldo kredit', R.lebih ? -R.lebih : 0, R.lebih ? 'r' : ''], ['Sengketa / kurang bayar', R.disp], ['CKPN', R.ckpn], ['Selisih AR vs GL', R.gl === null ? 'LK belum ditempel' : R.gl, R.gl ? 'r' : '']].map(function (r) { return '<div><span>' + r[0] + '</span><b class="' + (r[2] || '') + '">' + (typeof r[1] === 'number' ? (r[1] < 0 ? '(' + nfDot(-r[1]) + ')' : nfDot(r[1])) : esc(r[1])) + '</b></div>'; }).join('') + '</div>' +
+    '<div class="card cl-card"><h3>Laporan akhir tutup buku AR</h3><div class="cl-rep">' + [['Total piutang', R.total], ['Belum jatuh tempo', R.current], ['Lewat jatuh tempo', R.overdue], ['> 90 hari', R.od90, 'r'], ['Lebih bayar / saldo kredit', R.lebih ? -R.lebih : 0, R.lebih ? 'r' : ''], ['Sengketa / kurang bayar', R.disp], ['CKPN', R.ckpn], ['Selisih AR vs buku besar', R.gl === null ? 'LK belum ditempel' : R.gl, R.gl ? 'r' : '']].map(function (r) { return '<div><span>' + r[0] + '</span><b class="' + (r[2] || '') + '">' + (typeof r[1] === 'number' ? (r[1] < 0 ? '(' + nfDot(-r[1]) + ')' : nfDot(r[1])) : esc(r[1])) + '</b></div>'; }).join('') + '</div>' +
     '<div class="note" style="margin-top:8px;font-size:11.5px">“Berapa total piutang kita, dan mengapa setiap saldo besar masih belum tertagih?” — per pelanggan di Analisis AR Bulanan.</div></div>' +
     '<div class="card cl-card"><h3>Pengesahan <small>pada checklist cetak</small></h3><div class="cl-sign"><div>Dibuat oleh<b>' + esc(((B.roles || {}).PEMBUAT || {}).nama || 'AR Officer') + '</b></div><div>Disetujui oleh<b>' + esc(((B.roles || {}).PENYETUJU || {}).nama || 'Section Head') + '</b></div></div>' +
     '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn" type="button" data-mgo2="dok">Dokumen bulanan &amp; serah terima</button></div></div></div></div>';
@@ -5203,11 +5232,11 @@ function clFix(a, f) {
 /** checklist tutup buku yang dicetak & ditandatangani (bahasa Indonesia) */
 function pgClosing(d) {
   var ST = { g: 'SIAP', y: 'PERLU CEK', r: 'MENGHAMBAT', n: 'BELUM' }, R = d.report || {}, rl = B.roles || {};
-  var ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs GL (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
+  var ID = { billing: 'Cut-off penagihan', adj: 'Nota kredit & penyesuaian', cash: 'Penerapan penerimaan', recon: 'Rekonsiliasi per pelanggan', aging: 'Review umur piutang', disp: 'Sengketa & kurang bayar', ckpn: 'CKPN', gl: 'AR vs Buku Besar (SAP)', ho: 'Serah terima ke Akuntansi', close: 'Laporan akhir & tutup buku' };
   var h = '<div class="page pg-flow">' + docHead('CHECKLIST TUTUP BUKU PIUTANG (AR) — ' + esc(d.label).toUpperCase(), 'Bukti bahwa saldo piutang lengkap, akurat, tertagih dan sudah direkonsiliasi sebelum periode ditutup. Diperiksa otomatis oleh Sistem AR CSU.', 'Kesiapan ' + d.ready + '/' + d.n + '<br>' + esc(tglIndo(B.today)));
   h += '<table class="t km"><thead><tr><th style="width:7mm">No</th><th style="width:45mm">Langkah</th><th style="width:22mm">Status</th><th>Hasil pemeriksaan</th><th style="width:16mm">Paraf</th></tr></thead><tbody>' +
     d.steps.map(function (x, k) { return '<tr><td style="text-align:center">' + (k + 1) + '</td><td>' + esc(ID[x.k] || x.t) + '</td><td><b>' + ST[x.st] + '</b></td><td>' + esc(x.m) + ' · ' + esc(x.s) + (x.items && x.items.length ? '<br><span style="color:#5B6B80">' + x.items.map(esc).join('<br>') + '</span>' : '') + '</td><td></td></tr>'; }).join('') + '</tbody></table>';
-  h += '<h3>Ringkasan saldo</h3><table class="kv">' + [['Total piutang', R.total], ['Belum jatuh tempo', R.current], ['Lewat jatuh tempo', R.overdue], ['> 90 hari', R.od90], ['Lebih bayar / saldo kredit', R.lebih], ['Sengketa / kurang bayar', R.disp], ['CKPN', R.ckpn], ['Selisih AR vs GL', R.gl === null ? 'LK belum ditempel' : R.gl]].map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v" style="text-align:right">' + (typeof r[1] === 'number' ? nd(r[1]) : esc(r[1])) + '</td></tr>'; }).join('') + '</table>';
+  h += '<h3>Ringkasan saldo</h3><table class="kv">' + [['Total piutang', R.total], ['Belum jatuh tempo', R.current], ['Lewat jatuh tempo', R.overdue], ['> 90 hari', R.od90], ['Lebih bayar / saldo kredit', R.lebih], ['Sengketa / kurang bayar', R.disp], ['CKPN', R.ckpn], ['Selisih AR vs buku besar', R.gl === null ? 'LK belum ditempel' : R.gl]].map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v" style="text-align:right">' + (typeof r[1] === 'number' ? nd(r[1]) : esc(r[1])) + '</td></tr>'; }).join('') + '</table>';
   var cell = function (role, who) { return '<div><div class="rl">' + role + '</div><div class="sp"></div><div class="nm">' + esc(who.nama || '(.................................)') + '</div><div class="jb">' + esc(who.jabatan || '') + '</div><div class="jb">Tanggal : ..................</div></div>'; };
   h += '<div class="sign" style="grid-template-columns:1fr 1fr">' + cell('Disetujui oleh,', rl.PENYETUJU || { jabatan: 'Section Head' }) + cell('Dibuat oleh,', rl.PEMBUAT || { jabatan: 'AR Officer' }) + '</div>';
   return h + '<div class="foot">Dicetak dari Sistem AR CSU v' + esc(String(E.VERSION).split(' ')[0]) + ' · ' + esc(tg(B.today)) + '</div></div>';

@@ -774,7 +774,7 @@ function lockEditors_(ss) {
   var res = compute_(), out = [];
   try { var o = ss.getOwner(); if (o && o.getEmail()) out.push(o.getEmail().toLowerCase()); } catch (e) { }
   try { var me = Session.getEffectiveUser().getEmail(); if (me) out.push(me.toLowerCase()); } catch (e) { }
-  res.params.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran)) out.push(u.email); });
+  res.params.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU|KOORDINATOR)/.test(u.peran)) out.push(u.email); });
   var dl = String(res.params.DELEGASI_EMAIL || '').toLowerCase(); if (dl && ENGINE.delegasiFor(res.params, dl, null, res.ctx.today)) out.push(dl); // delegasi aktif perlu menulis Log Persetujuan
   return out.filter(function (v, i, a) { return v && a.indexOf(v) === i; });
 }
@@ -1170,7 +1170,7 @@ function apiSubmit(kind, ref, extra) { arRequireMaker_(); var tP = Date.now();
   var out;
   try {
     var res = computeLight_('memo'), P = res.params, me = email_(), u = ENGINE.userBy(P, me);
-    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
+    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0 && u.peran.indexOf('KOORDINATOR') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     var d = ENGINE.packageFor(res.ctx, kind, ref);
     if (!d) throw new Error('Data tidak ditemukan: ' + kind + ' ' + ref);
     if (kind === 'TUTUP' && !String(d.alasan || '').trim()) throw new Error('Isi alasan tutup manual terlebih dahulu.');
@@ -1286,12 +1286,14 @@ function apiDecide(id, keputusan, catatan, keputusanItem) { arRequireAccess_(); 
     if (!r) throw new Error('Pengajuan ' + id + ' tidak ditemukan.');
     var kind = Object.keys(ENGINE.DOC).filter(function (k) { return ENGINE.DOC[k] === String(r.jenis).toUpperCase(); })[0];
     // delegasi sementara (Parameter DELEGASI_*): diputuskan a.n. Section Head, tercatat jelas sebagai delegasi
-    var dl = (!u || u.peran.indexOf('PENYETUJU') !== 0) ? ENGINE.delegasiFor(P, me, kind, res.ctx.today) : null;
-    if ((!u || u.peran.indexOf('PENYETUJU') !== 0) && !dl) throw new Error('Hanya pengguna dengan peran PENYETUJU (Section Head) yang bisa memutuskan' + (String(P.DELEGASI_EMAIL || '').toLowerCase() === me ? ' (your delegation does not cover this type or expired on ' + P.DELEGASI_SAMPAI + ')' : '') + '. Your account: ' + (me || '(unknown)'));
+    var isK = !!(u && u.peran.indexOf('KOORDINATOR') === 0), isSH = !!(u && u.peran.indexOf('PENYETUJU') === 0);
+    var dl = (!isSH && !isK) ? ENGINE.delegasiFor(P, me, kind, res.ctx.today) : null;
+    if (!isSH && !isK && !dl) throw new Error('Hanya Section Head (PENYETUJU) atau KOORDINATOR yang bisa memutuskan' + (String(P.DELEGASI_EMAIL || '').toLowerCase() === me ? ' (delegasi Anda tidak mencakup jenis ini atau sudah berakhir ' + P.DELEGASI_SAMPAI + ')' : '') + '. Akun Anda: ' + (me || '(tidak dikenal)'));
     if (String(r.status).toUpperCase() !== 'MENUNGGU') throw new Error('Pengajuan ' + id + ' sudah berstatus ' + r.status + '.');
     // pemisahan tugas: berlaku juga untuk delegasi — pengaju tidak pernah memutuskan pengajuannya sendiri
     if (String(r.oleh).toLowerCase() === me) throw new Error('Pengajuan tidak bisa disetujui oleh pembuatnya sendiri.');
     var kTglD = arGuardClosed_(kind, kind === 'BATAL' || kind === 'REVP' ? ENGINE.packageFor(res.ctx, kind, r.ref) : { ref: r.ref }, 'Decision ' + r.id);
+    if (isK) { var shU = ENGINE.userByRole(P, 'PENYETUJU') || {}; catatan = '[KOORDINATOR a.n. ' + (shU.nama || 'Section Head') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : ''); }
     if (dl) catatan = '[DELEGASI a.n. ' + dl.atas + ' s.d. ' + dl.sampai + (dl.dasar ? ' · dasar: ' + dl.dasar : '') + ']' + (String(catatan || '').trim() ? ' ' + String(catatan).trim() : '');
     if (kind === 'INV' || kind === 'PAY' || kind === 'KP' || kind === 'TUTUP' || kind === 'BATAL' || kind === 'VALX' || kind === 'REVP') {
       var d = ENGINE.packageFor(res.ctx, kind, r.ref);
@@ -1367,7 +1369,7 @@ function setupArsipFolder() {
   if (!root) { var it = DriveApp.getFoldersByName(String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU')); root = it.hasNext() ? it.next() : DriveApp.createFolder(String(P.ARSIP_FOLDER || 'Arsip Paket AR CSU')); }
   setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)');
   var have = {}, add = []; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; });
-  P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { try { root.addEditor(u.email); add.push(u.email); have[u.email] = 1; } catch (e) { } } });
+  P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU|KOORDINATOR)/.test(u.peran) && !have[u.email]) { try { root.addEditor(u.email); add.push(u.email); have[u.email] = 1; } catch (e) { } } });
   ui.alert('Folder arsip siap', 'Folder: ' + root.getName() + '\n' + root.getUrl() + '\n\nID tersimpan di Parameter ▸ ARSIP_FOLDER_ID.' + (add.length ? '\nDibagikan ke: ' + add.join(', ') : ''), ui.ButtonSet.OK);
 }
 /** folder arsip: <ARSIP_FOLDER>/<jenis paket>/<tahun>/<MM Bulan tahun> */
@@ -1381,7 +1383,7 @@ function archiveFolder_(P, kind, month) {
     try { setParamKV_('ARSIP_FOLDER_ID', root.getId(), 'ID folder arsip PDF (dibuat otomatis, dibagikan ke PEMBUAT & PENYETUJU)'); }
     catch (e) { throw new Error('Folder arsip belum disiapkan. Pemilik spreadsheet: jalankan menu AR CSU ▸ Siapkan folder arsip PDF, lalu coba lagi.'); }
     // folder dibagikan ke pembuat & penyetuju agar arsip otomatis dari siapa pun masuk ke folder yang sama
-    try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
+    try { var have = {}; root.getEditors().forEach(function (u) { have[String(u.getEmail()).toLowerCase()] = 1; }); P.users.forEach(function (u) { if (u.email && /^(PEMBUAT|PENYETUJU|KOORDINATOR)/.test(u.peran) && !have[u.email]) { root.addEditor(u.email); have[u.email] = 1; } }); } catch (e) { }
   }
   var subName = { INV: 'Paket Invoice', PAY: 'Paket Penerimaan', VAL: 'Validasi Rencana Cair', REK: 'Rekap Bulanan Akuntansi', KP: 'Kartu Piutang', TUTUP: 'Penutupan Manual', BATAL: 'Pembatalan Invoice', REVP: 'Pembalikan Penerimaan', VALX: 'Validasi Rencana Cair', SURAT: 'Surat Penagihan', DOK: 'Berkas Tagihan & Faktur Pajak', BG: 'Bank Garansi', KONTRAK: 'Kontrak Proyek' }[kind] || 'Lainnya';
   var f = sub(root, subName), m = /^\d{4}-\d{2}/.test(String(month || '')) ? String(month) : Utilities.formatDate(new Date(), TZ, 'yyyy-MM'), y = m.substring(0, 4), mm = +m.substring(5, 7);
@@ -2129,7 +2131,7 @@ function aturDelegasi() { arRequireMaker_();
   var du = ENGINE.userBy(P, mail);
   if (!du) throw new Error(mail + ' belum terdaftar di Parameter ▸ Pengguna & Peran. Daftarkan dulu (peran selain PEMBUAT).');
   if (/^PEMBUAT/i.test(du.peran) || mail === me) throw new Error('Delegasi tidak boleh jatuh ke akun PEMBUAT (' + mail + '). Pilih pejabat lain yang tidak menyusun paket penerimaan / validasi.');
-  if (/^PENYETUJU/i.test(du.peran)) throw new Error(mail + ' sudah berperan PENYETUJU; delegasi tidak diperlukan.');
+  if (/^(PENYETUJU|KOORDINATOR)/i.test(du.peran)) throw new Error(mail + ' sudah berperan ' + du.peran + ' (boleh menyetujui); delegasi tidak diperlukan.');
   var nama = du.nama || mail;
   if (ui.alert('Konfirmasi delegasi', 'Akun ' + mail + ' (' + nama + ') diberi wewenang menyetujui a.n. Section Head sampai 31 Oktober 2026 untuk PAY dan VAL.\n\nCap persetujuan tertulis "DISETUJUI a.n. SECTION HEAD oleh ' + nama + ' (DELEGASI)". Pengajuan yang dibuat akun ini sendiri tetap tidak dapat ia setujui. Setelah 31-10-2026 delegasi berhenti sendiri.\n\nOK = aktifkan · Batal = tidak diubah.', ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
   setParamKV_('DELEGASI_EMAIL', mail, 'Akun yang boleh menyetujui a.n. Section Head (kosongkan untuk mencabut; tidak boleh akun PEMBUAT)');
@@ -2266,7 +2268,7 @@ function apiSaveUsulan(ref, pl) { arRequireMaker_();
   var lock = arLock_(); lock.waitLock(28000); var out;
   try {
     var P = computeLight_().params, me = email_(), u = ENGINE.userBy(P, me);
-    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
+    if (P.users.length && (!u || (u.peran.indexOf('PEMBUAT') !== 0 && u.peran.indexOf('PENYETUJU') !== 0 && u.peran.indexOf('KOORDINATOR') !== 0))) throw new Error('Akun ' + (me || '(tidak dikenal)') + ' belum terdaftar sebagai PEMBUAT di Parameter ▸ Pengguna & Peran.');
     pl = pl || {}; pl.ref = ref;
     var n = writeUsulan_(pl);
     out = { ok: true, n: n, at: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm') };
@@ -2281,7 +2283,7 @@ function raPlan_(ref) { try { return JSON.parse(arProps_().getProperty('RAPLAN_'
 function raPlanSet_(ref, o) { arProps_().setProperty('RAPLAN_' + ref, JSON.stringify(o)); try { arBootBust_(); } catch (e) { } }
 function raPlanRole_(P, me, today) {
   var u = ENGINE.userBy(P, me), pr = u ? String(u.peran || '') : '';
-  return { sh: pr.indexOf('PENYETUJU') === 0 || !!ENGINE.delegasiFor(P, me, 'VAL', today), ar: pr.indexOf('PEMBUAT') === 0 || (!P.users.length), u: u };
+  return { sh: pr.indexOf('PENYETUJU') === 0 || pr.indexOf('KOORDINATOR') === 0 || !!ENGINE.delegasiFor(P, me, 'VAL', today), ar: pr.indexOf('PEMBUAT') === 0 || pr.indexOf('KOORDINATOR') === 0 || (!P.users.length), u: u };
 }
 /** v2.9.3: RA alur Section Head final tanpa langkah persetujuan — keputusan = pilihan Section Head, disahkan atas nama Section Head yang memilih,
  *  bukti tertulis = TTD basah di Lembar RA–RI. rec & snap diubah di tempat (status DISETUJUI, sidik data/keputusan, kode). */
