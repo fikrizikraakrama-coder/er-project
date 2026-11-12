@@ -10,7 +10,7 @@
  */
 var ENGINE = (function () {
   'use strict';
-  var VERSION = '2.14 · 12-11-2026';
+  var VERSION = '2.15 · 12-11-2026';
 
   // ------------------------------------------------------------------ SKEMA SHEET
   // [kunci, JUDUL KOLOM, tipe, lebar, format]; tipe: app = diisi aplikasi, manual = diisi pengguna (kuning), auto = dihitung mesin (hijau)
@@ -1955,6 +1955,8 @@ var ENGINE = (function () {
           r.ok ? '' : (r.inv._closedManual && r.lks ? 'Ditutup manual di AR (disetujui), masih terbuka di SAP — minta Akuntansi menutup' : 'Selisih saldo')].filter(String).join('; ') || '✓ cocok';
       if (npb || nb) r.ok = false;
     }); });
+    // v2.15 tagihan UANG MUKA: LK hanya mencatat PPN-nya, DPP UM tidak masuk piutang usaha (dicatat saat diterima) → tidak dihitung selisih
+    out.pu.forEach(function (r) { if (r.inv && !r.lk && r.sis && r.inv._a.jenis === 'UANG MUKA') { r.um = true; r.ok = true; r.sel = 0; r.ket = 'Tagihan UM — LK hanya mencatat PPN-nya, DPP ' + fmtRp(r.sis) + ' tidak masuk piutang usaha (dikecualikan)'; } });
     out.ret.forEach(function (r) { r.sel = r.sis - r.lks; r.ok = Math.abs(r.sel) <= TOL; });
     return (ctx._rekon = out);
   }
@@ -1963,9 +1965,11 @@ var ENGINE = (function () {
   function lkPreview(ctx, ex) {
     ex = ex || {}; var R = rekon(ctx), M = ctx.M, idx = {}; Object.keys(M.pro).forEach(function (k) { idx[nppKey(k)] = k; });
     if (!R) return { ok: false, msg: 'Periode LK tidak terbaca.' };
-    var sum = function (L, f) { return rnd(sumBy(L, f)); }, tot = function (L) { return { sis: sum(L, function (r) { return r.sis; }), lks: sum(L, function (r) { return r.lks; }), n: L.length, ok: L.filter(function (r) { return r.ok; }).length }; };
-    var byPel = {}; R.pu.concat(R.ppn).forEach(function (r) { var lp = r.lk && idx[nppKey(r.lk.npp)], pel = r.inv ? r.inv.pelanggan : lp ? M.pro[lp].pelanggan : (r.lk && r.lk.pelanggan) || '—', x = byPel[pel] || (byPel[pel] = { pelanggan: pel, sis: 0, lks: 0, bad: [] }); x.sis += r.sis; x.lks += r.lks;
-      if (!r.ok) x.bad.push({ nomor: r.inv ? r.inv.nomor : '', doc: r.lk ? r.lk.doc : '', npp: r.inv ? r.inv.npp : (r.lk && r.lk.npp) || '', sis: rnd(r.sis), lks: rnd(r.lks), ket: r.ket }); });
+    var sum = function (L, f) { return rnd(sumBy(L, f)); }, tot = function (L) { var X = L.filter(function (r) { return r.um; }); return { sis: sum(L, function (r) { return r.um ? 0 : r.sis; }), lks: sum(L, function (r) { return r.lks; }), n: L.length, ok: L.filter(function (r) { return r.ok; }).length, um: sum(X, function (r) { return r.sis; }), umN: X.length }; };
+    var proOf = function (npp) { var k = npp && (M.pro[npp] ? npp : idx[nppKey(npp)]), p = k && M.pro[k]; return { npp: k || S(npp), proyek: p ? S(p.singkat || p.nama_pe || p.pekerjaan) : '', pelanggan: p ? p.pelanggan : '' }; };
+    var byPel = {}; R.pu.map(function (r) { r._ak = 'usaha'; return r; }).concat(R.ppn.map(function (r) { r._ak = 'PPN'; return r; })).forEach(function (r) { var lp = r.lk && idx[nppKey(r.lk.npp)], pel = r.inv ? r.inv.pelanggan : lp ? M.pro[lp].pelanggan : (r.lk && r.lk.pelanggan) || '—', x = byPel[pel] || (byPel[pel] = { pelanggan: pel, sis: 0, lks: 0, bad: [], um: [] }); x.sis += r.um ? 0 : r.sis; x.lks += r.lks;
+      var po = proOf(r.inv ? r.inv.npp : r.lk && r.lk.npp), it = { nomor: r.inv ? r.inv.nomor : '', doc: r.lk ? r.lk.doc : '', npp: po.npp, proyek: po.proyek, akun: r._ak, sis: rnd(r.sis), lks: rnd(r.lks), ket: r.ket };
+      if (r.um) x.um.push(it); else if (!r.ok) x.bad.push(it); });
     var pel = Object.keys(byPel).map(function (k) { var x = byPel[k]; x.sis = rnd(x.sis); x.lks = rnd(x.lks); x.sel = rnd(x.sis - x.lks); return x; }).sort(function (a, b) { return Math.abs(b.sel) - Math.abs(a.sel) || (a.pelanggan < b.pelanggan ? -1 : 1); });
     var ref = S(R.C).slice(0, 7), seed = D(ctx.params.TAGBRUT_SALDO_AWAL_PER) || '0000-00-00', tagNew = [], tagSkip = 0;
     (ex.tag || []).forEach(function (t) { var k = idx[nppKey(t.npp)], tg = D(t.tgl), v = rnd(N(t.nilai)); if (!k || !tg || !v) { tagSkip++; return; }
@@ -1975,7 +1979,7 @@ var ENGINE = (function () {
     var kls = [], seen = {};
     (ex.master || []).forEach(function (m) { var k = idx[nppKey(m.npp)]; if (!k || seen[k]) return; seen[k] = 1; var pr = M.pro[k], pl = M.pel[pr.pelanggan] || {}, bj = /BERELASI|INTERNAL/.test(U(m.jenis)) ? 'PIHAK BERELASI' : /KETIGA/.test(U(m.jenis)) ? 'PIHAK KETIGA' : '';
       if (bj && U(pl.kelompok) && U(pl.kelompok) !== bj) kls.push({ npp: k, pelanggan: pr.pelanggan, app: U(pl.kelompok), bapepam: bj }); });
-    return { ok: true, C: R.C, tot: { pu: tot(R.pu), ppn: tot(R.ppn), ret: tot(R.ret) }, pel: pel.slice(0, 80), ret: R.ret.filter(function (r) { return !r.ok; }).slice(0, 60),
+    return { ok: true, C: R.C, tot: { pu: tot(R.pu), ppn: tot(R.ppn), ret: tot(R.ret) }, pel: pel.slice(0, 80), ret: R.ret.filter(function (r) { return !r.ok; }).slice(0, 60).map(function (r) { var po = proOf(r.npp); return { npp: po.npp, pelanggan: po.pelanggan, proyek: po.proyek, sis: r.sis, lks: r.lks, sel: r.sel }; }),
       suggest: R.suggest.filter(function (x) { return !x.lama; }), sapBeda: R.suggest.filter(function (x) { return x.lama; }).length, tagNew: tagNew, tagSkip: tagSkip, kls: kls,
       lk: { pu: ctx.lk.pu.length, ppn: ctx.lk.ppn.length, ret: ctx.lk.ret.length } };
   }
@@ -1996,7 +2000,7 @@ var ENGINE = (function () {
     function sumr(L, f) { return sumBy(L, f); }
     var sm = [['REKON SALDO SISTEM AR vs LAMPIRAN LK PER ' + tglPanjang(R.C).toUpperCase()], ['AKUN', 'SALDO SISTEM AR', 'SALDO LK (SAP)', 'SELISIH', 'JML DOKUMEN', '✓ COCOK', 'SELISIH NILAI', 'HANYA DI SISTEM', 'HANYA DI LK']];
     [['Piutang Usaha (1104x1)', R.pu], ['Piutang PPN K (1104x2)', R.ppn]].forEach(function (x) {
-      var L = x[1]; sm.push([x[0], sumr(L, function (r) { return r.sis; }), sumr(L, function (r) { return r.lks; }), sumr(L, function (r) { return r.sel; }), L.length, L.filter(function (r) { return r.ok && r.inv && r.lk; }).length,
+      var L = x[1]; sm.push([x[0], sumr(L, function (r) { return r.um ? 0 : r.sis; }), sumr(L, function (r) { return r.lks; }), sumr(L, function (r) { return r.sel; }), L.length, L.filter(function (r) { return r.ok && r.inv && r.lk; }).length,
         L.filter(function (r) { return !r.ok && r.inv && r.lk; }).length, L.filter(function (r) { return !r.lk && r.sis; }).length, L.filter(function (r) { return !r.inv; }).length]);
     });
     sm.push(['Piutang Retensi (1105x1, per NPP)', sumr(R.ret, function (r) { return r.sis; }), sumr(R.ret, function (r) { return r.lks; }), sumr(R.ret, function (r) { return r.sel; }), R.ret.length, R.ret.filter(function (r) { return r.ok; }).length, R.ret.filter(function (r) { return !r.ok; }).length, '', '']);
