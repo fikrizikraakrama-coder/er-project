@@ -462,6 +462,15 @@ body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.
 .lp-q{border:1px solid #D3DCE6;border-radius:9px;padding:6px 10px;width:250px!important;flex:none;font:inherit;font-size:12.5px;background:#F8FAFC;margin:4px 0}.lp-sel{width:auto!important;flex:none;border:1px solid #D3DCE6;border-radius:9px;padding:6px 8px;font:inherit;font-size:12.5px;background:#fff;margin:4px 6px 4px 0}
 .lp-seg{display:inline-flex;border:1px solid #CBD5E1;border-radius:9px;overflow:hidden;margin:0 0 0 10px}.lp-seg button{border:0;background:#fff;padding:5px 11px;font:inherit;font-weight:700;font-size:12px;color:#4A5A6E;cursor:pointer}.lp-seg button.on{background:#14284B;color:#fff}
 .lp-t{width:100%;border-collapse:collapse;font-size:12.5px}.lp-t input[type=checkbox]{width:auto!important}.lp-t th{color:#6A7A8E;font-size:10.5px;text-transform:uppercase;text-align:left;padding:8px;border-bottom:1px solid #E5EAF0;white-space:nowrap;background:#fff;position:sticky;top:0;z-index:1}.lp-t td{padding:9px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}.lp-t .n{text-align:right;white-space:nowrap}
+.lku{max-width:1400px;margin:0 auto;padding:18px 22px}.lku-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}.lku-hd h2{margin:0;font-size:22px}.lku-hd p{margin:4px 0 0;color:#5B6B80}
+.lku-steps{display:flex;gap:8px;margin-bottom:14px}.lku-st{flex:1;background:#fff;border:1px solid #E3E8EF;border-radius:11px;padding:9px 12px;font-weight:700;color:#94A3B8}.lku-st.on{border-color:#14A8A0;color:#0F6E78;background:#E9F8F6}.lku-st.ok{color:#0E7A55}
+.lku-g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.lku-c{background:#fff;border:1px solid #E3E8EF;border-radius:14px;padding:16px 18px;min-width:0}.lku-ct{font-weight:800;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.lku-drop{display:flex;gap:12px;align-items:center;border:2px dashed #9CC9C4;background:#F4FBFA;border-radius:12px;padding:14px;margin:10px 0;cursor:pointer}.lku-drop:hover{background:#E9F8F6}.lku-drop.ok{border-style:solid;border-color:#BFE8D3}.lku-drop .ic{font-size:28px}.lku-drop b{display:block}.lku-drop small{color:#0E7A55;font-weight:600}
+.lku-t{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}.lku-t th{font-size:11px;color:#64748B;text-align:left;padding:7px 8px;border-bottom:1px solid #E3E8EF;text-transform:uppercase}.lku-t td{padding:7px 8px;border-bottom:1px solid #F0F3F7;vertical-align:top}.lku-t .n{text-align:right;white-space:nowrap}.lku-t .r{color:#B42323;font-weight:700}.lku-t tr.mut td{color:#94A3B8}
+.lku-tabs{display:flex;gap:16px;border-bottom:1px solid #E3E8EF;margin-bottom:8px;flex-wrap:wrap}.lku-tabs button{border:0;background:none;font:inherit;font-weight:700;color:#64748B;padding:8px 0;cursor:pointer;border-bottom:3px solid transparent}.lku-tabs button.on{color:#0F2747;border-color:#14A8A0}
+.lku-k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:4px 0 10px}.lku-k div{background:#F6F8FB;border-radius:11px;padding:8px 12px}.lku-k small{display:block;color:#64748B}.lku-k b{font-size:16px}.lku-k b.r{color:#B42323}.lku-k b.g{color:#0E7A55}
+.lku-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:900px){.lku-g2,.lku-k{grid-template-columns:1fr}.lku{padding:12px}}
 .rp-tg{color:#0F6E78;font-weight:700;cursor:pointer;white-space:nowrap}.rp-tgt{width:100%;border-collapse:collapse;margin-top:6px}.rp-tgt th{text-align:left;font-size:11px;color:#64748B;padding:6px;border-bottom:1px solid #E3E8EF}.rp-tgt td{padding:6px;border-bottom:1px solid #F0F3F7}.rp-tgt input{width:100%;text-align:right}
 .kc-wrap{background:#fff;border:1px solid #E3E9F0;border-radius:12px;padding:14px 16px}.kc-new{border-bottom:1px solid #EEF2F6;padding-bottom:12px;margin-bottom:12px}.kc-new label{display:block;font-weight:700;font-size:12px;margin:4px 0}.kc-new textarea,.kc-new select,.kc-new input{width:100%}.kc-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin:6px 0 4px}
 .kc-tl{border-left:2px solid #E3E8EF;margin-left:6px;padding-left:14px}.kc-it{position:relative;margin-bottom:12px;font-size:13px}.kc-it:before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:#14A8A0}.kc-it small{display:block;color:#7C3AED;font-weight:600;margin-top:2px}
@@ -5375,6 +5384,108 @@ function mdWizReview(z, C) {
 /* ====================================================== v2.8.8: Month-End AR Closing (checklist tutup buku, layar penuh) */
 var CL = { m: '', d: {}, seq: 0 };
 function closeMonths() { var y = +B.today.substring(0, 4), m = +B.today.substring(5, 7), o = []; for (var k = 0; k < 7; k++) { var mm = m - k, yy = y; while (mm < 1) { mm += 12; yy--; } o.push(yy + '-' + ('0' + mm).slice(-2)); } return o; }
+/* ====================================================== v2.13 Upload LK & Bapepam (Tutup Buku) — file dibaca di browser, tidak perlu salin–tempel */
+var LKU = null;
+function loadXlsxLib() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (loadXlsxLib.p) return loadXlsxLib.p;
+  return (loadXlsxLib.p = new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = function () { window.XLSX ? ok(window.XLSX) : no(new Error('Pembaca Excel tidak termuat')); }; sc.onerror = function () { loadXlsxLib.p = null; no(new Error('Pembaca Excel tidak bisa dimuat — cek koneksi internet.')); }; document.head.appendChild(sc); }));
+}
+function lkYmd(v) { if (v instanceof Date && !isNaN(v)) { var d = new Date(v.getTime() + 6e4); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); } var s = String(v || '').trim(), m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m ? m[0] : ''; }
+function lkCell(v) { return v instanceof Date ? lkYmd(v) : typeof v === 'number' ? v : v === null || v === undefined ? '' : String(v).trim(); }
+function lkRows(X, wb, name) { var ws = wb.Sheets[name]; if (!ws || !ws['!ref']) return null; var r = X.utils.decode_range(ws['!ref']); r.s.r = 0; r.s.c = 0; if (r.e.c > 60) r.e.c = 60; /* indeks baris & kolom selalu dari A1 */ return X.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: true, range: X.utils.encode_range(r) }); }
+var LK_ACC = { pu: [['1104111000', '1104211000'], 14, 4, 'Piutang usaha', 'NPP', 5], ppn: [['1104112000', '1104212000'], 15, 4, 'Piutang PPN K', 'No. Faktur', 6], ret: [['1105111000', '1105211000'], 13, 3, 'Piutang retensi', 'NPP', 4] };
+var LK_INFO = { pyd: [['1109111000', '1109121000'], 'Pendapatan diperhitungkan', 3, 7, 11], had: [['1114111000', '1114121000'], 'Hasil akan diterima', 3, 7, 11] };
+function lkParseLK(X, wb, file) {
+  var jasa = {}; B.proyek.forEach(function (p) { jasa[String(p.npp).toUpperCase().replace(/\s+/g, '')] = 1; });
+  var out = { file: file, periode: '', pu: [], ppn: [], ret: [], acc: [], skip: 0, warn: [] }, nk = function (v) { return String(v || '').toUpperCase().replace(/\s+/g, ''); };
+  var p0 = lkRows(X, wb, '1104211000') || lkRows(X, wb, '1104111000'); if (p0 && p0[3]) out.periode = lkYmd(p0[3][2]);
+  Object.keys(LK_ACC).forEach(function (k) { var A = LK_ACC[k], n = 0, sal = 0, found = [];
+    A[0].forEach(function (sh) { var R = lkRows(X, wb, sh); if (!R) return; found.push(sh);
+      if (R[7] && String(R[7][A[5]] || '').toUpperCase().indexOf(String(A[4]).toUpperCase().slice(0, 6)) < 0) out.warn.push('Sheet ' + sh + ': susunan kolom berbeda dari biasanya — mohon dicek.');
+      var cur = '';
+      R.slice(10).forEach(function (r) { var c = r.slice(1, 1 + A[1]).map(lkCell), c1 = String(c[1] || '');
+        if (/^(SUB|GRAND|JUMLAH|TOTAL)/i.test(c1) || /^(SUB|GRAND)/i.test(String(c[0] || ''))) { cur = ''; return; }
+        if (c[A[2]]) cur = nk(c[A[2]]); if (!cur) return;
+        if (!jasa[cur]) { if (c[k === 'ppn' ? 8 : k === 'ret' ? 6 : 7]) out.skip++; return; }
+        if (!c[A[2]]) c[A[2]] = cur; out[k].push(c);
+        var doc = c[k === 'ppn' ? 8 : k === 'ret' ? 6 : 7], jml = +c[k === 'ppn' ? 9 : k === 'ret' ? 7 : 8] || 0; if (doc && jml) { n++; sal += +c[k === 'ppn' ? 14 : k === 'ret' ? 11 : 13] || 0; } });
+    });
+    out.acc.push({ k: k, sheets: found, t: A[3], n: n, v: sal });
+  });
+  Object.keys(LK_INFO).forEach(function (k) { var A = LK_INFO[k], n = 0, sal = 0, found = [];
+    A[0].forEach(function (sh) { var R = lkRows(X, wb, sh); if (!R) return; found.push(sh); var cur = '';
+      R.slice(10).forEach(function (r) { if (/^(SUB|GRAND)/i.test(String(r[1] || ''))) { cur = ''; return; } if (r[A[2]]) cur = nk(r[A[2]]); if (!cur || !jasa[cur]) return; var s = +r[A[4]] || 0; if (r[A[3]] && typeof r[A[4]] === 'number') { n++; sal += s; } }); });
+    out.acc.push({ k: k, sheets: found, t: A[1], n: n, v: sal, info: true });
+  });
+  return out;
+}
+function lkParseBP(X, wb, file) {
+  var out = { file: file, periode: '', tag: [], master: [], tbl: [] }, R;
+  R = lkRows(X, wb, '2.PIUTANG USAHA'); if (R && R[4]) out.periode = lkYmd(R[4][1]);
+  R = lkRows(X, wb, '4.TAGBRUT'); if (R) { R.forEach(function (r) { if (typeof r[0] === 'number' && r[1] && typeof r[8] === 'number') out.tag.push({ npp: String(r[1]), tgl: lkYmd(r[2]), nilai: r[8], nama: String(r[3] || '').slice(0, 160) }); }); if (!out.periode && R[8]) out.periode = lkYmd(R[8][1]); }
+  R = lkRows(X, wb, 'MASTER NPP'); if (R) R.slice(4).forEach(function (r) { if (r[1] && r[3]) out.master.push({ npp: String(r[1]), jenis: String(r[3]) }); });
+  [['2.PIUTANG USAHA', 'aging Bapepam (informasi)'], ['3.PIUTANG RETENSI', 'saldo retensi per NPP (informasi)'], ['4.TAGBRUT', 'Input Tagbrut otomatis', out.tag.length], ['4A.HAD', 'saldo HAD per NPP (informasi)'], ['24.UM DITERIMA PDK & PJG', 'saldo uang muka per NPP (informasi)'], ['MASTER NPP', 'cek pihak berelasi / ketiga', out.master.length]]
+    .forEach(function (x) { out.tbl.push({ sh: x[0], t: x[1], n: x[2], ada: !!wb.Sheets[x[0]] }); });
+  return out;
+}
+function lkuOpen() { LKU = { step: 1, lk: null, bp: null, busy: '', pv: null, tab: 'pel' }; lkuRender(); }
+function lkuRead(kind, f) {
+  if (!f) return; LKU.busy = kind; LKU.err = ''; lkuRender();
+  loadXlsxLib().then(function (X) { return f.arrayBuffer().then(function (buf) {
+    var want = kind === 'lk' ? ['1104111000', '1104211000', '1104112000', '1104212000', '1105111000', '1105211000', '1109111000', '1109121000', '1114111000', '1114121000'] : ['2.PIUTANG USAHA', '3.PIUTANG RETENSI', '4.TAGBRUT', '4A.HAD', '24.UM DITERIMA PDK & PJG', 'MASTER NPP'];
+    var wb = X.read(new Uint8Array(buf), { type: 'array', cellDates: true, sheets: want }), all = X.read(new Uint8Array(buf), { type: 'array', bookSheets: true });
+    var o = kind === 'lk' ? lkParseLK(X, wb, f.name) : lkParseBP(X, wb, f.name); o.nSheet = (all.SheetNames || []).length;
+    if (kind === 'lk' && !o.pu.length && !o.ppn.length && !o.ret.length && !o.skip) throw new Error('Sheet 1104111000 / 1104211000 / 1105211000 tidak ditemukan — pastikan ini file lampiran LK.');
+    if (kind === 'bp' && !o.tag.length && !o.master.length) throw new Error('Tabel 4.TAGBRUT / MASTER NPP tidak ditemukan — pastikan ini file Bapepam.');
+    LKU[kind] = o; LKU.busy = ''; LKU.pv = null; lkuRender();
+  }); }).catch(function (e) { LKU.busy = ''; LKU.err = (kind === 'lk' ? 'File LK: ' : 'File Bapepam: ') + (e.message || e); lkuRender(); });
+}
+function lkuPayload() { var L = LKU.lk, P = LKU.bp; return { lk: { periode: L.periode, pu: L.pu, ppn: L.ppn, ret: L.ret }, tag: P ? P.tag : [], master: P ? P.master : [], files: { lk: L.file, bp: P ? P.file : '' } }; }
+function lkuRender() {
+  var w = $('closeWrap'); if (!w || !LKU) return;
+  var L = LKU.lk, P = LKU.bp, M2 = function (v) { v = +v || 0; return Math.abs(v) >= 1e9 ? 'Rp ' + (v / 1e9).toFixed(2).replace('.', ',') + ' M' : Math.abs(v) >= 1e6 ? 'Rp ' + Math.round(v / 1e6) + ' jt' : 'Rp ' + nfDot(Math.round(v)); };
+  var beda = L && P && L.periode && P.periode && L.periode !== P.periode;
+  var st = function (n, t) { return '<div class="lku-st' + (LKU.step === n ? ' on' : LKU.step > n ? ' ok' : '') + '">' + (LKU.step > n ? '✓ ' : n + ' · ') + t + '</div>'; };
+  var h = '<div class="lku"><div class="lku-hd"><div><h2>📥 Upload LK &amp; Bapepam</h2><p>File dari Akuntansi dibaca langsung di browser — tidak perlu salin–tempel ke sheet "Data LK (Tempel)".</p></div><button class="btn" type="button" id="lkuX">← Kembali ke Tutup Buku</button></div>' +
+    '<div class="lku-steps">' + st(1, 'Pilih file') + st(2, 'Periksa &amp; cocokkan') + st(3, 'Simpan') + '</div>' + (LKU.err ? '<div class="note err">' + esc(LKU.err) + '</div>' : '');
+  if (LKU.step === 1) {
+    var drop = function (k, t, o, sub) { return '<label class="lku-drop' + (o ? ' ok' : '') + '"><input type="file" accept=".xlsx,.xlsm,.xls" data-lkf="' + k + '" hidden><span class="ic">' + (LKU.busy === k ? '<span class="spin"></span>' : '📄') + '</span><span><b>' + (o ? esc(o.file) : 'Pilih file ' + t) + '</b><small>' + (LKU.busy === k ? 'membaca file…' : o ? '✓ periode ' + esc(tg(o.periode) || '—') + ' · ' + o.nSheet + ' sheet' : sub) + '</small></span></label>'; };
+    h += '<div class="lku-g2"><div class="lku-c"><div class="lku-ct">📘 Lampiran LK CSU' + (L ? ' <span class="pill pg">terbaca</span>' : '') + '</div>' + drop('lk', 'LK (.xlsx)', L, 'mis. LK_CSU_102026_R1.xlsx') +
+      (L ? '<table class="lku-t"><tr><th>Sheet / akun</th><th>Isi</th><th class="n">Baris jasa</th><th class="n">Saldo</th></tr>' + L.acc.map(function (a) { return '<tr' + (a.info ? ' class="mut"' : '') + '><td>' + esc(a.sheets.join(' · ') || '— tidak ada') + '</td><td>' + esc(a.t) + (a.info ? ' <small>(informasi)</small>' : '') + '</td><td class="n">' + a.n + '</td><td class="n">' + M2(a.v) + '</td></tr>'; }).join('') + '</table><div class="lp-s">baris material / produk dilewati otomatis · ' + L.skip + ' baris</div>' + (L.warn.length ? '<div class="note y">' + L.warn.map(esc).join('<br>') + '</div>' : '') : '') + '</div>' +
+      '<div class="lku-c"><div class="lku-ct">📗 Bapepam' + (P ? ' <span class="pill pg">terbaca</span>' : '') + '</div>' + drop('bp', 'Bapepam (.xlsx)', P, 'mis. 4C - BAPEPAM OKTOBER 2026_R1.xlsx') +
+      (P ? '<table class="lku-t"><tr><th>Tabel</th><th>Dipakai untuk</th><th class="n">Baris</th></tr>' + P.tbl.map(function (t) { return '<tr' + (t.ada ? '' : ' class="mut"') + '><td>' + esc(t.sh) + '</td><td>' + esc(t.ada ? t.t : 'tidak ditemukan') + '</td><td class="n">' + (t.n === undefined ? '–' : t.n) + '</td></tr>'; }).join('') + '</table>' : '') +
+      (beda ? '<div class="note err">Periode berbeda: LK ' + esc(tg(L.periode)) + ' · Bapepam ' + esc(tg(P.periode)) + '. Pilih file dengan periode yang sama.</div>' : '<div class="note y">Periode kedua file harus sama. Bapepam boleh menyusul — tanpa Bapepam, tagbrut tidak diisi.</div>') + '</div></div>' +
+      '<div class="lku-ft"><button class="btn" type="button" id="lkuX2">Batal</button><button class="btn primary" type="button" id="lkuNext"' + (L && !beda && !LKU.busy ? '' : ' disabled') + '>Lanjut · periksa &amp; cocokkan →</button></div>';
+  } else {
+    var V = LKU.pv;
+    if (!V) h += '<div class="lku-c"><div class="skel"><div class="pg"><span class="spin"></span>Mencocokkan dengan data aplikasi…</div></div></div>';
+    else if (!V.ok) h += '<div class="note err">' + esc(V.msg || 'Gagal membaca LK.') + '</div>';
+    else {
+      var T = V.tot, tabs = [['pel', '⚖ Rekonsiliasi AR vs LK', ''], ['sap', '🔢 No. dok SAP', V.suggest.length ? V.suggest.length + ' baru' : ''], ['tag', '📈 Tagbrut', V.tagNew.length ? V.tagNew.length + ' baru' : ''], ['ret', '🧾 Retensi', V.ret.length ? V.ret.length + ' beda' : ''], ['kls', '🏷 Klasifikasi pelanggan', V.kls.length ? V.kls.length + ' beda' : '']];
+      h += '<div class="lku-c"><div class="lku-tabs">' + tabs.map(function (t) { return '<button type="button" data-lkt="' + t[0] + '" class="' + (LKU.tab === t[0] ? 'on' : '') + '">' + t[1] + (t[2] ? ' <span class="pill pb">' + t[2] + '</span>' : '') + '</button>'; }).join('') + '</div>';
+      var k4 = function (a) { var sel = a.sis - a.lks; return '<div class="lku-k"><div><small>Saldo aplikasi</small><b>' + M2(a.sis) + '</b></div><div><small>Saldo LK</small><b>' + M2(a.lks) + '</b></div><div><small>Selisih</small><b class="' + (Math.abs(sel) > 1000 ? 'r' : 'g') + '">' + (Math.abs(sel) > 1000 ? M2(sel) : '✓ 0') + '</b></div><div><small>Dokumen cocok</small><b>' + a.ok + ' / ' + a.n + '</b></div></div>'; };
+      if (LKU.tab === 'pel') {
+        h += '<div class="lp-s" style="margin:6px 0">Piutang usaha</div>' + k4(T.pu) + '<div class="lp-s" style="margin:6px 0">Piutang PPN K</div>' + k4(T.ppn) +
+          '<table class="lku-t"><tr><th>Pelanggan</th><th class="n">Aplikasi</th><th class="n">LK</th><th class="n">Selisih</th><th>Kemungkinan sebab</th></tr>' + V.pel.map(function (x) { var ok = Math.abs(x.sel) <= 1000 && !x.bad.length;
+            return '<tr><td><b>' + esc(bgPelS(x.pelanggan)) + '</b></td><td class="n">' + nfDot(x.sis) + '</td><td class="n">' + nfDot(x.lks) + '</td><td class="n' + (ok ? '' : ' r') + '">' + nfDot(x.sel) + '</td><td>' + (ok ? '<span class="pill pg">cocok</span>' : x.bad.slice(0, 3).map(function (b) { return '<div class="lp-s">' + esc((b.nomor ? short(b.nomor) : 'dok ' + b.doc) + ': ' + b.ket) + '</div>'; }).join('') + (x.bad.length > 3 ? '<div class="lp-s">+ ' + (x.bad.length - 3) + ' dokumen lain</div>' : '')) + '</td></tr>'; }).join('') + '</table>';
+      } else if (LKU.tab === 'sap') h += '<p class="lp-s">Nomor dokumen SAP invoice (1800…) dari LK untuk invoice yang kolom NO. DOK SAP-nya masih kosong — cocok berdasarkan NPP &amp; nilai.' + (V.sapBeda ? ' ' + V.sapBeda + ' invoice sudah punya nomor berbeda — tidak diubah, cek di sheet Rekon SAP.' : '') + '</p>' + (V.suggest.length ? '<table class="lku-t"><tr><th>Invoice</th><th>NPP</th><th>Tanggal</th><th>No. dok SAP (LK)</th></tr>' + V.suggest.map(function (x) { return '<tr><td><b>' + esc(short(x.nomor)) + '</b></td><td>' + esc(x.npp) + '</td><td>' + esc(tg(x.tgl)) + '</td><td>' + esc(x.doc) + '</td></tr>'; }).join('') + '</table>' : '<div class="lp-empty">Tidak ada nomor dokumen baru.</div>');
+      else if (LKU.tab === 'tag') h += '<p class="lp-s">Pengakuan pendapatan bulan ' + esc(monEn(V.C.slice(0, 7))) + ' dari Bapepam tabel 4 yang belum ada di Input Tagbrut (proyek jasa saja).</p>' + (!P ? '<div class="note y">File Bapepam belum dipilih — tagbrut tidak diisi.</div>' : V.tagNew.length ? '<table class="lku-t"><tr><th>NPP</th><th>Pelanggan</th><th>Tanggal pengakuan</th><th class="n">Nilai</th><th>Proyek</th></tr>' + V.tagNew.map(function (x) { return '<tr><td><b>' + esc(x.npp) + '</b></td><td>' + esc(bgPelS(x.pelanggan)) + '</td><td>' + esc(tg(x.tgl)) + '</td><td class="n">' + nfDot(x.nilai) + '</td><td class="lp-s">' + esc(x.nama) + '</td></tr>'; }).join('') + '</table>' : '<div class="lp-empty">Tidak ada pengakuan baru untuk bulan ini (sudah tercatat semua).</div>');
+      else if (LKU.tab === 'ret') h += k4(T.ret) + (V.ret.length ? '<table class="lku-t"><tr><th>NPP</th><th class="n">Aplikasi</th><th class="n">LK</th><th class="n">Selisih</th></tr>' + V.ret.map(function (x) { return '<tr><td><b>' + esc(x.npp) + '</b></td><td class="n">' + nfDot(x.sis) + '</td><td class="n">' + nfDot(x.lks) + '</td><td class="n r">' + nfDot(x.sel) + '</td></tr>'; }).join('') + '</table>' : '<div class="lp-empty">✓ Retensi per NPP cocok.</div>');
+      else h += '<p class="lp-s">Klasifikasi pihak berelasi / pihak ketiga di MASTER NPP Bapepam dibanding Master Pelanggan aplikasi. Tidak diubah otomatis — perbaiki di Master Pelanggan bila perlu.</p>' + (V.kls.length ? '<table class="lku-t"><tr><th>NPP</th><th>Pelanggan</th><th>Aplikasi</th><th>Bapepam</th></tr>' + V.kls.map(function (x) { return '<tr><td>' + esc(x.npp) + '</td><td>' + esc(bgPelS(x.pelanggan)) + '</td><td>' + esc(x.app) + '</td><td><b>' + esc(x.bapepam) + '</b></td></tr>'; }).join('') + '</table>' : '<div class="lp-empty">✓ Klasifikasi sama.</div>');
+      h += '</div>';
+    }
+    h += '<div class="lku-ft"><button class="btn" type="button" id="lkuBack">← Kembali</button>' + (V && V.ok ? '<button class="btn primary" type="button" id="lkuSave"' + (LKU.busy ? ' disabled' : '') + '>' + (LKU.busy === 'save' ? '<span class="spin"></span>Menyimpan…' : 'Simpan · data LK' + (V.suggest.length ? ', ' + V.suggest.length + ' No. dok SAP' : '') + (V.tagNew.length ? ', ' + V.tagNew.length + ' tagbrut' : '')) + '</button>' : '') + '</div>';
+  }
+  w.innerHTML = h + '</div>';
+  var back = function () { LKU = null; closeLoad(CL.m, true); };
+  if ($('lkuX')) $('lkuX').onclick = back; if ($('lkuX2')) $('lkuX2').onclick = back;
+  w.querySelectorAll('[data-lkf]').forEach(function (i) { i.onchange = function () { lkuRead(i.dataset.lkf, i.files[0]); }; });
+  if ($('lkuNext')) $('lkuNext').onclick = function () { LKU.step = 2; LKU.pv = null; LKU.err = ''; lkuRender(); call('apiLkPreview', [lkuPayload()], function (r) { if (!LKU) return; LKU.pv = r; lkuRender(); }, function (e) { if (!LKU) return; LKU.step = 1; LKU.err = e.message || e; lkuRender(); }); };
+  if ($('lkuBack')) $('lkuBack').onclick = function () { LKU.step = 1; lkuRender(); };
+  w.querySelectorAll('[data-lkt]').forEach(function (b) { b.onclick = function () { LKU.tab = b.dataset.lkt; lkuRender(); }; });
+  if ($('lkuSave')) $('lkuSave').onclick = function () { LKU.busy = 'save'; lkuRender(); call('apiLkSave', [lkuPayload(), {}], function (r) { toast('Data LK ' + monEn(LKU.pv.C.slice(0, 7)) + ' tersimpan' + (r.sap ? ' · ' + r.sap + ' No. dok SAP diisi' : '') + (r.tag ? ' · ' + r.tag + ' tagbrut ditambahkan' : '') + '.'); LKU = null; CL.d = {}; refreshAll(function () { closeLoad(CL.m, true); }); }, function (e) { LKU.busy = ''; LKU.err = e.message || e; lkuRender(); }); };
+}
 function closeLoad(m, force) {
   if (!B) return; CL.m = m || CL.m || (+B.today.substring(8, 10) <= 10 ? E.prevMonthEnd(B.today).substring(0, 7) : B.today.substring(0, 7));
   var w = $('closeWrap'), my = ++CL.seq, d = CL.d[CL.m];
@@ -5392,7 +5503,7 @@ function closeRender(d) {
   var closed = d.steps.some(function (x) { return x.k === 'close' && x.st === 'g'; });
   var h = '<div class="cl"><div class="cl-hero"><div class="cl-ring" style="background:conic-gradient(#2EC4C4 0 ' + Math.round(pct * 100) + '%,rgba(255,255,255,.18) ' + Math.round(pct * 100) + '% 100%)"><div><b>' + d.ready + '/' + d.n + '</b><small>langkah siap</small></div></div>' +
     '<div class="cl-ht"><h2>Tutup Buku AR · ' + esc(monEn(d.ref)) + '</h2><p>Buktikan saldo piutang lengkap, akurat, tertagih dan sudah direkonsiliasi sebelum periode ditutup.<br>Pemeriksaan berjalan otomatis dari data · ' + 'pemeriksaan terakhir ' + (d._at ? ('0' + d._at.getHours()).slice(-2) + '.' + ('0' + d._at.getMinutes()).slice(-2) : '') + '</p>' +
-    '<div class="cl-tools"><select id="clMon" aria-label="Bulan tutup buku">' + opts + '</select><button class="btn" type="button" id="clRe">' + ico('cloud') + 'Jalankan ulang pemeriksaan</button><button class="btn" type="button" id="clPrint">' + ico('print') + 'Cetak checklist</button></div></div>' +
+    '<div class="cl-tools"><select id="clMon" aria-label="Bulan tutup buku">' + opts + '</select>' + (maker ? '<button class="btn primary" type="button" id="clLk">📥 Upload LK &amp; Bapepam</button>' : '') + '<button class="btn" type="button" id="clRe">' + ico('cloud') + 'Jalankan ulang pemeriksaan</button><button class="btn" type="button" id="clPrint">' + ico('print') + 'Cetak checklist</button></div></div>' +
     '<div class="cl-hk"><div><small>Total piutang</small><b>' + rpShort(R.total) + '</b></div><div><small>Lewat jatuh tempo</small><b>' + rpShort(R.overdue) + '</b></div><div><small>Langkah bermasalah</small><b>' + openN + '</b></div></div></div>';
   h += '<div class="cl-flow">' + d.steps.map(function (x) { return '<div class="' + x.st + '" data-clgo="' + x.k + '">' + esc((CL_ID[x.k] || x.t).replace(/ \(SAP\)| \/ ECL| & short payments| & adjustments| & kurang bayar| & penyesuaian/, '')) + '</div>'; }).join('') + '</div>';
   h += '<div class="cl-grid"><div class="cl-steps">' + d.steps.map(function (x, k) {
@@ -5411,6 +5522,7 @@ function closeRender(d) {
   w.innerHTML = h;
   $('clMon').onchange = function () { closeLoad(this.value); };
   $('clRe').onclick = function () { closeLoad(d.ref, true); };
+  if ($('clLk')) $('clLk').onclick = lkuOpen;
   $('clPrint').onclick = function () { printHtml(pgClosing(d)); };
   if ($('clClose')) $('clClose').onclick = function () { confirmDlg('Tutup buku ' + esc(monEn(d.ref)) + '?', 'Transaksi bertanggal s.d. ' + esc(tg(d.end)) + ' akan dikunci (koreksi memerlukan alasan dan izin Section Head). Cetak checklist dan tandatangani sebagai bukti.', 'Tutup periode', function () { periodeAksi('tutup', d.end, 'Checklist Tutup Buku AR ' + d.ready + '/' + d.n); delete CL.d[d.ref]; setTimeout(function () { closeLoad(d.ref, true); }, 1500); }); };
   w.querySelectorAll('[data-clgo]').forEach(function (b) { b.onclick = function () { var el = $('cl-' + b.dataset.clgo); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }; });

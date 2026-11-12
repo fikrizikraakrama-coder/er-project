@@ -1958,6 +1958,27 @@ var ENGINE = (function () {
     out.ret.forEach(function (r) { r.sel = r.sis - r.lks; r.ok = Math.abs(r.sel) <= TOL; });
     return (ctx._rekon = out);
   }
+  /** v2.13 pratinjau upload LK & Bapepam: ctx dihitung dengan input.lk dari file yang diupload.
+   *  ex = { tag: [{ npp, tgl, nilai, nama }] (Bapepam tabel 4), master: [{ npp, jenis }] (Bapepam MASTER NPP) } */
+  function lkPreview(ctx, ex) {
+    ex = ex || {}; var R = rekon(ctx), M = ctx.M, idx = {}; Object.keys(M.pro).forEach(function (k) { idx[nppKey(k)] = k; });
+    if (!R) return { ok: false, msg: 'Periode LK tidak terbaca.' };
+    var sum = function (L, f) { return rnd(sumBy(L, f)); }, tot = function (L) { return { sis: sum(L, function (r) { return r.sis; }), lks: sum(L, function (r) { return r.lks; }), n: L.length, ok: L.filter(function (r) { return r.ok; }).length }; };
+    var byPel = {}; R.pu.concat(R.ppn).forEach(function (r) { var lp = r.lk && idx[nppKey(r.lk.npp)], pel = r.inv ? r.inv.pelanggan : lp ? M.pro[lp].pelanggan : (r.lk && r.lk.pelanggan) || '—', x = byPel[pel] || (byPel[pel] = { pelanggan: pel, sis: 0, lks: 0, bad: [] }); x.sis += r.sis; x.lks += r.lks;
+      if (!r.ok) x.bad.push({ nomor: r.inv ? r.inv.nomor : '', doc: r.lk ? r.lk.doc : '', npp: r.inv ? r.inv.npp : (r.lk && r.lk.npp) || '', sis: rnd(r.sis), lks: rnd(r.lks), ket: r.ket }); });
+    var pel = Object.keys(byPel).map(function (k) { var x = byPel[k]; x.sis = rnd(x.sis); x.lks = rnd(x.lks); x.sel = rnd(x.sis - x.lks); return x; }).sort(function (a, b) { return Math.abs(b.sel) - Math.abs(a.sel) || (a.pelanggan < b.pelanggan ? -1 : 1); });
+    var ref = S(R.C).slice(0, 7), seed = D(ctx.params.TAGBRUT_SALDO_AWAL_PER) || '0000-00-00', tagNew = [], tagSkip = 0;
+    (ex.tag || []).forEach(function (t) { var k = idx[nppKey(t.npp)], tg = D(t.tgl), v = rnd(N(t.nilai)); if (!k || !tg || !v) { tagSkip++; return; }
+      if (tg.slice(0, 7) !== ref || tg <= seed) return;
+      if (ctx.tag.some(function (r) { return r.npp === k && r.tgl === tg && Math.abs(r.nilai - v) <= 1; })) return;
+      tagNew.push({ npp: k, tgl: tg, nilai: v, nama: S(t.nama), pelanggan: M.pro[k].pelanggan }); });
+    var kls = [], seen = {};
+    (ex.master || []).forEach(function (m) { var k = idx[nppKey(m.npp)]; if (!k || seen[k]) return; seen[k] = 1; var pr = M.pro[k], pl = M.pel[pr.pelanggan] || {}, bj = /BERELASI|INTERNAL/.test(U(m.jenis)) ? 'PIHAK BERELASI' : /KETIGA/.test(U(m.jenis)) ? 'PIHAK KETIGA' : '';
+      if (bj && U(pl.kelompok) && U(pl.kelompok) !== bj) kls.push({ npp: k, pelanggan: pr.pelanggan, app: U(pl.kelompok), bapepam: bj }); });
+    return { ok: true, C: R.C, tot: { pu: tot(R.pu), ppn: tot(R.ppn), ret: tot(R.ret) }, pel: pel.slice(0, 80), ret: R.ret.filter(function (r) { return !r.ok; }).slice(0, 60),
+      suggest: R.suggest.filter(function (x) { return !x.lama; }), sapBeda: R.suggest.filter(function (x) { return x.lama; }).length, tagNew: tagNew, tagSkip: tagSkip, kls: kls,
+      lk: { pu: ctx.lk.pu.length, ppn: ctx.lk.ppn.length, ret: ctx.lk.ret.length } };
+  }
   /** catatan rekon PPh: pelanggan memotong PPh dengan dasar berbeda (invoice sudah close) */
   function pphNotes(ctx) {
     var L = ctx.invs.filter(function (i) { return !i._batal && i._res.sel_pph; }).sort(function (a, b) { return a.tgl < b.tgl ? -1 : 1; });
@@ -3383,7 +3404,7 @@ var ENGINE = (function () {
     compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,
-    fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,
+    fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, lkPreview: lkPreview, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,
     readParams: readParams, buildMaster: buildMaster, signerFor: signerFor, tarifDefault: tarifDefault, pphLabel: pphLabel,
     terbilang: terbilang, toRoman: toRoman, retTxt: retTxt, normInv: normInv, nppValid: nppValid, nppKey: nppKey, npwp16: npwp16, D: D, N: N, S: S, U: U, rnd: rnd, flo: flo,
     monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,

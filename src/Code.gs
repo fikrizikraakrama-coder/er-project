@@ -607,6 +607,42 @@ function apiAddNote(npp, jenis, catatan, janji) { var a = arRequireMaker_();
   } finally { lock.releaseLock(); }
   return { ok: true, background: arQueueAfterSave_().background };
 }
+/** v2.13 upload LK & Bapepam — file dibaca di browser; server hanya menerima baris yang dipakai.
+ *  pl = { lk: { periode:'yyyy-mm-dd', pu:[[14]], ppn:[[15]], ret:[[13]] }, tag:[{npp,tgl,nilai,nama}], master:[{npp,jenis}], files:{lk,bp} } */
+function lkCheck_(pl) {
+  pl = pl || {}; var lk = pl.lk || {};
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(lk.periode || ''))) throw new Error('Periode LK tidak terbaca dari file.');
+  ['pu', 'ppn', 'ret'].forEach(function (k) { if (!Array.isArray(lk[k])) lk[k] = []; if (lk[k].length > 6000) throw new Error('Baris LK terlalu banyak (' + k + ').'); });
+  if (!lk.pu.length && !lk.ppn.length && !lk.ret.length) throw new Error('Sheet piutang usaha / PPN / retensi tidak ditemukan di file LK.');
+  pl.tag = Array.isArray(pl.tag) ? pl.tag.slice(0, 3000) : []; pl.master = Array.isArray(pl.master) ? pl.master.slice(0, 3000) : [];
+  return pl;
+}
+function lkCompute_(pl) { var input = readAll_(); input.lk = pl.lk; input.light = true; return ENGINE.compute(input); }
+function apiLkPreview(pl) { arRequireMaker_(); pl = lkCheck_(pl); var res = lkCompute_(pl); return plain_(ENGINE.lkPreview(res.ctx, pl)); }
+function apiLkSave(pl, opt) { var a = arRequireMaker_(); pl = lkCheck_(pl); opt = opt || {};
+  var lock = arLock_(), out = { sap: 0, tag: 0 }; lock.waitLock(28000);
+  try {
+    var res = lkCompute_(pl), pv = ENGINE.lkPreview(res.ctx, pl), ss = arSpreadsheet_(), dl = ss.getSheetByName('Data LK (Tempel)');
+    if (!dl) throw new Error('Sheet "Data LK (Tempel)" belum ada. Jalankan menu AR CSU ▸ Siapkan / perbaiki struktur sekali.');
+    var dt = function (v) { return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? dateAt_(+v.slice(0, 4), +v.slice(5, 7), +v.slice(8, 10)) : v === null || v === undefined ? '' : v; };
+    var put = function (col, w, rows) { if (!rows.length) return; var R = rows.map(function (r) { var o = []; for (var j = 0; j < w; j++) o.push(dt(r[j])); return o; }); if (8 + R.length > dl.getMaxRows()) dl.insertRowsAfter(dl.getMaxRows(), 8 + R.length - dl.getMaxRows() + 20); dl.getRange(8, col, R.length, w).setValues(R); };
+    var last = Math.max(dl.getLastRow(), 8); if (last >= 8) dl.getRange(8, 1, last - 7, Math.max(dl.getLastColumn(), 45)).clearContent();
+    dl.getRange('C4').setNumberFormat('dd/mm/yyyy').setValue(dt(pl.lk.periode));
+    put(1, 14, pl.lk.pu); put(17, 15, pl.lk.ppn); put(33, 13, pl.lk.ret);
+    try { dl.getRange('E4').setValue('Diupload dari aplikasi ' + Utilities.formatDate(new Date(), TZ, 'dd-MM-yyyy HH:mm') + ' oleh ' + a.email + (pl.files && pl.files.lk ? ' · ' + String(pl.files.lk).slice(0, 80) : '')); } catch (e) { }
+    if (opt.sap !== false && pv.ok) {
+      var mi = sheet_('Monitoring Invoice'), mm = colMap_(mi, ENGINE.REG, ENGINE.REG_ALIAS);
+      if (mm.sap_doc) pv.suggest.forEach(function (x) { var r = findRegisterRow_(mi, x.nomor, mm); if (r && !String(mi.getRange(r, mm.sap_doc).getDisplayValue()).trim()) { mi.getRange(r, mm.sap_doc).setNumberFormat('@').setValue(x.doc); out.sap++; } });
+    }
+    if (opt.tag !== false && pv.ok && pv.tagNew.length) {
+      var it = sheet_('Input Tagbrut'), tm = colMap_(it, ENGINE.TAG), t = lastDataRow_(it, ENGINE.TAG.firstRow, [tm.npp, tm.nilai]) + 1;
+      pv.tagNew.forEach(function (x) { roomFor_(it, t); it.getRange(t, tm.npp).setNumberFormat('@').setValue(x.npp); if (tm.tgl) it.getRange(t, tm.tgl).setNumberFormat('dd/mm/yyyy').setValue(dt(x.tgl)); it.getRange(t, tm.nilai).setValue(x.nilai);
+        if (tm.sumber) it.getRange(t, tm.sumber).setValue('BAPEPAM ' + String(pl.lk.periode).slice(0, 7)); if (tm.ket) it.getRange(t, tm.ket).setNumberFormat('@').setValue(String(x.nama || '').slice(0, 200)); t++; out.tag++; });
+    }
+    arMarkDirty_();
+  } finally { lock.releaseLock(); }
+  out.background = arQueueAfterSave_().background; out.ok = true; return out;
+}
 function setRegisterValue_(nomor, key, value) {
   var sh = sheet_('Monitoring Invoice'), map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
   var row = findRegisterRow_(sh, nomor, map);
