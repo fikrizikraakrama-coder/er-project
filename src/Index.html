@@ -66,7 +66,7 @@ main{display:flex;flex-direction:column;min-width:0}
 .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:#EEF1F5;color:var(--steel);white-space:nowrap}
 .pill.l{background:var(--green-bg);color:#14532D}.pill.o{background:var(--red-bg);color:var(--red)}.pill.c{background:var(--amber-bg);color:#5C3D00}
 .empty{color:var(--steel);text-align:center;padding:40px}
-#toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;max-width:420px;z-index:9}
+#toast{position:fixed;right:18px;bottom:18px;background:var(--ink);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(8px);transition:.2s;max-width:420px;z-index:9;pointer-events:none}
 #toast.show{opacity:1;transform:none}
 dialog{border:0;border-radius:10px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,.25);max-width:520px}
 dialog .dbody{padding:18px 20px}
@@ -112,7 +112,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .surat .sb{position:absolute;left:22mm;right:20mm;top:31mm;bottom:21.5mm;overflow:hidden}
 .surat p{margin:0 0 2mm;text-align:justify}
 .surat .hd{width:100%;border-collapse:collapse}.surat .hd td{padding:0 1.5mm 1mm 0;vertical-align:top}
-.surat .kp{margin-top:3mm}.surat .kp p{margin:0;text-align:left}
+.surat .kp{margin-top:3mm;display:block;height:auto;min-height:0;font-size:inherit;color:inherit}.surat .kp p{margin:0;text-align:left}
 .surat .ph{font-weight:700;margin:3mm 0;text-align:left}
 .surat table.st{width:100%;border-collapse:collapse;table-layout:fixed;font-size:8.3pt;margin:1mm 0 2.5mm}
 .surat table.st th,.surat table.st td{border:.6pt solid #333;padding:.9mm 1.2mm;vertical-align:middle;overflow-wrap:anywhere}
@@ -188,12 +188,12 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 /* dokumen internal (mengalir, bisa lebih dari satu halaman) */
 .pg-flow{width:210mm;min-height:297mm;padding:13mm 14mm 14mm;font-family:Arial,Helvetica,"Liberation Sans",sans-serif;font-size:8.6pt;line-height:1.35;overflow:visible!important}
 .pg-flow.land{width:297mm;min-height:210mm;padding:11mm 12mm 12mm}
-.pg-flow .dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1F3864;padding-bottom:2.2mm;margin-bottom:3.5mm}
+.pg-flow .dh{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1F3864;padding-bottom:2mm;margin-bottom:2.8mm}
 .pg-flow .dh .co{font-weight:700;color:#1F3864;font-size:9pt;letter-spacing:.2px}
 .pg-flow .dh .co span{display:block;font-weight:400;color:#4A5A72;font-size:7.6pt}
 .pg-flow .dh .no{font-size:7.6pt;color:#4A5A72;text-align:right}
 .pg-flow h2{font-size:12.5pt;margin:0 0 1mm;color:#1F3864;letter-spacing:.3px}
-.pg-flow h3{font-size:9.6pt;margin:4.5mm 0 1.6mm;color:#1F3864}
+.pg-flow h3{font-size:9.6pt;margin:3.4mm 0 1.4mm;color:#1F3864}
 .pg-flow .sub{color:#4A5A72;margin:0 0 3mm}
 .pg-flow table.t{width:100%;border-collapse:collapse;font-size:8pt}
 .pg-flow table.t th{background:#1F3864;color:#fff;font-weight:700;padding:1.4mm 1.2mm;border:.3pt solid #8EA0BC;text-align:center;vertical-align:middle;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -207,8 +207,8 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.kv td.k{color:#4A5A72;white-space:nowrap}
 .pg-flow table.kv td.v{font-weight:700}
 .pg-flow .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2mm 8mm}
-.pg-flow .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:2mm;margin:2mm 0 3mm}
-.pg-flow .kpis div{border:.4pt solid #BFC8D4;border-radius:1.4mm;padding:1.6mm 2mm;background:#FFF8E1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pg-flow .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:2mm;margin:1.6mm 0 2mm}
+.pg-flow .kpis div{border:.4pt solid #BFC8D4;border-radius:1.4mm;padding:1.2mm 2mm;background:#FFF8E1;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pg-flow .kpis b{display:block;font-size:9.6pt;color:#1F3864;font-variant-numeric:tabular-nums}
 .pg-flow .kpis span{font-size:7pt;color:#4A5A72;text-transform:uppercase}
 .pg-flow .warn{border-left:2.2mm solid #9C6500;background:#FFF4D6;padding:1.6mm 2.4mm;margin:2mm 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -246,6 +246,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow .stamp.bad{border-color:#B42318;color:#B42318;background:#FDECEA}
 .pg-flow .stamp.wait{border-color:#9C6500;color:#5C3D00;background:#FFF4D6}
 .pg-flow .foot{margin-top:5mm;font-size:6.8pt;color:#7A889C;border-top:.3pt solid #BFC8D4;padding-top:1.4mm}
+.pg-flow.land .foot{margin-top:2.5mm}.pg-flow.land table.kv td{padding:.45mm 2mm .45mm 0}.pg-flow.land .sub{margin-bottom:2mm}
 /* v2.2: pembayaran multi-invoice, pindah buku, tanda tangan kartu */
 .seg{display:flex;gap:0;margin:0 0 12px;border:1px solid var(--blue);border-radius:7px;overflow:hidden}
 .seg button{flex:1;border:0;background:#fff;color:var(--blue-d);font:inherit;font-weight:600;padding:7px 6px;cursor:pointer}
@@ -260,10 +261,10 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.t tr.baru td{background:#FFF4D6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .pg-flow table.t tr.pb td{font-style:italic}
 .pg-flow table.t tr.sisa td{font-style:italic;font-weight:700;border-bottom:.8pt solid #8EA0BC}
-.pg-flow .ksign{margin-top:3mm;break-inside:avoid;page-break-inside:avoid;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 24mm;font-size:8pt}
+.pg-flow .ksign{margin-top:2mm;break-inside:avoid;page-break-inside:avoid;display:grid;grid-template-columns:1fr 1fr;gap:1.5mm 24mm;font-size:8pt}
 .pg-flow .ksign .kt{grid-column:2;text-align:left}
 .pg-flow .ksign .col{display:flex;flex-direction:column;min-height:22mm}
-.pg-flow .ksign .sp{flex:1;min-height:12mm;display:flex;align-items:center}
+.pg-flow .ksign .sp{flex:1;min-height:10.5mm;display:flex;align-items:center}
 .pg-flow table.t tr.ktail td{border:0!important;padding:0;background:#fff;font-style:normal;font-weight:400}
 /* v2.8.7: kartu piutang ringkas — huruf & jarak baris lebih kecil, kolom Keterangan lebih lebar agar tidak terlipat 3 baris */
 .pg-flow table.t.km{font-size:7.2pt;line-height:1.22}
@@ -279,7 +280,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-flow table.t thead{display:table-header-group}
 .pg-flow table.t tbody.grp{break-inside:avoid;page-break-inside:avoid}
 .pg-flow h3{break-after:avoid;page-break-after:avoid}
-@page flowL{size:A4 landscape;margin:10mm 11mm 13mm;@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:7pt Arial,sans-serif;color:#7A889C}@bottom-left{content:"Sistem AR CSU · Concrete Services Unit · PT Wijaya Karya Beton Tbk";font:7pt Arial,sans-serif;color:#7A889C}}
+@page flowL{size:A4 landscape;margin:7mm 11mm 10mm;@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:7pt Arial,sans-serif;color:#7A889C}@bottom-left{content:"Sistem AR CSU · Concrete Services Unit · PT Wijaya Karya Beton Tbk";font:7pt Arial,sans-serif;color:#7A889C}}
 @page flowP{size:A4 portrait;margin:12mm 12mm 14mm;@bottom-right{content:"Halaman " counter(page) " dari " counter(pages);font:7pt Arial,sans-serif;color:#7A889C}@bottom-left{content:"Sistem AR CSU · Concrete Services Unit · PT Wijaya Karya Beton Tbk";font:7pt Arial,sans-serif;color:#7A889C}}
 @media print{
   #print-root .pg-flow{break-inside:auto;page-break-inside:auto;height:auto!important;min-height:0;padding:0!important;width:auto!important}
@@ -416,7 +417,7 @@ aside .brand,#accessBadge{display:none!important}
 .ap-row .l{flex:1;min-width:0}.ap-row .id{font-weight:700;font-size:12.6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ap-row .m{font-size:11.2px;color:#6B7A90;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ap-row .why{font-size:11px;color:#A3241A;margin-top:1px}
 .age{font-size:10px;font-weight:700;border-radius:8px;padding:0 6px;white-space:nowrap}.age.o{background:#FFF3DA;color:#8A5A00}.age.n{background:#EEF2F6;color:#56677D}.age.r{background:#FDECEA;color:#A3241A}
-.ap-row .rp{text-align:right;font-weight:700;font-size:12.4px;white-space:nowrap}.ap-row .rp small{display:block;font-weight:500;color:#8794A6;font-size:10.5px}
+.ap-row .rp{text-align:right;font-weight:700;font-size:12.4px;white-space:nowrap;padding:0;margin:0;max-width:none;color:inherit}.ap-row .rp small{display:block;font-weight:500;color:#8794A6;font-size:10.5px}
 .mini{border:0;border-radius:7px;padding:6px 10px;font:inherit;font-size:11.5px;font-weight:700;white-space:nowrap;background:#0F6E78;color:#fff;cursor:pointer;flex:none}.mini.g{background:#fff;color:#0F6E78;border:1.5px solid #B8E0E3}.mini.r{background:#B42318}
 .ap-more{font-size:12px;color:#0F6E78;font-weight:600;margin:10px 2px;cursor:pointer;background:none;border:0;padding:0}
 .ap-empty{font-size:12px;color:#6B7A90;background:#F6F8FB;border-radius:8px;padding:10px 12px;margin:6px 0}
@@ -1780,6 +1781,9 @@ function pctf(x) { return ((Number(x) || 0) * 100).toFixed(2) + '%'; }
 function num(v) { if (typeof v === 'number') return v; var s = String(v || '').trim(); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function tglIndo(s, pad2) { if (!s) return ''; var p = s.split('-'); var d = +p[2]; return (pad2 && d < 10 ? '0' + d : d) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0]; }
+/** v2.15 alamat dari Master Pelanggan yang ditulis KAPITAL semua dirapikan untuk surat (RT/RW/DKI/PT tetap kapital) */
+function alamatRapi(s) { s = String(s || '').trim(); if (!/[A-Z]{3}/.test(s) || s !== s.toUpperCase()) return s;
+  return titleCase(s).replace(/\b(Rt|Rw|Dki|Diy|Cv|Ud|Ntb|Ntt)\b/g, function (x) { return x.toUpperCase(); }).replace(/\bNo\b\.?/g, 'No.').replace(/\bKav\b\.?/g, 'Kav.').replace(/\bJl\b\.?/g, 'Jl.'); }
 function titleCase(s) { return String(s || '').toLowerCase().replace(/\b([a-z])/g, function (m) { return m.toUpperCase(); }).replace(/\bPt\b/g, 'PT').replace(/\bTbk\b/g, 'Tbk').replace(/\bKso\b/g, 'KSO'); }
 function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function () { t.classList.remove('show'); }, 4200); }
 /** v2.8.6: pengajuan, keputusan & draf usulan langsung selesai — laporan diperbarui di latar belakang */
@@ -2731,7 +2735,7 @@ function openSurat(pel) {
     var anyDue = false; d.projects.forEach(function (p) { p.invoices.forEach(function (i) { if (i.stage.due && i.stage.ke <= 3) anyDue = true; }); });
     d.projects.forEach(function (p) { p.invoices.forEach(function (i) { SR.pick[i.nomor] = !anyDue || (i.stage.due && i.stage.ke <= 3); }); });
     $('srNo').value = ''; $('srTgl').value = B.today; $('srTg').value = ''; $('srTgD').value = ''; $('srTgD').disabled = true;
-    $('srKepada').value = ['Direksi', titleCase(d.nama)].concat(d.alamat).join('\n');
+    $('srKepada').value = ['Direksi', titleCase(d.nama)].concat((d.alamat || []).map(alamatRapi)).join('\n');
     $('srKontak').value = kontak || (mk ? mk.nama + ' (' + (mk.jabatan || 'AR Officer') + '), email … / telp …' : '');
     $('srInv').innerHTML = d.projects.map(function (p) {
       return '<div style="margin:4px 0 2px;font-weight:600;font-size:12px">' + esc(p.npp) + ' · ' + esc(p.pekerjaan || p.singkat) + '</div>' + p.invoices.map(function (i) {
@@ -2868,7 +2872,7 @@ function srBlocksLampiran(o) {
   L.push({ h: '<p class="sec">A. Rincian nilai invoice (Rp)</p>', next: true });
   // lebar kolom (mm, total 168) cukup untuk angka miliaran; nomor invoice & faktur boleh dua baris.
   // Tanpa kolom PPh: tagihan resmi = DPP + PPN; PPh dipotong pelanggan & dibuktikan dengan bukti potong (diminta di isi surat)
-  L.push({ t: { cls: 'st lt', head: '<tr><th style="width:7mm">No</th><th style="width:28mm">Nomor Invoice</th><th style="width:22mm">No. Faktur Pajak</th><th style="width:22mm">DPP</th><th style="width:20mm">PPN</th><th style="width:23mm">Nilai Tagihan</th><th style="width:22mm">Sudah Diterima</th><th style="width:24mm">Sisa Tagihan</th></tr>', rows: A } });
+  L.push({ t: { cls: 'st lt', head: '<tr><th style="width:7mm">No</th><th style="width:36mm">Nomor Invoice</th><th style="width:26mm">No. Faktur Pajak</th><th style="width:20mm">DPP</th><th style="width:17mm">PPN</th><th style="width:21mm">Nilai Tagihan</th><th style="width:19mm">Sudah Diterima</th><th style="width:22mm">Sisa Tagihan</th></tr>', rows: A } });
   L.push({ h: '<p class="nt">Nilai tagihan = DPP + PPN' + (o.all.some(function (i) { return i.ret > 0; }) ? ' − retensi yang ditahan' : '') + ', sesuai invoice dan faktur pajak. Sisa tagihan = nilai tagihan − pembayaran yang sudah kami terima.</p>' });
   L.push({ h: '<p class="sec">B. Riwayat dokumen &amp; jatuh tempo</p>', next: true });
   L.push({ t: { cls: 'st lt', head: '<tr><th style="width:8mm">No</th><th style="width:36mm">Nomor Invoice</th><th>Tgl Invoice</th><th>Tgl ' + (o.all.some(function (i) { return i.basisTT; }) ? 'Tanda Terima' : 'Diterima Pelanggan') + '</th><th>TOP (hari)</th><th>Jatuh Tempo</th><th>Lewat JT (hari)</th></tr>', rows: Bt } });
@@ -2934,7 +2938,7 @@ function srPreview() {
   w.innerHTML = '<div class="stackwrap">' + r.html + '</div>'; fitZoom();
   $('srStatus').textContent = r.n + ' halaman (surat + lampiran).';
 }
-function srPrint() { var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
+function srPrint() { if (/…|\.\.\./.test($('srKontak').value)) toast('Kontak untuk bukti transfer masih berisi “…” — lengkapi email / telepon sebelum dikirim.'); var h = srHtml(); if (!h) return; $('print-root').innerHTML = h; setTimeout(function () { window.print(); }, 60); }
 function srSave(alasan) {
   var o = srState(); if (!o || !o.all.length) return;
   if (o.mode !== 'baru' && !alasan) {
@@ -3208,8 +3212,8 @@ function kartuTable(k, tail) {
       rows += '<tr' + cls + '><td>' + tg(r.tgl) + '</td><td>' + ur + '</td><td>' + esc(r.ref) + '</td><td>' + esc(r.sap) + '</td>' +
         '<td class="n">' + z(r.debit) + '</td><td class="n">' + z(r.kredit) + '</td><td class="n">' + (r.kind === 'sisa' ? nd(r.saldo) : '') + '</td><td>' + kt + '</td></tr>';
     });
-    if (tail !== undefined && gi === ng - 1) rows += tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr>';
     body += '<tbody class="grp">' + rows + '</tbody>';
+    if (tail !== undefined && gi === ng - 1) body += '<tbody class="grp">' + tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr></tbody>';
   });
   if (tail !== undefined && !ng) body = '<tbody class="grp">' + tot + '<tr class="ktail"><td colspan="8">' + note + tail + '</td></tr></tbody>';
   if (tail !== undefined) return '<table class="t km kmb">' + kartuHead() + body + '</table>';
@@ -3314,8 +3318,18 @@ function loadPdfJs() {
   }));
 }
 /** berkas {b64, mime} → daftar gambar halaman (data URL); PDF dirender per halaman (maks 8) */
+/** v2.15 lampiran diperkecil ke ±150 dpi A4 (lebar maks. 1240 px, JPEG) — foto/scan resolusi tinggi membuat cetak sangat lambat */
+var ATT_W = 1240;
+function attShrink(src) {
+  return new Promise(function (ok) {
+    var im = new Image();
+    im.onload = function () { try { var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, ATT_W / Math.max(1, w)); if (k >= 1 && src.length < 900000) return ok(src);
+      var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k); var cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82)); } catch (e) { ok(src); } };
+    im.onerror = function () { ok(src); }; im.src = src;
+  });
+}
 function attImgs(f) {
-  if (/^image\//.test(f.mime)) return Promise.resolve(['data:' + f.mime + ';base64,' + f.b64]);
+  if (/^image\//.test(f.mime)) return attShrink('data:' + f.mime + ';base64,' + f.b64).then(function (u) { return [u]; });
   return loadPdfJs().then(function (L) {
     var raw = atob(f.b64), u = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) u[i] = raw.charCodeAt(i);
     return L.getDocument({ data: u }).promise.then(function (doc) {
@@ -3323,9 +3337,9 @@ function attImgs(f) {
       var next = function () {
         if (k > n) return out;
         return doc.getPage(k++).then(function (pg) {
-          var v0 = pg.getViewport({ scale: 1 }), v = pg.getViewport({ scale: Math.min(2.2, 1500 / v0.width) }), c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
+          var v0 = pg.getViewport({ scale: 1 }), v = pg.getViewport({ scale: Math.min(2, ATT_W / v0.width) }), c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
           var cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
-          return pg.render({ canvasContext: cx, viewport: v }).promise.then(function () { out.push(c.toDataURL('image/jpeg', 0.85)); return next(); });
+          return pg.render({ canvasContext: cx, viewport: v }).promise.then(function () { out.push(c.toDataURL('image/jpeg', 0.82)); c.width = c.height = 0; return next(); });
         });
       };
       return next();
