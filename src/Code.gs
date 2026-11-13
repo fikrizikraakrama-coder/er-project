@@ -1595,12 +1595,25 @@ function apiDocFile(nomor, kind) { arRequireAccess_();
     while (it.hasNext()) { var f1 = it.next(); if (String(f1.getName()).indexOf(fn.prefix) === 0 && (!best || f1.getDateCreated() > best.getDateCreated())) best = f1; }
     if (best) { id = best.getId(); url = best.getUrl(); how = 'folder'; }
   } catch (e) { }
+  // v2.15 sel berisi NAMA file (mis. chip file Drive "INV_4C.0194.26" — chip tidak terbaca sebagai tautan): cari file di Drive menurut nama / nomor invoice
+  if (!id) try { var hit = docFindByName_(inv, kind, String(inv[col] || '')); if (hit) { id = hit.getId(); url = hit.getUrl(); how = 'nama'; } } catch (e) { }
   if (!id) return url || String(inv[col] || '') ? { none: true, reason: 'Isi kolom ' + (kind === 'FP' ? 'FAKTUR PAJAK (PDF)' : 'BERKAS TAGIHAN (TTD)') + ' di Monitoring Invoice bukan tautan file Drive ("' + String(inv[col]).substring(0, 60) + '"). Upload ulang lewat tombol Ganti.' } : { none: true };
   var f; try { f = DriveApp.getFileById(id); } catch (e) { throw new Error('Berkas tidak bisa dibuka akun ini (belum dibagikan atau sudah dihapus): ' + url); }
   var b = f.getBlob(), mime = b.getContentType() || '';
   if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Berkas bukan PDF atau gambar.');
   if (f.getSize() > 15 * 1024 * 1024) throw new Error('Berkas lebih dari 15 MB.');
   return { b64: Utilities.base64Encode(b.getBytes()), mime: mime, name: f.getName(), url: url, via: how };
+}
+/** cari berkas invoice ber-TTD / faktur pajak di Drive: (1) nama persis sesuai isi sel, (2) nama mengandung "4C.0194.26" / "4C.0194" (FP: harus memuat FP/faktur; INV: tidak). PDF / gambar terbaru. */
+function docFindByName_(inv, kind, cell) {
+  var isFp = kind === 'FP', ok = function (f) { var mt = String(f.getMimeType() || ''), n = String(f.getName() || ''); return /^(application\/pdf|image\/)/.test(mt) && (isFp ? /(^|[^A-Z])FP([^A-Z]|$)|FAKTUR/i.test(n) : !/(^|[^A-Z])FP([^A-Z]|$)|FAKTUR/i.test(n)); };
+  var L = [], seen = {}, add = function (it) { while (it.hasNext() && L.length < 40) { var f = it.next(); if (!seen[f.getId()] && !f.isTrashed() && ok(f)) { seen[f.getId()] = 1; L.push(f); } } };
+  var nm = String(cell || '').trim().replace(/["\\]/g, '');
+  if (nm && !/^https?:/i.test(nm) && nm.length <= 120) [nm, nm + '.pdf', nm + '.PDF', nm + '.jpg', nm + '.jpeg', nm + '.png'].forEach(function (n) { add(DriveApp.getFilesByName(n)); });
+  if (!L.length) { var m = String(inv.nomor).match(/4C\.(\d{4}[A-Z]?)\/(\d{4})/);
+    if (m) ['4C.' + m[1] + '.' + m[2].substring(2), '4C.' + m[1] + '/' + m[2], '4C_' + m[1] + '_' + m[2].substring(2)].forEach(function (k) { if (!L.length) add(DriveApp.searchFiles('title contains "' + k + '" and trashed = false')); }); }
+  L.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+  return L[0] || null;
 }
 function apiFileDoc(nomor, kind, m) {
   arRequireMaker_(); m = m || {};

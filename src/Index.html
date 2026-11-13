@@ -7169,13 +7169,14 @@ function dfOpen(nomor) {
 }
 function dfRender() {
   var i = invBy(DF.nomor), s = dfState(i), f = DF.fp, h = '<h3>' + ico('fold') + 'Berkas tagihan &amp; faktur pajak</h3><div class="dsub">4C.' + esc(short(i.nomor)) + ' · ' + esc(titleCaseS(i.pelanggan)) + ' · ' + esc(i.invke || '') + ' · Rp ' + nfDot(i.total) + '</div>';
-  var link = function (u) { return u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">Lihat file</a>' : ''; };
+  // v2.15 sel berisi nama file (bukan tautan): "Lihat file" mencari berkasnya di Drive lewat server
+  var link = function (u, kd) { return !u ? '' : /^https?:\/\//i.test(u) ? '<a href="' + esc(u) + '" target="_blank" rel="noopener">Lihat file</a>' : '<a href="#" data-dfview="' + kd + '" title="Di sheet hanya tercatat nama file &quot;' + esc(u) + '&quot; — dicari di Drive">Lihat file</a>'; };
   h += '<div class="df-slot' + (s.pack ? ' ok' : '') + '"><h4>' + (s.pack ? '✓ ' : '') + 'Berkas tagihan ber-TTD basah</h4><div class="hint">Invoice, kwitansi, BAP & berita acara pembayaran setelah ditandatangani — PDF hasil scan (atau JPG/PNG), maks. 10 MB</div>' +
-    '<div class="row-a">' + link(i.link_inv) + '<input type="file" id="dfPack" accept="application/pdf,image/jpeg,image/png"><button type="button" class="df-pick" data-dfp="dfPack"' + (DF.busy ? ' disabled' : '') + '>' + (s.pack ? 'Ganti' : 'Lampirkan PDF') + '</button></div>' +
+    '<div class="row-a">' + link(i.link_inv, 'INV') + '<input type="file" id="dfPack" accept="application/pdf,image/jpeg,image/png"><button type="button" class="df-pick" data-dfp="dfPack"' + (DF.busy ? ' disabled' : '') + '>' + (s.pack ? 'Ganti' : 'Lampirkan PDF') + '</button></div>' +
     '<div class="df-st" id="dfMsgPACK">' + (DF.msg.PACK || '') + '</div></div>';
   if (s.needFp || i.link_fp) {
     h += '<div class="df-slot' + (i.link_fp ? ' ok' : '') + '"><h4>' + (i.link_fp ? '✓ ' : '') + 'Faktur pajak (e-Faktur)</h4><div class="hint">PDF yang diunduh dari Coretax — nomor & tanggal dibaca otomatis dan dicocokkan dengan invoice</div>' +
-      '<div class="row-a">' + link(i.link_fp) + (i.no_fp ? '<span style="font-size:12px">No. ' + esc(i.no_fp) + (i.tgl_fp ? ' · ' + tg(i.tgl_fp) : '') + '</span>' : '') + '<input type="file" id="dfFp" accept="application/pdf"><button type="button" class="df-pick" data-dfp="dfFp"' + (DF.busy ? ' disabled' : '') + '>' + (i.link_fp ? 'Ganti' : 'Lampirkan PDF') + '</button></div>';
+      '<div class="row-a">' + link(i.link_fp, 'FP') + (i.no_fp ? '<span style="font-size:12px">No. ' + esc(i.no_fp) + (i.tgl_fp ? ' · ' + tg(i.tgl_fp) : '') + '</span>' : '') + '<input type="file" id="dfFp" accept="application/pdf"><button type="button" class="df-pick" data-dfp="dfFp"' + (DF.busy ? ' disabled' : '') + '>' + (i.link_fp ? 'Ganti' : 'Lampirkan PDF') + '</button></div>';
     if (f) {
       var ok = function (b) { return b ? '<span class="df-ok">✓</span>' : '<span class="df-bad">✗ berbeda</span>'; }, refOk = !f.ref || E.normInv(String(f.ref).split(/\s+-\s+/)[0]) === E.normInv(i.nomor);
       h += '<table class="df-t"><tr><td>No. faktur pajak</td><td><input id="dfNo" value="' + esc(f.no || '') + '" inputmode="numeric" placeholder="17 digit"></td><td>' + (f.no ? '<span class="df-ok">terbaca dari PDF</span>' : '<span class="df-wt">ketik manual</span>') + '</td></tr>' +
@@ -7193,6 +7194,9 @@ function dfRender() {
   h += '<div class="hint" style="font-size:11.5px;color:#6B7A90">File disimpan di folder arsip ▸ Berkas Tagihan &amp; Faktur Pajak ▸ ' + esc(String(i.tgl).substring(0, 4)) + ' dan otomatis diberi nama (mis. <i>4C.' + esc(short(i.nomor).replace(/\/(\d{2})(\d{2})$/, '.$2')) + ' - INV …</i>). Tautannya muncul di Monitoring Invoice, Rekap Invoice Keluar dan file Pajak.</div>';
   $('dfBody').innerHTML = h;
   $('dfBody').querySelectorAll('[data-dfp]').forEach(function (b) { b.onclick = function () { $(b.dataset.dfp).click(); }; });
+  $('dfBody').querySelectorAll('[data-dfview]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); var w = window.open('', '_blank'), kd = a.dataset.dfview; a.textContent = 'Mencari…';
+    call('apiDocFile', [DF.nomor, kd], function (f) { a.textContent = 'Lihat file'; if (f && f.url) { if (w) w.location.href = f.url; else window.open(f.url, '_blank'); } else { if (w) w.close(); toast((f && f.reason) || 'Berkas tidak ditemukan di Drive — upload ulang lewat tombol Ganti.'); } },
+      function (er) { a.textContent = 'Lihat file'; if (w) w.close(); toast(er.message || er); }); }; });
   if ($('dfPack')) $('dfPack').onchange = function () { var fl = this.files[0]; if (fl) dfUpload('PACK', fl, null); };
   if ($('dfFp')) $('dfFp').onchange = function () { var fl = this.files[0]; if (fl) dfReadFp(fl); };
   if ($('dfFpGo')) $('dfFpGo').onclick = function () { var fp = Object.assign({}, DF.fp, { no: ($('dfNo').value || '').replace(/\D/g, ''), tgl: $('dfTgl').value }); if (fp.no && !/^\d{16,17}$/.test(fp.no)) { DF.msg.FP = '<span class="df-bad">No. faktur pajak harus 16–17 digit.</span>'; dfRender(); return; } dfUpload('FP', DF.fpFile, fp); };
