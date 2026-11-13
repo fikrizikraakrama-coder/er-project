@@ -3320,11 +3320,19 @@ function loadPdfJs() {
 /** berkas {b64, mime} → daftar gambar halaman (data URL); PDF dirender per halaman (maks 8) */
 /** v2.15 lampiran diperkecil ke ±150 dpi A4 (lebar maks. 1240 px, JPEG) — foto/scan resolusi tinggi membuat cetak sangat lambat */
 var ATT_W = 1240;
+/** v2.15 lampiran dicetak hitam-putih bersih: latar abu-abu / kuning hasil scan/foto dijadikan putih, tulisan dipertegas —
+ *  printer inkjet tidak lagi menyemprot tinta di seluruh halaman (cetak jauh lebih cepat & hemat tinta) */
+function attClean(c) {
+  try { var cx = c.getContext('2d'), d = cx.getImageData(0, 0, c.width, c.height), a = d.data, lo = 60, hi = 200, k = 255 / (hi - lo);
+    for (var i = 0; i < a.length; i += 4) { var L = 0.299 * a[i] + 0.587 * a[i + 1] + 0.114 * a[i + 2], v = L <= lo ? 0 : L >= hi ? 255 : (L - lo) * k; a[i] = a[i + 1] = a[i + 2] = v; }
+    cx.putImageData(d, 0, 0); } catch (e) { }
+  return c;
+}
 function attShrink(src) {
   return new Promise(function (ok) {
     var im = new Image();
-    im.onload = function () { try { var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, ATT_W / Math.max(1, w)); if (k >= 1 && src.length < 900000) return ok(src);
-      var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k); var cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82)); } catch (e) { ok(src); } };
+    im.onload = function () { try { var w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, ATT_W / Math.max(1, w)); 
+      var c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k); var cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height); cx.drawImage(im, 0, 0, c.width, c.height); attClean(c); ok(c.toDataURL('image/jpeg', 0.82)); } catch (e) { ok(src); } };
     im.onerror = function () { ok(src); }; im.src = src;
   });
 }
@@ -3339,7 +3347,7 @@ function attImgs(f) {
         return doc.getPage(k++).then(function (pg) {
           var v0 = pg.getViewport({ scale: 1 }), v = pg.getViewport({ scale: Math.min(2, ATT_W / v0.width) }), c = document.createElement('canvas'); c.width = Math.round(v.width); c.height = Math.round(v.height);
           var cx = c.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
-          return pg.render({ canvasContext: cx, viewport: v }).promise.then(function () { out.push(c.toDataURL('image/jpeg', 0.82)); c.width = c.height = 0; return next(); });
+          return pg.render({ canvasContext: cx, viewport: v }).promise.then(function () { attClean(c); out.push(c.toDataURL('image/jpeg', 0.82)); c.width = c.height = 0; return next(); });
         });
       };
       return next();
