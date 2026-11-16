@@ -1208,6 +1208,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
           <table class="items" id="itemsTbl"></table>
           <button class="linkbtn" id="addItem" type="button">+ tambah baris</button>
         </div>
+        <div class="row" id="adjRow" hidden><div><label for="fDppAdj">Adjustment DPP — dasar PPN saja (opsional)</label><input id="fDppAdj" inputmode="decimal" class="num" placeholder="kosongkan bila tidak ada"></div><div class="hint" id="adjInfo" style="align-self:end">Mis. BAPP WRK butir 3.4: menaikkan DPP faktur &amp; PPN, bukan tagihan / piutang.</div></div>
         <div class="calc"><table class="sum" id="sumTbl"></table></div>
         <div id="umNote"></div>
         <div id="invChk"></div>
@@ -1846,7 +1847,7 @@ function resetForm() {
 function toForm() {
   $('fPel').value = S.pelanggan; if (S.pelanggan) { var keep = S.npp; fillProyek(); if (keep) { S.npp = keep; $('fPro').value = keep; } } else $('fPro').innerHTML = '';
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
-  $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
+  $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; if ($('fDppAdj')) $('fDppAdj').value = num(S.dppAdj) ? nfDot(S.dppAdj) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
   $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fBapSpk').value = S.bapSpk || ''; $('fBapSpkTgl').value = S.bapSpkTgl || ''; $('fAlasan').value = S.alasan || '';
   $('fBappNo').value = S.bappNo || ''; $('fBappTgl').value = S.bappTgl || ''; $('fKwBeda').checked = !!S.kwBeda; $('kwBox').hidden = !S.kwBeda; $('fJudulKw').value = S.judulKw || ''; $('fPola').value = S.pola || '';
   fillSigner(); renderItems();
@@ -1937,6 +1938,7 @@ function update() {
   $('grpItems').hidden = tpl !== 'WIKA-WITON';
   $('grpProgres').hidden = !(isProg && (tpl === 'UMUM' || tpl === 'IKK' || tpl === 'KIDOH'));
   $('grpDpp').hidden = !(tpl === 'FAJARPUTERA' || (!isProg && tpl !== 'WIKA-WITON'));
+  if ($('adjRow')) $('adjRow').hidden = !tpl || tpl === 'FAJARPUTERA' || tpl === 'WIKA-WITON';
   $('ppnOnWrap').hidden = tpl === 'FAJARPUTERA';
   // v2.9.4: uang muka — isian persen dari nilai kontrak (mengisi nilai tagihan), dan sebaliknya persen ditampilkan dari nilai yang diketik
   var umOn = S.jenis === 'UANG MUKA' && tpl !== 'FAJARPUTERA' && tpl !== 'WIKA-WITON', kNet = p ? kontrak(p).net : 0;
@@ -2009,7 +2011,8 @@ function renderSummary() {
   if (c.progres !== undefined) r.push(['Nilai progres', nfDot(c.progres)]);
   if (c.umk) r.push(['Dikurangi uang muka', neg(c.umk)]);
   if (c.retensi && c.retPos === 'AWAL') r.push(['Dikurangi retensi (di awal)', neg(c.retensi)]);
-  r.push(['Dasar pengenaan pajak (DPP)', nfDot(c.dpp)], ['PPN', nfDot(c.ppn)], ['Total invoice (DPP + PPN)', nfDot(c.total)]);
+  if (c.dppAdj) r.push(['Tagihan (DPP tanpa adjustment)', nfDot(c.dpp)], ['Adjustment DPP (dasar PPN saja)', nfDot(c.dppAdj)], ['DPP faktur pajak', nfDot(c.dppFaktur)], ['PPN (dari DPP faktur)', nfDot(c.ppn)], ['Tagihan + PPN', nfDot(c.total)]);
+  else r.push(['Dasar pengenaan pajak (DPP)', nfDot(c.dpp)], ['PPN', nfDot(c.ppn)], ['Total invoice (DPP + PPN)', nfDot(c.total)]);
   if (c.retensi && c.retPos === 'AKHIR') r.push(['Dikurangi retensi (di akhir)', neg(c.retensi)]);
   r.push(['PPh ' + pctf(c.tarif).replace('.', ',') + (c.showPPh ? ' (dicetak)' : ' (dipotong pelanggan)'), c.showPPh ? neg(c.pph) : nfDot(c.pph)]);
   var html = r.map(function (x) { return '<tr><td>' + esc(x[0]) + '</td><td>' + x[1] + '</td></tr>'; }).join('');
@@ -2079,7 +2082,7 @@ function rowsCalc(d) {
   }
   if (c.jenis !== 'PROGRES') {
     var k1 = L(); pr({ no: k1, lbl: (c.jenis === 'UANG MUKA' ? 'Tagihan Uang Muka' : c.jenis === 'RETENSI' ? 'Tagihan Pelepasan Retensi' : 'Tagihan Saat ini'), colon: true, rp1: c.dpp });
-    var k2 = L(); pr({ no: k2, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
+    var kAk2 = c.dppAdj ? L() : null; if (kAk2) pr({ no: kAk2, lbl: 'Adjustment DPP (dasar PPN saja)', colon: true, rp1: c.dppAdj }); var k2 = L(); pr({ no: k2, lbl: kAk2 ? 'PPN 12% ((' + k1 + ' + ' + kAk2 + ') x 11/12 x 12%)' : 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
     var k3 = L(); pr({ no: k3, lbl: 'Tagihan Saat ini + PPN', colon: true, rp1: c.total });
     if (c.showPPh) { var k4 = L(); pr({ no: k4, lbl: (T === 'KIDOH' ? 'PPh 4 ayat 2' : 'PPh ' + pctf(c.tarif).replace('0%', '%')), colon: true, pct: pctf(c.tarif), x: true, rp1: c.pph, ul1: true, suf1: '(-)' });
       pr({ gap: true }); pr({ no: L(), lbl: 'Total Tagihan Saat ini - PPh (' + k3 + ' - ' + k4 + ')', eq: true, rp2: c.bayar, ul2: true }); }
@@ -2102,7 +2105,7 @@ function rowsCalc(d) {
     var kU = null; if (c.umk) { pr({ gap: true }); kU = umR(); }
     pr({ gap: true });
     var kT = L(); pr({ no: kT, lbl: 'Tagihan Saat ini (' + kNet + (kU ? ' - ' + kU : '') + ' )', colon: true, rp1: c.dpp });
-    var kP = L(); pr({ no: kP, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true });
+    var kAkP = c.dppAdj ? L() : null; if (kAkP) pr({ no: kAkP, lbl: 'Adjustment DPP (dasar PPN saja)', colon: true, rp1: c.dppAdj }); var kP = L(); pr({ no: kP, lbl: kAkP ? 'PPN 12% ((' + kT + ' + ' + kAkP + ') x 11/12 x 12%)' : 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true });
     var kTP = L(); pr({ no: kTP, lbl: 'Tagihan Saat ini + PPN', colon: true, rp1: c.total, ul1: !c.showPPh ? false : false });
     if (c.showPPh) { var kH = L(); pr({ no: kH, lbl: 'PPh ' + pctf(c.tarif).replace(/0%$/, '%'), colon: true, rp1: c.pph, ul1: true, top1: true });
       pr({ no: L(), lbl: 'Total Tagihan Saat ini - PPh', eq: true, rp2: c.bayar, ul2: true }); }
@@ -2113,7 +2116,7 @@ function rowsCalc(d) {
     if (c.umk) { kU2 = umR({ ul2: true, suf2: '(-)' }); }
     pr({ gap: true });
     var kT2 = L(); pr({ no: kT2, lbl: 'Tagihan Saat ini ( ' + kProg + (kU2 ? ' - ' + kU2 : '') + ' )', colon: true, rp1: c.dpp });
-    var kP2 = L(); pr({ no: kP2, lbl: 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
+    var kAkP2 = c.dppAdj ? L() : null; if (kAkP2) pr({ no: kAkP2, lbl: 'Adjustment DPP (dasar PPN saja)', colon: true, rp1: c.dppAdj }); var kP2 = L(); pr({ no: kP2, lbl: kAkP2 ? 'PPN 12% ((' + kT2 + ' + ' + kAkP2 + ') x 11/12 x 12%)' : 'PPN 12% (DPP x 11/12 x 12%)', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
     var kTP2 = L(); pr({ no: kTP2, lbl: 'Tagihan Saat ini + PPN (' + kT2 + ' + ' + kP2 + ')', colon: true, rp1: c.total });
     if (c.retensi) { var kR2 = L(); pr({ no: kR2, lbl: 'Potongan Retensi ( ' + kProg + ' X ' + (Math.round(c.retPct * 10000) / 100) + '% )', colon: true, pct: pctf(c.retPct), x: true, rp1: c.retensi, ul1: true, suf1: '(-)' });
       pr({ gap: true }); pr({ no: L(), lbl: 'Total Tagihan Saat ini - Retensi ( ' + kTP2 + ' - ' + kR2 + ' )', eq: true, rp2: c.bayar, ul2: true }); }
@@ -2124,7 +2127,7 @@ function rowsCalc(d) {
   if (c.umk) { kU3 = umR({ ul2: true, suf2: '(-)' }); }
   pr({ gap: true });
   var kT3 = L(); pr({ no: kT3, lbl: 'Tagihan Saat ini (' + kProg + (kU3 ? ' - ' + kU3 : '') + ' )', colon: true, rp1: c.dpp });
-  var kP3 = L(); pr({ no: kP3, lbl: 'PPN 12% (DPP x 11/12 x 12%', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
+  var kAkP3 = c.dppAdj ? L() : null; if (kAkP3) pr({ no: kAkP3, lbl: 'Adjustment DPP (dasar PPN saja)', colon: true, rp1: c.dppAdj }); var kP3 = L(); pr({ no: kP3, lbl: kAkP3 ? 'PPN 12% ((' + kT3 + ' + ' + kAkP3 + ') x 11/12 x 12%)' : 'PPN 12% (DPP x 11/12 x 12%', colon: true, rp1: c.ppn, ul1: true, suf1: '(+)' });
   var kTP3 = L(); pr({ no: kTP3, lbl: 'Tagihan Saat ini + PPN', colon: true, rp1: c.total });
   var kR3 = null; if (c.retensi) { kR3 = L(); pr({ no: kR3, lbl: 'Retensi', colon: true, pct: pctf(c.retPct), x: true, rp1: c.retensi }); }
   var kH3 = null; if (c.showPPh) { kH3 = L(); pr({ no: kH3, lbl: 'PPh 4 ayat 2', colon: true, pct: pctf(c.tarif), x: true, rp1: c.pph, ul1: true, suf1: '(-)' }); }
@@ -2352,7 +2355,7 @@ function reallyPrint(which) {
 function payload() {
   var p = pro(), c = CUR, sg = signer();
   return { pelanggan: S.pelanggan, npp: S.npp, tgl: S.tgl, nomor: nomorStr(), jenis: S.jenis, invke: S.invke, template: p.template, bruto: c.bruto, umk: c.umk || 0,
-    retensi: c.retensi || 0, retpos: c.retPos || 'TIDAK ADA', dpp: c.dpp, ppn: c.ppn, tarif: p.tarif, dasar: p.dasar_pph, tagih: c.bayar, ttd: sg.nama, top: p.top,
+    retensi: c.retensi || 0, retpos: c.retPos || 'TIDAK ADA', dpp: c.dppFaktur || c.dpp, dpp_adj: c.dppAdj || '', ppn: c.ppn, tarif: p.tarif, dasar: p.dasar_pph, tagih: c.bayar, ttd: sg.nama, top: p.top,
     uraian: S.judul, form: JSON.parse(JSON.stringify(S)) };
 }
 var SUBMIT_AFTER = false;
@@ -2459,10 +2462,10 @@ function openInvoice(no) {
   call('apiGetInvoice', [no], function (o) {
     if (!o) { toast('Invoice tidak ditemukan.'); return; }
     var m = String(o.nomor).match(/\.(\d{4})[A-Z]?\/(\d{4})/);
-    if (o.form) { S = o.form; S.alasan = ''; }
+    if (o.form) { S = o.form; S.alasan = ''; if (S.dppAdj === undefined && num(o.dpp_adj)) S.dppAdj = num(o.dpp_adj); } // v2.15.1 adjustment yang diisi manual di sheet ikut terbaca
     else {
       S = { pelanggan: o.pelanggan, npp: o.npp, tgl: o.tgl, year: m ? +m[2] : +today().slice(0, 4), digit: m ? +m[1] : '', jenis: o.jenis || 'LAINNYA', progKe: '', termin: '', progres: o.bruto || '', pct: '',
-        dpp: o.dpp || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
+        dpp: o.dpp ? o.dpp - (num(o.dpp_adj) || 0) : '', dppAdj: num(o.dpp_adj) || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
       var pm = String(o.invke || '').match(/(\d+)/); if (pm) S.progKe = pm[1];
       toast('Invoice migrasi: nilai harus diisi ulang sebelum dicetak / direvisi.');
     }
@@ -3054,6 +3057,8 @@ function bind() {
   $('fDpp').oninput = function () { S.dpp = num(this.value); S.umPct = ''; $('fUmPct').value = ''; touched(); update(); };
   $('fUmPct').oninput = function () { var p = pro(), v = num(this.value); S.umPct = this.value; if (p && kontrak(p).net && v) { S.dpp = Math.round(kontrak(p).net * v / 100); $('fDpp').value = nfDot(S.dpp); } touched(); update(); };
   $('fDpp').onblur = function () { if (S.dpp) this.value = nfDot(S.dpp); };
+  $('fDppAdj').oninput = function () { S.dppAdj = num(this.value) || ''; touched(); update(); };
+  $('fDppAdj').onblur = function () { if (num(S.dppAdj)) this.value = nfDot(S.dppAdj); };
   $('fPpnOn').onchange = function () { S.ppnOn = this.checked; touched(); update(); };
   $('fPpnRetAls').oninput = function () { S.ppnRetensiAlasan = this.value; touched(); };
   $('fJudul').oninput = function () { S.judul = this.value; S.judulAuto = false; touched(); update(); };

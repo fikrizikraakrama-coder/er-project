@@ -747,7 +747,7 @@ function arCheckInvoiceNumbers_(p, nomor) {
   if (String(p.form.jenis || '') !== String(p.jenis || '') || (p.form.npp && String(p.form.npp) !== String(p.npp))) throw new Error('Isian form tidak sesuai data invoice. Muat ulang aplikasi.');
   var ex = b.invoices.filter(function(i){return ENGINE.normInv(i.nomor)===nomor;})[0];
   var c = ENGINE.calcInvoice(ENGINE.invoiceInput(pr, Object.assign({}, p.form, { tgl: p.tgl, jenis: p.jenis }), ex ? ex.umk : 0, nomor));
-  var want = { bruto: c.bruto, umk: c.umk || 0, retensi: c.retensi || 0, dpp: c.dpp, ppn: c.ppn, tagih: c.bayar }, beda = [];
+  var want = { bruto: c.bruto, umk: c.umk || 0, retensi: c.retensi || 0, dpp: c.dppFaktur || c.dpp, ppn: c.ppn, tagih: c.bayar }, beda = [];
   Object.keys(want).forEach(function(k) { if (Math.abs((Number(p[k]) || 0) - (Number(want[k]) || 0)) > 1) beda.push(k.toUpperCase() + ' in app Rp ' + ENGINE.fmtRp(Number(p[k]) || 0) + ' ≠ server Rp ' + ENGINE.fmtRp(Number(want[k]) || 0)); });
   if (beda.length) throw new Error('Nilai invoice berbeda dengan perhitungan server (' + beda.join('; ') + '). Project data or the remaining down payment may have changed — reload the app and check again.');
   if (p.jenis === 'RETENSI' && (pr.template === 'IKK' || pr.template === 'KIDOH') && Number(pr.ret_pct) > 0 && want.ppn > 0 && !String((p.form || {}).ppnRetensiAlasan || '').trim())
@@ -755,6 +755,7 @@ function arCheckInvoiceNumbers_(p, nomor) {
   // atribut pajak & template selalu dari Master Proyek
   p.template = pr.template; p.tarif = pr.tarif; p.dasar = pr.dasar_pph; p.retpos = c.retPos || 'TIDAK ADA';
   ['bruto','umk','retensi','dpp','ppn'].forEach(function(k){ p[k] = Number(want[k]) || 0; }); p.tagih = Number(want.tagih) || 0;
+  p.dpp_adj = c.dppAdj || ''; // v2.15.1 adjustment DPP ikut tersimpan dari form (tidak hilang saat revisi)
 }
 
 // ---------------- Script Properties dibatasi ±500 KB: hapus data turunan yang sudah tidak dipakai (aman dijalankan berulang).

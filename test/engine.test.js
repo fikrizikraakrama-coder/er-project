@@ -65,10 +65,22 @@ test('invoiceInput = susunan input lama di aplikasi (server & aplikasi menghitun
   const S = { tgl: '2026-10-01', jenis: 'PROGRES', progres: '250.000.000', items: [{ uraian: 'a', nilai: '1.000', bulan: '2' }], dpp: '', ppnOn: true };
   const num = ENGINE.numForm, k = ENGINE.kontrakAt({ nilai_awal: p.nilai, adds: p.adendum, nilai_ok: p.nilai_ok }, S.tgl);
   const old = { progLalu: 0, umLalu: 0, umSisa: (+p.umSisa || 0) + 5e6, template: p.template, jenis: S.jenis, nilaiKontrak: k.net, progres: num(S.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
-    dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: S.items.map(x => ({ uraian: x.uraian, nilai: num(x.nilai), bulan: num(x.bulan) })), dpp: num(S.dpp), ppnOn: S.ppnOn };
+    dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: S.items.map(x => ({ uraian: x.uraian, nilai: num(x.nilai), bulan: num(x.bulan) })), dpp: num(S.dpp), ppnOn: S.ppnOn, dppAdj: 0 };
   assert.deepStrictEqual(ENGINE.invoiceInput(p, S, 5e6), old);
   const c = ENGINE.calcInvoice(old);
   assert.ok(c.retPos === 'AKHIR' && c.ppn > 0 && c.retensi > 0, 'IKK: PPN dihitung dari DPP sebelum retensi');
+});
+
+test('adjustment DPP (WRK 0063): DPP faktur & PPN naik, tagihan / piutang / PPh tetap', () => {
+  const f = { template: 'IKK', jenis: 'PROGRES', nilaiKontrak: 42637832648, progres: 4347574900, umDiterima: 4263783264.8, retPct: 0.05, tarif: 0.0265, dasar: 'SETELAH RETENSI' };
+  const a = ENGINE.calcInvoice(f), b = ENGINE.calcInvoice(Object.assign({}, f, { dppAdj: 133600618 }));
+  assert.strictEqual(a.dppAdj, undefined);
+  assert.strictEqual(b.dpp, a.dpp); assert.strictEqual(b.dppFaktur, 4046418028); assert.strictEqual(b.ppn, 445105983); assert.strictEqual(b.pph, a.pph);
+  assert.strictEqual(b.bayar - a.bayar, b.ppn - a.ppn);
+  const m = ENGINE.invoiceAmounts({ dpp: b.dppFaktur, dpp_adj: b.dppAdj, ppn: b.ppn, retensi: b.retensi, retpos: 'AKHIR', tarif: 0.0265, dasar: 'SETELAH RETENSI', template: 'IKK' }, null, {});
+  assert.strictEqual(m.netto, 3695438665); assert.strictEqual(m.pph, 97929125);
+  // template tanpa adjustment tidak terpengaruh
+  assert.strictEqual(ENGINE.calcInvoice({ template: 'FAJARPUTERA', dpp: 1000000, dppAdj: 5000 }).dppAdj, undefined);
 });
 
 test('bupotPendingRows: daftar hanya memuat PPh diakui tanpa nomor bukti potong', () => {

@@ -1193,14 +1193,14 @@ function apiSaveInvoice_(p, opt) { arRequireMaker_();
         p.dpp, p.ppn, p.dpp + p.ppn, JSON.stringify(oo).substring(0, 49000), jenisTxt, rj.diff.join('; ').substring(0, 49000)]);
       revisiHeader_(rr);
       var nv = old.slice();
-      cols.forEach(function (c) { var j = map[c[0]]; if (j && colType_(c) === 'app' && p[c[0]] !== undefined) nv[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
+      cols.forEach(function (c) { var j = map[c[0]]; if (j && (colType_(c) === 'app' || c[0] === 'dpp_adj') && p[c[0]] !== undefined) nv[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
       sh.getRange(row, 1, 1, lc).setValues([nv]);
       result = { ok: true, mode: 'revisi', nomor: nomor, rev: rev, perluFP: perluFP, jenis: rj.jenis, perubahan: rj.diff };
     } else {
       p.rev = 0; p.status_inv = 'AKTIF';
       var target = lastDataRow_(sh, ENGINE.REG.firstRow, [map.nomor]) + 1, lc2 = sh.getLastColumn(), arr = []; roomFor_(sh, target);
       for (var k = 0; k < lc2; k++) arr.push('');
-      cols.forEach(function (c) { var j = map[c[0]]; if (j && (colType_(c) === 'app' || c[0] === 'status_inv' || c[0] === 'top') && p[c[0]] !== undefined) arr[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
+      cols.forEach(function (c) { var j = map[c[0]]; if (j && (colType_(c) === 'app' || c[0] === 'status_inv' || c[0] === 'top' || c[0] === 'dpp_adj') && p[c[0]] !== undefined) arr[j - 1] = toCell_(p[c[0]], colFmt_(c)); });
       // v2.8.7: NAMA PROYEK (kolom otomatis) langsung diisi — baris baru tidak tersembunyi oleh filter yang menyembunyikan sel kosong
       try { var mp = readSchema_(ss.getSheetByName('Master Proyek'), ENGINE.MPRO, ENGINE.MPRO_ALIAS), ix = ENGINE.colIndex(ENGINE.MPRO, 'npp'), is = ENGINE.colIndex(ENGINE.MPRO, 'singkat');
         var pr0 = mp.filter(function (r) { return String(r[ix]).trim() === String(p.npp).trim(); })[0]; if (pr0 && map.proyek) arr[map.proyek - 1] = pr0[is]; } catch (e) { }

@@ -2951,7 +2951,7 @@ var ENGINE = (function () {
     var me = selfNo ? normInv(selfNo) : '', tg = D(form.tgl) || '9999-12-31', lalu = (p.prog || []).filter(function (r) { return normInv(r[0]) !== me && (!r[3] || r[3] <= tg); });
     var kumOk = form.jenis === 'PROGRES' && p.umLengkap !== false && !(+p.um_awal > 0) && lalu.every(function (r) { return +r[1] > 0 && r[4] !== undefined; });
     return { progLalu: kumOk ? sumBy(lalu, function (r) { return +r[1] || 0; }) : undefined, umLalu: kumOk ? sumBy(lalu, function (r) { return +r[4] || 0; }) : undefined, umSisa: umSisa, template: p.template, jenis: form.jenis, nilaiKontrak: k.net, progres: numForm(form.progres), umDiterima: p.um, retPct: p.ret_pct, retPos: p.ret_pos, tarif: p.tarif,
-      dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: (form.items || []).map(function (x) { return { uraian: x.uraian, nilai: numForm(x.nilai), bulan: numForm(x.bulan) }; }), dpp: numForm(form.dpp), ppnOn: form.ppnOn };
+      dasar: p.dasar_pph, tampilPPh: p.tampil_pph, items: (form.items || []).map(function (x) { return { uraian: x.uraian, nilai: numForm(x.nilai), bulan: numForm(x.bulan) }; }), dpp: numForm(form.dpp), ppnOn: form.ppnOn, dppAdj: numForm(form.dppAdj) };
   }
   /** v2.8.8: pemeriksaan isian invoice sebelum disimpan — E = error (tidak bisa simpan) · W = peringatan (boleh dengan alasan) · I = info.
    *  x: { c: hasil calcInvoice, jenis, tgl, progKe, judul, nomor, today, pro (proyek dari bootstrap), kontrak (nilai kontrak berlaku) } */
@@ -2975,7 +2975,7 @@ var ENGINE = (function () {
     if (c && c.umCapped) add('I', 'fProgres', 'Down payment deduction capped', 'Normal calculation ' + fmtRp(c.umAsli) + '; only the remaining DP ' + fmtRp(c.umSisa) + ' is deducted.');
     else if (c && x.jenis === 'PROGRES' && N(c.umk) > 0 && c.umSisa !== '' && c.umSisa !== undefined && Math.abs(N(c.umSisa) - N(c.umk)) <= 1) add('I', '', 'Down payment fully deducted', 'Remaining DP after this invoice: Rp 0.');
     if (c && x.jenis === 'RETENSI' && N(c.dpp) > N(p.retSisa) + 1000) add('E', 'fDpp', 'Retention billed exceeds unbilled retention', fmtRp(c.dpp) + ' > unbilled ' + fmtRp(p.retSisa) + '.', { id: 'fDpp', v: rnd(N(p.retSisa)) });
-    if (c && N(c.dpp) > 0 && N(c.ppn) > 0 && Math.abs(N(c.ppn) - N(c.dpp) * 0.11) > Math.max(2, N(c.ppn) * 0.002)) add('W', '', 'VAT does not match DPP', 'VAT ' + fmtRp(c.ppn) + ' vs 11% × DPP = ' + fmtRp(rnd(N(c.dpp) * 0.11)) + '.');
+    if (c && N(c.dppFaktur || c.dpp) > 0 && N(c.ppn) > 0 && Math.abs(N(c.ppn) - N(c.dppFaktur || c.dpp) * 0.11) > Math.max(2, N(c.ppn) * 0.002)) add('W', '', 'VAT does not match DPP', 'VAT ' + fmtRp(c.ppn) + ' vs 11% × DPP = ' + fmtRp(rnd(N(c.dppFaktur || c.dpp) * 0.11)) + '.');
     if (c && !(N(c.bayar) > 0) && x.jenis) add('E', 'fProgres', 'Amount payable is zero', 'Fill the progress value / amount billed.');
     if (/…|\.\.\./.test(S(x.judul))) add('W', 'fJudul', 'Description still has a blank (…)', 'Fill the progress / term number so the description is complete.');
     if (!(N(p.tarif) > 0)) add('W', '', 'WHT rate is empty', 'Fill TARIF PPh in Master Proyek (default 2,65% is used).');
@@ -3038,7 +3038,16 @@ var ENGINE = (function () {
       out.push({ k: k, label: c[1], from: a, to: b, sens: !!before && MD_SENS[kind].indexOf(k) >= 0 }); });
     return out;
   }
+  /** v2.15.1 ADJUSTMENT DPP (mis. BAPP WRK butir 3.4): tambahan DPP yang hanya menaikkan dasar PPN, bukan tagihan.
+   *  dpp tetap = tagihan (yang tercetak di invoice); dppFaktur = dpp + adjustment → PPN dihitung dari dppFaktur; total & nilai bayar ikut PPN baru. */
   function calcInvoice(f) {
+    var o = calcInvoiceCore(f), adj = rnd(N(f.dppAdj)), T = U(f.template) || 'UMUM';
+    if (!(adj > 0) || T === 'WIKA-WITON' || T === 'FAJARPUTERA' || !(o.dpp > 0)) return o;
+    o.dppAdj = adj; o.dppFaktur = o.dpp + adj;
+    if (o.ppn > 0) { var p2 = rnd(o.dppFaktur * 11 / 12 * 0.12), dl = p2 - o.ppn; o.ppnTanpaAdj = o.ppn; o.ppn = p2; o.total = rnd(o.total + dl); o.bayar = rnd(o.bayar + dl); }
+    return o;
+  }
+  function calcInvoiceCore(f) {
     // Meniru rumus form Excel: angka mentah (desimal) dipakai berantai, dibulatkan saat ditampilkan / di sel ber-ROUND.
     var T = U(f.template) || 'UMUM', J = U(f.jenis) || 'PROGRES', K = N(f.nilaiKontrak), tarif = N(f.tarif) || 0.0265;
     var ROUND = function (x) { return rnd(x); };
