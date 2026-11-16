@@ -160,6 +160,8 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
   #print-root .pg-kw{height:209.4mm}
   #print-root .page{break-inside:avoid;page-break-inside:avoid}
   #app,#toast,dialog{display:none!important}
+  /* v2.15.1 hanya #print-root yang dicetak — jendela pratinjau (tanda terima, kartu, bank garansi), bilah atas, menu, dsb. tidak ikut tercetak */
+  body > *:not(#print-root){display:none!important}
   #print-root{display:block}
   #print-root .page{box-shadow:none;margin:0;break-after:page;page-break-after:always}
   #print-root .page:last-child{break-after:avoid;page-break-after:avoid}
