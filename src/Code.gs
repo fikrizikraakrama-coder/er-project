@@ -161,6 +161,21 @@ function ensureSchema_(sh, schema, aliases, typeRow) {
   });
   return add.length;
 }
+/** v2.15.1 kolom ADJUSTMENT DPP (DASAR PPN SAJA) belum ada di Monitoring Invoice → disisipkan tepat di kanan DPP (FAKTUR) (bukan di ujung kanan agar mudah diisi/dicek).
+ *  Sisip kolom: rumus & validasi di sheet lain ikut bergeser otomatis; aplikasi membaca kolom menurut judul. Aman dijalankan berulang. */
+function arEnsureDppAdj_(sh) {
+  if (!sh) return 0;
+  var map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS); if (map.dpp_adj) return 0;
+  if (!map.dpp) return ensureSchema_(sh, { sheet: ENGINE.REG.sheet, headerRow: ENGINE.REG.headerRow, firstRow: ENGINE.REG.firstRow, cols: ENGINE.REG.cols.filter(function (c) { return c[0] === 'dpp_adj'; }) }, ENGINE.REG_ALIAS, 6);
+  var c = ENGINE.REG.cols.filter(function (x) { return x[0] === 'dpp_adj'; })[0], col = map.dpp + 1, H = ENGINE.REG.headerRow, F = ENGINE.REG.firstRow;
+  sh.insertColumnAfter(map.dpp);
+  var maxR = Math.max(sh.getMaxRows(), F + 50);
+  sh.getRange(H, col).setValue(c[1]).setBackground(C.manual).setFontColor('#FFFFFF').setFontWeight('bold').setWrap(true).setHorizontalAlignment('center').setVerticalAlignment('middle').setFontSize(9);
+  try { if (H !== 6 && String(sh.getRange(6, map.dpp).getValue() || '').trim()) sh.getRange(6, col).setValue('DIISI MANUAL').setBackground(C.manual).setFontColor('#FFFFFF').setFontWeight('bold').setFontSize(7).setHorizontalAlignment('center'); } catch (e) { }
+  sh.getRange(F, col, maxR - F + 1, 1).clearContent().setBackground(C.input).setFontSize(9).setFontFamily('Arial').setNumberFormat(NUMF[colFmt_(c)] || '#,##0');
+  sh.setColumnWidth(col, (colWidth_(c) || 15) * 7);
+  return 1;
+}
 function sheet_(name) { return arSpreadsheet_().getSheetByName(name); }
 function rangeVals_(sh, a1) { try { return nd_(sh.getRange(a1).getValues()); } catch (e) { return []; } }
 
@@ -269,6 +284,7 @@ function rebuildAll_(opt) {
       writeAutoColumns_(ss.getSheetByName('Log Penerimaan'), ENGINE.LOG, null, res.logOut);
       try { arRepairInvoiceDates_(ss); } catch (err) { }
       try { arRepairPayDates_(ss); } catch (err) { }
+      try { arEnsureDppAdj_(ss.getSheetByName('Monitoring Invoice')); } catch (err) { } // v2.15.1 kolom ADJUSTMENT DPP (cek judul saja bila sudah ada)
       if (daily) {
         try { arHideArsip_(ss, {}); } catch (err) { }
         if (!ss.getSheetByName(ENGINE.RAM.sheet)) { try { arSetupRaManual_(ss); } catch (err) { } }
@@ -1165,6 +1181,7 @@ function apiSaveInvoice_(p, opt) { arRequireMaker_();
   var result;
   try {
     var ss = arSpreadsheet_(), sh = ss.getSheetByName('Monitoring Invoice'), cols = ENGINE.REG.cols, map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
+    if (!map.dpp_adj && Number(p.dpp_adj) > 0) { arEnsureDppAdj_(sh); map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS); } // v2.15.1 kolom adjustment belum ada → dibuat
     var nomor = ENGINE.normInv(p.nomor);
     if (!/^KU\.02\.02\/WB-4C\.\d{4}[A-Z]?\/\d{4}$/.test(nomor)) throw new Error('Format nomor invoice tidak valid: ' + p.nomor);
     var row = findRegisterRow_(sh, nomor, map);

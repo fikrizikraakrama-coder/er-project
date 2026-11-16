@@ -48,7 +48,7 @@ var ENGINE = (function () {
       ['memorial', 'MEMORIAL AKUNTANSI', 'auto', 22], ['serah', 'SERAH TERIMA AKUNTANSI', 'auto', 22]
     ]
   };
-  var REG_ALIAS = { validasi: ['VALIDASI MANAJER'], status_inv: ['STATUS INVOICE'], catatan: ['CATATAN / PENJELASAN'] };
+  var REG_ALIAS = { dpp_adj: ['ADJUSTMENT DPP', 'ADJUSTMENT DPP (DASAR PPN)', 'ADJ DPP', 'DPP ADJUSTMENT'], validasi: ['VALIDASI MANAJER'], status_inv: ['STATUS INVOICE'], catatan: ['CATATAN / PENJELASAN'] };
   var LOG = {
     sheet: 'Log Penerimaan', headerRow: 5, firstRow: 6,
     cols: [
