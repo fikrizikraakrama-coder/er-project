@@ -2242,11 +2242,29 @@ function renderInvoice(d) {
   if (t === 'WIKA-WITON') return invWton(d);
   return invTahoma(d);
 }
+/** v2.15.1 latar panel kwitansi (titik biru & belah ketupat hijau) digambar SEKALI sebagai satu gambar PNG ±380 dpi.
+ *  Sebelumnya pola SVG kecil yang diulang ribuan kali → halaman kwitansi ±1,2 MB perintah vektor, printer sangat lama memprosesnya. Tampilan tetap sama. */
+function kwBg() {
+  if (kwBg.v !== undefined) return kwBg.v;
+  try {
+    var px = 15, mm = function (v) { return Math.round(v * px); }; // 15 px per mm
+    var W = 39.5, H = 108.4, c = document.createElement('canvas'); c.width = mm(W); c.height = mm(H);
+    var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#5B9BD5';
+    var D = [[0, 0], [2, 1], [4, 0], [6, 1], [1, 2], [3, 3], [5, 2], [7, 3], [0, 4], [2, 5], [4, 4], [6, 5], [1, 6], [3, 7], [5, 6], [7, 7], [0, 2], [4, 6]], u = 0.2 * px;
+    for (var ty = 0; ty * 1.6 < H; ty++) for (var tx = 0; tx * 1.6 < W; tx++) D.forEach(function (q) { x.fillRect(Math.round((tx * 8 + q[0]) * u), Math.round((ty * 8 + q[1]) * u), Math.ceil(u), Math.ceil(u)); });
+    var iw = W * (1 - 0.076 - 0.07), ih = H * (1 - 0.0275 - 0.031), c2 = document.createElement('canvas'); c2.width = mm(iw); c2.height = mm(ih);
+    var y = c2.getContext('2d'), s = 2.2 * px, v = s / 8; y.fillStyle = '#fff'; y.fillRect(0, 0, c2.width, c2.height); y.strokeStyle = '#A9D18E'; y.globalAlpha = 0.75; y.lineWidth = 0.7 * v;
+    for (var by = 0; by * 2.2 < ih; by++) for (var bx = 0; bx * 2.2 < iw; bx++) { var ox = bx * s, oy = by * s; y.beginPath(); y.moveTo(ox, oy + 4 * v); y.lineTo(ox + 4 * v, oy); y.lineTo(ox + 8 * v, oy + 4 * v); y.lineTo(ox + 4 * v, oy + 8 * v); y.closePath(); y.stroke(); }
+    kwBg.v = { panel: c.toDataURL('image/png'), inner: c2.toDataURL('image/png') };
+  } catch (e) { kwBg.v = null; }
+  return kwBg.v;
+}
 function renderKwitansi(d) {
   if (!d.c) return '';
+  var bg = kwBg();
   var t = d.p.template, fam = (t === 'FAJARPUTERA' || t === 'WIKA-WITON') ? 'f-antiqua' : 'f-tahoma', c = d.c, amt = c.bayar;
   var h = '<div class="page pg-kw kw ' + fam + '"><div class="yel" style="background:' + esc(B.params.KWITANSI_WARNA || '#FFE87C') + '"></div>' +
-    '<div class="panel"><div class="inner"></div><img class="logo" src="' + LOGO_KW + '" alt="WIKA Beton">' +
+    '<div class="panel"' + (bg ? ' style="background:#fff url(' + bg.panel + ') 0 0/100% 100% no-repeat"' : '') + '><div class="inner"' + (bg ? ' style="background:#fff url(' + bg.inner + ') 0 0/100% 100% no-repeat"' : '') + '></div><img class="logo" src="' + LOGO_KW + '" alt="WIKA Beton">' +
     '<div class="ptxt"><b>PT. WIJAYA KARYA BETON, Tbk.</b><span>' + esc(B.params.KWITANSI_ALAMAT || 'Concrete Services Unit, Jl. Letjen. M.T. Haryono No. 12, Cipinang Cempedak, Jatinegara, Jakarta Timur, DKI Jakarta 13340') + '</span></div></div>' +
     '<div class="abs b" style="left:60mm;top:18mm">Nomor : <span class="i" style="margin-left:1.5mm;font-size:8pt">' + esc(d.nomor) + '</span></div>' +
     '<div class="abs b" style="left:242mm;top:18mm;line-height:4.1mm"><div>NPP&nbsp;&nbsp;&nbsp;&nbsp;: <span style="margin-left:3mm">' + esc(d.p.npp) + '</span></div><div>NPWP : <span style="margin-left:2mm;font-weight:400">' + esc(d.npwp) + '</span></div></div>' +
@@ -3090,9 +3108,9 @@ function bind() {
   $('btnKp').onclick = function () { var n = $('kNpp').value.trim(); if (!B.proyek.some(function (p) { return p.npp === n; })) { toast('Pilih NPP dari daftar.'); return; } openPackage('KP', n + '|' + ($('kTgl').value || today())); };
   $('btnPkgInv').onclick = function () { if (!SAVED) { toast('Simpan invoice ke Monitoring terlebih dahulu.'); return; } openPackage('INV', E.normInv(nomorStr())); };
   $('btnPayPkg').onclick = function () { if (LASTPAY) { setMode('setuju'); openPackage('PAY', LASTPAY); } };
-  $('btnPkgPrint').onclick = function () { var pk = PKG; if (!pk) return; if (pk._attP && !pk._attDone) { toast('Menunggu lampiran invoice / faktur pajak dimuat…'); pk._attP.then(function () { if (PKG === pk) printHtml(PKG._pages.all); }); return; } printHtml(pk._pages.all); };
+  $('btnPkgPrint').onclick = function () { var pk = PKG; if (!pk) return; if (pk._attP && !pk._attDone) { toast('Menunggu lampiran invoice / faktur pajak dimuat…'); pk._attP.then(function () { if (PKG === pk) printHtml(PKG._pages.print || PKG._pages.all); }); return; } printHtml(pk._pages.print || pk._pages.all); };
   $('sheetwrap').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('[data-dfopen]'); if (b) { e.preventDefault(); dfOpen(b.dataset.dfopen); } });
-  $('dfDlg').addEventListener('close', function () { if (PKG && PKG.kind === 'PAY' && STACK && (PKG._att || []).some(function (x) { return x.st === 'miss' || x.st === 'err'; })) payAttLoad(PKG); });
+  $('dfDlg').addEventListener('close', function () { if (PKG && (PKG.kind === 'PAY' || PKG.kind === 'INV') && STACK && (PKG._att || []).some(function (x) { return x.st === 'miss' || x.st === 'err'; })) payAttLoad(PKG); });
   $('btnPkgArch').onclick = function () { archivePkg(false); }; $('btnPkgClose').onclick = function () { closePackage(); setMode(MODE); };
   $('btnPkgSubmit').onclick = submitPkg; $('btnPkgOk').onclick = function () { decidePkg(true); }; $('btnPkgNo').onclick = function () { decidePkg(false); };
   $('mSel').onchange = function () { renderDok(); };
@@ -3186,9 +3204,13 @@ function pgPengesahan(pkg, hasBap, migr) {
     '</table><table class="kv">' + [['DPP', nd(i.dpp)], ['PPN', nd(i.ppn)], ['Total invoice', nd(i.total)], ['Netto tercatat (piutang usaha)', nd(i.netto)], ['PPh (dipotong pelanggan)', nd(i.pph)], ['No. faktur pajak', i.no_fp || 'belum dicatat'], ['No. dok SAP', i.sap || 'diisi setelah posting']]
       .map(function (r) { return '<tr><td class="k">' + r[0] + '</td><td class="v" style="text-align:right">' + esc(r[1]) + '</td></tr>'; }).join('') + '</table></div>';
   h += '<h3>Uraian tagihan</h3><p style="margin:0">' + esc(i.uraian) + '</p>';
-  h += '<h3>Lampiran</h3><ul class="chk"><li' + (migr ? ' class="no"' : '') + '>Invoice' + (migr ? ' — hasil migrasi, lampirkan salinan arsip' : '') + '</li><li' + (migr ? ' class="no"' : '') + '>Kwitansi</li>' +
-    (i.template === 'FAJARPUTERA' ? '<li' + (hasBap ? '' : ' class="no"') + '>Berita Acara Penagihan (Fajarputera)</li>' : '') +
-    '<li>Kartu piutang proyek per ' + tg(pkg.kartu ? pkg.kartu.asOf : '') + '</li><li>Usulan jurnal SAP (FBVB · DR)</li><li>Draft faktur pajak Coretax (kode 04)</li></ul>';
+  var aI = (pkg._att || [])[0], aF = (pkg._att || [])[1], st = function (x) { return !x ? '' : x.st === 'load' ? ' <i class="att-ld">(memuat…)</i>' : x.st === 'err' ? ' <b class="att-miss">— gagal dimuat: ' + esc(x.err || '') + '</b>' : ''; },
+    up = function (x) { return x && x.st === 'miss' && B.access && B.access.maker ? ' <button type="button" class="att-up" data-html2canvas-ignore="true" data-dfopen="' + esc(x.nomor) + '">Upload</button>' : ''; };
+  h += '<h3>Lampiran</h3><ul class="chk">' + (aI && aI.st === 'ok' ? '<li>Invoice &amp; kwitansi bertanda tangan' + (i.template === 'FAJARPUTERA' ? ' (termasuk BAP)' : '') + ' — dari berkas upload (terlampir' + (aI.imgs.length > 1 ? ', ' + aI.imgs.length + ' hal.' : '') + ')</li>' :
+    '<li' + (migr ? ' class="no"' : '') + '>Invoice' + (migr ? ' — hasil migrasi, lampirkan salinan arsip' : '') + (aI && aI.st === 'miss' ? ' <b class="att-miss">— belum ber-TTD (berkas TTD belum diupload)</b>' + up(aI) : st(aI)) + '</li><li' + (migr ? ' class="no"' : '') + '>Kwitansi</li>' +
+    (i.template === 'FAJARPUTERA' ? '<li' + (hasBap ? '' : ' class="no"') + '>Berita Acara Penagihan (Fajarputera)</li>' : '')) +
+    '<li>Kartu piutang proyek per ' + tg(pkg.kartu ? pkg.kartu.asOf : '') + '</li><li>Usulan jurnal SAP (FBVB · DR)</li>' +
+    (aF && aF.st === 'ok' ? '<li>Faktur pajak ' + (i.no_fp ? esc(i.no_fp) + ' ' : '') + '— dari berkas upload (terlampir' + (aF.imgs.length > 1 ? ', ' + aF.imgs.length + ' hal.' : '') + ')</li>' : '<li>Draft faktur pajak Coretax (kode 04)' + (aF && aF.st === 'miss' ? ' <span class="att-skip">— PDF faktur belum diupload</span>' : st(aF)) + '</li>') + '</ul>';
   var ck = pkg.cek || {};
   if (ck.warn && ck.warn.list && ck.warn.list.length) h += '<h3>Catatan pemeriksaan saat input</h3><div class="warn" style="font-size:8.4pt">Disimpan dengan ' + ck.warn.list.length + ' peringatan:<br>' + ck.warn.list.map(function (t) { return '• ' + esc(t); }).join('<br>') + '<br><b>Alasan AR:</b> ' + esc(ck.warn.reason || '-') + '</div>';
   if (ck.cq) h += '<div class="warn" style="font-size:8.4pt"><b>Konsistensi data:</b> ' + esc(ck.cq.why) + ' — PPN cocok dengan DPP ' + nd(ck.cq.dppOk) + ' (tercatat ' + nd(i.dpp) + ').</div>';
@@ -3365,13 +3387,18 @@ function payAttList(pkg) {
   });
   return L;
 }
+/** v2.15.1 paket invoice: berkas ber-TTD (invoice + kwitansi) & faktur pajak yang diupload → menggantikan invoice/kwitansi buatan aplikasi & draft Coretax saat dicetak untuk Akuntansi */
+function invAttList(pkg) {
+  var i = pkg.inv || {}, b = invBy(i.nomor) || {};
+  return [{ kind: 'INV', nomor: i.nomor, url: b.link_inv || '', st: 'load', inv: true }, (+i.ppn || 0) > 0.5 ? { kind: 'FP', nomor: i.nomor, url: b.link_fp || '', no_fp: i.no_fp || '', st: 'load', inv: true } : { kind: 'FP', nomor: i.nomor, st: 'skip', inv: true }];
+}
 function payAttLoad(pkg) {
-  var L = pkg._att = payAttList(pkg), todo = L.filter(function (x) { return x.st === 'load'; });
-  var redraw = function () { if (PKG !== pkg) return; var sw = $('sheetwrap'), sy = sw ? sw.parentNode.scrollTop : 0; PKG._pages = buildPages(pkg, ''); showPackage(); try { sw.parentNode.scrollTop = sy; } catch (e) { } };
+  var L = pkg._att = pkg.kind === 'INV' ? invAttList(pkg) : payAttList(pkg), todo = L.filter(function (x) { return x.st === 'load'; });
+  var redraw = function () { if (PKG !== pkg) return; var sw = $('sheetwrap'), sy = sw ? sw.parentNode.scrollTop : 0; PKG._pages = buildPages(pkg, pkg.kind === 'INV' ? pkg._invDocs || '' : ''); showPackage(); try { sw.parentNode.scrollTop = sy; } catch (e) { } };
   pkg._attDone = !todo.length;
   pkg._attP = new Promise(function (done) {
     var k = 0, next = function () {
-      if (k >= todo.length) { pkg._attDone = true; redraw(); var ms = L.filter(function (x) { return x.st === 'miss'; }); if (ms.length && PKG === pkg) toast(ms.map(function (x) { return (x.kind === 'INV' ? 'Invoice ber-TTD ' : 'Faktur pajak ') + x.nomor; }).join(', ') + ' belum diupload — klik "Upload" di daftar lampiran.'); return done(); }
+      if (k >= todo.length) { pkg._attDone = true; redraw(); var ms = L.filter(function (x) { return x.st === 'miss'; }); if (ms.length && PKG === pkg && pkg.kind === 'PAY') toast(ms.map(function (x) { return (x.kind === 'INV' ? 'Invoice ber-TTD ' : 'Faktur pajak ') + x.nomor; }).join(', ') + ' belum diupload — klik "Upload" di daftar lampiran.'); return done(); }
       var x = todo[k++], key = x.kind + '|' + x.nomor + '|' + x.url;
       if (ATT_CACHE[key]) { x.imgs = ATT_CACHE[key]; x.st = 'ok'; return next(); }
       call('apiDocFile', [x.nomor, x.kind], function (f) {
@@ -3390,10 +3417,10 @@ function attLampLi(pkg) {
     return '<li>' + t + (x.st === 'ok' ? ' (terlampir' + (x.imgs.length > 1 ? ', ' + x.imgs.length + ' hal.' : '') + ')' : x.st === 'load' ? ' <i class="att-ld">(memuat…)</i>' : x.st === 'err' ? ' <b class="att-miss">— gagal dimuat: ' + esc(x.err || '') + '</b>' : ' <b class="att-miss">— belum diupload</b>' + up) + '</li>';
   }).join('');
 }
-function attPages(pkg) {
-  return (pkg._att || []).filter(function (x) { return x.st === 'ok'; }).map(function (x) {
+function attPages(pkg, kind) {
+  return (pkg._att || []).filter(function (x) { return x.st === 'ok' && (!kind || x.kind === kind); }).map(function (x) {
     return x.imgs.map(function (src, i) {
-      return '<div class="page pg-att"><div class="att-strip"><span>LAMPIRAN · ' + (x.kind === 'INV' ? 'Invoice bertanda tangan · ' + esc(x.nomor) : 'Faktur Pajak ' + (x.no_fp ? esc(x.no_fp) + ' · ' : '') + 'invoice ' + esc(x.nomor)) + (x.imgs.length > 1 ? ' · hal. ' + (i + 1) + '/' + x.imgs.length : '') + '</span><span>' + esc(String(pkg.key || pkg.ref || '').replace(/^REF\s+/, 'Ref. ')) + '</span></div><div class="att-img"><img src="' + src + '" alt=""></div></div>';
+      return '<div class="page pg-att"><div class="att-strip"><span>LAMPIRAN · ' + (x.kind === 'INV' ? (x.inv ? 'Invoice & kwitansi bertanda tangan · ' : 'Invoice bertanda tangan · ') + esc(x.nomor) : 'Faktur Pajak ' + (x.no_fp ? esc(x.no_fp) + ' · ' : '') + 'invoice ' + esc(x.nomor)) + (x.imgs.length > 1 ? ' · hal. ' + (i + 1) + '/' + x.imgs.length : '') + '</span><span>' + esc(String(pkg.key || pkg.ref || '').replace(/^REF\s+/, 'Ref. ')) + '</span></div><div class="att-img"><img src="' + src + '" alt=""></div></div>';
     }).join('');
   }).join('');
 }
@@ -4380,7 +4407,11 @@ function buildPages(pkg, invDocs) {
   if (k === 'INV') {
     var migr = !invDocs;
     internal = pgPengesahan(pkg, !!invDocs && pkg.inv.template === 'FAJARPUTERA', migr) + pgKartu(pkg.kartu, pkg) + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — INVOICE ' + pkg.inv.nomor, null, pkg) + pgFaktur(pkg.faktur, pkg.inv, pkg);
-    all = pgPengesahan(pkg, !!invDocs && pkg.inv.template === 'FAJARPUTERA', migr) + (invDocs || '') + pgKartu(pkg.kartu, pkg) + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — INVOICE ' + pkg.inv.nomor, null, pkg) + pgFaktur(pkg.faktur, pkg.inv, pkg);
+    var pS = pgPengesahan(pkg, !!invDocs && pkg.inv.template === 'FAJARPUTERA', migr), pK = pgKartu(pkg.kartu, pkg), pJ = pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — INVOICE ' + pkg.inv.nomor, null, pkg), pF = pgFaktur(pkg.faktur, pkg.inv, pkg);
+    var aI = attPages(pkg, 'INV'), aF = attPages(pkg, 'FP');
+    all = pS + (invDocs || '') + pK + pJ + pF;
+    // cetak / arsip untuk Akuntansi: berkas ber-TTD menggantikan invoice + kwitansi (+ BAP) buatan aplikasi; faktur asli menggantikan draft Coretax
+    return { internal: internal, all: all, print: pS + (aI || invDocs || '') + pK + pJ + (aF || pF) };
   } else if (k === 'PAY') {
     internal = all = pgBukti(pkg) + pkg.kartu.map(function (x) { return pgKartu(x, pkg); }).join('') + pgJurnal(pkg.jurnal, 'USULAN JURNAL SAP — ' + (pkg.rows.some(function (r) { return r.kom; }) ? 'KOMPENSASI ' : 'PENERIMAAN ') + pkg.key, null, pkg) + attPages(pkg);
   } else if (k === 'KP') internal = all = pgKartu(pkg.kartu, pkg);
@@ -4404,8 +4435,9 @@ function openPackage(kind, ref, quiet, after) {
     var show = function (invDocs) { if (my !== openPackage.seq) return; PKG = pkg; VDEC = null; PKG._pages = buildPages(pkg, invDocs); showPackage(); if (after) setTimeout(after, 300); };
     if (kind === 'PAY') { pkg._att = payAttList(pkg); show(''); if (my === openPackage.seq) payAttLoad(pkg); return; }
     if (kind !== 'INV') return show('');
-    if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return show(invoiceDocs(docData()));
-    call('apiGetInvoice', [pkg.inv.nomor], function (o) { show(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { show(''); });
+    var showI = function (d) { pkg._invDocs = d; pkg._att = invAttList(pkg); show(d); if (my === openPackage.seq) payAttLoad(pkg); };
+    if (SAVED && CUR && E.normInv(nomorStr()) === E.normInv(pkg.inv.nomor)) return showI(invoiceDocs(docData()));
+    call('apiGetInvoice', [pkg.inv.nomor], function (o) { showI(o && o.form ? withInvoiceState(o.form, invoiceDocs) : ''); }, function () { showI(''); });
   }, function (e) { if (my !== openPackage.seq) return; $('sheetwrap').innerHTML = '<div style="margin:0 0 10px"><button class="btn" type="button" onclick="closePackage()">‹ Kembali ke daftar</button></div><div class="empty">Gagal memuat dokumen: ' + esc(e.message || e) + '</div>'; if (MODE === 'setuju') apRender(); });
 }
 function showPackage() {
@@ -4682,7 +4714,7 @@ function archivePkg(auto) {
   var pk0 = PKG; if (pk0._attP && !pk0._attDone) { $('pkgStatus').textContent = 'Menunggu lampiran invoice / faktur pajak…'; pk0._attP.then(function () { if (PKG === pk0) archivePkg(auto); }); return; }
   var meta = archiveMeta(PKG), pk = PKG, st = $('pkgStatus'), done = function () { if (auto === true && AP_NEXT) setTimeout(apGoNext, 700); };
   st.textContent = (auto === true ? 'Disetujui — ' : '') + 'Membuat PDF arsip (' + meta.name + ')…';
-  makePdf(pk._pages.all, meta.name).then(function (b64) {
+  makePdf(pk._pages.print || pk._pages.all, meta.name).then(function (b64) {
     st.textContent = 'Menyimpan arsip ke Google Drive…';
     call('apiArchive', [pk.kind, pk.ref, { b64: b64, name: meta.name, month: meta.month, prefix: meta.prefix }], function (r) {
       st.innerHTML = 'Arsip tersimpan di folder <b>' + esc(r.folder) + '</b>: <a target="_blank" href="' + esc(r.url) + '">' + esc(r.name) + '</a>' + (r.moved ? ' · ' + r.moved + ' versi lama dipindah ke "Revisi lama"' : ''); done();
