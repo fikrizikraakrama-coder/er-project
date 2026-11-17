@@ -6424,8 +6424,8 @@ function bgDetailHtml(r) {
     var pv = bgUndoOk(r), b = function (k, t, c) { return '<button class="btn' + (c ? ' ' + c : '') + '" type="button" data-bga="' + k + '">' + t + '</button>'; };
     var M = [], prim = '';
     var mi = function (k, t, sub, cls) { M.push('<button type="button" class="' + (cls || '') + '" data-bga="' + k + '"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>'); };
-    if (s === 'DRAF') { prim = b('pdf', ico('download') + 'Unduh memo PDF') + b('kirim', 'Tandai dikirim ke pusat →', 'primary'); mi('edit', 'Ubah draf memo'); }
-    else if (s === 'DIKIRIM KE PUSAT') { prim = b('up', '⤒ Upload BG terbit', 'primary') + b('edit', 'Ubah memo'); mi('pdf', 'Unduh memo PDF'); mi('pusat', '↩ Dikembalikan pusat', 'memo perlu diperbaiki → Rev.' + ('0' + ((+dd.memoRev || 0) + 1)).slice(-2)); mi('terbit', 'Catat terbit manual', 'tanpa membaca scan'); }
+    if (s === 'DRAF') { prim = b('cetak', '🖨 Cetak memo') + b('pdf', ico('download') + 'Unduh PDF') + b('kirim', 'Tandai dikirim ke pusat →', 'primary'); mi('edit', 'Ubah draf memo'); }
+    else if (s === 'DIKIRIM KE PUSAT') { prim = b('up', '⤒ Upload BG terbit', 'primary') + b('edit', 'Ubah memo'); mi('cetak', '🖨 Cetak memo'); mi('pdf', 'Unduh memo PDF'); mi('pusat', '↩ Dikembalikan pusat', 'memo perlu diperbaiki → Rev.' + ('0' + ((+dd.memoRev || 0) + 1)).slice(-2)); mi('terbit', 'Catat terbit manual', 'tanpa membaca scan'); }
     else if (s === 'AKTIF') { prim = b('perpanjang', '⟳ Perpanjang', 'primary') + b('selesai', '✓ Dikembalikan / roya'); mi('amend', '✎ Amandemen', 'surat perubahan · tanggal / nilai baru, nomor sama'); mi('klaim', '⚠ Diklaim / dicairkan', 'bouwheer mencairkan jaminan'); M.push('<hr>'); mi('koreksi', 'Koreksi data', 'salah ketik / salah baca scan'); mi('scan', r.scan ? 'Ganti scan' : 'Upload scan'); }
     else if (s !== 'BATAL') { mi('koreksi', 'Koreksi data', 'salah ketik / salah baca scan'); }
     if (!r.npp && s !== 'BATAL') mi('npp', 'Hubungkan NPP');
@@ -6873,7 +6873,7 @@ function bgMemoName(L, ids) {
 function bgPdf(L, ids, after) {
   L = [].concat(L); ids = [].concat(ids || []).filter(Boolean); var nm = bgMemoName(L, ids);
   bgMsg('<span class="spin"></span>Membuat memo PDF' + (L.length > 1 ? ' (' + L.length + ' halaman)' : '') + '…');
-  makePdf(L.map(bgMemoHtml).join(''), nm, { plain: true }).then(function (b64) {
+  makePdf(L.map(function (m) { return bgMemoHtml(m); }).join(''), nm, { plain: true }).then(function (b64) {
     saveFile(b64Blob(b64, 'application/pdf'), nm + '.pdf');
     if (!ids.length) { bgMsg('Memo PDF diunduh.'); return; }
     bgMsg('Memo PDF diunduh · menyimpan arsip ke Drive…');
@@ -6917,10 +6917,12 @@ function bgFormFrom(r) {
   F.it[j] = { pct: pct, nilai: nil, nilaiManual: Math.abs(Math.round(omz * pct / 100) - nil) > 1, nilaiKet: d.nilaiKet || '', perlu: d.perlu || r.perlu || B.today, terbit: d.terbit || bgAddDays(d.perlu || r.perlu || B.today, 1), terbitManual: true, lamp: d.lamp || bgDefLamp(j), jw: null };
   return F;
 }
+/** v2.15.1 memo langsung ke jendela Print (tanpa unduh PDF dahulu) */
+function bgPrint(L) { var ov = $('bgPrev'); if (ov) ov.hidden = true; printHtml([].concat(L).map(function (m) { return bgMemoHtml(m); }).join('')); }
 function bgPrevShow(L, title, onPdf, pdfLbl) {
   var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
-  ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + (pdfLbl || 'Simpan &amp; unduh memo PDF') + '</button>' : '') + '</div><div class="bgp-pg">' + L.map(bgMemoHtml).join('') + '</div>';
-  ov.hidden = false; ov.scrollTop = 0; $('bgPrevX').onclick = function () { ov.hidden = true; }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
+  ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button><button class="btn" type="button" id="bgPrevPr">🖨 Cetak</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + (pdfLbl || 'Simpan &amp; unduh memo PDF') + '</button>' : '') + '</div><div class="bgp-pg">' + L.map(function (m) { return bgMemoHtml(m); }).join('') + '</div>';
+  ov.hidden = false; ov.scrollTop = 0; $('bgPrevX').onclick = function () { ov.hidden = true; }; $('bgPrevPr').onclick = function () { bgPrint(L); }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
   ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; };
 }
 function bgAct(k) {
@@ -6944,6 +6946,7 @@ function bgAct(k) {
   BG.more = false;
   if (['selesai', 'npp', 'pusat', 'undo', 'batal', 'klaim', 'koreksi', 'amend'].indexOf(k) >= 0) { bgRender(); return bgDlgAct(k, r); }
   if (k === 'pdf') { bgRender(); return bgPdf(bgMemos(bgFormFrom(r)), [r.id]); }
+  if (k === 'cetak') { bgRender(); return bgPrint(bgMemos(bgFormFrom(r))); } // v2.15.1 cetak memo langsung ke printer
   if (k === 'edit') { BG.form = bgFormFrom(r); BG.showList = false; BG.dTab = 0; return bgRender(); }
   if (k === 'lihat') { var LL = bgMemos(bgFormFrom(r)); return bgPrevShow(LL, 'Memo ' + r.id + ' · ' + titleCaseS(r.jenis), function () { bgPdf(LL, [r.id]); }, 'Unduh memo PDF'); }
   if (k === 'kirim') return confirmDlg('Memo ' + esc(r.id) + ' sudah dikirim ke pusat?', 'Status menjadi <b>Dikirim ke pusat</b>. Pastikan memo PDF sudah ditandatangani Manager.<label style="margin-top:8px">Tanggal kirim</label><input type="date" id="dlgTk" value="' + B.today + '">', 'Tandai dikirim', function () { bgStatus(r.id, 'KIRIM', { tgl: ($('dlgTk') || {}).value }, 'Memo ' + r.id + ' ditandai dikirim ke pusat.'); });
