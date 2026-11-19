@@ -2948,7 +2948,7 @@ var ENGINE = (function () {
     var pro = Object.keys(M.pro).filter(function (k) { return !M.pro[k]._produkOf && !M.pro[k]._adendumOf; }).map(function (k) { var p = M.pro[k]; return { npp: p.npp, pelanggan: p.pelanggan, singkat: p.singkat, deskripsi: S(p.deskripsi), nilai: p.nilai_awal,
       nama_pe: p.nama_pe, produk: nppListTxt(p.produk), selesai: !!p.selesai,
       adendum: p.adds.map(function (a) { return { ke: a.ke, nodok: a.nodok, tgl: a.tgl, jenis: a.jenis, nilai: a.nilai }; }),
-      pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok, akhir: p.akhir || '', akhirDari: p.akhirDari || '',
+      pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok, akhir: p.akhir || '', akhirDari: p.akhirDari || '', billed: (kontrakStatus(ctx, p.npp) || {}).billed || 0,
       um: p.um, um_awal: p.um_awal || 0, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
       signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng, pola_uraian: S(p.pola_uraian), pola_kw: S(p.pola_kw),
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,

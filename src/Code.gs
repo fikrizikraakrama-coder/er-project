@@ -167,9 +167,10 @@ function arEnsureDppAdj_(sh) {
   if (!sh) return 0;
   var map = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS);
   if (map.dpp_adj) { // sudah ada (mis. dibuat lama di ujung kanan / di grup kolom terlipat) → dipindah ke kanan DPP (FAKTUR) & ditampilkan
+    var dpx = arProps_(); if (dpx.getProperty('REG_DPPADJ_POS_V2151') === '1') return 0; // sekali saja: setelah itu posisi / sembunyi kolom mengikuti pengguna
     if (map.dpp && map.dpp_adj !== map.dpp + 1) { try { sh.moveColumns(sh.getRange(1, map.dpp_adj, sh.getMaxRows(), 1), map.dpp + 1); } catch (e) { } }
     try { var m2 = colMap_(sh, ENGINE.REG, ENGINE.REG_ALIAS); if (m2.dpp_adj && sh.isColumnHiddenByUser(m2.dpp_adj)) sh.showColumns(m2.dpp_adj); } catch (e) { }
-    return 0;
+    dpx.setProperty('REG_DPPADJ_POS_V2151', '1'); return 0;
   }
   if (!map.dpp) return ensureSchema_(sh, { sheet: ENGINE.REG.sheet, headerRow: ENGINE.REG.headerRow, firstRow: ENGINE.REG.firstRow, cols: ENGINE.REG.cols.filter(function (c) { return c[0] === 'dpp_adj'; }) }, ENGINE.REG_ALIAS, 6);
   var c = ENGINE.REG.cols.filter(function (x) { return x[0] === 'dpp_adj'; })[0], col = map.dpp + 1, H = ENGINE.REG.headerRow, F = ENGINE.REG.firstRow;
