@@ -4942,7 +4942,9 @@ function navRoute(q) {
 function buildNav(maker) {
   var viewer = !!(B && B.access && B.access.viewer); NAV = maker ? NAV_MAKER : viewer ? NAV_VIEW : NAV_APPR;
   $('tbNav').innerHTML = NAV.map(function (n) {
-    if (n.items) return '<div style="position:relative"><button type="button" class="tb-it" data-g="' + n.g + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '<span class="car">▼</span></button>' +
+    // v2.15.2 tombol grup juga tautan: klik biasa membuka dropdown; klik kanan / Ctrl+klik → layar utama grup di tab baru
+    var gm = n.items ? ({ pen: 'buka', inv: 'buka', pay: 'tbayar', cust: 'md', col: 'plan', close: 'close' }[n.g] || '') : ''; if (n.items && !n.items.some(function (it) { return it[0] === gm; })) gm = (n.items.filter(function (it) { return !/^act:/.test(it[0]); })[0] || [''])[0];
+    if (n.items) return '<div style="position:relative"><a ' + nlAttr({ go: gm }) + ' class="tb-it" data-g="' + n.g + '" title="Klik: menu · klik kanan: buka ' + esc((n.items.filter(function (it) { return it[0] === gm; })[0] || [0, 0, n.t])[2]) + ' di tab baru">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '<span class="car">▼</span></a>' +
       '<div class="tb-dd" id="dd-' + n.g + '" hidden>' + n.items.map(function (it) { var A = /^act:/.test(it[0]) ? '<button type="button" data-mode="' + it[0] + '">' : '<a ' + nlAttr({ go: it[0] }) + ' data-mode="' + it[0] + '">'; return A + '<i>' + ico(it[1]) + '</i><span>' + esc(it[2]) + (it[5] ? '<em class="tc" title="Padanan SAP">' + esc(it[5]) + '</em>' : '') + '<small>' + esc(it[3]) + '</small></span>' + (it[4] ? '<span class="tb-b" id="' + it[4] + '" hidden></span>' : '') + (/^act:/.test(it[0]) ? '</button>' : '</a>'); }).join('') + '</div></div>';
     return '<a ' + nlAttr({ go: n.id }) + ' class="tb-it" data-mode="' + n.id + '">' + ico(n.ic) + esc(n.t) + (n.badge ? ' <span class="tb-b' + (n.y ? ' y' : '') + '" id="' + n.badge + '" hidden></span>' : '') + '</a>';
   }).join('');
