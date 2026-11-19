@@ -10,7 +10,8 @@ var BG_SCHEMA_ = {
     ['status', 'STATUS', 'auto', 16], ['sisa', 'SISA HARI', 'auto', 9, 'int'], ['no_bg', 'NO. BG', 'auto', 22], ['bank', 'BANK PENERBIT', 'auto', 16], ['penerbit', 'JENIS PENERBIT (BANK / ASURANSI)', 'auto', 12], ['tgl_terbit', 'TGL TERBIT', 'auto', 12, 'date'],
     ['provisi', 'PERKIRAAN PROVISI (Rp)', 'auto', 14, 'money'], ['bg_lama', 'NO. BG LAMA (PERUBAHAN / PERPANJANGAN)', 'auto', 20], ['tgl_kirim', 'TGL KIRIM KE PUSAT', 'auto', 12, 'date'],
     ['tgl_selesai', 'TGL KEMBALI / ROYA', 'auto', 12, 'date'], ['memo', 'LINK MEMO PDF', 'auto', 22], ['scan', 'LINK SCAN BG', 'auto', 22], ['ket', 'KETERANGAN', 'auto', 34],
-    ['oleh', 'DIBUAT OLEH', 'auto', 22], ['ubah', 'DIUBAH', 'auto', 15], ['data', 'DATA MEMO (JANGAN DIUBAH)', 'auto', 12]]
+    ['oleh', 'DIBUAT OLEH', 'auto', 22], ['ubah', 'DIUBAH', 'auto', 15], ['data', 'DATA MEMO (JANGAN DIUBAH)', 'auto', 12],
+    ['lokasi', 'LOKASI BG ASLI', 'auto', 28], ['batas_klaim', 'BATAS KLAIM (SETELAH BERAKHIR)', 'auto', 12, 'date']]
 };
 var BG_ST_ = ['DRAF', 'DIKIRIM KE PUSAT', 'AKTIF', 'DIKEMBALIKAN', 'ROYA', 'DIPERPANJANG', 'DICAIRKAN', 'BATAL'];
 function bgSheet_(create) {
@@ -108,7 +109,7 @@ function apiBgSave(D) { arRequireMaker_();
         provisi: bgProvisi_(nilai, d.mulai, d.sampai), bg_lama: d.bgLama || '', ket: [d.jwTxt ? 'Masa berlaku: ' + d.jwTxt : '', d.ket || ''].filter(String).join(' · ').slice(0, 500), data: d };
       if (L.length > 1) o.ket = (o.ket + (o.ket ? ' · ' : '') + 'dibuat bersama ' + L.length + ' jaminan').slice(0, 500);
       if (!x) { o.status = 'DRAF'; o.oleh = me; }
-      var now0 = arNow_().slice(0, 16); if (x) { var xd = x.d || {}; ['h', 'prev', 'memoRev', 'amd', 'amdLinks', 'klaim', 'klaimLink'].forEach(function (k) { if (xd[k] !== undefined) d[k] = xd[k]; }); }
+      var now0 = arNow_().slice(0, 16); if (x) { var xd = x.d || {}; ['h', 'prev', 'memoRev', 'amd', 'amdLinks', 'klaim', 'klaimLink', 'lok'].forEach(function (k) { if (xd[k] !== undefined) d[k] = xd[k]; }); }
       bgHist_(d, x ? 'EDIT' : 'BARU', x ? 'Memo diubah' + (d.memoRev ? ' (Rev.' + ('0' + d.memoRev).slice(-2) + ')' : '') : 'Draf memo dibuat' + (L.length > 1 ? ' (bersama ' + L.length + ' jaminan)' : ''), me, now0); o.data = d;
       bgWrite_(sh, row, o); ids.push(id);
     });
@@ -219,6 +220,13 @@ function apiBgStatus(id, act, p) { arRequireMaker_();
       if (pv.act === 'TERBIT' && x.bg_lama) all.forEach(function (r) { if (r.status === 'DIPERPANJANG' && String(r.no_bg).trim() === String(x.bg_lama).trim() && String(r.ket || '').indexOf('diganti ' + id) >= 0) { var dd = bgHist_(r.d || {}, 'UNDO', 'Aktif kembali — terbit ' + id + ' dibatalkan', me, now); bgWrite_(sh, r._row, { status: 'AKTIF', tgl_selesai: '', data: dd }); } });
       delete d.prev; hist = 'Langkah terakhir dibatalkan (' + String(pv.act || '').toLowerCase() + ', status kembali ' + String(pv.status || '').toLowerCase() + '): ' + a4;
     }
+    else if (act === 'LOKASI') { // v2.15.4 posisi BG asli: kantor → bouwheer → diminta kembali → bank
+      var LK = { KANTOR: 'DI KANTOR', BOUWHEER: 'DI BOUWHEER', DIMINTA: 'DIMINTA KEMBALI DARI BOUWHEER', BANK: 'DIKEMBALIKAN KE BANK / PUSAT' }, lk = String(p.lokasi || '').toUpperCase();
+      if (!LK[lk]) throw new Error('Pilih lokasi BG asli.');
+      var tl = bgIsD_(p.tgl) ? p.tgl : today, kt = String(p.ket || '').trim().slice(0, 120);
+      o.lokasi = LK[lk] + ' · ' + tl + (kt ? ' · ' + kt : ''); d.lok = (d.lok || []).concat([{ k: lk, tgl: tl, ket: kt, by: me }]).slice(-20); hist = 'Lokasi BG asli: ' + o.lokasi;
+    }
+    else if (act === 'BATASKLAIM') { if (p.batas && !bgIsD_(p.batas)) throw new Error('Tanggal batas klaim tidak valid.'); if (p.batas && x.sampai && p.batas < x.sampai) throw new Error('Batas klaim tidak boleh sebelum tanggal berakhir BG.'); o.batas_klaim = p.batas || ''; hist = p.batas ? 'Batas klaim: ' + p.batas : 'Batas klaim dihapus'; }
     else throw new Error('Tindakan tidak dikenal.');
     o.data = bgHist_(d, act, hist, me, now);
     bgWrite_(sh, x._row, o); out.status = o.status || st; out.scan = o.scan || '';

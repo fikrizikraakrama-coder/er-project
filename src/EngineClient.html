@@ -73,7 +73,9 @@ var ENGINE = (function () {
       ['nitku', 'NITKU PEMBELI (OPSIONAL)', 24], ['kode_bp', 'KODE BUSINESS PARTNER (SAP)', 14],
       ['a1', 'ALAMAT BARIS 1', 34], ['a2', 'ALAMAT BARIS 2', 34], ['a3', 'ALAMAT BARIS 3', 30], ['jenis', 'JENIS PELANGGAN', 11],
       ['kelompok', 'KELOMPOK', 15], ['dasar_jt', 'DASAR JATUH TEMPO', 17], ['adm', 'BATAS ADM BANK (Rp)', 12], ['top_ret', 'TOP RETENSI (HARI)', 11],
-      ['wakil', 'NAMA WAKIL (UNTUK BAP)', 20], ['jab', 'JABATAN WAKIL (UNTUK BAP)', 20], ['aktif', 'AKTIF', 7], ['catatan', 'CATATAN', 30], ['limit', 'BATAS KREDIT (Rp, OPSIONAL)', 16]]
+      ['wakil', 'NAMA WAKIL (UNTUK BAP)', 20], ['jab', 'JABATAN WAKIL (UNTUK BAP)', 20], ['aktif', 'AKTIF', 7], ['catatan', 'CATATAN', 30], ['limit', 'BATAS KREDIT (Rp, OPSIONAL)', 16],
+      ['pic_nama', 'NAMA PIC PENAGIHAN (DI PELANGGAN)', 22], ['pic_jab', 'JABATAN PIC PENAGIHAN', 18], ['pic_email', 'EMAIL PIC PENAGIHAN', 24], ['pic_telp', 'TELEPON PIC PENAGIHAN', 15],
+      ['syarat_dok', 'SYARAT DOKUMEN PENAGIHAN (DIPISAH ;)', 40]]
   };
   var MPRO = {
     sheet: 'Master Proyek', headerRow: 2, firstRow: 3,
@@ -2947,7 +2949,8 @@ var ENGINE = (function () {
     var umr = {}; umRetRows(ctx).forEach(function (u) { umr[u.npp] = u; });
     var pbMax = 0; ctx.pays.forEach(function (p) { var m = U(p.ref).match(/^PB-(\d+)$/); if (m) pbMax = Math.max(pbMax, +m[1]); });
     var pel = Object.keys(M.pel).map(function (k) { var p = M.pel[k]; return { nama: p.nama, inv: S(p.inv) || p.nama, npwp: S(p.npwp), npwp16: p.npwp16, nitku: p.nitku, kode_bp: p.kode_bp,
-      alamat: [p.a1, p.a2, p.a3].map(S).filter(String), jenis: p.jenis, kelompok: p.kelompok, dasar_jt: p.dasar_jt, wakil: S(p.wakil), jab: S(p.jab), aktif: p.aktif, adm: p.adm, limit: p.limit || 0 }; });
+      alamat: [p.a1, p.a2, p.a3].map(S).filter(String), jenis: p.jenis, kelompok: p.kelompok, dasar_jt: p.dasar_jt, wakil: S(p.wakil), jab: S(p.jab), aktif: p.aktif, adm: p.adm, limit: p.limit || 0,
+      pic_nama: S(p.pic_nama), pic_jab: S(p.pic_jab), pic_email: S(p.pic_email), pic_telp: S(p.pic_telp), syarat_dok: S(p.syarat_dok) }; });
     var pro = Object.keys(M.pro).filter(function (k) { return !M.pro[k]._produkOf && !M.pro[k]._adendumOf; }).map(function (k) { var p = M.pro[k]; return { npp: p.npp, pelanggan: p.pelanggan, singkat: p.singkat, deskripsi: S(p.deskripsi), nilai: p.nilai_awal,
       nama_pe: p.nama_pe, produk: nppListTxt(p.produk), selesai: !!p.selesai,
       adendum: p.adds.map(function (a) { return { ke: a.ke, nodok: a.nodok, tgl: a.tgl, jenis: a.jenis, nilai: a.nilai }; }),
@@ -3051,6 +3054,7 @@ var ENGINE = (function () {
       if (!S(d.kode_bp)) add('I', 'kode_bp', 'SAP BP code empty', 'Allowed — the customer is flagged "data incomplete" until filled.');
       if (!S(d.a1)) add('W', 'a1', 'Address is empty', 'Printed on the invoice and tax invoice.');
       if (S(d.jenis) && OPT.jenis_pel.indexOf(U(d.jenis)) < 0) add('E', 'jenis', 'Unknown customer type');
+      if (S(d.pic_email) && !/^[^\s@;,]+@[^\s@;,]+\.[^\s@;,]+$/.test(S(d.pic_email))) add('W', 'pic_email', 'Format email PIC tidak biasa', S(d.pic_email));
     } else {
       var np = U(d.npp).replace(/\s+/g, ' ').trim(), oth = all.pro.filter(function (r) { return U(r.npp) !== U(orig || ''); });
       if (!np) add('E', 'npp', 'NPP is empty');

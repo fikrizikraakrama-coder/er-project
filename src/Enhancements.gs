@@ -1132,7 +1132,7 @@ function arExtendFilters_(ss) {
 
 // =====================================================================  v2.8.8: MASTER DATA (pelanggan, proyek, adendum) LEWAT APLIKASI
 var AR_MD_HIST_ = 'Riwayat Master Data';
-var AR_MD_TEXT_ = ['npwp', 'nitku', 'kode_bp', 'npp', 'kontrak', 'kode_jasa', 'npp_produk', 'npp_adendum', 'pola_uraian', 'pola_kw'];
+var AR_MD_TEXT_ = ['npwp', 'nitku', 'kode_bp', 'npp', 'kontrak', 'kode_jasa', 'npp_produk', 'npp_adendum', 'pola_uraian', 'pola_kw', 'pic_telp', 'pic_email', 'syarat_dok', 'dok_dasar', 'denda'];
 function arMdRead_(ss) {
   var obj = function (sheetName, schema, alias) { var sh = ss.getSheetByName(sheetName); if (!sh) return [];
     return readSchema_(sh, schema, alias).map(function (r, i) { var o = { _row: schema.firstRow + i }; schema.cols.forEach(function (c, j) { o[c[0]] = r[j]; }); return o; })
