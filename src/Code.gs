@@ -1109,9 +1109,25 @@ function setupAdendum() { arRequireMaker_();
 }
 
 // =====================================================================  APLIKASI (WEB APP)
-function doGet() {
+var AR_APP_NAME = 'Accounts Receivable Hub';
+/** v2.15.2 judul tab mengikuti layar yang dibuka lewat tautan (?go=…): "Daftar Penerimaan · Accounts Receivable Hub" */
+function arTabTitle_(q) {
+  q = q || {}; var L = { dashboard: 'Ringkasan', exec: 'Ringkasan', md: 'Master Pelanggan', bal: 'Saldo Pelanggan', lim: 'Batas Kredit', kp: 'Kartu Piutang', buka: 'Daftar Invoice', buat: 'Buat Invoice',
+    bayar: 'Catat Penerimaan', tbayar: 'Daftar Penerimaan', plan: 'Rencana Termin', surat: 'Surat Penagihan', bg: 'Bank Garansi', close: 'Checklist Tutup Buku', dok: 'Dokumen Bulanan', ho: 'Serah Terima Akuntansi', setuju: 'Persetujuan', 'md:ktr': 'Kontrak perlu tindakan' };
+  var K = { INV: 'Invoice', PAY: 'Penerimaan', KP: 'Kartu Piutang', VAL: 'Validasi RA', REK: 'Rekap Bulanan', TUTUP: 'Tutup Manual', BATAL: 'Pembatalan', VALX: 'Pembatalan Validasi', REVP: 'Pembalikan' };
+  var sh = function (v) { v = String(v || ''); var m = v.match(/4C\.([^\s]+)$/); return (m ? '4C.' + m[1] : v.replace(/^REF\s+/, '')).slice(0, 40); }, g = String(q.go || ''), t = '';
+  if (g === 'kp') t = 'Kartu Piutang' + (q.npp ? ' ' + q.npp : '');
+  else if (g === 'lp') t = (q.a === 'pay' ? 'Penerimaan ' : 'Invoice ') + sh(q.id);
+  else if (g === 'pkg') t = (K[q.k] || 'Dokumen') + ' ' + sh(q.ref);
+  else if (g === 'md' && q.key) t = (q.tab === 'PEL' ? 'Pelanggan ' : 'Proyek ') + String(q.key).slice(0, 40);
+  else if (g === 'bg' && q.id) t = 'Bank Garansi ' + q.id;
+  else if (g === 'surat' && q.pel) t = 'Surat Penagihan ' + String(q.pel).replace(/^PT\.?\s+/i, '').slice(0, 40);
+  else t = L[g] || '';
+  return (t ? t + ' · ' : '') + AR_APP_NAME;
+}
+function doGet(e) {
   return HtmlService.createTemplateFromFile('Index').evaluate()
-    .setTitle('AR CSU — Receivables Management')
+    .setTitle(arTabTitle_(e && e.parameter))
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -1120,7 +1136,7 @@ function include(name) { if (['Index','EngineClient','PdfLib'].indexOf(name) < 0
 function apiPdfLib() { arRequireAccess_(true); return HtmlService.createHtmlOutputFromFile('PdfLib').getContent(); }
 function openAppDialog() {
   var html = HtmlService.createTemplateFromFile('Index').evaluate().setWidth(1400).setHeight(900);
-  SpreadsheetApp.getUi().showModalDialog(html, 'AR CSU — Penagihan, Penerimaan & Otorisasi Dokumen');
+  SpreadsheetApp.getUi().showModalDialog(html, 'Accounts Receivable Hub — Penagihan, Penerimaan & Otorisasi Dokumen');
 }
 /** link resmi aplikasi web: disimpan lewat menu (Script Properties) karena ScriptApp.getService().getUrl() bisa mengembalikan ID deployment lain */
 var AR_URL_RE_ = /^https:\/\/script\.google\.com\/(a\/[^\/]+\/)?macros\/s\/[\w-]+\/exec$/;

@@ -3,7 +3,7 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
-<title>AR CSU — Receivables Management</title>
+<title>Accounts Receivable Hub</title>
 <meta name="author" content="Fikri Zikra Akrama">
 <!-- Sistem AR CSU — dirancang dan dikembangkan oleh Fikri Zikra Akrama (AR Officer CSU), 2026. Penggandaan tanpa izin pengembang tidak diperkenankan. -->
 <style>
@@ -990,6 +990,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 #bgWrap{flex:1;overflow:auto;background:#EEF2F6}
 #tbNav{min-width:0;overflow-x:auto;scrollbar-width:none}#tbNav::-webkit-scrollbar{display:none}
 @media(max-width:1800px){#tbNav .tb-it{padding:6px 8px;font-size:12.5px}.tb-name small{display:none}}
+.tb-name .nm-s{display:none}@media(max-width:1250px){.tb-name .nm-l{display:none}.tb-name .nm-s{display:inline}}
 @media(max-width:1600px){#tbWho{display:none!important}}
 .bgx{padding:18px 22px 40px;max-width:1500px;margin:0 auto;color:#16263D}.bgx-hd{display:flex;align-items:flex-end;gap:10px}.bgx-hd h2{margin:0;font-size:22px}.bgx-hd p{margin:3px 0 0;color:#5F6F86;font-size:12.5px}.bgx-hd .sp{flex:1}.bgx-hd a.btn{text-decoration:none}
 .bgx-k{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}.bgx-k>div{background:#fff;border:1px solid #DFE6EE;border-radius:14px;padding:11px 14px}.bgx-k small{display:block;color:#5B6B80;font-size:11.5px;font-weight:600}.bgx-k b{display:block;font-size:20px;margin:3px 0 1px}.bgx-k b.bgred{color:#C8372F}.bgx-k span{font-size:11px;color:#6A7A8E}
@@ -1165,7 +1166,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 <symbol id="i-lim" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6z"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></symbol>
 <symbol id="i-xd" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9.5 12.5l5 5M14.5 12.5l-5 5"/></symbol>
 </defs></svg>
-<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div class="tb-name">AR CSU<small id="tbVer">Manajemen Piutang</small></div></div>
+<header id="topbar"><div class="tb-brand"><div class="tb-logo">AR</div><div class="tb-name"><span class="nm-l">Accounts Receivable Hub</span><span class="nm-s">AR Hub</span><small id="tbVer">Concrete Services Unit</small></div></div>
   <div id="mTitle"></div>
   <nav id="tbNav"></nav>
   <div class="tb-user"><span class="tb-bell" id="tbBell" title="Persetujuan"><svg class="ic"><use href="#i-bell"/></svg><i id="tbBellDot" hidden></i></span><div id="tbWho"></div><div class="tb-av" id="tbAv">·</div></div>
@@ -1174,7 +1175,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 <div id="app">
   <aside>
     <div class="brand">
-      <h1>AR CSU — Manajemen Piutang</h1>
+      <h1>Accounts Receivable Hub</h1>
       <p>WIKA Beton · Concrete Services Unit — terhubung ke Monitoring Invoice · <span style="white-space:nowrap" id="verLabel">versi 2.8.6 · 22-10-2026</span><br><span style="font-size:11px">Dirancang &amp; dikembangkan oleh Fikri Zikra Akrama</span></p>
     </div>
     <div id="accessBadge" class="ar-access">Memeriksa akun Google…</div>
@@ -5347,7 +5348,7 @@ function applyAccess() {
   sw.hidden = !isCoord(); sw.innerHTML = isCoord() ? '<span>Tampilan</span><button type="button" data-cv="ar"' + (CVIEW === 'ar' ? ' class="on"' : '') + ' title="Menu AR: input invoice, penerimaan, dokumen">AR</button><button type="button" data-cv="sh"' + (CVIEW === 'sh' ? ' class="on"' : '') + ' title="Menu Section Head: persetujuan, rencana termin, ringkasan">SH</button>' : '';
   sw.querySelectorAll('[data-cv]').forEach(function (b) { b.onclick = function () { coordSwitch(b.dataset.cv); }; });
   $('tbAv').textContent = String(nm).split(/\s+/).filter(String).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase() || '·';
-  $('tbVer').textContent = 'Manajemen Piutang · v' + String(E.VERSION).split(' ')[0];
+  $('tbVer').textContent = 'Concrete Services Unit · v' + String(E.VERSION).split(' ')[0];
   $('accessBadge').textContent = (isCoord() ? 'Koordinator · tampilan ' + (CVIEW === 'sh' ? 'Section Head' : 'AR') : viewer ? 'Manajemen · Hanya lihat' : maker ? 'Pembuat · Semua menu' : 'Section Head · Persetujuan dokumen') + ' · ' + ((B.user || {}).nama || '');
 }
 /* ====================================================== v2.8.8: Master Data — pelanggan, proyek, adendum (padanan BP / FD01–03) */
