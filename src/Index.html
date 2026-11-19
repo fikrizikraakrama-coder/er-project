@@ -6403,13 +6403,28 @@ function bgJenisTxt(f) { return f.jenis === 'PERUBAHAN' ? (f.perUbah ? 'PERUBAHA
 function bgDefLamp(j) { return j === 'PELAKSANAAN' ? { b: 1 } : j === 'UANG MUKA' ? { c: 1 } : j === 'PEMELIHARAAN' ? { d: 1 } : j === 'TENDER' ? { e: 1 } : j === 'PENAWARAN' ? { a: 1, f: 1 } : {}; }
 // v2.9.7: satu form → beberapa jaminan (mis. Uang Muka + Pelaksanaan). Data proyek, form & penanda tangan sekali; persen, nilai, tanggal & lampiran per jaminan.
 // Jangka waktu memakai aturan: berlaku sejak SPK/SPMK (atau tanggal lain) s/d tanggal tertentu · N hari · selesai pekerjaan + tambahan (bulan kalender / hari).
+/* v2.15.2 jenis dokumen dasar (butir 3 memo) & dokumen yang lazim diminta bank per jenis jaminan */
+var BG_DOKS = [['', '— teks baku memo (Kontrak / SPK / PO / Penawaran) —', ''], ['Kontrak / Surat Perjanjian', 'Kontrak / Surat Perjanjian', 'Kontrak / Surat Perjanjian'], ['SPK', 'SPK (Surat Perintah Kerja)', 'SPK (Surat Perintah Kerja)'],
+  ['SPMK', 'SPMK (Surat Perintah Mulai Kerja)', 'SPMK (Surat Perintah Mulai Kerja)'], ['LoA / SPPBJ', 'LoA / SPPBJ (Letter of Acceptance / Surat Penunjukan Penyedia)', 'Letter of Acceptance / SPPBJ'], ['LoI', 'LoI (Letter of Intent)', 'Letter of Intent (LoI)'],
+  ['PO', 'PO (Purchase Order)', 'Purchase Order (PO)'], ['Dokumen Tender', 'Dokumen / Undangan Tender', 'Dokumen Tender'], ['BAST-1 / PHO', 'BAST-1 / PHO (serah terima pertama)', 'BAST-1 / PHO'], ['Adendum Kontrak', 'Adendum Kontrak', 'Adendum Kontrak'], ['LAINNYA', 'Lainnya… (ketik sendiri)', '']];
+var BG_DOK_HINT = { TENDER: 'undangan / dokumen tender (RKS), syarat nilai jaminan', PENAWARAN: 'undangan / dokumen tender, surat penawaran', 'UANG MUKA': 'kontrak / SPK, syarat uang muka (% & nilai)', PELAKSANAAN: 'LoA / SPPBJ atau kontrak / SPK',
+  PEMELIHARAAN: 'BAST-1 / PHO dan kontrak', PERUBAHAN: 'BG lama, adendum kontrak atau surat permintaan bouwheer', LAIN: 'sesuai permintaan bouwheer' };
+/** nama dokumen dasar tercetak di butir 3 memo ('' = teks baku) */
+function bgDokNama(f) { if (!f.kontrakLbl) return ''; if (f.kontrakLbl === 'LAINNYA') return String(f.kontrakLain || '').trim(); var d = BG_DOKS.filter(function (x) { return x[0] === f.kontrakLbl; })[0]; return d ? d[2] : String(f.kontrakLbl); }
+/** isian kosong diisi dari Master Proyek / Pelanggan (isian yang sudah ada tidak ditimpa) */
+function bgFillBlank(F) {
+  var p = F.npp ? bgPro(F.npp) : null; if (!p) return F;
+  var pl = bgPel(p.pelanggan) || {}, set = function (k, v) { if (!String(F[k] || '').trim() && v) F[k] = v; };
+  set('pel', p.pelanggan); set('pekerjaan', p.pekerjaan || p.singkat); set('proyek', p.nama_pe || p.deskripsi || p.singkat); set('kontrak', p.kontrak); set('tglKontrak', p.tgl_kontrak);
+  set('kepada', pl.inv || p.pelanggan); set('alamat', (pl.alamat || []).join('\n')); return F;
+}
 var BG_MULTI = ['TENDER', 'PENAWARAN', 'UANG MUKA', 'PELAKSANAAN', 'PEMELIHARAAN'], BG_JC = { 'TENDER': '#6A7A8E', 'PENAWARAN': '#8A5A00', 'UANG MUKA': '#2F5597', 'PELAKSANAAN': '#1E8A4C', 'PEMELIHARAAN': '#7C4DC0', 'PERUBAHAN': '#B45309', 'LAIN': '#475569' };
 function bgJwNew(o) { var r = { start: 'spk', mulaiLain: '', mode: 'selesai', sampaiTgl: '', hari: '', pelaks: '', tambah: '', unit: 'bulan', hari1: false }; if (o) Object.keys(o).forEach(function (k) { r[k] = o[k]; }); return r; }
 function bgAddMonths(d, n) { var p = String(d || '').split('-'); if (p.length < 3) return ''; var y = +p[0], m = +p[1] - 1 + (+n || 0), day = +p[2]; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12; var last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); return y + '-' + ('0' + (m + 1)).slice(-2) + '-' + ('0' + Math.min(day, last)).slice(-2); }
 /** hasil aturan jangka waktu → { mulai, sampai, selesai, txt } */
 function bgJwCalc(F, w) {
   var mulai = w.start === 'spk' ? (F.tglKontrak || '') : (w.mulaiLain || ''), sampai = '', selesai = '', k = w.hari1 ? 1 : 0, txt = '';
-  var basis = w.start === 'spk' ? (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK') + ' ' + tg(mulai) : 'mulai ' + tg(mulai);
+  var basis = w.start === 'spk' ? (bgDokNama(F) || 'SPK') + ' ' + tg(mulai) : 'mulai ' + tg(mulai);
   if (w.mode === 'tgl') { sampai = w.sampaiTgl || ''; txt = basis + ' s/d ' + tg(sampai); }
   else if (w.mode === 'hari') { if (mulai && +w.hari > 0) sampai = bgAddDays(mulai, +w.hari - k); txt = basis + ' + ' + (+w.hari || 0) + ' hari' + (k ? ' (tgl mulai = hari ke-1)' : ''); }
   else { if (mulai && +w.pelaks > 0) { selesai = bgAddDays(mulai, +w.pelaks - k); sampai = +w.tambah > 0 ? (w.unit === 'bulan' ? bgAddMonths(selesai, +w.tambah) : bgAddDays(selesai, +w.tambah)) : selesai; }
@@ -6459,7 +6474,7 @@ function bgJwHtml(F, w, key, j) {
   var r = bgJwCalc(F, w), a = function (f, v) { return 'data-bgw="' + f + '" data-bgwj="' + esc(key) + '"' + (v ? ' value="' + esc(v) + '"' : ''); };
   var rad = function (f, v, on, lbl, extra) { return '<label class="bgx-r"><input type="radio" name="bgw_' + esc(key) + '_' + f + '" ' + a(f) + ' data-v="' + v + '"' + (on ? ' checked' : '') + '> ' + lbl + '</label>' + (extra || ''); };
   var nI = function (f, v, ph) { return '<input class="bgx-sn" ' + a(f) + ' value="' + esc(v === undefined || v === null ? '' : v) + '" inputmode="numeric" placeholder="' + (ph || '') + '">'; };
-  var h = '<div class="bgx-jw"><div class="bgx-jwr"><b>Berlaku sejak</b>' + rad('start', 'spk', w.start === 'spk', 'tanggal ' + (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK / kontrak') + ' <span class="tg">(' + (F.tglKontrak ? tg(F.tglKontrak) : 'isi tanggal di butir 3') + ')</span>') +
+  var h = '<div class="bgx-jw"><div class="bgx-jwr"><b>Berlaku sejak</b>' + rad('start', 'spk', w.start === 'spk', 'tanggal ' + esc(bgDokNama(F) || 'SPK / kontrak') + ' <span class="tg">(' + (F.tglKontrak ? tg(F.tglKontrak) : 'isi tanggal di butir 3') + ')</span>') +
     rad('start', 'lain', w.start === 'lain', 'tanggal lain') + (w.start === 'lain' ? '<input type="date" class="bgx-sd" ' + a('mulaiLain', w.mulaiLain) + '>' : '') + '</div>';
   h += '<div class="bgx-jwr"><b>Berlaku sampai</b>' + rad('mode', 'tgl', w.mode === 'tgl', 'tanggal tertentu') + rad('mode', 'hari', w.mode === 'hari', 'jumlah hari') + rad('mode', 'selesai', w.mode === 'selesai', 'selesai pekerjaan + tambahan') + '</div>';
   if (w.mode === 'tgl') h += '<div class="bgx-jws">s/d <input type="date" class="bgx-sd" ' + a('sampaiTgl', w.sampaiTgl) + '></div>';
@@ -6478,13 +6493,13 @@ function bgFormHtml(F) {
   var ta = function (k, lbl, v, rows) { return '<div><label>' + lbl + '</label><textarea data-bgk="' + k + '" rows="' + (rows || 2) + '">' + esc(v || '') + '</textarea></div>'; };
   var multi = F.list.length > 1, ex = F.list[0] === 'PERUBAHAN' || F.list[0] === 'LAIN';
   var h = '<div class="bgx-card bgx-form"><h3>' + (F.id ? 'Ubah draf ' + esc(F.id) : 'Permohonan BG baru') + ' <em>memo ke pusat</em></h3><p class="s">Data proyek diisi sekali · setiap jenis jaminan punya nilai &amp; masa berlaku sendiri · 1 memo per jaminan</p>';
-  h += '<label>Jenis jaminan' + (F.lock ? '' : ' — boleh pilih lebih dari satu') + '</label><div class="bgx-seg">' + [['TENDER', 'Tender'], ['PENAWARAN', 'Penawaran'], ['UANG MUKA', 'Uang Muka'], ['PELAKSANAAN', 'Pelaksanaan'], ['PEMELIHARAAN', 'Pemeliharaan'], ['PERUBAHAN', 'Perubahan / Perpanjangan'], ['LAIN', 'Lainnya']].map(function (x) { var on = F.list.indexOf(x[0]) >= 0; return '<button type="button" data-bgj="' + x[0] + '" class="' + (on ? 'on' : '') + '"' + (F.lock && !on ? ' disabled' : '') + '>' + (on && BG_MULTI.indexOf(x[0]) >= 0 ? '☑ ' : '') + x[1] + '</button>'; }).join('') + '</div>';
-  if (F.list[0] === 'PERUBAHAN') h += '<div class="g2"><div><label>Jaminan yang diperpanjang / diubah</label><select data-bgk="perJenis">' + ['PELAKSANAAN', 'UANG MUKA', 'PEMELIHARAAN'].map(function (x) { return '<option' + (F.perJenis === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('bgLama', 'Nomor BG lama', F.bgLama, ' placeholder="no. BG yang diperpanjang"') + '</div>';
+  h += '<label>Jenis jaminan' + (F.lock ? '' : ' — boleh pilih lebih dari satu') + '</label><div class="bgx-seg">' + [['TENDER', 'Tender'], ['PENAWARAN', 'Penawaran'], ['UANG MUKA', 'Uang Muka'], ['PELAKSANAAN', 'Pelaksanaan'], ['PEMELIHARAAN', 'Pemeliharaan'], ['PERPANJ', 'Perpanjangan'], ['UBAH', 'Perubahan'], ['LAIN', 'Lainnya']].map(function (x) { var per = x[0] === 'PERPANJ' || x[0] === 'UBAH', on = per ? F.list[0] === 'PERUBAHAN' && !!F.perUbah === (x[0] === 'UBAH') : F.list.indexOf(x[0]) >= 0, dis = F.lock && !on && !(per && F.list[0] === 'PERUBAHAN'); return '<button type="button" data-bgj="' + x[0] + '" class="' + (on ? 'on' : '') + '"' + (dis ? ' disabled' : '') + '>' + (on && BG_MULTI.indexOf(x[0]) >= 0 ? '☑ ' : '') + x[1] + '</button>'; }).join('') + '</div>';
+  if (F.list[0] === 'PERUBAHAN') h += '<div class="g2"><div><label>Jaminan yang ' + (F.perUbah ? 'diubah' : 'diperpanjang') + '</label><select data-bgk="perJenis">' + ['PELAKSANAAN', 'UANG MUKA', 'PEMELIHARAAN'].map(function (x) { return '<option' + (F.perJenis === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('bgLama', 'Nomor BG lama', F.bgLama, ' placeholder="no. BG yang diperpanjang"') + '</div>';
   if (F.list[0] === 'LAIN') h += '<div class="g2">' + inp('lainTxt', 'Nama jaminan (tercetak sebagai g)', F.lainTxt, ' placeholder="mis. Corporate Guarantee Uang Muka / Surat Dukungan"') + inp('bgLama', 'Perubahan jaminan nomor (bila ada)', F.bgLama) + '</div>';
   // data proyek
   var pels = (B.pelanggan || []).filter(function (p) { return p.aktif !== 'TIDAK'; }).sort(function (a, b) { return a.nama < b.nama ? -1 : 1; }), proP = F.pel ? pro.filter(function (p) { return p.pelanggan === F.pel; }) : pro;
   h += '<div class="bgx-sec"><b>Data proyek' + (multi ? ' (sama untuk semua jaminan)' : '') + '</b>';
-  h += '<div class="g2"><div><label>Pelanggan</label><select data-bgk="pel"><option value="">— pelanggan baru / belum terdaftar (isi manual) —</option>' + pels.map(function (p) { return '<option value="' + esc(p.nama) + '"' + (F.pel === p.nama ? ' selected' : '') + '>' + esc(titleCaseS(p.nama)) + '</option>'; }).join('') + '</select></div>' +
+  h += '<div class="g2"><div><label>Pelanggan</label><select data-bgk="pel"><option value="">— pelanggan baru / belum terdaftar (isi manual) —</option>' + pels.map(function (p) { return '<option value="' + esc(p.nama) + '"' + (F.pel === p.nama ? ' selected' : '') + '>' + esc(titleCaseS(p.nama)) + '</option>'; }).join('') + '</select>' + (B.access && B.access.maker ? '<button type="button" class="linkbtn" data-bga="pelnew" style="margin-top:4px">+ Pelanggan baru (simpan ke Master)</button>' : '') + '</div>' +
     '<div><label>NPP / proyek</label><select data-bgk="npp"><option value="">' + (F.pel ? '— belum ada NPP (pekerjaan baru) —' : '— belum ada NPP / pilih NPP —') + '</option>' + proP.map(function (p) { return '<option value="' + esc(p.npp) + '"' + (F.npp === p.npp ? ' selected' : '') + '>' + esc(p.npp + ' · ' + (F.pel ? '' : titleCaseS(p.pelanggan).replace(/^PT\s+/, '') + ' · ') + (p.singkat || '')) + '</option>'; }).join('') + '</select></div></div>';
   if (!F.npp) h += '<div class="bgx-tip">' + (F.pel ? 'Pekerjaan baru tanpa NPP: bouwheer & alamat sudah terisi dari data pelanggan, isi data pekerjaan & kontrak secara manual.' : 'Pelanggan baru: isi semua data memo secara manual.') + ' NPP bisa dihubungkan nanti dari rincian BG (tombol <b>Hubungkan NPP</b>).</div>';
   h += '<div class="g2">' + ta('pekerjaan', '1. Jenis pekerjaan', F.pekerjaan, 2) + ta('proyek', 'Proyek', F.proyek, 2) + '</div>';
@@ -6492,7 +6507,11 @@ function bgFormHtml(F) {
   if (ob) h += '<div class="bg-src"><label>2. Dasar nilai jaminan <small>(dari Master Proyek ' + esc(F.npp) + ' — nilai setelah adendum)</small></label>' + [['excl', 'Nilai kontrak excl. PPN', ob.excl], ['incl', 'Nilai kontrak incl. PPN 11%', ob.incl], ['manual', 'Isi manual', null]].map(function (o) { return '<label class="bg-opt' + (src === o[0] ? ' on' : '') + '"><input type="radio" name="bgSrc" data-bgk="omzetSrc" value="' + o[0] + '"' + (src === o[0] ? ' checked' : '') + '><b>' + o[1] + '</b><span>' + (o[2] !== null ? 'Rp ' + nfDot(o[2]) : 'nilai & keterangan PPN diketik sendiri') + '</span></label>'; }).join('') + '</div>';
   h += '<div class="g3"><div><label>' + (ob ? '' : '2. ') + 'Label nilai</label><select data-bgk="omzetLbl">' + ['Omzet Kontrak', 'Nilai Penawaran', 'Nilai Kontrak'].map(function (x) { return '<option' + (F.omzetLbl === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div>' + inp('omzet', 'Nilai (Rp)', F.omzet ? nfDot(F.omzet) : '', ' class="num" inputmode="decimal"' + (ob && src !== 'manual' ? ' readonly title="Diambil dari Master Proyek — pilih Isi manual untuk mengetik sendiri"' : '')) +
     '<div><label>Keterangan PPN</label><select data-bgk="ppn"' + (ob && src !== 'manual' ? ' disabled' : '') + '>' + ['Exclude PPN', 'Include PPN'].map(function (x) { return '<option' + (F.ppn === x ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div></div>';
-  h += '<div class="g3"><div><label>3. Jenis dokumen (tebal)</label><select data-bgk="kontrakLbl">' + [['', '— tanpa —'], ['SPMK', 'SPMK'], ['Dokumen Tender', 'Dokumen Tender']].map(function (x) { return '<option value="' + x[0] + '"' + (F.kontrakLbl === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></div>' + inp('kontrak', 'No. kontrak / SPK / PO', F.kontrak) + inp('tglKontrak', 'Tanggal ' + (F.kontrakLbl === 'SPMK' ? 'SPMK' : 'SPK / kontrak'), F.tglKontrak, ' type="date"') + '</div>';
+  var jz = F.list[0] || 'PELAKSANAAN', dn = bgDokNama(F) || 'SPK / kontrak';
+  h += '<div class="g3"><div><label>3. Jenis dokumen dasar</label><select data-bgk="kontrakLbl">' + BG_DOKS.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (String(F.kontrakLbl || '') === x[0] ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + (F.kontrakLbl && !BG_DOKS.some(function (x) { return x[0] === F.kontrakLbl; }) ? '<option selected value="' + esc(F.kontrakLbl) + '">' + esc(F.kontrakLbl) + '</option>' : '') + '</select>' +
+    (F.kontrakLbl === 'LAINNYA' ? '<input data-bgk="kontrakLain" style="margin-top:6px" placeholder="nama dokumen, mis. Surat Penunjukan Langsung" value="' + esc(F.kontrakLain || '') + '">' : '') + '</div>' +
+    inp('kontrak', 'No. ' + esc(dn), F.kontrak) + inp('tglKontrak', 'Tanggal ' + esc(dn), F.tglKontrak, ' type="date"') + '</div>' +
+    '<div class="bgx-tip" style="margin-top:-2px">📎 Biasanya diminta bank untuk jaminan ' + esc((jz === 'PERUBAHAN' ? (F.perUbah ? 'perubahan' : 'perpanjangan') : jz === 'LAIN' ? (F.lainTxt || 'lainnya') : jz).toLowerCase()) + ': <b>' + esc(BG_DOK_HINT[jz] || '') + '</b> — centang di Lampiran.</div>';
   h += '<div class="g2">' + inp('kepada', '4. Ditujukan kepada (bouwheer)', F.kepada) + ta('alamat', '5. Alamat (bouwheer)', F.alamat, 2) + '</div></div>';
   // jangka waktu bersama
   h += '<div class="bgx-sec"><b>6. Jangka waktu' + (multi ? '' : '') + '</b>' + (multi ? '<label class="bgx-cb bgx-same"><input type="checkbox" data-bgk="jwSame"' + (F.jwSame ? ' checked' : '') + '> Jangka waktu sama untuk semua jaminan</label>' : '') +
@@ -7017,7 +7036,7 @@ function bgMemoHtml(f, hl) {
     '<table class="bgm-i">' + R('', 'Untuk kepentingan kami, mohon dapat diproses Jaminan', esc(bgJenisTxt(f)), 'w') + R('', 'Perubahan / Perpanjangan jaminan Nomor', esc(f.bgLama || ''), 'w') + gap +
     R(1, 'Jenis Pekerjaan', E(String(f.pekerjaan || '').trim(), nl(f.pekerjaan))) + R('', 'Proyek', nl(f.proyek)) + gap +
     R(2, esc(f.omzetLbl || 'Omzet Kontrak'), E(+f.omzet > 0, '<span class="bgm-rp"><b>Rp.</b></span><b class="bgm-am">' + nf(f.omzet) + '</b>') + ' &nbsp;( ' + esc(f.ppn) + ' )') + gap +
-    R(3, 'No. Kontrak / SPK Intent / SPPH / PO / No. Penawaran' + (f.kontrakLbl ? ' / <b>' + esc(f.kontrakLbl) + '</b>' : ''), E(String(f.kontrak || '').trim(), '<b>' + esc(f.kontrak) + '</b>')) + gap +
+    R(3, bgDokNama(f) ? 'No. <b>' + esc(bgDokNama(f)) + '</b>' : 'No. Kontrak / SPK Intent / SPPH / PO / No. Penawaran', E(String(f.kontrak || '').trim(), '<b>' + esc(f.kontrak) + '</b>')) + gap +
     R('', 'Tanggal', E(f.tglKontrak, esc(f.tglKontrak ? tglIndo(f.tglKontrak) : ''))) + gap +
     R(4, 'Ditujukan kepada', E(String(f.kepada || '').trim(), esc(f.kepada))) + gap + R(5, 'Alamat ( Bouwheer )', E(String(f.alamat || '').trim(), nl(f.alamat))) + gap +
     R(6, 'Jangka waktu', E(f.mulai, esc(f.mulai ? tglIndo(f.mulai) : '…')) + ' s/d ' + E(f.sampai, esc(f.sampai ? tglIndo(f.sampai) : '…'))) + gap +
@@ -7090,12 +7109,28 @@ function bgFormFrom(r) {
   if (!d.kepada) { sh.kepada = r.kepada; sh.pekerjaan = r.pekerjaan; sh.kontrak = r.kontrak; sh.omzet = +r.omzet || 0; sh.npp = r.npp; }
   sh.list = [j]; sh.it = {}; sh.lock = true; sh.id = r.id;
   sh.jw = d.jw ? bgJwNew(d.jw) : bgJwNew({ start: 'lain', mulaiLain: d.mulai || r.mulai || '', mode: 'tgl', sampaiTgl: d.sampai || r.sampai || '' });
-  var F = bgNewForm(sh); if (F.omzetSrc && F.omzetSrc !== 'manual') { bgOmzetApply(F); } var omz = +F.omzet || 0, pct = d.pct !== undefined ? +d.pct : (r.pct ? Math.round(r.pct * 10000) / 100 : 0), nil = +d.nilai || +r.nilai || 0;
+  var F = bgFillBlank(bgNewForm(sh)); if (!F.omzetSrc && !(+F.omzet > 0) && bgOmzetBase(F)) F.omzetSrc = 'excl'; // BG lama tanpa memo: dasar nilai dari Master Proyek
+  if (F.omzetSrc && F.omzetSrc !== 'manual') { bgOmzetApply(F); } var omz = +F.omzet || 0, pct = d.pct !== undefined ? +d.pct : (r.pct ? Math.round(r.pct * 10000) / 100 : 0), nil = +d.nilai || +r.nilai || 0;
   F.it[j] = { pct: pct, nilai: nil, nilaiManual: Math.abs(Math.round(omz * pct / 100) - nil) > 1, nilaiKet: d.nilaiKet || '', perlu: d.perlu || r.perlu || B.today, terbit: d.terbit || bgAddDays(d.perlu || r.perlu || B.today, 1), terbitManual: true, lamp: d.lamp || bgDefLamp(j), jw: null };
   return F;
 }
 /** v2.15.1 memo langsung ke jendela Print (tanpa unduh PDF dahulu) */
 function bgPrint(L) { var ov = $('bgPrev'); if (ov) ov.hidden = true; printHtml(bgFitHtml([].concat(L).map(function (m) { return bgMemoHtml(m); }).join(''))); }
+/** v2.15.2 pelanggan baru dari form BG → disimpan ke Master Pelanggan (bukan diketik di memo saja), lalu langsung terpilih */
+function bgPelNew() {
+  var o = function (id, lb, ph) { return '<label style="margin-top:8px">' + lb + '</label><input id="' + id + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>'; };
+  confirmDlg('Pelanggan baru', '<p class="s">Disimpan ke <b>Master Pelanggan</b> — langsung bisa dipakai untuk BG, invoice dan surat. Data lain (kode BP, NITKU) bisa dilengkapi nanti di Master Pelanggan.</p>' +
+    o('npNama', 'Nama pelanggan (huruf kapital)', 'mis. PT HUTAMA KARYA INFRASTRUKTUR') + o('npNpwp', 'NPWP (16 digit)', 'boleh dikosongkan bila belum ada') +
+    o('npA1', 'Alamat baris 1') + o('npA2', 'Alamat baris 2') + o('npA3', 'Alamat baris 3 (kota, kode pos)') +
+    '<div style="display:flex;gap:8px;margin-top:8px"><div style="flex:1"><label>Jenis</label><select id="npJenis">' + E.OPT.jenis_pel.map(function (x) { return '<option' + (x === 'SWASTA' ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div><div style="flex:1"><label>Kelompok</label><select id="npKel">' + E.OPT.kelompok.map(function (x) { return '<option' + (x === 'PIHAK KETIGA' ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></div></div>',
+    'Simpan pelanggan', function () {
+      var nm = String($('npNama').value || '').toUpperCase().replace(/\s+/g, ' ').trim(), d = { nama: nm, inv: nm, npwp: String($('npNpwp').value || '').trim(), a1: $('npA1').value.trim(), a2: $('npA2').value.trim(), a3: $('npA3').value.trim(), jenis: $('npJenis').value, kelompok: $('npKel').value, aktif: 'YA', dasar_jt: 'TGL SUBMIT' };
+      bgMsg('<span class="spin"></span>Menyimpan pelanggan baru…');
+      call('apiMasterSave', ['PEL', '', d, ''], function (r) { if (MD) MD.d = null; refreshAll(function () { var F = BG.form; if (F) { F.pel = r.key || nm; F.npp = ''; F.kepada = nm; F.alamat = [d.a1, d.a2, d.a3].filter(String).join('\n'); } bgMsg('✓ Pelanggan ' + esc(titleCaseS(r.key || nm)) + ' tersimpan di Master Pelanggan.'); bgRender(); }); }, function (e) { bgMsg(esc(e.message || e), true); });
+    },
+    function () { var nm = String($('npNama').value || '').trim(); if (nm.length < 3) { toast('Isi nama pelanggan.'); return false; } var dg = String($('npNpwp').value || '').replace(/\D/g, ''); if (dg && dg.length !== 15 && dg.length !== 16) { toast('NPWP harus 16 digit (atau kosongkan dulu).'); return false; }
+      if ((B.pelanggan || []).some(function (p) { return p.nama === nm.toUpperCase().replace(/\s+/g, ' '); })) { toast('Pelanggan ini sudah ada — pilih dari daftar.'); return false; } });
+}
 function bgPrevShow(L, title, onPdf, pdfLbl) {
   var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
   ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button><button class="btn" type="button" id="bgPrevPr">🖨 Cetak</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + (pdfLbl || 'Simpan &amp; unduh memo PDF') + '</button>' : '') + '</div><div class="bgp-pg">' + L.map(function (m) { return bgMemoHtml(m); }).join('') + '</div>';
@@ -7118,6 +7153,7 @@ function bgAct(k) {
   if (k === 'preview') { var L = bgMemos(BG.form); return bgPrevShow(L, 'Pratinjau ' + (L.length > 1 ? L.length + ' memo' : 'memo'), function () { bgSave(BG.form, true); }); }
   if (k === 'save') return bgSave(BG.form, false);
   if (k === 'savepdf') return bgSave(BG.form, true);
+  if (k === 'pelnew') return bgPelNew(); // v2.15.2 pelanggan baru langsung ke Master Pelanggan
   if (!r) return;
   if (k === 'more') { BG.more = !BG.more; return bgRender(); }
   BG.more = false;
@@ -7165,6 +7201,7 @@ function bgBind() {
   var side = w.querySelector('.bgx-side'); if (side) { var du = function () { clearTimeout(du.t); du.t = setTimeout(bgDraftUpd, 120); }; side.addEventListener('input', du); side.addEventListener('change', du); }
   w.querySelectorAll('[data-bgj]').forEach(function (b) { b.onclick = function () { keep(function () {
     var j = b.dataset.bgj, multi = BG_MULTI.indexOf(j) >= 0;
+    if (j === 'PERPANJ' || j === 'UBAH') { F.perUbah = j === 'UBAH'; if (F.list[0] === 'PERUBAHAN') return; if (F.lock) return; j = 'PERUBAHAN'; multi = false; }
     if (F.lock) return;
     if (!multi) { F.list = [j]; } else {
       F.list = F.list.filter(function (x) { return BG_MULTI.indexOf(x) >= 0; });
@@ -7199,6 +7236,7 @@ function bgBind() {
       if (k === 'omzet') return keep(function () { F.omzet = num(v); bgCalc(F); });
       if (k === 'omzetSrc') return keep(function () { F.omzetSrc = v; bgOmzetApply(F); bgCalc(F); });
       if (k === 'jwSame') return keep(function () { F.jwSame = el.checked; if (!F.jwSame) F.list.forEach(function (j) { F.it[j].jw = bgJwNew(F.jw); }); });
+      if (k === 'kontrakLain') { F.kontrakLain = v; return; }
       if (k === 'kontrakLbl') return keep(function () { F.kontrakLbl = v; F.list.forEach(function (j) { if (v === 'SPMK') F.it[j].lamp.g = 1; else delete F.it[j].lamp.g; }); });
       F[k] = v;
       if (['tglKontrak', 'formBank', 'perJenis'].indexOf(k) >= 0) keep(function () { if (k === 'perJenis') F.list.forEach(function (j) { F.it[j].lamp = bgDefLamp(v); F.it[j].pct = bgDefPct(F, j); }); bgCalc(F); });
