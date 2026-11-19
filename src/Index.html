@@ -2343,7 +2343,7 @@ function fitZoom() {
     var sc = z === 'fit' ? Math.min(1, (st.clientWidth - 44) / (wmax || 1)) : +z;
     w.style.transform = 'scale(' + sc + ')'; w.style.width = wmax + 'px'; w.style.height = (pg.offsetHeight * sc + 30) + 'px'; return;
   }
-  if (!pg || !pg.classList.contains('page')) { w.style.transform = ''; return; }
+  if (!pg || !pg.classList.contains('page')) { w.style.transform = ''; w.style.width = ''; w.style.height = ''; return; }
   var scale = z === 'fit' ? Math.min(1, (st.clientWidth - 44) / pg.offsetWidth) : +z;
   w.style.transform = 'scale(' + scale + ')'; w.style.height = (pg.offsetHeight * scale + 30) + 'px'; w.style.width = pg.offsetWidth + 'px';
 }
@@ -4473,7 +4473,9 @@ function showPackage() {
   pkgTabsInit(); fitZoom();
   pkgActions(); mSumRender();
 }
-function closePackage() { STACK = false; document.body.classList.remove('stack', 'm-doc', 'has-sum', 'm-view'); PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); if (['buka', 'tbayar', 'ho'].indexOf(MODE) >= 0) { $('tabsBar').hidden = true; lpRender(); } else if (MODE === 'setuju') { $('tabsBar').hidden = true; apRender(); apEmpty(); } else if (MODE === 'surat') { $('tabsBar').hidden = true; srPreview(); } else if (MODE === 'dok') { $('tabsBar').hidden = true; dkRender(); } else renderDocs(); }
+/** v2.15.2 lebar/skala dokumen (fitZoom) dikembalikan saat dokumen ditutup — sebelumnya panel Persetujuan terjepit kolom sempit */
+function sheetReset() { var w = $('sheetwrap'); if (w) { w.style.transform = ''; w.style.width = ''; w.style.height = ''; } }
+function closePackage() { sheetReset(); STACK = false; document.body.classList.remove('stack', 'm-doc', 'has-sum', 'm-view'); PKG = null; VDEC = null; VUS = null; AP_SEL = ''; $('tabsBar').hidden = false; $('act-pkg').hidden = true; $('pkgHead').hidden = true; $('pkgTabs').hidden = true; $('pkgBar').hidden = true; document.querySelectorAll('.ap-row.sel').forEach(function (x) { x.classList.remove('sel'); }); if (['buka', 'tbayar', 'ho'].indexOf(MODE) >= 0) { $('tabsBar').hidden = true; lpRender(); } else if (MODE === 'setuju') { $('tabsBar').hidden = true; apRender(); apEmpty(); } else if (MODE === 'surat') { $('tabsBar').hidden = true; srPreview(); } else if (MODE === 'dok') { $('tabsBar').hidden = true; dkRender(); } else renderDocs(); }
 function skelHtml(kind, ref) {
   var nm = { INV: 'lembar pengesahan invoice', PAY: 'lembar pengesahan penerimaan', VAL: 'lembar validasi rencana cair', REK: 'rekap bulanan', KP: 'kartu piutang', TUTUP: 'lembar tutup manual', BATAL: 'lembar pembatalan', VALX: 'pembatalan lembar validasi', REVP: 'lembar pembalikan penerimaan' }[kind] || 'dokumen';
   return '<div class="skel"><div class="pg"><div class="spin"></div>Menyiapkan ' + nm + ' ' + esc(String(ref).replace(/^REF\s+/, '').replace(/^KU\.02\.02\/WB-4C\./, '')) + '…</div>' +
@@ -5256,7 +5258,7 @@ function lblEn(s) {
 function apAge(t) { var d = dayDiff(t, B.today); return '<span class="age ' + (d > 2 ? 'o' : 'n') + '">' + (d <= 0 ? 'hari ini' : d + ' hari') + '</span>'; }
 /* v2.14 panel kanan Persetujuan saat belum ada yang dipilih: ringkasan antrean semua jenis dokumen (bisa langsung diklik) */
 function apEmpty() {
-  var w = $('sheetwrap'); if (!w || !B || STACK) return;
+  var w = $('sheetwrap'); if (!w || !B || STACK) return; sheetReset();
   var M = apModel(), T = M.T, maker = M.maker, all = [];
   AP_TABS.forEach(function (t) { var x = T[t[0]]; if (maker) { x.ulang.forEach(function (it) { all.push([0, 'ulang', it, t[1]]); }); x.belum.forEach(function (it) { all.push([1, 'belum', it, t[1]]); }); } x.tunggu.forEach(function (it) { all.push([maker ? 2 : 0, 'tunggu', it, t[1]]); }); });
   all.sort(function (a, b) { return a[0] - b[0] || String(a[2].t || '').localeCompare(String(b[2].t || '')); });
