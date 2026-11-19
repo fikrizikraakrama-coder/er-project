@@ -6246,7 +6246,7 @@ function bgDays(a, b) { var x = Date.parse(a), y = Date.parse(b); return isNaN(x
 function bgAddDays(d, n) { var t = Date.parse(d); if (isNaN(t)) return ''; return new Date(t + n * 864e5).toISOString().slice(0, 10); }
 function bgPro(npp) { return (B.proyek || []).filter(function (p) { return p.npp === npp; })[0] || null; }
 function bgPel(nama) { return (B.pelanggan || []).filter(function (p) { return p.nama === nama; })[0] || null; }
-function bgJenisTxt(f) { return f.jenis === 'PERUBAHAN' ? 'PERPANJANGAN ' + (f.perJenis || 'PELAKSANAAN') : f.jenis === 'LAIN' ? String(f.lainTxt || '').toUpperCase() : f.jenis; }
+function bgJenisTxt(f) { return f.jenis === 'PERUBAHAN' ? (f.perUbah ? 'PERUBAHAN ' : 'PERPANJANGAN ') + (f.perJenis || 'PELAKSANAAN') : f.jenis === 'LAIN' ? String(f.lainTxt || '').toUpperCase() : f.jenis; }
 function bgDefLamp(j) { return j === 'PELAKSANAAN' ? { b: 1 } : j === 'UANG MUKA' ? { c: 1 } : j === 'PEMELIHARAAN' ? { d: 1 } : j === 'TENDER' ? { e: 1 } : j === 'PENAWARAN' ? { a: 1, f: 1 } : {}; }
 // v2.9.7: satu form → beberapa jaminan (mis. Uang Muka + Pelaksanaan). Data proyek, form & penanda tangan sekali; persen, nilai, tanggal & lampiran per jaminan.
 // Jangka waktu memakai aturan: berlaku sejak SPK/SPMK (atau tanggal lain) s/d tanggal tertentu · N hari · selesai pekerjaan + tambahan (bulan kalender / hari).
@@ -6342,7 +6342,7 @@ function bgFormHtml(F) {
   // rincian per jaminan
   h += '<div class="bgx-sec"><b>Rincian ' + (multi ? 'per jaminan · ' + F.list.length + ' memo' : 'jaminan') + '</b>';
   F.list.forEach(function (j, i) {
-    var x = F.it[j], lb = j === 'PERUBAHAN' ? 'f) Perpanjangan ' + titleCaseS(F.perJenis) : j === 'LAIN' ? 'g) ' + (F.lainTxt || 'Lainnya') : (BG_JENIS.filter(function (y) { return y[0] === j; })[0] || [0, j])[1];
+    var x = F.it[j], lb = j === 'PERUBAHAN' ? 'f) ' + (F.perUbah ? 'Perubahan ' : 'Perpanjangan ') + titleCaseS(F.perJenis) : j === 'LAIN' ? 'g) ' + (F.lainTxt || 'Lainnya') : (BG_JENIS.filter(function (y) { return y[0] === j; })[0] || [0, j])[1];
     var a = function (f) { return 'data-bgi="' + f + '" data-bgij="' + esc(j) + '"'; };
     h += '<div class="bgx-jm"><div class="hd" style="background:' + (BG_JC[j] || '#475569') + '">' + esc(lb) + (multi ? '<small>memo ' + (i + 1) + ' dari ' + F.list.length + '</small>' : '') + '<i></i><small>' + (x.nilaiManual ? 'nilai manual' : (+x.pct || 0) + '% × ' + nfDot(F.omzet)) + ' → Rp ' + nfDot(x.nilai) + '</small></div><div class="bd">';
     h += '<div class="g4"><div><label>Persen (%)</label><input ' + a('pct') + ' value="' + esc(x.pct) + '" class="num" inputmode="decimal"></div><div><label>7. Nilai jaminan (Rp)</label><input ' + a('nilai') + ' value="' + (x.nilai ? nfDot(x.nilai) : '') + '" class="num" inputmode="decimal"></div>' +
@@ -6428,7 +6428,7 @@ function bgDetailHtml(r) {
     var mi = function (k, t, sub, cls) { M.push('<button type="button" class="' + (cls || '') + '" data-bga="' + k + '"><b>' + t + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>'); };
     if (s === 'DRAF') { prim = b('cetak', '🖨 Cetak memo') + b('pdf', ico('download') + 'Unduh PDF') + b('kirim', 'Tandai dikirim ke pusat →', 'primary'); mi('edit', 'Ubah draf memo'); }
     else if (s === 'DIKIRIM KE PUSAT') { prim = b('up', '⤒ Upload BG terbit', 'primary') + b('edit', 'Ubah memo'); mi('cetak', '🖨 Cetak memo'); mi('pdf', 'Unduh memo PDF'); mi('pusat', '↩ Dikembalikan pusat', 'memo perlu diperbaiki → Rev.' + ('0' + ((+dd.memoRev || 0) + 1)).slice(-2)); mi('terbit', 'Catat terbit manual', 'tanpa membaca scan'); }
-    else if (s === 'AKTIF') { prim = b('perpanjang', '⟳ Perpanjang', 'primary') + b('selesai', '✓ Dikembalikan / roya'); mi('amend', '✎ Amandemen', 'surat perubahan · tanggal / nilai baru, nomor sama'); mi('klaim', '⚠ Diklaim / dicairkan', 'bouwheer mencairkan jaminan'); M.push('<hr>'); mi('koreksi', 'Koreksi data', 'salah ketik / salah baca scan'); mi('scan', r.scan ? 'Ganti scan' : 'Upload scan'); }
+    else if (s === 'AKTIF') { prim = b('perpanjang', '⟳ Perpanjang', 'primary') + b('ubah', '✎ Perubahan') + b('selesai', '✓ Dikembalikan / roya'); mi('amend', '✎ Amandemen', 'surat perubahan · tanggal / nilai baru, nomor sama'); mi('klaim', '⚠ Diklaim / dicairkan', 'bouwheer mencairkan jaminan'); M.push('<hr>'); mi('koreksi', 'Koreksi data', 'salah ketik / salah baca scan'); mi('scan', r.scan ? 'Ganti scan' : 'Upload scan'); }
     else if (s !== 'BATAL') { mi('koreksi', 'Koreksi data', 'salah ketik / salah baca scan'); }
     if (!r.npp && s !== 'BATAL') mi('npp', 'Hubungkan NPP');
     if (pv) { if (M.length && M[M.length - 1] !== '<hr>') M.push('<hr>'); mi('undo', '↶ Batalkan langkah terakhir', 'kembali ke: ' + String(pv.status || '').toLowerCase()); }
@@ -6926,7 +6926,7 @@ function bgSave(F, pdf) {
 }
 /** baris BG (isi memo datar) → form 1 jaminan */
 function bgFormFrom(r) {
-  var d = r.d || {}, j = d.jenis || (/PERPANJANGAN/.test(r.jenis) ? 'PERUBAHAN' : r.jenis) || 'PELAKSANAAN';
+  var d = r.d || {}, j = d.jenis || (/^(PERPANJANGAN|PERUBAHAN) /.test(r.jenis) ? 'PERUBAHAN' : r.jenis) || 'PELAKSANAAN';
   if (BG_MULTI.indexOf(j) < 0 && j !== 'PERUBAHAN') j = 'LAIN';
   var sh = {}; Object.keys(d).forEach(function (k) { if (['jenis', 'pct', 'nilai', 'nilaiKet', 'perlu', 'terbit', 'lamp', 'mulai', 'sampai', 'jw', 'jwTxt', 'jenisTxt', 'id', 'nilaiManual', 'terbitManual'].indexOf(k) < 0) sh[k] = d[k]; });
   if (!d.kepada) { sh.kepada = r.kepada; sh.pekerjaan = r.pekerjaan; sh.kontrak = r.kontrak; sh.omzet = +r.omzet || 0; sh.npp = r.npp; }
@@ -6977,9 +6977,16 @@ function bgAct(k) {
   if (k === 'scanOk') return bgReadFile(function (sc) { if (!sc) return bgMsg('Pilih file scan BG.', true); bgStatus(r.id, 'SCAN', { scan: sc }, 'Scan BG tersimpan.'); });
   if (k === 'perpanjang') {
     var F = bgFormFrom(r), j0 = F.list[0], x0 = F.it[j0];
-    F.id = ''; F.lock = true; F.perJenis = /UANG MUKA/.test(r.jenis) ? 'UANG MUKA' : /PEMELIHARAAN/.test(r.jenis) ? 'PEMELIHARAAN' : 'PELAKSANAAN'; F.list = ['PERUBAHAN']; F.it = { PERUBAHAN: x0 }; F.bgLama = r.no_bg || '';
+    F.id = ''; F.lock = true; F.perJenis = /UANG MUKA/.test(r.jenis) ? 'UANG MUKA' : /PEMELIHARAAN/.test(r.jenis) ? 'PEMELIHARAAN' : 'PELAKSANAAN'; F.list = ['PERUBAHAN']; F.it = { PERUBAHAN: x0 }; F.bgLama = r.no_bg || ''; F.perUbah = false;
     F.jw = bgJwNew({ start: 'lain', mulaiLain: r.sampai ? bgAddDays(r.sampai, 1) : '', mode: 'tgl', sampaiTgl: '' }); F.tglMemo = B.today; x0.perlu = r.sampai && r.sampai > B.today ? r.sampai : B.today; x0.terbitManual = false; x0.lamp = bgDefLamp(F.perJenis);
     bgCalc(F); BG.form = F; BG.sel = ''; BG.act = ''; toast('Draf perpanjangan dibuat dari ' + (r.no_bg || r.id) + ' — atur masa berlaku yang baru.'); return bgRender();
+  }
+  // v2.15.1 memo PERUBAHAN jaminan aktif (nilai / masa berlaku / redaksi) — masa berlaku & nilai lama terisi, tinggal diubah; setelah terbit dicatat lewat ⋯ Lainnya → Amandemen
+  if (k === 'ubah') {
+    var G = bgFormFrom(r), j1 = G.list[0], x1 = G.it[j1];
+    G.id = ''; G.lock = true; G.perJenis = /UANG MUKA/.test(r.jenis) ? 'UANG MUKA' : /PEMELIHARAAN/.test(r.jenis) ? 'PEMELIHARAAN' : 'PELAKSANAAN'; G.list = ['PERUBAHAN']; G.it = { PERUBAHAN: x1 }; G.bgLama = r.no_bg || ''; G.perUbah = true;
+    G.jw = bgJwNew({ start: 'lain', mulaiLain: r.mulai || '', mode: 'tgl', sampaiTgl: r.sampai || '' }); G.tglMemo = B.today; x1.perlu = B.today; x1.terbitManual = false; x1.lamp = bgDefLamp(G.perJenis);
+    bgCalc(G); BG.form = G; BG.sel = ''; BG.act = ''; toast('Draf memo perubahan dibuat dari ' + (r.no_bg || r.id) + ' — ubah nilai / masa berlaku yang diminta.'); return bgRender();
   }
 }
 function bgBind() {
