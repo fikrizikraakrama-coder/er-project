@@ -1088,6 +1088,8 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
 .pg-bgm .bgm-rp{display:inline-block;width:19mm;padding:0}.pg-bgm .bgm-am{display:inline-block;min-width:24mm;text-align:right}
 .pg-bgm .bgm-l{margin-top:4mm}.pg-bgm .bgm-l table td.st{width:13mm;padding-left:6mm}.pg-bgm .bgm-l table td.k{width:8mm}
 .pg-bgm .bgm-s{margin:3mm 0 0 133mm}.pg-bgm .bgm-s .sp{height:19mm}
+/* v2.15.1 memo panjang (alamat / lampiran banyak): jarak dirapatkan & huruf dikecilkan bertahap agar muat 1 halaman dalam bingkai */
+.pg-bgm.fit1 .bgm-i tr.gp td{height:1.4mm}.pg-bgm.fit1 .bgm-t{margin:2mm 0 1.5mm}.pg-bgm.fit1 .bgm-pr{margin-bottom:2mm}.pg-bgm.fit1 .bgm-l{margin-top:2.5mm}.pg-bgm.fit1 .bgm-s{margin-top:2mm}.pg-bgm.fit1 .bgm-s .sp{height:16mm}
 
 /* ====================================================== v2.10.2: Catat Penerimaan — halaman lebar, panel ringkasan di kanan */
 .pw-seg button{white-space:nowrap}.seg button small{display:block;font-weight:500;font-size:10.5px;opacity:.8;margin-top:1px}
@@ -6525,7 +6527,24 @@ function bgDraftUpd() {
   var L = BG.form.list.length ? bgMemos(BG.form) : [], i = Math.max(0, Math.min(BG.dTab || 0, L.length - 1));
   el.innerHTML = L.length ? bgMemoHtml(L[i], true) : '<div class="bgx-empty">Pilih jenis jaminan di form.</div>'; bgDraftZoom();
 }
-function bgDraftZoom() { var el = $('bgDraft'); if (!el) return; var pg = el.querySelector('.page'); if (pg) pg.style.zoom = Math.max(.3, Math.min(1, (el.clientWidth - 14) / 794)).toFixed(3); }
+/** v2.15.1 memo yang melewati bingkai → rapatkan (fit1) lalu kecilkan huruf bertahap (min. 6,8 pt) sampai muat */
+function bgFitEl(root) {
+  if (!root) return;
+  root.querySelectorAll('.pg-bgm').forEach(function (pg) {
+    var bx = pg.querySelector('.bgm-box'); if (!bx) return;
+    pg.classList.remove('fit1'); pg.style.fontSize = '';
+    // tinggi isi = tepi bawah elemen terakhir (scrollHeight tidak pernah < tinggi kotak); sisakan ±4 mm di atas bingkai bawah (huruf cetak sedikit berbeda dari layar)
+    var over = function () { var l = bx.lastElementChild; return !!l && l.offsetTop + l.offsetHeight > bx.clientHeight - 15; };
+    if (!over()) return;
+    pg.classList.add('fit1');
+    for (var fs = 8.5; over() && fs >= 6.8; fs -= 0.2) pg.style.fontSize = fs.toFixed(1) + 'pt';
+  });
+}
+function bgFitHtml(html) {
+  var d = document.createElement('div'); d.style.cssText = 'position:absolute;left:-10000px;top:0;visibility:hidden'; d.innerHTML = html; document.body.appendChild(d);
+  try { bgFitEl(d); return d.innerHTML; } catch (e) { return html; } finally { d.parentNode.removeChild(d); }
+}
+function bgDraftZoom() { var el = $('bgDraft'); if (!el) return; var pg0 = el.querySelector('.page'); if (pg0) pg0.style.zoom = ''; bgFitEl(el); var pg = el.querySelector('.page'); if (pg) pg.style.zoom = Math.max(.3, Math.min(1, (el.clientWidth - 14) / 794)).toFixed(3); }
 window.addEventListener('resize', function () { clearTimeout(bgDraftZoom.t); bgDraftZoom.t = setTimeout(bgDraftZoom, 120); });
 /* ---------- input jaminan terbit tanpa memo (BG lama / terbit langsung dari pusat) */
 function bgImpRow(o) { var r = { pen: 'BANK', bank: 'Bank Mandiri', no: '', kepada: '', npp: '', jenis: 'PELAKSANAAN', nilai: 0, mulai: '', sampai: '', terbit: '', biaya: 0, pekerjaan: '', kontrak: '', file: null, st: '', ok: false }; if (o) Object.keys(o).forEach(function (k) { r[k] = o[k]; }); return r; }
@@ -6873,7 +6892,7 @@ function bgMemoName(L, ids) {
 function bgPdf(L, ids, after) {
   L = [].concat(L); ids = [].concat(ids || []).filter(Boolean); var nm = bgMemoName(L, ids);
   bgMsg('<span class="spin"></span>Membuat memo PDF' + (L.length > 1 ? ' (' + L.length + ' halaman)' : '') + '…');
-  makePdf(L.map(function (m) { return bgMemoHtml(m); }).join(''), nm, { plain: true }).then(function (b64) {
+  makePdf(bgFitHtml(L.map(function (m) { return bgMemoHtml(m); }).join('')), nm, { plain: true }).then(function (b64) {
     saveFile(b64Blob(b64, 'application/pdf'), nm + '.pdf');
     if (!ids.length) { bgMsg('Memo PDF diunduh.'); return; }
     bgMsg('Memo PDF diunduh · menyimpan arsip ke Drive…');
@@ -6918,11 +6937,11 @@ function bgFormFrom(r) {
   return F;
 }
 /** v2.15.1 memo langsung ke jendela Print (tanpa unduh PDF dahulu) */
-function bgPrint(L) { var ov = $('bgPrev'); if (ov) ov.hidden = true; printHtml([].concat(L).map(function (m) { return bgMemoHtml(m); }).join('')); }
+function bgPrint(L) { var ov = $('bgPrev'); if (ov) ov.hidden = true; printHtml(bgFitHtml([].concat(L).map(function (m) { return bgMemoHtml(m); }).join(''))); }
 function bgPrevShow(L, title, onPdf, pdfLbl) {
   var ov = $('bgPrev'); if (!ov) { ov = document.createElement('div'); ov.id = 'bgPrev'; document.body.appendChild(ov); }
   ov.innerHTML = '<div class="bgp-bar"><b>' + esc(title) + '</b><span>tampilan sama dengan PDF yang diunduh</span><i></i><button class="btn" type="button" id="bgPrevX">Tutup</button><button class="btn" type="button" id="bgPrevPr">🖨 Cetak</button>' + (onPdf ? '<button class="btn primary" type="button" id="bgPrevPdf">' + ico('download') + (pdfLbl || 'Simpan &amp; unduh memo PDF') + '</button>' : '') + '</div><div class="bgp-pg">' + L.map(function (m) { return bgMemoHtml(m); }).join('') + '</div>';
-  ov.hidden = false; ov.scrollTop = 0; $('bgPrevX').onclick = function () { ov.hidden = true; }; $('bgPrevPr').onclick = function () { bgPrint(L); }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
+  ov.hidden = false; ov.scrollTop = 0; bgFitEl(ov); $('bgPrevX').onclick = function () { ov.hidden = true; }; $('bgPrevPr').onclick = function () { bgPrint(L); }; if (onPdf) $('bgPrevPdf').onclick = function () { ov.hidden = true; onPdf(); };
   ov.onclick = function (e) { if (e.target === ov) ov.hidden = true; };
 }
 function bgAct(k) {
