@@ -90,7 +90,10 @@ var ENGINE = (function () {
       ['nama_pe', 'NAMA PROYEK (P&E)', 50], ['npp_produk', 'NPP PRODUK (TAMPIL DI KARTU)', 34],
       ['npp_adendum', 'NPP ADENDUM TERPISAH (TAGIHAN TETAP DI NPP INI)', 30], ['pola_uraian', 'POLA URAIAN INVOICE (APLIKASI)', 50], ['pola_kw', 'POLA URAIAN KWITANSI (APLIKASI)', 50],
       ['tgl_selesai', 'TGL SELESAI PEKERJAAN (KONTRAK AWAL)', 12], ['pelihara', 'MASA PEMELIHARAAN (BULAN)', 9],
-      ['tunda_kontrak', 'PENGINGAT KONTRAK DITUNDA S/D', 12], ['tunda_ket', 'ALASAN TUNDA PENGINGAT KONTRAK', 40]]
+      ['tunda_kontrak', 'PENGINGAT KONTRAK DITUNDA S/D', 12], ['tunda_ket', 'ALASAN TUNDA PENGINGAT KONTRAK', 40],
+      ['dok_dasar', 'JENIS DOKUMEN DASAR (KONTRAK / SPK / PO / LOA …)', 20], ['sistem_termin', 'SISTEM PEMBAYARAN (KONTRAK)', 14], ['denda', 'DENDA KETERLAMBATAN (KONTRAK)', 26],
+      ['jam_um', '% JAMINAN UANG MUKA (SYARAT KONTRAK)', 10], ['jam_pel', '% JAMINAN PELAKSANAAN (SYARAT KONTRAK)', 10], ['jam_pem', '% JAMINAN PEMELIHARAAN (SYARAT KONTRAK)', 10],
+      ['jam_basis', 'DASAR NILAI JAMINAN (EXCL / INCL PPN)', 10]]
   };
   var MPRO_ALIAS = { nilai: ['NILAI KONTRAK (EXCL. PPN)'], nilai_ok: ['NILAI OK (OTOMATIS)'], addendum_lama: ['NILAI ADDENDUM TERAKHIR'] };
   var ADD = {
@@ -2951,6 +2954,8 @@ var ENGINE = (function () {
       um: p.um, um_awal: p.um_awal || 0, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
       signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng, pola_uraian: S(p.pola_uraian), pola_kw: S(p.pola_kw),
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,
+      dok_dasar: S(p.dok_dasar), sistem_termin: S(p.sistem_termin), denda: S(p.denda), jam_um: S(p.jam_um) === '' ? '' : N(p.jam_um), jam_pel: S(p.jam_pel) === '' ? '' : N(p.jam_pel), jam_pem: S(p.jam_pem) === '' ? '' : N(p.jam_pem), jam_basis: U(p.jam_basis),
+      pelihara: S(p.pelihara) === '' ? '' : N(p.pelihara), akhirPelihara: p.akhirPelihara || '',
       retDitahan: umr[p.npp] && umr[p.npp].ret ? umr[p.npp].ret[7] : 0, retBatas: umr[p.npp] ? umr[p.npp].batas : 0,
       prog: ctx.invs.filter(function (i) { return i.npp === p.npp && !i._batal && i._a.jenis === 'PROGRES'; }).map(function (i) { var m = S(i.invke).match(/(\d+)/); return [i.nomor, rnd(i._a.bruto), m ? +m[1] : 0, i.tgl, rnd(i._a.umk)]; }) }; });
     var params = {}; Object.keys(P).forEach(function (k) { if (['signers', 'targets', 'akun', 'users', 'ckpn'].indexOf(k) < 0) params[k] = P[k]; });
@@ -3064,6 +3069,14 @@ var ENGINE = (function () {
       if (D(d.tgl_selesai) && D(d.tgl_kontrak) && D(d.tgl_selesai) < D(d.tgl_kontrak)) add('E', 'tgl_selesai', 'Tanggal selesai pekerjaan lebih awal dari tanggal kontrak');
       if (S(d.pelihara) !== '' && (!(N(d.pelihara) >= 0) || N(d.pelihara) > 60 || Math.round(N(d.pelihara)) !== N(d.pelihara))) add('E', 'pelihara', 'Masa pemeliharaan diisi jumlah bulan (0–60)');
       if (!S(d.deskripsi)) add('W', 'deskripsi', 'Invoice description is empty', 'Used in the invoice wording ("Atas …").');
+      // v2.15.3 proyek baru wajib menyebut dokumen dasar (jenis, nomor, tanggal) — dipakai memo BG, invoice & kartu piutang
+      if (!orig && tp !== 'WIKA-WITON') {
+        if (!S(d.dok_dasar)) add('E', 'dok_dasar', 'Jenis dokumen dasar belum dipilih', 'Pilih Kontrak / SPK / PO / LoA … sesuai dokumen yang diterima dari pelanggan.');
+        if (!S(d.kontrak)) add('E', 'kontrak', 'Nomor dokumen dasar kosong', 'Isi nomor kontrak / SPK / PO persis seperti di dokumen.');
+        if (!S(d.tgl_kontrak)) add('E', 'tgl_kontrak', 'Tanggal dokumen dasar kosong');
+      }
+      ['jam_um', 'jam_pel', 'jam_pem'].forEach(function (k) { if (S(d[k]) !== '' && !(N(d[k]) >= 0 && N(d[k]) <= 1)) add('E', k, 'Persen jaminan harus antara 0% dan 100%'); });
+      if (N(d.jam_um) > 0 && N(d.nilai) > 0 && N(d.um) > 0 && Math.abs(N(d.jam_um) - N(d.um) / N(d.nilai)) > 0.0005) add('I', 'jam_um', 'Jaminan uang muka ' + pctTxt(N(d.jam_um)) + ', uang muka ' + pctTxt(N(d.um) / N(d.nilai)) + ' dari nilai kontrak', 'Biasanya jaminan UM sama dengan nilai uang muka — periksa kontrak.');
     }
     return out;
   }
