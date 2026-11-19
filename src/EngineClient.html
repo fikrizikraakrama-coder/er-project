@@ -89,7 +89,9 @@ var ENGINE = (function () {
       ['pic', 'PIC', 12], ['aktif', 'AKTIF', 7], ['catatan', 'CATATAN', 40],
       ['um_awal', 'UM SUDAH DIKEMBALIKAN SEBELUM SISTEM (Rp)', 18],
       ['nama_pe', 'NAMA PROYEK (P&E)', 50], ['npp_produk', 'NPP PRODUK (TAMPIL DI KARTU)', 34],
-      ['npp_adendum', 'NPP ADENDUM TERPISAH (TAGIHAN TETAP DI NPP INI)', 30], ['pola_uraian', 'POLA URAIAN INVOICE (APLIKASI)', 50], ['pola_kw', 'POLA URAIAN KWITANSI (APLIKASI)', 50]]
+      ['npp_adendum', 'NPP ADENDUM TERPISAH (TAGIHAN TETAP DI NPP INI)', 30], ['pola_uraian', 'POLA URAIAN INVOICE (APLIKASI)', 50], ['pola_kw', 'POLA URAIAN KWITANSI (APLIKASI)', 50],
+      ['tgl_selesai', 'TGL SELESAI PEKERJAAN (KONTRAK AWAL)', 12], ['pelihara', 'MASA PEMELIHARAAN (BULAN)', 9],
+      ['tunda_kontrak', 'PENGINGAT KONTRAK DITUNDA S/D', 12], ['tunda_ket', 'ALASAN TUNDA PENGINGAT KONTRAK', 40]]
   };
   var MPRO_ALIAS = { nilai: ['NILAI KONTRAK (EXCL. PPN)'], nilai_ok: ['NILAI OK (OTOMATIS)'], addendum_lama: ['NILAI ADDENDUM TERAKHIR'] };
   var ADD = {
@@ -216,6 +218,23 @@ var ENGINE = (function () {
   function dnum(s) { if (!s) return NaN; var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
   function addDays(s, n) { var d = new Date((dnum(s) + n) * 86400000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1, 2) + '-' + pad(d.getUTCDate(), 2); }
   function diffDays(a, b) { return dnum(a) - dnum(b); }
+  /** tanggal + n bulan kalender (tanggal 31 → akhir bulan bila bulan tujuan lebih pendek) */
+  function addMonths(s, n) { var p = String(s || '').split('-'); if (p.length < 3) return ''; var y = +p[0], m = +p[1] - 1 + (+n || 0), d = +p[2]; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
+    var last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); return y + '-' + pad(m + 1, 2) + '-' + pad(Math.min(d, last), 2); }
+  /** v2.15.1 status masa berlaku kontrak proyek per tanggal `today`:
+   *  st = 'kosong' (tanggal selesai belum diisi) · 'lewat' · 'segera' (≤ KONTRAK_PERINGATAN_HARI, bawaan 30) · 'ok' · 'selesai' (proyek SELESAI / arsip)
+   *  sisa = nilai kontrak berlaku − progres yang sudah ditagih (bruto invoice progres, tidak termasuk invoice batal) */
+  function kontrakStatus(ctx, n, today) {
+    var p = ctx.M.pro[n]; if (!p) return null; today = today || ctx.today;
+    var th = N(ctx.params.KONTRAK_PERINGATAN_HARI) > 0 ? N(ctx.params.KONTRAK_PERINGATAN_HARI) : 30;
+    var billed = sumBy(ctx.invs.filter(function (i) { return i.npp === n && !i._batal && i._a && (i._a.jenis === 'PROGRES' || i._a.jenis === 'LAINNYA'); }), function (i) { return i._a.bruto || 0; });
+    var o = { npp: n, akhir: p.akhir, dari: p.akhirDari, pelihara: p.pelihara, akhirPelihara: p.akhirPelihara, nilai: p.nilai_ok, billed: rnd(billed), sisa: rnd(Math.max(0, N(p.nilai_ok) - billed)), th: th,
+      tunda: p.tunda_kontrak && p.tunda_kontrak >= today ? p.tunda_kontrak : '', tundaKet: p.tunda_ket };
+    if (p.selesai || (p.aktif !== 'YA' && p.aktif !== '')) o.st = 'selesai';
+    else if (!p.akhir) o.st = 'kosong';
+    else { o.hari = diffDays(p.akhir, today); o.st = o.hari < 0 ? 'lewat' : o.hari <= th ? 'segera' : 'ok'; }
+    return o;
+  }
   function monthStart(y, m) { return y + '-' + pad(m, 2) + '-01'; }
   function monthEnd(y, m) { var d = new Date(Date.UTC(y, m, 0)); return y + '-' + pad(m, 2) + '-' + pad(d.getUTCDate(), 2); }
   function prevMonthEnd(s) { var y = +s.substring(0, 4), m = +s.substring(5, 7); return m === 1 ? monthEnd(y - 1, 12) : monthEnd(y, m - 1); }
@@ -381,6 +400,12 @@ var ENGINE = (function () {
         o.nilai_ok = N(o.addendum_lama);
         issues.push(['MASTER', MPRO.sheet, n, 'Masih memakai kolom lama "Nilai Addendum Terakhir"', 'Jalankan menu AR CSU ▸ Siapkan Riwayat Adendum']);
       }
+      // v2.15.1 masa berlaku kontrak: selesai pekerjaan = adendum (waktu) terakhir yang memuat tanggal selesai, atau kontrak awal
+      o.tgl_selesai = D(o.tgl_selesai); o.pelihara = N(o.pelihara) > 0 ? Math.round(N(o.pelihara)) : 0;
+      var selA = ''; o.adds.forEach(function (x) { if (x.selesai) selA = x.selesai; });
+      o.akhir = selA || o.tgl_selesai || ''; o.akhirDari = selA ? 'adendum' : o.tgl_selesai ? 'kontrak' : '';
+      o.akhirPelihara = o.akhir && o.pelihara ? addMonths(o.akhir, o.pelihara) : '';
+      o.tunda_kontrak = D(o.tunda_kontrak); o.tunda_ket = S(o.tunda_ket);
       if (o.adds.length && !o.nilai_awal) issues.push(['ADENDUM', MPRO.sheet, n, 'Ada adendum tetapi nilai kontrak awal kosong', 'Isi NILAI KONTRAK AWAL di Master Proyek']);
       if (o.adds.length && o.nilai_ok <= 0) issues.push(['ADENDUM', MPRO.sheet, n, 'Nilai kontrak setelah adendum ≤ 0', 'Periksa nilai adendum kurang']);
       o.tarif_eff = isNum(o.tarif) && o.tarif > 0 ? o.tarif : tarifDefault(params, n);
@@ -2726,6 +2751,13 @@ var ENGINE = (function () {
       var L = open.filter(function (i) { return i.npp === n; });
       if (L.length) add('KUNING', 'PROYEK SELESAI BERSALDO', p.pelanggan, n, 'Proyek ' + p.singkat + ' berstatus SELESAI tetapi masih ada ' + L.length + ' invoice terbuka · Rp ' + fmtRp(sumBy(L, function (i) { return i._res.sisa; })), 'Tagih, atau tutup manual dengan alasan');
     });
+    // v2.15.1 masa berlaku kontrak (lewat / segera berakhir); pengingat yang ditunda dilewati sampai tanggalnya
+    Object.keys(ctx.M.pro).forEach(function (n) {
+      var p = ctx.M.pro[n]; if (p._produkOf || p._adendumOf) return; var k = kontrakStatus(ctx, n, today); if (!k || k.tunda) return;
+      var tind = 'Master Pelanggan › Proyek ' + n + ': catat adendum waktu / nilai, atau tandai proyek SELESAI';
+      if (k.st === 'lewat') add(k.sisa > 0.5 ? 'MERAH' : 'KUNING', 'KONTRAK BERAKHIR', p.pelanggan, n, 'Kontrak ' + p.singkat + ' berakhir ' + tglPanjang(k.akhir) + ' (lewat ' + (-k.hari) + ' hari)' + (k.sisa > 0.5 ? ' · sisa belum ditagih Rp ' + fmtRp(k.sisa) : ' · nilai kontrak sudah tertagih penuh'), k.sisa > 0.5 ? tind : 'Tandai proyek SELESAI bila pekerjaan sudah selesai');
+      else if (k.st === 'segera' && k.sisa > 0.5) add('KUNING', 'KONTRAK SEGERA BERAKHIR', p.pelanggan, n, 'Kontrak ' + p.singkat + ' berakhir ' + tglPanjang(k.akhir) + ' (' + k.hari + ' hari lagi) · sisa belum ditagih Rp ' + fmtRp(k.sisa), 'Bila pekerjaan belum selesai, minta adendum waktu sebelum kontrak berakhir');
+    });
     retensiRows(ctx).forEach(function (r) { var p = ctx.M.pro[r[1]]; if (p && p.selesai && r[9] > 0.5) add('KUNING', 'RETENSI BELUM DITAGIH', r[0], r[1], 'Proyek SELESAI, retensi belum ditagih Rp ' + fmtRp(r[9]), 'Cek masa pemeliharaan; terbitkan invoice retensi'); });
     // surat penagihan: tenggat / janji bayar terlewat, dan eskalasi setelah surat ke-3
     var esk = {};
@@ -2916,7 +2948,7 @@ var ENGINE = (function () {
     var pro = Object.keys(M.pro).filter(function (k) { return !M.pro[k]._produkOf && !M.pro[k]._adendumOf; }).map(function (k) { var p = M.pro[k]; return { npp: p.npp, pelanggan: p.pelanggan, singkat: p.singkat, deskripsi: S(p.deskripsi), nilai: p.nilai_awal,
       nama_pe: p.nama_pe, produk: nppListTxt(p.produk), selesai: !!p.selesai,
       adendum: p.adds.map(function (a) { return { ke: a.ke, nodok: a.nodok, tgl: a.tgl, jenis: a.jenis, nilai: a.nilai }; }),
-      pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok,
+      pekerjaan: S(p.pekerjaan), lokasi: S(p.lokasi), kontrak: S(p.kontrak), tgl_kontrak: D(p.tgl_kontrak), nilai_ok: p.nilai_ok, akhir: p.akhir || '', akhirDari: p.akhirDari || '',
       um: p.um, um_awal: p.um_awal || 0, ret_pct: p.ret_pct, ret_pos: p.ret_pos, tarif: p.tarif_eff, dasar_pph: p.dasar_pph, tampil_pph: p.tampil_pph, template: p.template, top: p.top,
       signer: p.signer, aktif: p.aktif, retSisa: retSisa[p.npp] || 0, kode_jasa: p.kode_jasa, akun_peng: p.akun_peng, pola_uraian: S(p.pola_uraian), pola_kw: S(p.pola_kw),
       umBasis: umr[p.npp] ? umr[p.npp].basis : p.um, umSisa: umr[p.npp] ? (umr[p.npp].lengkap ? umr[p.npp].sisa : '') : p.um, umLengkap: umr[p.npp] ? umr[p.npp].lengkap : true, umKembali: umr[p.npp] ? umr[p.npp].awal + umr[p.npp].kembali : 0,
@@ -2960,6 +2992,8 @@ var ENGINE = (function () {
     var self = normInv(x.nomor || ''), prog = (p.prog || []).filter(function (r) { return normInv(r[0]) !== self; });
     if (!x.tgl) add('E', 'fTgl', 'Invoice date is empty');
     else if (x.today && x.tgl > x.today) add('E', 'fTgl', 'Invoice date is in the future', tglPanjang(x.tgl) + ' is after today.');
+    // v2.15.1 tagihan progres bertanggal setelah masa kontrak berakhir (pelepasan retensi / UM tidak diperiksa)
+    if (x.tgl && p.akhir && x.tgl > p.akhir && (x.jenis === 'PROGRES' || x.jenis === 'LAINNYA')) add('W', 'fTgl', 'Tanggal invoice melewati masa kontrak', 'Kontrak berakhir ' + tglPanjang(p.akhir) + (p.akhirDari === 'adendum' ? ' (adendum terakhir)' : '') + ' — bila ada adendum waktu, catat dulu di Master Pelanggan › Proyek › Kontrak & Adendum.');
     // v2.9.3: WIKA-WITON (jasa manajemen berjalan, ditagih per bulan dari rincian jasa) memang tidak punya nilai kontrak
     if (!(N(x.kontrak) > 0) && x.jenis === 'PROGRES' && U(p.template) !== 'WIKA-WITON') add('E', 'fPro', 'Contract value is empty', 'Fill the contract value in Master Proyek first.');
     if (c && x.jenis === 'PROGRES' && N(x.kontrak) > 0 && N(c.progres) > 0) {
@@ -2993,7 +3027,7 @@ var ENGINE = (function () {
     return { dppOk: dppOk, selisih: rnd(miss), why: why || 'PPN tidak sama dengan 11% × DPP' };
   }
   /** v2.8.8: Master Data — kolom yang perubahannya sensitif (wajib dasar perubahan, dicatat & diemailkan ke Section Head) */
-  var MD_SENS = { PEL: ['kelompok', 'jenis', 'npwp', 'limit'], PRO: ['nilai', 'um', 'ret_pct', 'ret_pos', 'tarif', 'dasar_pph', 'pelanggan', 'template'] };
+  var MD_SENS = { PEL: ['kelompok', 'jenis', 'npwp', 'limit'], PRO: ['nilai', 'um', 'ret_pct', 'ret_pos', 'tarif', 'dasar_pph', 'pelanggan', 'template', 'tgl_selesai'] };
   function mdNorm(x) { return U(x).replace(/\b(PT|CV|TBK|PERSERO|\(PERSERO\))\b/g, '').replace(/[^A-Z0-9]/g, ''); }
   /** pemeriksaan isian Master Data. kind PEL/PRO · d = isian · all = { pel: [...], pro: [...] } baris master saat ini · orig = kunci asal (kosong = baru) */
   function masterChecks(kind, d, all, orig) {
@@ -3028,6 +3062,8 @@ var ENGINE = (function () {
       if (N(d.um) > 0 && N(d.nilai) > 0 && N(d.um) > N(d.nilai)) add('E', 'um', 'Down payment exceeds the contract value');
       else if (N(d.um) > 0 && N(d.nilai) > 0 && Math.abs(N(d.um) / N(d.nilai) - 0.1) > 0.0005 && Math.abs(N(d.um) / N(d.nilai) - 0.2) > 0.0005) add('I', 'um', 'Down payment is ' + pctTxt(N(d.um) / N(d.nilai)) + ' of the contract');
       if (!S(d.tgl_kontrak)) add('W', 'tgl_kontrak', 'Contract date is empty');
+      if (D(d.tgl_selesai) && D(d.tgl_kontrak) && D(d.tgl_selesai) < D(d.tgl_kontrak)) add('E', 'tgl_selesai', 'Tanggal selesai pekerjaan lebih awal dari tanggal kontrak');
+      if (S(d.pelihara) !== '' && (!(N(d.pelihara) >= 0) || N(d.pelihara) > 60 || Math.round(N(d.pelihara)) !== N(d.pelihara))) add('E', 'pelihara', 'Masa pemeliharaan diisi jumlah bulan (0–60)');
       if (!S(d.deskripsi)) add('W', 'deskripsi', 'Invoice description is empty', 'Used in the invoice wording ("Atas …").');
     }
     return out;
@@ -3035,7 +3071,7 @@ var ENGINE = (function () {
   function masterDiff(kind, before, after) {
     var cols = kind === 'PEL' ? MPEL.cols : MPRO.cols, out = [];
     cols.forEach(function (c) { var k = c[0]; if (!(k in after)) return; var a = S(before ? before[k] : ''), b = S(after[k]); if (typeof after[k] === 'number' || (before && typeof before[k] === 'number')) { if (rnd(N(a) * 1e6) === rnd(N(b) * 1e6) && (a === '') === (b === '')) return; } else if (a.trim() === b.trim()) return;
-      out.push({ k: k, label: c[1], from: a, to: b, sens: !!before && MD_SENS[kind].indexOf(k) >= 0 }); });
+      out.push({ k: k, label: c[1], from: a, to: b, sens: !!before && MD_SENS[kind].indexOf(k) >= 0 && (k !== 'tgl_selesai' || !!a) }); });
     return out;
   }
   /** v2.15.1 ADJUSTMENT DPP (mis. BAPP WRK butir 3.4): tambahan DPP yang hanya menaikkan dasar PPN, bukan tagihan.
@@ -3425,7 +3461,7 @@ var ENGINE = (function () {
       receipts: rnd(recIn(s0, e0)), target: N(ctx.params.targets && ctx.params.targets[ref]) || 0,
       rari: { valId: vd ? vd.rec.id + (vd.v2 && N(vd.rec._data.rev) ? ' Rev.' + pad(N(vd.rec._data.rev), 2) : '') : '', raAwal: N(sm[1][1]), raFinal: N(sm[4][1]), riRA: N(sm[5][1]), riCad: N(sm[6][1]), riLuar: N(sm[7][1]), totalRI: N(sm[8][1]), belum: belum, hariKerja: hk },
       trend: trend, dso12: K.d12 ? rnd(K.d12.dso) : null, dso3: K.d3 ? rnd(K.d3.dso) : null,
-      attn: { od90n: od90L.length, od90v: rnd(sumBy(od90L, function (n) { return od90[n]; })), janji: ews('JANJI BAYAR TERLEWAT') + ews('TENGGAT SURAT TERLEWAT'), eskalasi: ews('ESKALASI PENAGIHAN'), merah: K.merah, kuning: K.kuning },
+      attn: { od90n: od90L.length, od90v: rnd(sumBy(od90L, function (n) { return od90[n]; })), janji: ews('JANJI BAYAR TERLEWAT') + ews('TENGGAT SURAT TERLEWAT'), eskalasi: ews('ESKALASI PENAGIHAN'), merah: K.merah, kuning: K.kuning, kontrak: ews('KONTRAK BERAKHIR'), kontrakSegera: ews('KONTRAK SEGERA BERAKHIR') },
       issues: (ctx.issues || []).length,
       top: Object.keys(byPel).map(function (k) { var x = byPel[k]; return { pelanggan: x.pelanggan, open: rnd(x.open), od: rnd(x.od), n: x.n }; }).sort(function (a, b) { return b.open - a.open; }).slice(0, 6),
       rel: rnd(rel), old365: { n: old365.n, v: rnd(old365.v) }, nOd: nOd, oldest: oldest, due14: { n: due14.n, v: rnd(due14.v) }, raN: raList.length, raPaid: raList.length - belum.length, raItems: raItems, weeks: wk, capTrend: capT, janji: (ctx.notes || []).map(function (n) { var m4 = /janji bayar (\d{2})-(\d{2})-(\d{4})/i.exec(n.catatan); if (!m4) return null; var t = m4[3] + '-' + m4[2] + '-' + m4[1]; if (t < s0 || t > e0) return null; var iv = act.filter(function (i) { return nppKey(i.npp) === nppKey(n.npp) || U(i.pelanggan) === n.npp; })[0]; return { tgl: t, npp: n.npp, pelanggan: iv ? iv.pelanggan : n.npp, catatan: n.catatan }; }).filter(Boolean),
@@ -3449,7 +3485,7 @@ var ENGINE = (function () {
   return {
     tagihanProyekRows: tagihanProyekRows, masterChecks: masterChecks, masterDiff: masterDiff, MD_SENS: MD_SENS, closingData: closingData, invoiceChecks: invoiceChecks, invConsistency: invConsistency, RAM: RAM, ramInv: ramInv, posisiWarning: posisiWarning, HO: HO, handoverData: handoverData, hoNextNo: hoNextNo, isBasah: isBasah, basahKinds: basahKinds, TTD_BASAH_TAG: TTD_BASAH_TAG, computeAt: computeAt, invoiceInput: invoiceInput, numForm: numForm, monthlyMetrics: monthlyMetrics, reconciliationRows: reconciliationRows, periodeTutup: periodeTutup, suratData: suratData, suratNoUrut: suratNoUrut, suratNoGanti: suratNoGanti, suratAlerts: suratAlerts, SURAT: SURAT, bupotPendingRows: bupotPendingRows, invAt: invAt, VERSION: VERSION, REG: REG, REG_ALIAS: REG_ALIAS, LOG: LOG, MPEL: MPEL, MPRO: MPRO, MPRO_ALIAS: MPRO_ALIAS, ADD: ADD, TAG: TAG, NOTE: NOTE, APPR: APPR, OPT: OPT, DOC: DOC,
     MONTHS: MONTHS, CKPN_DEFAULT: CKPN_DEFAULT, kontrakAt: kontrakAt,
-    compute: compute, calcInvoice: calcInvoice, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
+    compute: compute, calcInvoice: calcInvoice, kontrakStatus: kontrakStatus, addMonths: addMonths, umRetRows: umRetRows, kpFp: kpFp, rekOf: rekOf, kartuSignBlock: kartuSignBlock, invoiceAmounts: invoiceAmounts, kartuBlocks: kartuBlocks, kartuPlain: kartuPlain,
     jenisTampil: jenisTampil, labelTampil: labelTampil, HDR_LAMA: HDR_LAMA,
     invPackage: invPackage, payPackage: payPackage, packageFor: packageFor, bootstrap: bootstrap, allocRule: allocRule, fakturFields: fakturFields, bukuPenjualan: bukuPenjualan, roles: roles, validasiData: validasiData, rekapData: rekapData, approvalsPlain: approvalsPlain, fakturDraft: fakturDraft,
     fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, lkPreview: lkPreview, RKL: RKL, pelKey: pelKey, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,

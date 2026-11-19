@@ -83,6 +83,16 @@ test('adjustment DPP (WRK 0063): DPP faktur & PPN naik, tagihan / piutang / PPh 
   assert.strictEqual(ENGINE.calcInvoice({ template: 'FAJARPUTERA', dpp: 1000000, dppAdj: 5000 }).dppAdj, undefined);
 });
 
+test('masa berlaku kontrak: lewat / segera / ok / kosong / ditunda & tambah bulan', () => {
+  const pro = (o) => Object.assign({ aktif: 'YA', nilai_ok: 1000, akhir: '', tunda_kontrak: '' }, o);
+  const ctx = { today: '2026-11-13', params: {}, invs: [{ npp: 'A', _a: { jenis: 'PROGRES', bruto: 400 } }, { npp: 'A', _batal: true, _a: { jenis: 'PROGRES', bruto: 600 } }],
+    M: { pro: { A: pro({ akhir: '2026-10-28' }), B: pro({ akhir: '2026-11-25' }), C: pro({ akhir: '2027-03-01' }), D: pro({}), E: pro({ akhir: '2026-10-01', tunda_kontrak: '2026-11-20' }), F: pro({ akhir: '2026-01-01', aktif: 'SELESAI', selesai: true }) } } };
+  const st = (n) => ENGINE.kontrakStatus(ctx, n);
+  assert.strictEqual(st('A').st, 'lewat'); assert.strictEqual(st('A').hari, -16); assert.strictEqual(st('A').sisa, 600);
+  assert.strictEqual(st('B').st, 'segera'); assert.strictEqual(st('C').st, 'ok'); assert.strictEqual(st('D').st, 'kosong'); assert.strictEqual(st('E').tunda, '2026-11-20'); assert.strictEqual(st('F').st, 'selesai');
+  assert.strictEqual(ENGINE.addMonths('2026-08-31', 6), '2027-02-28'); assert.strictEqual(ENGINE.addMonths('2026-11-30', 2), '2027-01-30');
+});
+
 test('bupotPendingRows: daftar hanya memuat PPh diakui tanpa nomor bukti potong', () => {
   const ctx = { today: '2026-10-13', pays: [
     { _inv: { pelanggan: 'A', npp: '264C 1236 JT', nomor: 'X1', _a: { tarif: 0.0265 } }, _pph: 2650000, tgl: '2026-09-13', ref: 'R1', bupot: '', idp: 'PNR-00001' },
