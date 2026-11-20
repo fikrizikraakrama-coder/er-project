@@ -52,6 +52,11 @@ function onOpen() {
       .addItem('Aktifkan file Pajak (bagikan ke peran PAJAK)', 'arEnablePajak')
       .addItem('Format tanggal Indonesia (dd/mm/yyyy)…', 'aturFormatTanggal')
       .addItem('Catatan diagnosa (tanggal tidak tertulis, dll.)', 'arLihatDiagnosa'))
+    .addSubMenu(ui.createMenu('Pindah ke akun kerja')
+      .addItem('Langkah 1 · Siapkan daftar & hitung ukuran…', 'arPindahSiapkan')
+      .addItem('Langkah 2 · Kirim permintaan kepemilikan', 'arPindahKirim')
+      .addItem('Langkah 4 · Cek status penerimaan', 'arPindahCek')
+      .addItem('Hentikan jadwal otomatis akun ini (akun lama)', 'arPindahHentikanJadwal'))
     .addSeparator()
     .addItem('Tentang sistem ini', 'aboutSystem')
     .addToUi();

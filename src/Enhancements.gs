@@ -1293,3 +1293,96 @@ function apiProjectDoc(npp, d, op) {
   try { arBootBust_(); } catch (e) { }
   return { ok: true, link: link };
 }
+
+/* =====================================================================  v2.15.5 PINDAH KE AKUN KERJA
+ * Memindahkan kepemilikan spreadsheet utama (beserta skrip terikatnya), file turunan (Akuntansi, P&E, Pajak) dan seluruh folder arsip
+ * ke akun lain. ID file tidak berubah → semua link di sheet tetap berlaku. Antar akun Gmail pribadi, Google mewajibkan penerima
+ * menerima sendiri: Drive akun tujuan → cari  pendingowner:me  → pilih semua → Bagikan → Terima kepemilikan.
+ * Butuh layanan lanjutan "Drive API" (v3) di editor Apps Script. Daftar & status tercatat di sheet "Pindah Akun". */
+var AR_PINDAH_ = { sheet: 'Pindah Akun', head: ['ID', 'NAMA', 'JENIS', 'LOKASI', 'UKURAN (MB)', 'STATUS', 'CATATAN', 'WAKTU'] };
+function arPindahEmail_() { return String(PropertiesService.getScriptProperties().getProperty('AR_PINDAH_EMAIL') || '').toLowerCase(); }
+function arPindahSheet_(reset) {
+  var ss = arSpreadsheet_(), sh = ss.getSheetByName(AR_PINDAH_.sheet);
+  if (!sh) sh = ss.insertSheet(AR_PINDAH_.sheet);
+  if (reset) { sh.clear(); sh.getRange(1, 1, 1, AR_PINDAH_.head.length).setValues([AR_PINDAH_.head]).setFontWeight('bold').setBackground('#E8EEF9'); sh.setFrozenRows(1); [300, 320, 110, 320, 90, 110, 320, 120].forEach(function (w, i) { sh.setColumnWidth(i + 1, w); }); }
+  return sh;
+}
+function arPindahDriveOk_(ui) {
+  if (typeof Drive === 'undefined' || !Drive.Permissions) { ui.alert('Layanan Drive API belum aktif', 'Di editor Apps Script: menu kiri "Layanan" (Services) → tombol + → pilih "Drive API" → versi v3 → Tambahkan. Lalu jalankan menu ini lagi.', ui.ButtonSet.OK); return false; }
+  if (!Drive.Permissions.create) { ui.alert('Versi Drive API salah', 'Layanan Drive API yang aktif adalah v2. Di editor Apps Script → Layanan → Drive API → ubah versi menjadi v3, lalu jalankan menu ini lagi.', ui.ButtonSet.OK); return false; }
+  return true;
+}
+/** Langkah 1: tentukan akun tujuan, susun daftar semua file & folder milik akun ini, hitung ukurannya */
+function arPindahSiapkan() {
+  var ui = SpreadsheetApp.getUi(); arRequireOwner_();
+  var r = ui.prompt('Pindah ke akun kerja · Langkah 1', 'Email akun tujuan (akun kerja yang akan menjadi pemilik baru):', ui.ButtonSet.OK_CANCEL);
+  if (r.getSelectedButton() !== ui.Button.OK) return;
+  var to = String(r.getResponseText() || '').trim().toLowerCase(), me = String(Session.getEffectiveUser().getEmail() || '').toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return ui.alert('Email tidak valid.');
+  if (to === me) return ui.alert('Akun tujuan sama dengan akun yang sedang dipakai.');
+  PropertiesService.getScriptProperties().setProperty('AR_PINDAH_EMAIL', to);
+  var t0 = Date.now(), rows = [], seen = {}, lain = 0, mine = function (o) { try { var w = o.getOwner(); return w && String(w.getEmail()).toLowerCase() === me; } catch (e) { return false; } };
+  var add = function (o, jenis, lok, mb) { var id = o.getId(); if (seen[id]) return; seen[id] = 1; if (!mine(o)) { lain++; return; } rows.push([id, o.getName(), jenis, lok, mb, '', '', '']); };
+  var walk = function (fd, path) {
+    if (Date.now() - t0 > 300000) throw new Error('Daftar terlalu besar untuk sekali jalan (lebih dari 5 menit). Hubungi pengembang.');
+    add(fd, 'FOLDER', path, 0);
+    var fs = fd.getFiles(); while (fs.hasNext()) { var f = fs.next(); add(f, 'FILE', path, Math.round(f.getSize() / 1048576 * 100) / 100); }
+    var ds = fd.getFolders(); while (ds.hasNext()) { var d = ds.next(); walk(d, path + ' › ' + d.getName()); }
+  };
+  ['FILE_AKUNTANSI_ID', 'FILE_PE_ID', 'FILE_PAJAK_ID'].forEach(function (k) { var x = paramKV_(k); if (x && String(x.val || '').trim()) try { add(DriveApp.getFileById(String(x.val).trim()), 'SPREADSHEET', 'file turunan (' + k + ')', 0); } catch (e) { } });
+  var ax = paramKV_('ARSIP_FOLDER_ID'); if (ax && String(ax.val || '').trim()) { var root = DriveApp.getFolderById(String(ax.val).trim()); walk(root, root.getName()); }
+  // spreadsheet utama paling akhir: skrip aplikasi ikut pindah bersamanya
+  add(DriveApp.getFileById(arSpreadsheet_().getId()), 'SPREADSHEET', 'spreadsheet utama + skrip aplikasi', 0);
+  var sh = arPindahSheet_(true); if (rows.length) sh.getRange(2, 1, rows.length, AR_PINDAH_.head.length).setValues(rows);
+  var mb = rows.reduce(function (t, x) { return t + (+x[4] || 0); }, 0);
+  ui.alert('Daftar siap', 'Akun tujuan: ' + to + '\n\n' + rows.filter(function (x) { return x[2] === 'FILE'; }).length + ' file arsip · ' + rows.filter(function (x) { return x[2] === 'FOLDER'; }).length + ' folder · ' + rows.filter(function (x) { return x[2] === 'SPREADSHEET'; }).length + ' spreadsheet\nUkuran total ± ' + (Math.round(mb * 10) / 10) + ' MB (pastikan ruang di akun tujuan cukup; akun gratis 15 GB).' + (lain ? '\n\n' + lain + ' item milik akun lain dilewati (hanya pemiliknya yang bisa memindahkan).' : '') + '\n\nDaftar lengkap ada di sheet "' + AR_PINDAH_.sheet + '". Lanjutkan dengan Langkah 2.', ui.ButtonSet.OK);
+}
+function arPindahOne_(id, to) {
+  var L = (Drive.Permissions.list(id, { fields: 'permissions(id,emailAddress,role,pendingOwner)' }).permissions) || [];
+  var p = L.filter(function (x) { return String(x.emailAddress || '').toLowerCase() === to; })[0];
+  if (p && p.role === 'owner') return 'PINDAH';
+  if (p && p.pendingOwner) return 'TERKIRIM';
+  if (p) { try { Drive.Permissions.update({ role: 'writer', pendingOwner: true }, id, p.id); return 'TERKIRIM'; } catch (e) { } }
+  try { Drive.Permissions.create({ role: 'writer', type: 'user', emailAddress: to, pendingOwner: true }, id, { sendNotificationEmail: false }); }
+  catch (e2) { if (/notif/i.test(String(e2.message || e2))) Drive.Permissions.create({ role: 'writer', type: 'user', emailAddress: to, pendingOwner: true }, id, { sendNotificationEmail: true }); else throw e2; }
+  return 'TERKIRIM';
+}
+/** Langkah 2: kirim permintaan pindah kepemilikan (bisa dijalankan berulang sampai semua terkirim) */
+function arPindahKirim() {
+  var ui = SpreadsheetApp.getUi(); arRequireOwner_(); if (!arPindahDriveOk_(ui)) return;
+  var to = arPindahEmail_(), sh = arSpreadsheet_().getSheetByName(AR_PINDAH_.sheet);
+  if (!to || !sh || sh.getLastRow() < 2) return ui.alert('Jalankan Langkah 1 dulu.');
+  var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, 8).getValues(), t0 = Date.now(), ok = 0, gagal = 0, sisa = 0;
+  for (var i = 0; i < n; i++) {
+    if (v[i][5] === 'TERKIRIM' || v[i][5] === 'PINDAH') continue;
+    if (Date.now() - t0 > 270000) { sisa++; continue; }
+    try { v[i][5] = arPindahOne_(String(v[i][0]), to); v[i][6] = ''; ok++; } catch (e) { v[i][5] = 'GAGAL'; v[i][6] = String(e.message || e).slice(0, 300); gagal++; }
+    v[i][7] = arNow_().slice(0, 16);
+  }
+  sh.getRange(2, 1, n, 8).setValues(v);
+  var tot = v.filter(function (x) { return x[5] === 'TERKIRIM' || x[5] === 'PINDAH'; }).length;
+  ui.alert('Langkah 2', tot + ' dari ' + n + ' item sudah dikirim permintaannya ke ' + to + '.' + (sisa ? '\n\n' + sisa + ' item belum diproses (batas waktu Google) — jalankan Langkah 2 sekali lagi.' : '') + (gagal ? '\n\n' + gagal + ' item GAGAL — lihat kolom CATATAN di sheet "' + AR_PINDAH_.sheet + '", lalu jalankan Langkah 2 lagi.' : '') +
+    (!sisa && !gagal ? '\n\nLangkah 3 (di akun ' + to + '): buka Google Drive → ketik  pendingowner:me  di kolom pencarian → pilih semua (Ctrl/Cmd + A) → klik Bagikan → Terima kepemilikan. Lalu kembali ke sini: Langkah 4.' : ''), ui.ButtonSet.OK);
+}
+/** Langkah 4: periksa apakah kepemilikan sudah diterima */
+function arPindahCek() {
+  var ui = SpreadsheetApp.getUi(), to = arPindahEmail_(), sh = arSpreadsheet_().getSheetByName(AR_PINDAH_.sheet);
+  if (!to || !sh || sh.getLastRow() < 2) return ui.alert('Jalankan Langkah 1 dulu.');
+  var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, 8).getValues(), t0 = Date.now(), sisa = 0;
+  for (var i = 0; i < n; i++) {
+    if (v[i][5] === 'PINDAH') continue; if (Date.now() - t0 > 270000) { sisa++; continue; }
+    try { var o = v[i][2] === 'FOLDER' ? DriveApp.getFolderById(String(v[i][0])) : DriveApp.getFileById(String(v[i][0])), w = o.getOwner(); if (w && String(w.getEmail()).toLowerCase() === to) { v[i][5] = 'PINDAH'; v[i][7] = arNow_().slice(0, 16); } } catch (e) { v[i][6] = String(e.message || e).slice(0, 300); }
+  }
+  sh.getRange(2, 1, n, 8).setValues(v);
+  var pd = v.filter(function (x) { return x[5] === 'PINDAH'; }).length, utama = v.filter(function (x) { return x[3] === 'spreadsheet utama + skrip aplikasi'; })[0];
+  ui.alert('Langkah 4', pd + ' dari ' + n + ' item sudah milik ' + to + '.' + (sisa ? '\n' + sisa + ' item belum diperiksa — jalankan lagi.' : '') + (pd < n && !sisa ? '\n\nYang belum: terima di Drive akun ' + to + ' (cari  pendingowner:me ).' : '') +
+    (utama && utama[5] === 'PINDAH' ? '\n\nSpreadsheet utama sudah pindah. Lanjutkan dari akun ' + to + ':\n1. Ekstensi → Apps Script → Terapkan → Deployment baru (Aplikasi web, Jalankan sebagai: Saya, akses sama seperti sebelumnya).\n2. AR CSU ▸ Link aplikasi → simpan link baru, bagikan ke Section Head & Koordinator.\n3. AR CSU ▸ Pengaturan ▸ Aktifkan otomatisasi, lalu Kunci struktur & periksa hak akses.\n4. Dari akun lama: Pindah ke akun kerja ▸ Hentikan jadwal otomatis akun ini.' : ''), ui.ButtonSet.OK);
+}
+/** Langkah 5 (dijalankan dari akun lama): hentikan jadwal otomatis milik akun ini agar tidak berjalan ganda */
+function arPindahHentikanJadwal() {
+  var ui = SpreadsheetApp.getUi(), me = Session.getEffectiveUser().getEmail(), T = ScriptApp.getProjectTriggers();
+  if (!T.length) return ui.alert('Tidak ada jadwal otomatis atas nama ' + me + '.');
+  if (ui.alert('Hentikan jadwal otomatis', T.length + ' jadwal otomatis berjalan atas nama ' + me + '.\nHapus semuanya? Pastikan akun baru sudah menjalankan "Aktifkan otomatisasi".', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  T.forEach(function (t) { ScriptApp.deleteTrigger(t); });
+  ui.alert(T.length + ' jadwal otomatis atas nama ' + me + ' dihapus.');
+}
