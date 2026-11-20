@@ -55,6 +55,7 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Pindah ke akun kerja')
       .addItem('Langkah 1 · Siapkan daftar & hitung ukuran…', 'arPindahSiapkan')
       .addItem('Langkah 2 · Kirim permintaan kepemilikan', 'arPindahKirim')
+      .addItem('Langkah 3 · Terima kepemilikan (dari akun tujuan)', 'arPindahTerima')
       .addItem('Langkah 4 · Cek status penerimaan', 'arPindahCek')
       .addItem('Hentikan jadwal otomatis akun ini (akun lama)', 'arPindahHentikanJadwal'))
     .addSeparator()

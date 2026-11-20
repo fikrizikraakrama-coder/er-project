@@ -1337,15 +1337,18 @@ function arPindahSiapkan() {
   var mb = rows.reduce(function (t, x) { return t + (+x[4] || 0); }, 0);
   ui.alert('Daftar siap', 'Akun tujuan: ' + to + '\n\n' + rows.filter(function (x) { return x[2] === 'FILE'; }).length + ' file arsip · ' + rows.filter(function (x) { return x[2] === 'FOLDER'; }).length + ' folder · ' + rows.filter(function (x) { return x[2] === 'SPREADSHEET'; }).length + ' spreadsheet\nUkuran total ± ' + (Math.round(mb * 10) / 10) + ' MB (pastikan ruang di akun tujuan cukup; akun gratis 15 GB).' + (lain ? '\n\n' + lain + ' item milik akun lain dilewati (hanya pemiliknya yang bisa memindahkan).' : '') + '\n\nDaftar lengkap ada di sheet "' + AR_PINDAH_.sheet + '". Lanjutkan dengan Langkah 2.', ui.ButtonSet.OK);
 }
+/** status nyata di Google Drive: PINDAH (sudah milik tujuan) · TERKIRIM (permintaan tercatat, menunggu diterima) · BELUM */
+function arPindahPerm_(id, to) { var L = (Drive.Permissions.list(id, { fields: 'permissions(id,emailAddress,role,pendingOwner)' }).permissions) || []; return L.filter(function (x) { return String(x.emailAddress || '').toLowerCase() === to; })[0] || null; }
+function arPindahState_(id, to) { var p = arPindahPerm_(id, to); return !p ? 'BELUM' : p.role === 'owner' ? 'PINDAH' : p.pendingOwner ? 'TERKIRIM' : 'BELUM'; }
+/** kirim permintaan lalu periksa ulang — status TERKIRIM hanya bila Google benar-benar mencatat pendingOwner */
 function arPindahOne_(id, to) {
-  var L = (Drive.Permissions.list(id, { fields: 'permissions(id,emailAddress,role,pendingOwner)' }).permissions) || [];
-  var p = L.filter(function (x) { return String(x.emailAddress || '').toLowerCase() === to; })[0];
-  if (p && p.role === 'owner') return 'PINDAH';
-  if (p && p.pendingOwner) return 'TERKIRIM';
-  if (p) { try { Drive.Permissions.update({ role: 'writer', pendingOwner: true }, id, p.id); return 'TERKIRIM'; } catch (e) { } }
+  var st = arPindahState_(id, to); if (st !== 'BELUM') return { st: st, ket: '' };
+  var err = [], p = arPindahPerm_(id, to);
+  if (p) { try { Drive.Permissions.update({ role: 'writer', pendingOwner: true }, id, p.id); } catch (e) { err.push('update: ' + (e.message || e)); } st = arPindahState_(id, to); if (st !== 'BELUM') return { st: st, ket: '' }; }
   try { Drive.Permissions.create({ role: 'writer', type: 'user', emailAddress: to, pendingOwner: true }, id, { sendNotificationEmail: false }); }
-  catch (e2) { if (/notif/i.test(String(e2.message || e2))) Drive.Permissions.create({ role: 'writer', type: 'user', emailAddress: to, pendingOwner: true }, id, { sendNotificationEmail: true }); else throw e2; }
-  return 'TERKIRIM';
+  catch (e2) { err.push('create: ' + (e2.message || e2)); try { Drive.Permissions.create({ role: 'writer', type: 'user', emailAddress: to, pendingOwner: true }, id, { sendNotificationEmail: true }); } catch (e3) { err.push('create+email: ' + (e3.message || e3)); } }
+  st = arPindahState_(id, to);
+  return { st: st === 'BELUM' ? 'GAGAL' : st, ket: st === 'BELUM' ? ('Permintaan tidak tercatat di Google. ' + err.join(' | ')).slice(0, 300) : '' };
 }
 /** Langkah 2: kirim permintaan pindah kepemilikan (bisa dijalankan berulang sampai semua terkirim) */
 function arPindahKirim() {
@@ -1354,15 +1357,37 @@ function arPindahKirim() {
   if (!to || !sh || sh.getLastRow() < 2) return ui.alert('Jalankan Langkah 1 dulu.');
   var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, 8).getValues(), t0 = Date.now(), ok = 0, gagal = 0, sisa = 0;
   for (var i = 0; i < n; i++) {
-    if (v[i][5] === 'TERKIRIM' || v[i][5] === 'PINDAH') continue;
+    if (v[i][5] === 'PINDAH') continue;
     if (Date.now() - t0 > 270000) { sisa++; continue; }
-    try { v[i][5] = arPindahOne_(String(v[i][0]), to); v[i][6] = ''; ok++; } catch (e) { v[i][5] = 'GAGAL'; v[i][6] = String(e.message || e).slice(0, 300); gagal++; }
+    try { var rs = arPindahOne_(String(v[i][0]), to); v[i][5] = rs.st; v[i][6] = rs.ket; if (rs.st === 'GAGAL') gagal++; else ok++; } catch (e) { v[i][5] = 'GAGAL'; v[i][6] = String(e.message || e).slice(0, 300); gagal++; }
     v[i][7] = arNow_().slice(0, 16);
   }
   sh.getRange(2, 1, n, 8).setValues(v);
   var tot = v.filter(function (x) { return x[5] === 'TERKIRIM' || x[5] === 'PINDAH'; }).length;
   ui.alert('Langkah 2', tot + ' dari ' + n + ' item sudah dikirim permintaannya ke ' + to + '.' + (sisa ? '\n\n' + sisa + ' item belum diproses (batas waktu Google) — jalankan Langkah 2 sekali lagi.' : '') + (gagal ? '\n\n' + gagal + ' item GAGAL — lihat kolom CATATAN di sheet "' + AR_PINDAH_.sheet + '", lalu jalankan Langkah 2 lagi.' : '') +
-    (!sisa && !gagal ? '\n\nLangkah 3 (di akun ' + to + '): buka Google Drive → ketik  pendingowner:me  di kolom pencarian → pilih semua (Ctrl/Cmd + A) → klik Bagikan → Terima kepemilikan. Lalu kembali ke sini: Langkah 4.' : ''), ui.ButtonSet.OK);
+    (!sisa ? '\n\nLangkah 3: buka spreadsheet ini dari akun ' + to + ' → AR CSU ▸ Pengaturan ▸ Pindah ke akun kerja ▸ Langkah 3 · Terima kepemilikan (dari akun tujuan). Semua permintaan diterima sekaligus tanpa mencari di Drive.' : ''), ui.ButtonSet.OK);
+}
+/** Langkah 3 (dijalankan dari akun tujuan): terima semua permintaan kepemilikan yang tercatat di sheet "Pindah Akun" sekaligus */
+function arPindahTerima() {
+  var ui = SpreadsheetApp.getUi(); if (!arPindahDriveOk_(ui)) return;
+  var to = arPindahEmail_(), me = String(Session.getEffectiveUser().getEmail() || '').toLowerCase(), sh = arSpreadsheet_().getSheetByName(AR_PINDAH_.sheet);
+  if (!to || !sh || sh.getLastRow() < 2) return ui.alert('Jalankan Langkah 1 & 2 dulu dari akun lama.');
+  if (me !== to) return ui.alert('Langkah 3 dijalankan dari akun tujuan', 'Anda sedang memakai ' + me + '. Buka spreadsheet ini dengan akun ' + to + ', lalu jalankan menu ini lagi.', ui.ButtonSet.OK);
+  var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, 8).getValues(), t0 = Date.now(), ok = 0, blm = 0, gagal = 0, sisa = 0;
+  // folder dulu, spreadsheet utama paling akhir (urutan daftar)
+  for (var i = 0; i < n; i++) {
+    if (v[i][5] === 'PINDAH') continue; if (Date.now() - t0 > 270000) { sisa++; continue; }
+    var id = String(v[i][0]);
+    try { var p = arPindahPerm_(id, me);
+      if (p && p.role === 'owner') { v[i][5] = 'PINDAH'; v[i][6] = ''; ok++; }
+      else if (p && p.pendingOwner) { Drive.Permissions.update({ role: 'owner' }, id, p.id, { transferOwnership: true }); v[i][5] = 'PINDAH'; v[i][6] = ''; ok++; }
+      else { v[i][5] = 'BELUM'; v[i][6] = 'Belum ada permintaan dari akun lama — jalankan Langkah 2 dari akun lama.'; blm++; }
+    } catch (e) { v[i][5] = 'GAGAL TERIMA'; v[i][6] = String(e.message || e).slice(0, 300); gagal++; }
+    v[i][7] = arNow_().slice(0, 16);
+  }
+  sh.getRange(2, 1, n, 8).setValues(v);
+  var pd = v.filter(function (x) { return x[5] === 'PINDAH'; }).length;
+  ui.alert('Langkah 3', pd + ' dari ' + n + ' item sekarang milik ' + me + '.' + (sisa ? '\n' + sisa + ' item belum diproses (batas waktu) — jalankan Langkah 3 lagi.' : '') + (blm ? '\n' + blm + ' item belum ada permintaannya — jalankan Langkah 2 dari akun lama, lalu Langkah 3 lagi.' : '') + (gagal ? '\n' + gagal + ' item gagal diterima — lihat kolom CATATAN.' : '') + (pd === n ? '\n\nSemua sudah pindah. Lanjutkan: Langkah 4 · Cek status untuk petunjuk deploy aplikasi dari akun ini.' : ''), ui.ButtonSet.OK);
 }
 /** Langkah 4: periksa apakah kepemilikan sudah diterima */
 function arPindahCek() {
@@ -1371,11 +1396,12 @@ function arPindahCek() {
   var n = sh.getLastRow() - 1, v = sh.getRange(2, 1, n, 8).getValues(), t0 = Date.now(), sisa = 0;
   for (var i = 0; i < n; i++) {
     if (v[i][5] === 'PINDAH') continue; if (Date.now() - t0 > 270000) { sisa++; continue; }
-    try { var o = v[i][2] === 'FOLDER' ? DriveApp.getFolderById(String(v[i][0])) : DriveApp.getFileById(String(v[i][0])), w = o.getOwner(); if (w && String(w.getEmail()).toLowerCase() === to) { v[i][5] = 'PINDAH'; v[i][7] = arNow_().slice(0, 16); } } catch (e) { v[i][6] = String(e.message || e).slice(0, 300); }
+    try { var o = v[i][2] === 'FOLDER' ? DriveApp.getFolderById(String(v[i][0])) : DriveApp.getFileById(String(v[i][0])), w = o.getOwner(); if (w && String(w.getEmail()).toLowerCase() === to) { v[i][5] = 'PINDAH'; v[i][6] = ''; v[i][7] = arNow_().slice(0, 16); }
+      else if (typeof Drive !== 'undefined' && Drive.Permissions) { var st4 = arPindahState_(String(v[i][0]), to); v[i][5] = st4 === 'BELUM' ? 'BELUM' : st4; if (st4 === 'BELUM') v[i][6] = 'Permintaan belum tercatat — jalankan Langkah 2 dari akun lama.'; } } catch (e) { v[i][6] = String(e.message || e).slice(0, 300); }
   }
   sh.getRange(2, 1, n, 8).setValues(v);
-  var pd = v.filter(function (x) { return x[5] === 'PINDAH'; }).length, utama = v.filter(function (x) { return x[3] === 'spreadsheet utama + skrip aplikasi'; })[0];
-  ui.alert('Langkah 4', pd + ' dari ' + n + ' item sudah milik ' + to + '.' + (sisa ? '\n' + sisa + ' item belum diperiksa — jalankan lagi.' : '') + (pd < n && !sisa ? '\n\nYang belum: terima di Drive akun ' + to + ' (cari  pendingowner:me ).' : '') +
+  var pd = v.filter(function (x) { return x[5] === 'PINDAH'; }).length, nb = v.filter(function (x) { return x[5] === 'BELUM' || x[5] === 'GAGAL'; }).length, utama = v.filter(function (x) { return x[3] === 'spreadsheet utama + skrip aplikasi'; })[0];
+  ui.alert('Langkah 4', pd + ' dari ' + n + ' item sudah milik ' + to + '.' + (sisa ? '\n' + sisa + ' item belum diperiksa — jalankan lagi.' : '') + (nb ? '\n\n' + nb + ' item permintaannya belum tercatat — jalankan Langkah 2 lagi dari akun lama.' : '') + (pd < n - nb && !sisa ? '\n\n' + (n - nb - pd) + ' item menunggu diterima — jalankan Langkah 3 dari akun ' + to + '.' : '') +
     (utama && utama[5] === 'PINDAH' ? '\n\nSpreadsheet utama sudah pindah. Lanjutkan dari akun ' + to + ':\n1. Ekstensi → Apps Script → Terapkan → Deployment baru (Aplikasi web, Jalankan sebagai: Saya, akses sama seperti sebelumnya).\n2. AR CSU ▸ Link aplikasi → simpan link baru, bagikan ke Section Head & Koordinator.\n3. AR CSU ▸ Pengaturan ▸ Aktifkan otomatisasi, lalu Kunci struktur & periksa hak akses.\n4. Dari akun lama: Pindah ke akun kerja ▸ Hentikan jadwal otomatis akun ini.' : ''), ui.ButtonSet.OK);
 }
 /** Langkah 5 (dijalankan dari akun lama): hentikan jadwal otomatis milik akun ini agar tidak berjalan ganda */
