@@ -5491,7 +5491,8 @@ function jamItems(p) {
   });
 }
 /** saran BG uang muka: UM sudah banyak kembali lewat potongan termin → turunkan nilai / kembalikan */
-function bgUmSaran(r) {
+function bgUmSaran(r) { var M = BG._memo; if (M && r && r.id) { var k = 'u' + r.id; if (!(k in M)) M[k] = bgUmSaran0(r); return M[k]; } return bgUmSaran0(r); }
+function bgUmSaran0(r) {
   if (!r || r.status !== 'AKTIF' || bgJenisKey(r.jenis) !== 'UANG MUKA') return null;
   var p = bgPro(r.npp); if (!p || !(+p.um > 0) || p.umLengkap === false || mdBlank(p.umSisa)) return null;
   var sisa = Math.max(0, Math.round(+p.umSisa)), nv = +r.nilai || 0, th = +(B.params && B.params.BG_UM_TURUN_PCT) || 0.25;
@@ -5546,7 +5547,8 @@ function bgLokTxt(r) { var l = bgLok(r); return l ? BG_LOK[l.k][1] + ' ' + BG_LO
 /** masih dalam masa klaim: masa berlaku habis, batas klaim belum lewat */
 function bgDalamKlaim(r) { return r.status === 'AKTIF' && r.batas_klaim && r.sampai && r.sampai < B.today && r.batas_klaim >= B.today; }
 /** pengingat minta BG asli kembali dari bouwheer */
-function bgAsliSaran(r) {
+function bgAsliSaran(r) { var M = BG._memo; if (M && r && r.id) { var k = 'a' + r.id; if (!(k in M)) M[k] = bgAsliSaran0(r); return M[k]; } return bgAsliSaran0(r); }
+function bgAsliSaran0(r) {
   if (!r || r.status !== 'AKTIF') return null; var l = bgLok(r); if (!l || (l.k !== 'BOUWHEER' && l.k !== 'DIMINTA')) return null;
   var end = r.batas_klaim || r.sampai, u = bgUmSaran(r), p = bgPro(r.npp), why = '';
   if (end && end < B.today) why = 'masa berlaku' + (r.batas_klaim ? ' & masa klaim' : '') + ' sudah lewat';
@@ -6925,7 +6927,9 @@ function bgPill(r) {
   return '<span class="pill pz">' + esc(s.toLowerCase()) + '</span>';
 }
 function bgRender() {
-  var w = $('bgWrap'); if (!w || !BG.rows) return;
+  var w = $('bgWrap'); if (!w || !BG.rows) return; BG._memo = {}; try { bgRender0(w); } finally { BG._memo = null; }
+}
+function bgRender0(w) {
   var maker = !!(B.access && B.access.maker), R = BG.rows, A = R.filter(function (r) { return r.status === 'AKTIF'; }), P = R.filter(bgPerlu), pro = R.filter(function (r) { return bgTabOf(r) === 'proses'; });
   if (!BG.f) BG.f = P.length ? 'act' : 'aktif';
   var cnt = function (k) { var s = BG.f, q = BG.q; BG.f = k; BG.q = ''; var n = bgDispRows().length; BG.f = s; BG.q = q; return n; };
