@@ -1412,3 +1412,103 @@ function arPindahHentikanJadwal() {
   T.forEach(function (t) { ScriptApp.deleteTrigger(t); });
   ui.alert(T.length + ' jadwal otomatis atas nama ' + me + ' dihapus.');
 }
+
+/* =====================================================================  v2.15.6 FAKTUR PAJAK BERMASALAH (menu Pajak)
+ * Kasus penggantian / pembatalan faktur pajak: surat ke Pajak pusat (Section Head) dan surat ke pelanggan (Manager) dicetak
+ * dari aplikasi, status dipantau sampai FP pengganti tercatat ke invoice. Sheet "Faktur Pajak Bermasalah", satu baris per kasus. */
+var AR_FPX_ = { sheet: 'Faktur Pajak Bermasalah', headerRow: 5, firstRow: 6,
+  cols: [['id', 'ID KASUS', 'auto', 12], ['tgl', 'TGL DICATAT', 'auto', 12, 'date'], ['jenis', 'JENIS (PENGGANTI / PEMBATALAN)', 'auto', 14], ['pelanggan', 'PELANGGAN', 'auto', 30],
+    ['faktur', 'NOMOR FAKTUR PAJAK', 'auto', 40], ['invoice', 'INVOICE', 'auto', 40], ['dpp', 'DPP (Rp)', 'auto', 16, 'money'], ['ppn', 'PPN (Rp)', 'auto', 14, 'money'],
+    ['alasan', 'ALASAN', 'auto', 50], ['batas', 'BATAS PENGAJUAN PENGGANTIAN', 'auto', 12, 'date'], ['status', 'STATUS', 'auto', 22],
+    ['no_pel', 'NO. SURAT KE PELANGGAN', 'auto', 26], ['tgl_pel', 'TGL SURAT KE PELANGGAN', 'auto', 12, 'date'], ['batas_pel', 'BATAS BALASAN PELANGGAN', 'auto', 12, 'date'], ['tgl_pernyataan', 'TGL SURAT PERNYATAAN DITERIMA', 'auto', 12, 'date'],
+    ['no_int', 'NO. SURAT KE PAJAK PUSAT', 'auto', 26], ['tgl_int', 'TGL SURAT KE PAJAK PUSAT', 'auto', 12, 'date'], ['tgl_kirim', 'TGL DIKIRIM KE PAJAK PUSAT', 'auto', 12, 'date'],
+    ['fp_baru', 'FP PENGGANTI / KETERANGAN SELESAI', 'auto', 40], ['tgl_selesai', 'TGL SELESAI', 'auto', 12, 'date'],
+    ['oleh', 'DIBUAT OLEH', 'auto', 22], ['ubah', 'DIUBAH', 'auto', 15], ['data', 'DATA SURAT (JANGAN DIUBAH)', 'auto', 12]] };
+var AR_FPX_DEF_ = [['FP_PUSAT_KEPADA', 'Manager Accounting & Tax', 'Surat FP ke Pajak pusat: jabatan penerima'], ['FP_PUSAT_PT', 'PT Wijaya Karya Beton Tbk', 'Surat FP ke Pajak pusat: perusahaan'],
+  ['FP_PUSAT_UP', 'Bapak M. Dhandy Riyandra Putra', 'Surat FP ke Pajak pusat: u.p. (nama)'], ['FP_EMAIL_BALASAN', 'fikri.za@wika-beton.co.id', 'Surat FP ke pelanggan: email balasan surat pernyataan'],
+  ['NPWP_PENJUAL', '0010611549093000', 'NPWP PT Wijaya Karya Beton Tbk (surat faktur pajak)'], ['FP_KODE_PUSAT', 'KU.03.01', 'Kode nomor surat FP ke Pajak pusat'], ['FP_KODE_PELANGGAN', 'KU.02.09', 'Kode nomor surat FP ke pelanggan']];
+var AR_FPX_ST_ = ['DRAF', 'MENUNGGU PELANGGAN', 'PERNYATAAN DITERIMA', 'DIKIRIM KE PAJAK PUSAT', 'SELESAI', 'BATAL'];
+function arFpxSheet_(create) {
+  var ss = arSpreadsheet_(), sh = ss.getSheetByName(AR_FPX_.sheet);
+  if (!sh && create) sh = setupDataSheet_(ss, AR_FPX_, 'FAKTUR PAJAK BERMASALAH (PENGGANTIAN / PEMBATALAN)', 'Dibuat aplikasi (menu Pajak ▸ Faktur Pajak bermasalah). Satu baris per kasus: surat ke pelanggan (pembatalan) → surat pernyataan → surat ke Pajak pusat → FP pengganti / dibatalkan. Ubah lewat aplikasi agar DATA SURAT tetap sesuai.', 'Monitoring Invoice', '#B45309').sh;
+  if (sh) ensureSchema_(sh, AR_FPX_, null, null);
+  return sh;
+}
+function arFpxRows_() {
+  var sh = arFpxSheet_(false); if (!sh) return [];
+  var m = colMap_(sh, AR_FPX_), last = lastDataRow_(sh, AR_FPX_.firstRow, [m.id || 1]); if (last < AR_FPX_.firstRow) return [];
+  var v = sh.getRange(AR_FPX_.firstRow, 1, last - AR_FPX_.firstRow + 1, sh.getLastColumn()).getValues(), tz = ssTz_(), out = [];
+  v.forEach(function (r, i) { var o = { _row: AR_FPX_.firstRow + i }; AR_FPX_.cols.forEach(function (c) { var j = m[c[0]], x = j ? r[j - 1] : ''; o[c[0]] = isDate_(x) ? dstr_(x, tz) : x; });
+    if (!String(o.id).trim()) return; try { o.d = JSON.parse(String(o.data || '{}')); } catch (e) { o.d = {}; } delete o.data; out.push(o); });
+  return out;
+}
+function arFpxWrite_(sh, row, o) {
+  var m = colMap_(sh, AR_FPX_); o.ubah = arNow_().slice(0, 16);
+  AR_FPX_.cols.forEach(function (c) { var j = m[c[0]]; if (!j || !(c[0] in o)) return; var v = o[c[0]], f = colFmt_(c), cell = sh.getRange(row, j);
+    if (f === 'date') { if (/^\d{4}-\d{2}-\d{2}$/.test(String(v || ''))) cell.setNumberFormat(NUMF.date).setValue(toCell_(v, 'date')); else cell.setValue(''); }
+    else if (f === 'money') cell.setNumberFormat(NUMF.money).setValue(v === '' || v === null || v === undefined ? '' : Number(v) || 0);
+    else cell.setNumberFormat('@').setValue(c[0] === 'data' ? JSON.stringify(v || {}) : arSafeCell_(String(v === undefined || v === null ? '' : v))); });
+}
+function arFpxDef_() { var o = {}; AR_FPX_DEF_.forEach(function (d) { var x = null; try { x = paramKV_(d[0]); } catch (e) { } o[d[0]] = x && x.val ? x.val : d[1]; }); return o; }
+function apiFpList() { arRequireAccess_(true); var sh = arFpxSheet_(false);
+  return plain_({ rows: arFpxRows_(), def: arFpxDef_(), sheetUrl: sh ? arSpreadsheet_().getUrl() + '#gid=' + sh.getSheetId() : '' }); }
+function arFpxHist_(d, act, n) { d.h = (d.h || []).concat([{ t: arNow_().slice(0, 16), a: act, by: email_(), n: String(n || '').slice(0, 300) }]).slice(-60); return d; }
+function arFpxIsD_(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')); }
+/** simpan kasus (baru / ubah). d = { id?, jenis, pelanggan, fp:[{inv,no,tgl,dpp,dppl,ppn,...}], alasan, ... seluruh isian surat } */
+function apiFpSave(d) {
+  var acc = arRequireMaker_(); d = d || {};
+  var J = String(d.jenis || '').toUpperCase(); if (J !== 'PENGGANTI' && J !== 'PEMBATALAN') throw new Error('Pilih jenis permohonan: penggantian atau pembatalan.');
+  if (!String(d.pelanggan || '').trim()) throw new Error('Pilih pelanggan.');
+  var F = (d.fp || []).filter(function (x) { return String(x.no || '').replace(/\D/g, ''); }); if (!F.length) throw new Error('Pilih minimal satu faktur pajak.');
+  if (String(d.alasan || '').trim().length < 5) throw new Error('Isi alasan permohonan.');
+  var lock = bgLock_(), out;
+  try {
+    var sh = arFpxSheet_(true), rows = arFpxRows_(), x = d.id ? rows.filter(function (r) { return r.id === d.id; })[0] : null, now = arNow_();
+    if (d.id && !x) throw new Error('Kasus ' + d.id + ' tidak ditemukan — muat ulang.');
+    if (x && (x.status === 'SELESAI' || x.status === 'BATAL')) throw new Error('Kasus ' + x.id + ' sudah ' + x.status.toLowerCase() + ' dan tidak bisa diubah.');
+    var dup = []; rows.forEach(function (r) { if (r.id === d.id || r.status === 'SELESAI' || r.status === 'BATAL') return; (r.d.fp || []).forEach(function (f) { F.forEach(function (g) { if (String(f.no).replace(/\D/g, '') === String(g.no).replace(/\D/g, '')) dup.push(g.no + ' (' + r.id + ')'); }); }); });
+    if (dup.length) throw new Error('Faktur pajak sudah ada di kasus lain yang masih berjalan: ' + dup.join(', '));
+    var id = x ? x.id : (function () { var y = String(now).slice(0, 4), mx = 0; rows.forEach(function (r) { var k = String(r.id).match(/^FPX-(\d{4})-(\d+)$/); if (k && k[1] === y) mx = Math.max(mx, +k[2]); }); return 'FPX-' + y + '-' + ('00' + (mx + 1)).slice(-3); })();
+    var dd = JSON.parse(JSON.stringify(d)); dd.id = id; dd.fp = F; dd.h = x && x.d ? x.d.h || [] : []; arFpxHist_(dd, x ? 'UBAH' : 'BUAT', x ? 'Isian surat diubah' : 'Kasus dicatat');
+    var o = { id: id, jenis: J, pelanggan: String(d.pelanggan).trim(), faktur: F.map(function (f) { return f.no; }).join('; '), invoice: F.map(function (f) { return f.inv; }).join('; '),
+      dpp: F.reduce(function (t, f) { return t + (Number(f.dpp) || 0); }, 0), ppn: F.reduce(function (t, f) { return t + (Number(f.ppn) || 0); }, 0), alasan: String(d.alasan || '').slice(0, 480),
+      batas: J === 'PENGGANTI' && arFpxIsD_(d.batas) ? d.batas : '', no_pel: J === 'PEMBATALAN' ? String((d.sp || {}).no || '') : '', tgl_pel: J === 'PEMBATALAN' && arFpxIsD_((d.sp || {}).tgl) ? d.sp.tgl : '',
+      batas_pel: J === 'PEMBATALAN' && arFpxIsD_((d.sp || {}).batas) ? d.sp.batas : '', no_int: String((d.si || {}).no || ''), tgl_int: arFpxIsD_((d.si || {}).tgl) ? d.si.tgl : '', data: dd };
+    if (!x) { o.tgl = now.slice(0, 10); o.status = 'DRAF'; o.oleh = acc.email; }
+    var row = x ? x._row : (function () { var m = colMap_(sh, AR_FPX_), r = lastDataRow_(sh, AR_FPX_.firstRow, [m.id]) + 1; roomFor_(sh, r); return r; })();
+    arFpxWrite_(sh, row, o); out = { ok: true, id: id };
+  } finally { lock.releaseLock(); }
+  return out;
+}
+/** tindakan status: PELANGGAN (surat ke pelanggan dikirim) · PERNYATAAN (surat pernyataan diterima) · KIRIM (dikirim ke Pajak pusat) · SELESAI · BATAL */
+function apiFpStatus(id, act, p) {
+  var acc = arRequireMaker_(); p = p || {}; act = String(act || '').toUpperCase();
+  var lock = bgLock_(), out = { ok: true };
+  try {
+    var sh = arFpxSheet_(true), x = arFpxRows_().filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('Kasus ' + id + ' tidak ditemukan.');
+    if (x.status === 'SELESAI' || x.status === 'BATAL') throw new Error('Kasus ' + id + ' sudah ' + x.status.toLowerCase() + '.');
+    var o = {}, d = x.d || {}, tgl = arFpxIsD_(p.tgl) ? p.tgl : arNow_().slice(0, 10), n = '';
+    if (act === 'PELANGGAN') { if (x.jenis !== 'PEMBATALAN') throw new Error('Surat ke pelanggan hanya untuk pembatalan.'); o.status = 'MENUNGGU PELANGGAN'; o.tgl_pel = tgl; n = 'Surat ke pelanggan dikirim ' + tgl; }
+    else if (act === 'PERNYATAAN') { o.status = 'PERNYATAAN DITERIMA'; o.tgl_pernyataan = tgl; n = 'Surat pernyataan pelanggan diterima ' + tgl + (p.ket ? ' · ' + p.ket : ''); }
+    else if (act === 'KIRIM') { o.status = 'DIKIRIM KE PAJAK PUSAT'; o.tgl_kirim = tgl; n = 'Surat dikirim ke Pajak pusat ' + tgl; }
+    else if (act === 'SELESAI') {
+      o.status = 'SELESAI'; o.tgl_selesai = tgl;
+      if (x.jenis === 'PENGGANTI') {
+        var L = (p.baru || []).filter(function (b) { return String(b.baru || '').replace(/\D/g, ''); }); if (!L.length) throw new Error('Isi nomor faktur pajak pengganti.');
+        var reg = sheet_('Monitoring Invoice'), map = colMap_(reg, ENGINE.REG, ENGINE.REG_ALIAS), upd = [];
+        L.forEach(function (b) { var no = String(b.baru).replace(/\D/g, ''), r = findRegisterRow_(reg, b.inv, map); if (!r) return;
+          if (map.no_fp) reg.getRange(r, map.no_fp).setNumberFormat('@').setValue(no);
+          if (map.tgl_fp && arFpxIsD_(b.tgl)) reg.getRange(r, map.tgl_fp).setNumberFormat(NUMF.date).setValue(toCell_(b.tgl, 'date'));
+          upd.push(b.inv); });
+        o.fp_baru = L.map(function (b) { return String(b.lama || '') + ' → ' + String(b.baru).replace(/\D/g, '') + (b.tgl ? ' (' + b.tgl + ')' : ''); }).join('; ');
+        d.baru = L; n = 'FP pengganti tercatat: ' + o.fp_baru + (upd.length ? ' · Monitoring Invoice diperbarui (' + upd.length + ' invoice)' : '');
+        try { arMarkDirty_(); } catch (e) { }
+      } else { o.fp_baru = String(p.ket || 'FP dibatalkan').slice(0, 300); n = 'Faktur pajak dibatalkan' + (p.ket ? ': ' + p.ket : ''); }
+    }
+    else if (act === 'BATAL') { var a = String(p.alasan || '').trim(); if (a.length < 5) throw new Error('Isi alasan (min. 5 karakter).'); o.status = 'BATAL'; n = 'Kasus dibatalkan: ' + a; }
+    else throw new Error('Tindakan tidak dikenal.');
+    o.data = arFpxHist_(d, act, n); arFpxWrite_(sh, x._row, o); out.status = o.status;
+  } finally { lock.releaseLock(); }
+  try { arBootBust_(); } catch (e) { }
+  return out;
+}

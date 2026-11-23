@@ -1119,7 +1119,7 @@ var AR_APP_NAME = 'Accounts Receivable Hub';
 /** v2.15.2 judul tab mengikuti layar yang dibuka lewat tautan (?go=…): "Daftar Penerimaan · Accounts Receivable Hub" */
 function arTabTitle_(q) {
   q = q || {}; var L = { dashboard: 'Ringkasan', exec: 'Ringkasan', md: 'Master Pelanggan', bal: 'Saldo Pelanggan', lim: 'Batas Kredit', kp: 'Kartu Piutang', buka: 'Daftar Invoice', buat: 'Buat Invoice',
-    bayar: 'Catat Penerimaan', tbayar: 'Daftar Penerimaan', plan: 'Rencana Termin', surat: 'Surat Penagihan', bg: 'Bank Garansi', close: 'Checklist Tutup Buku', dok: 'Dokumen Bulanan', ho: 'Serah Terima Akuntansi', setuju: 'Persetujuan', 'md:ktr': 'Kontrak perlu tindakan' };
+    bayar: 'Catat Penerimaan', tbayar: 'Daftar Penerimaan', plan: 'Rencana Termin', surat: 'Surat Penagihan', bg: 'Bank Garansi', fp: 'Faktur Pajak Bermasalah', close: 'Checklist Tutup Buku', dok: 'Dokumen Bulanan', ho: 'Serah Terima Akuntansi', setuju: 'Persetujuan', 'md:ktr': 'Kontrak perlu tindakan' };
   var K = { INV: 'Invoice', PAY: 'Penerimaan', KP: 'Kartu Piutang', VAL: 'Validasi RA', REK: 'Rekap Bulanan', TUTUP: 'Tutup Manual', BATAL: 'Pembatalan', VALX: 'Pembatalan Validasi', REVP: 'Pembalikan' };
   var sh = function (v) { v = String(v || ''); var m = v.match(/4C\.([^\s]+)$/); return (m ? '4C.' + m[1] : v.replace(/^REF\s+/, '')).slice(0, 40); }, g = String(q.go || ''), t = '';
   if (g === 'kp') t = 'Kartu Piutang' + (q.npp ? ' ' + q.npp : '');
@@ -1827,6 +1827,9 @@ var V2_KV = [
   ['CKPN_PIHAK_BERELASI', 'TIDAK', 'YA = pihak berelasi ikut dicadangkan; TIDAK = 0'],
   ['TAGBRUT_SALDO_AWAL_PER', '2026-09-30', 'Tanggal saldo awal tagbrut/HAD di Input Tagbrut'],
   ['TAGBRUT_BATAS_HARI', 30, 'Pengakuan belum ditagih > n hari ditandai SEGERA TERBITKAN TAGIHAN'],
+  ['FP_PUSAT_KEPADA', 'Manager Accounting & Tax', 'Surat FP ke Pajak pusat: jabatan penerima'], ['FP_PUSAT_PT', 'PT Wijaya Karya Beton Tbk', 'Surat FP ke Pajak pusat: perusahaan'],
+  ['FP_PUSAT_UP', 'Bapak M. Dhandy Riyandra Putra', 'Surat FP ke Pajak pusat: u.p. (nama)'], ['FP_EMAIL_BALASAN', 'fikri.za@wika-beton.co.id', 'Surat FP ke pelanggan: email balasan surat pernyataan'],
+  ['NPWP_PENJUAL', '0010611549093000', 'NPWP PT Wijaya Karya Beton Tbk (surat faktur pajak)'],
   ['FAKTUR_KODE_TRANSAKSI', '04', 'Kode transaksi faktur Coretax (04 = DPP Nilai Lain)'],
   ['FAKTUR_KODE_JASA', '', 'Kode barang/jasa Coretax bawaan (bila Master Proyek kosong)'],
   ['FAKTUR_SATUAN', 'Lainnya', 'Satuan barang/jasa di Coretax'],
