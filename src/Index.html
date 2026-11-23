@@ -453,7 +453,7 @@ button .bgspin{width:12px;height:12px;border-radius:50%;border:2px solid rgba(25
 body.full #app{grid-template-columns:1fr}body.full aside,body.full #tabsBar,body.full #stage{display:none!important}
 #ovWrap{flex:1;overflow:auto;background:#EEF2F6}
 #lstWrap{flex:1;overflow:auto;background:#EEF2F6}
-body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.stack #planWrap,body.full.stack #execWrap,body.full.stack #closeWrap,body.full.stack #mdWrap,body.full.stack #custWrap,body.full.stack #kpWrap,body.full.stack #bgWrap,body.full.stack #lstWrap,body.full.stack #dokWrap{display:none!important}
+body.full.stack #stage{display:flex!important}body.full.stack #ovWrap,body.full.stack #planWrap,body.full.stack #execWrap,body.full.stack #closeWrap,body.full.stack #mdWrap,body.full.stack #custWrap,body.full.stack #kpWrap,body.full.stack #bgWrap,body.full.stack #fpWrap,body.full.stack #lstWrap,body.full.stack #dokWrap{display:none!important}
 .mdk-p{display:inline-block;border-radius:9px;padding:1px 7px;font-size:11px;font-weight:800;white-space:nowrap}.mdk-p.pg{background:#E3F5EA;color:#17733F}.mdk-p.pr{background:#FDE2E2;color:#B42318}.mdk-p.pb{background:#E4EEFA;color:#1F5BA8}.mdk-p.pz{background:#EEF1F5;color:#5B6B80}
 .mdk td small{display:block;color:#6A7A8E;font-size:11px}.mdk tr.mdk-x td{color:#94A3B8;text-decoration:line-through}.mdk-n{color:#B42318;font-weight:700;font-size:12px}.mdk-del{color:#B42318;text-decoration:none;font-weight:800;margin-left:4px}
 .mdk-seg{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}.mdk-seg button{border:1px solid #CBD5E1;background:#fff;border-radius:8px;padding:5px 10px;font:inherit;font-size:12px;font-weight:700;color:#4A5A6E;cursor:pointer}.mdk-seg button.on{background:#0F6E78;border-color:#0F6E78;color:#fff}
@@ -538,6 +538,9 @@ a.nl{color:inherit;text-decoration:none}a.nl:hover{text-decoration:underline;tex
 .fpx .fpx-k4{grid-template-columns:repeat(4,minmax(0,1fr))}.fpx .fpx-k4>div.kr b{color:#B42318}.fpx .fpx-k4>div.kw b{color:#B45309}
 .fpx .pill{display:inline-block;border-radius:10px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap}.fpx .pill.pz{background:#EEF2F6;color:#5B6B80}.fpx .pill.py{background:#FFF1D6;color:#9A5B00}.fpx .pill.pb{background:#E3ECFA;color:#24478F}.fpx .pill.pg{background:#E6F4EA;color:#1E6B3A}
 .fpx-al{margin:8px 0 4px;font-size:12.5px;line-height:1.45;color:#33445C}.fpx-al span{display:block;font-size:11px;font-weight:700;color:#5B6B80;margin-bottom:1px}
+.fpx-docs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:8px 0;padding:8px 10px;background:#F7F9FB;border:1px solid #DFE6EE;border-radius:9px;font-size:12px}.fpx-docs b{flex-basis:100%;font-size:12px;color:#33445C}.fpx-docs a{color:#145C63;text-decoration:none;font-weight:600}.fpx-docs a small{color:#6A7A8E;font-weight:500;margin-left:4px}.fpx-docs .e{color:#9AA8B8}.fpx-docs .btn{margin-left:auto}
+.fpx-lg{font-size:10.5px;font-weight:700;background:#EEF2F6;color:#5B6B80;border-radius:8px;padding:1px 6px}.fpx-file{border:1px dashed #9CCFD1;background:#F1F8F8;border-radius:8px;padding:6px 9px;font-size:12px}.fpx-man{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr auto;gap:5px;margin-top:6px}.fpx-man input{min-width:0}
+@media (max-width:640px){.fpx-man{grid-template-columns:1fr 1fr}}
 .fpx-hint{margin:6px 0 2px;font-size:11.5px;color:#4A5A72;background:#F1F8F8;border:1px dashed #9CCFD1;border-radius:9px;padding:6px 9px}
 .fpx-tw{max-height:260px;overflow:auto;border:1px solid #DFE6EE;border-radius:9px;margin-top:2px}.fpx-t{width:100%;border-collapse:collapse;font-size:11.5px}.fpx-t th{position:sticky;top:0;background:#F4F6F9;text-align:left;color:#5B6B80;font-weight:700;padding:5px 6px;border-bottom:1px solid #DFE6EE}.fpx-t td{padding:5px 6px;border-bottom:1px solid #EEF2F6;vertical-align:top}.fpx-t .n{text-align:right;white-space:nowrap}.fpx-t small{display:block;color:#6A7A8E;font-size:10.5px}.fpx-t tr.on td{background:#E9F6F7}.fpx-t tr.dis td{color:#9AA8B8}.fpx-t td.e{color:#6A7A8E;text-align:center;padding:12px}.fpx-t input{width:auto}
 .fpx-dl input{width:100%}.fpx-warn{margin-top:8px;background:#FFFBEF;border:1.5px solid #F4D58D;border-radius:9px;padding:7px 10px;font-size:12px;color:#5C4300}.fpx-warn.r{background:#FFF6F5;border-color:#F2B8B5;color:#8A1C12}
@@ -1017,7 +1020,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
  .kp-foot .g3{gap:14px}.kp-foot .g3 div:not(:last-child){display:none}.kp-ta{display:block;overflow-x:auto}}
 @media(max-width:1500px){#tbNav .tb-it>svg{display:none}#tbNav .tb-it{padding:7px 10px}}
 /* ====================== v2.9.6: Bank Garansi */
-#bgWrap{flex:1;overflow:auto;background:#EEF2F6}
+#bgWrap,#fpWrap{flex:1;overflow:auto;background:#EEF2F6}
 #tbNav{min-width:0;overflow-x:auto;scrollbar-width:none}#tbNav::-webkit-scrollbar{display:none}
 @media(max-width:1800px){#tbNav .tb-it{padding:6px 8px;font-size:12.5px}.tb-name small{display:none}}
 .tb-name .nm-s{display:none}@media(max-width:1250px){.tb-name .nm-l{display:none}.tb-name .nm-s{display:inline}}
@@ -6502,7 +6505,8 @@ function kpTabTtd(npp) {
 }
 /* ====================================================== v2.9.6: Bank Garansi — permohonan jaminan ke pusat (memo PDF siap TTD) → BG terbit → dipantau di sheet Monitoring BG */
 /* ====================================================== v2.15.6 PAJAK · Faktur Pajak bermasalah (penggantian / pembatalan) */
-var FPX = { rows: null, def: null, sel: '', form: null, f: 'proses', busy: false, sheetUrl: '' };
+var FPX = { rows: null, def: null, sel: '', form: null, f: 'proses', busy: false, sheetUrl: '', files: {} };
+var FPX_DOK = { PEL: 'Surat ke pelanggan', PERNYATAAN: 'Surat pernyataan pelanggan', PUSAT: 'Surat ke Pajak pusat', BUKTI: 'Bukti dari Pajak pusat / Coretax', LAIN: 'Lainnya' };
 var FPX_ST = { 'DRAF': ['draf', 'pz'], 'MENUNGGU PELANGGAN': ['menunggu surat pelanggan', 'py'], 'PERNYATAAN DITERIMA': ['pernyataan diterima', 'pb'], 'DIKIRIM KE PAJAK PUSAT': ['dikirim ke Pajak pusat', 'pb'], 'SELESAI': ['selesai', 'pg'], 'BATAL': ['dibatalkan', 'pz'] };
 /** pilihan alasan: kalimat contoh (lanjutan "Permohonan ini kami ajukan karena …"); "……" = bagian yang harus dilengkapi */
 var FPX_ALASAN = [['alamat', 'Alamat / IDTKU salah', 'alamat yang tercantum pada Faktur Pajak tersebut tidak sesuai, yaitu masih menggunakan alamat ……. Atas permintaan pelanggan, alamat tersebut perlu disesuaikan menjadi ……'],
@@ -6530,7 +6534,7 @@ function fpNewForm(o) {
   var y = B.today.slice(0, 4), F = { id: '', jenis: 'PENGGANTI', pelanggan: '', fp: [], alasanK: '', alasan: '', ket: '', batas: '',
     si: { no: '', tgl: B.today }, sp: { no: '', tgl: B.today, kepada: 'Accounting & Tax', nama: '', baris: '', rujuk: '', rujukAuto: true, butir: '', butirAuto: true, batas: fpWorkdays(B.today, 4), email: fpDef('FP_EMAIL_BALASAN'), lamp: true } };
   if (o) Object.keys(o).forEach(function (k) { F[k] = JSON.parse(JSON.stringify(o[k])); });
-  if (!F.si.no) F.si.no = fpDef('FP_KODE_PUSAT') + '/WB-4C./' + y; if (!F.sp.no) F.sp.no = fpDef('FP_KODE_PELANGGAN') + '/WB-4C./' + y;
+  if (!F.si.no && !F.legacy) F.si.no = fpDef('FP_KODE_PUSAT') + '/WB-4C./' + y; if (!F.sp.no && !F.legacy) F.sp.no = fpDef('FP_KODE_PELANGGAN') + '/WB-4C./' + y;
   return F;
 }
 /** kalimat otomatis surat pelanggan: pembuka (rujukan tagihan) & butir pernyataan — hanya selama belum diedit sendiri */
@@ -6544,6 +6548,7 @@ function fpAuto(F) {
   if (!F.sp.nama && F.pelanggan) F.sp.nama = pn;
   F.batas = F.jenis === 'PENGGANTI' ? fpCutoff(F.fp) : '';
 }
+function fpNo(v) { v = String(v || '').trim(); return /WB-4C\.\s*\//.test(v) || !/\d/.test(v.replace(/^KU\.[\d.]+/, '')) ? '' : v; }
 function fpRpl(s) { return String(s || '').replace(/[.;,\s]+$/, ''); }
 function fpButir(F, kami) { var pn = fpPelName(F.pelanggan), L = String(F.sp.butir || '').split('\n').map(function (x) { return fpRpl(x).trim(); }).filter(String);
   if (kami) L = L.map(function (x) { return x.split('SPT Masa PPN ' + pn).join('SPT Masa PPN kami').split(pn + ' menyetujui').join('kami menyetujui'); });
@@ -6607,7 +6612,7 @@ function fpRender() {
   var near = open.filter(function (r) { return r.jenis === 'PENGGANTI' && r.batas && r.status !== 'DIKIRIM KE PAJAK PUSAT'; }).sort(function (a, b) { return a.batas < b.batas ? -1 : 1; })[0];
   var nd = near ? lpDays(near.batas, B.today) : null, wp = open.filter(function (r) { return r.status === 'MENUNGGU PELANGGAN'; }), ym = B.today.slice(0, 7), done = R.filter(function (r) { return r.status === 'SELESAI' && String(r.tgl_selesai || '').slice(0, 7) === ym; });
   var h = '<div class="bgx bgx2 fpx"><div class="bgx-hd"><div><h2>Faktur Pajak bermasalah</h2><p>Penggantian &amp; pembatalan FP · surat ke Pajak pusat dan ke pelanggan · dipantau sampai FP baru tercatat</p></div><span class="sp"></span>' +
-    (FPX.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(FPX.sheetUrl) + '">' + ico('grid') + 'Sheet</a>' : '') + (maker ? '<button class="btn primary" type="button" data-fpa="new">+ Kasus FP baru</button>' : '') + '</div>';
+    (FPX.sheetUrl ? '<a class="btn" target="_blank" href="' + esc(FPX.sheetUrl) + '">' + ico('grid') + 'Sheet</a>' : '') + (maker ? '<button class="btn" type="button" data-fpa="old">⤒ Upload surat lama</button><button class="btn primary" type="button" data-fpa="new">+ Kasus FP baru</button>' : '') + '</div>';
   h += '<div class="bgx-k3 fpx-k4"><div class="' + (open.length ? 'kw' : '') + '" data-fpf="proses"><small>Proses berjalan</small><b>' + open.length + '</b><span>menunggu pelanggan / Pajak pusat</span></div>' +
     '<div class="' + (nd !== null && nd <= 7 ? 'kr' : '') + '"><small>Batas penggantian terdekat</small><b>' + (near ? esc(tg(near.batas)) : '—') + '</b><span>' + (near ? (nd < 0 ? 'lewat ' + (-nd) + ' hari' : 'sisa ' + nd + ' hari') + ' · ' + esc(near.id) : 'tidak ada penggantian yang menunggu') + '</span></div>' +
     '<div class="' + (wp.some(function (r) { return r.batas_pel && r.batas_pel < B.today; }) ? 'kr' : '') + '"><small>Menunggu surat pelanggan</small><b>' + wp.length + '</b><span>' + (wp.length ? 'batas balasan ' + esc(wp.map(function (r) { return tg(r.batas_pel); }).filter(String).sort()[0] || '—') : 'tidak ada') + '</span></div>' +
@@ -6615,7 +6620,7 @@ function fpRender() {
   var L = R.filter(function (r) { return FPX.f === 'proses' ? r.status !== 'SELESAI' && r.status !== 'BATAL' : FPX.f === 'selesai' ? r.status === 'SELESAI' || r.status === 'BATAL' : true; }).sort(function (a, b) { return String(b.id) > String(a.id) ? 1 : -1; });
   h += '<div class="bgx-lay fpx-lay"><div class="bgx-main"><div class="bgx-tabs">' + [['proses', 'Proses', open.length], ['selesai', 'Selesai', R.length - open.length], ['semua', 'Semua', R.length]].map(function (x) { return '<button type="button" class="' + (FPX.f === x[0] ? 'on' : '') + '" data-fpf="' + x[0] + '">' + x[1] + ' <em>' + x[2] + '</em></button>'; }).join('') + '</div>' +
     (L.length ? '<div class="bgl">' + L.map(function (r) { var st = FPX_ST[r.status] || [r.status, 'pz'], d = r.d || {}, nf = (d.fp || []).length;
-      return '<div class="bgl-it' + (FPX.sel === r.id && !FPX.form ? ' on' : '') + '" data-fps="' + esc(r.id) + '"><div><b>' + (r.jenis === 'PENGGANTI' ? 'Penggantian' : 'Pembatalan') + ' · ' + esc(fpPelName(r.pelanggan)) + '</b><div class="m">' + esc(r.id) + ' · ' + plural(nf, 'FP') + ' · ' + esc(String(r.faktur || '').split('; ').map(function (x) { return x.slice(-6); }).join(', ')) +
+      return '<div class="bgl-it' + (FPX.sel === r.id && !FPX.form ? ' on' : '') + '" data-fps="' + esc(r.id) + '"><div><b>' + (r.jenis === 'PENGGANTI' ? 'Penggantian' : 'Pembatalan') + ' · ' + esc(fpPelName(r.pelanggan)) + '</b>' + (d.legacy ? ' <span class="fpx-lg">surat manual</span>' : '') + '<div class="m">' + esc(r.id) + ' · ' + plural(nf, 'FP') + ' · ' + esc(String(r.faktur || '').split('; ').map(function (x) { return x.slice(-6); }).join(', ')) +
         (r.jenis === 'PENGGANTI' && r.batas && r.status !== 'DIKIRIM KE PAJAK PUSAT' && r.status !== 'SELESAI' && r.status !== 'BATAL' ? ' · <span class="' + (lpDays(r.batas, B.today) <= 7 ? 'bgred' : '') + '">batas ' + esc(tg(r.batas)) + '</span>' : '') + (r.status === 'MENUNGGU PELANGGAN' && r.batas_pel ? ' · <span class="' + (r.batas_pel < B.today ? 'bgred' : '') + '">balasan s/d ' + esc(tg(r.batas_pel)) + '</span>' : '') + '</div></div>' +
         '<div class="rt"><div class="v"><small style="font-weight:500;color:#6A7A8E">PPN</small> Rp ' + nfDot(+r.ppn || 0) + '</div><span class="pill ' + st[1] + '">' + esc(st[0]) + '</span></div></div>'; }).join('') + '</div>' :
       '<div class="bgx-empty">' + (R.length ? 'Tidak ada kasus di tab ini.' : 'Belum ada kasus. Klik <b>+ Kasus FP baru</b> bila ada faktur pajak yang perlu diganti atau dibatalkan.') + '</div>') + '</div>';
@@ -6623,6 +6628,7 @@ function fpRender() {
   w.innerHTML = h; fpBind();
 }
 function fpFormHtml(F) {
+  if (F.legacy) return fpOldHtml(F);
   var pels = {}; (B.invoices || []).forEach(function (i) { if (i.status_inv !== 'BATAL' && String(i.no_fp || '').replace(/\D/g, '')) pels[i.pelanggan] = 1; });
   var PL = Object.keys(pels).sort(), used = fpOpenFp(), sel = {}; F.fp.forEach(function (f) { sel[f.no] = 1; });
   var INV = F.pelanggan ? (B.invoices || []).filter(function (i) { return i.pelanggan === F.pelanggan && i.status_inv !== 'BATAL' && String(i.no_fp || '').replace(/\D/g, ''); }).sort(function (a, b) { return String(b.tgl_fp || b.tgl) > String(a.tgl_fp || a.tgl) ? 1 : -1; }) : [];
@@ -6655,6 +6661,44 @@ function fpFormHtml(F) {
     (!peng ? '<button class="btn" type="button" data-fpa="prevPel"' + (FPX.busy ? ' disabled' : '') + '>Simpan &amp; surat pelanggan</button>' : '') + '<button class="btn primary" type="button" data-fpa="prevInt"' + (FPX.busy ? ' disabled' : '') + '>Simpan &amp; surat Pajak pusat</button></div><div class="bgx-msg" id="fpMsg"></div></div>';
   return h;
 }
+/* ---------- v2.15.7 surat yang sudah dicetak manual sebelum aplikasi: catat kasus + upload scan */
+function fpFileCell(k) { var f = FPX.files[k]; return f ? '<div class="fpx-file">📄 ' + esc(f.name) + ' <a href="#" data-fpfx="' + k + '">ganti</a></div>' : '<input type="file" data-fpfile="' + k + '" accept="application/pdf,image/*">'; }
+function fpOldHtml(F) {
+  var PL = (B.pelanggan || []).map(function (p) { return p.nama; }).sort(), sel = {}, used = fpOpenFp(); F.fp.forEach(function (f) { sel[f.no] = 1; });
+  var INV = F.pelanggan ? (B.invoices || []).filter(function (i) { return i.pelanggan === F.pelanggan && i.status_inv !== 'BATAL' && String(i.no_fp || '').replace(/\D/g, ''); }).sort(function (a, b) { return String(b.tgl_fp || b.tgl) > String(a.tgl_fp || a.tgl) ? 1 : -1; }) : [];
+  var peng = F.jenis === 'PENGGANTI', L = F.legacy, ST = peng ? [['DIKIRIM KE PAJAK PUSAT', 'Sudah dikirim ke Pajak pusat, menunggu FP pengganti'], ['SELESAI', 'Selesai — FP pengganti sudah terbit']] :
+    [['MENUNGGU PELANGGAN', 'Surat ke pelanggan sudah dikirim, menunggu surat pernyataan'], ['PERNYATAAN DITERIMA', 'Surat pernyataan pelanggan sudah diterima'], ['DIKIRIM KE PAJAK PUSAT', 'Sudah dikirim ke Pajak pusat'], ['SELESAI', 'Selesai — FP sudah dibatalkan']];
+  if (!ST.some(function (x) { return x[0] === L.status; })) L.status = ST[0][0];
+  var lv = ST.map(function (x) { return x[0]; }).indexOf(L.status), ta = function (k, v, r) { return '<textarea data-fpk="' + k + '" rows="' + (r || 2) + '">' + esc(v || '') + '</textarea>'; };
+  var h = '<div class="bgx-card bgx-form fpx-form"><h3>' + (F.id ? 'Ubah kasus ' + esc(F.id) + ' <em>surat manual</em>' : 'Catat surat yang sudah dicetak manual') + '</h3><p class="s">Untuk kasus yang suratnya dibuat sebelum aplikasi: data dicatat, scan surat diupload, lalu kasus dilanjutkan dari status saat ini.</p>';
+  h += '<label>Jenis permohonan</label><div class="bgx-seg">' + [['PENGGANTI', 'Penggantian FP'], ['PEMBATALAN', 'Pembatalan FP']].map(function (x) { return '<button type="button" data-fpj="' + x[0] + '" class="' + (F.jenis === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>';
+  h += '<label>Pelanggan</label><select data-fpk="pelanggan"><option value="">— pilih pelanggan —</option>' + PL.map(function (p) { return '<option value="' + esc(p) + '"' + (F.pelanggan === p ? ' selected' : '') + '>' + esc(titleCaseS(p)) + '</option>'; }).join('') + '</select>';
+  if (F.pelanggan) {
+    h += '<label>Faktur pajak <small>centang dari Monitoring Invoice, atau tambah manual bila nomor FP belum tercatat</small></label><div class="fpx-tw"><table class="fpx-t"><tr><th></th><th>No. FP</th><th>Tgl FP</th><th>Invoice</th><th class="n">DPP</th><th class="n">PPN</th></tr>' +
+      INV.slice(0, 60).map(function (i) { var no = String(i.no_fp).replace(/\D/g, ''), u = used[no] && used[no] !== F.id; return '<tr class="' + (sel[no] ? 'on' : '') + (u ? ' dis' : '') + '"><td><input type="checkbox" data-fpinv="' + esc(i.nomor) + '"' + (sel[no] ? ' checked' : '') + (u ? ' disabled' : '') + '></td><td>' + esc(no) + '</td><td>' + esc(tg(i.tgl_fp) || '—') + '</td><td>' + esc(shortInv(i.nomor)) + '</td><td class="n">' + nfDot(Math.round(+i.dpp || 0)) + '</td><td class="n">' + nfDot(Math.round(+i.ppn || 0)) + '</td></tr>'; }).join('') +
+      F.fp.filter(function (f) { return !f.inv; }).map(function (f) { return '<tr class="on"><td><a href="#" data-fpdelm="' + esc(f.no) + '" title="hapus">✕</a></td><td>' + esc(f.no) + '<small>manual</small></td><td>' + esc(tg(f.tgl) || '—') + '</td><td>—</td><td class="n">' + nfDot(+f.dpp || 0) + '</td><td class="n">' + nfDot(+f.ppn || 0) + '</td></tr>'; }).join('') +
+      (!INV.length && !F.fp.length ? '<tr><td colspan="6" class="e">Belum ada FP pelanggan ini di Monitoring Invoice — tambahkan manual di bawah.</td></tr>' : '') + '</table></div>' +
+      '<div class="fpx-man"><input id="fpmNo" placeholder="No. FP (17 digit)" inputmode="numeric"><input id="fpmTg" type="date"><input id="fpmDpp" placeholder="DPP" class="num" inputmode="decimal"><input id="fpmPpn" placeholder="PPN" class="num" inputmode="decimal"><button class="btn sm" type="button" data-fpa="addMan">+ Tambah FP</button></div>';
+  }
+  h += '<label>Alasan <small>sesuai surat yang sudah dikirim</small></label><div class="fpx-ch">' + FPX_ALASAN.map(function (a) { return '<button type="button" data-fpal="' + a[0] + '" class="' + (F.alasanK === a[0] ? 'on' : '') + '">' + esc(a[1]) + '</button>'; }).join('') + '</div>' + ta('alasan', F.alasan, 2);
+  if (!peng) h += '<div class="bgx-sec"><b>Surat ke pelanggan</b><div class="g2"><div><label>Nomor surat</label><input data-fpk="sp.no" value="' + esc(F.sp.no) + '" placeholder="mis. KU.03.03/WB-4C.0248/2026"></div><div><label>Tanggal surat</label><input type="date" data-fpk="sp.tgl" value="' + esc(F.sp.tgl) + '"></div></div><label>Scan surat (PDF / gambar, opsional)</label>' + fpFileCell('PEL') + '</div>' +
+    (lv >= 1 ? '<div class="bgx-sec"><b>Surat pernyataan pelanggan</b><div class="g2"><div><label>Tanggal diterima</label><input type="date" data-fpk="legacy.tgl_pernyataan" value="' + esc(L.tgl_pernyataan || '') + '"></div><div><label>Scan (opsional)</label>' + fpFileCell('PERNYATAAN') + '</div></div></div>' : '');
+  h += '<div class="bgx-sec"><b>Surat ke Pajak pusat</b><div class="g2"><div><label>Nomor surat</label><input data-fpk="si.no" value="' + esc(F.si.no) + '" placeholder="mis. KU.03.01/WB-4C.0242/2026"></div><div><label>Tanggal surat</label><input type="date" data-fpk="si.tgl" value="' + esc(F.si.tgl) + '"></div></div><label>Scan surat (PDF / gambar, opsional)</label>' + fpFileCell('PUSAT') + '</div>';
+  if (!F.id) h += '<div class="bgx-sec"><b>Status saat ini</b><select data-fpk="legacy.status">' + ST.map(function (x) { return '<option value="' + x[0] + '"' + (L.status === x[0] ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') + '</select>' +
+    (L.status === 'DIKIRIM KE PAJAK PUSAT' || L.status === 'SELESAI' ? '<div class="g2"><div><label>Tanggal dikirim ke Pajak pusat</label><input type="date" data-fpk="legacy.tgl_kirim" value="' + esc(L.tgl_kirim || '') + '"></div>' + (L.status === 'SELESAI' ? '<div><label>Tanggal selesai</label><input type="date" data-fpk="legacy.tgl_selesai" value="' + esc(L.tgl_selesai || '') + '"></div>' : '<div></div>') + '</div>' : '') +
+    (L.status === 'SELESAI' ? '<label>' + (peng ? 'Nomor FP pengganti / keterangan' : 'Keterangan') + '</label><input data-fpk="legacy.fp_baru" value="' + esc(L.fp_baru || '') + '" placeholder="' + (peng ? 'mis. 04002600512345678 (sudah dicatat di Monitoring Invoice)' : 'mis. dibatalkan Pajak pusat 20-11-2026') + '">' : '') + '</div>';
+  h += '<div class="bgx-act fpx-act"><button class="btn" type="button" data-fpa="cancel">Batal</button><span class="sp"></span><button class="btn primary" type="button" data-fpa="saveOld"' + (FPX.busy ? ' disabled' : '') + '>' + (FPX.busy ? '<span class="spin"></span>Menyimpan…' : F.id ? 'Simpan' : 'Simpan &amp; upload') + '</button></div><div class="bgx-msg" id="fpMsg"></div></div>';
+  return h;
+}
+function fpReadFile(f) { return new Promise(function (ok, no) { if (!f) return no(new Error('File belum dipilih')); if (f.size > 15 * 1024 * 1024) return no(new Error(f.name + ': lebih dari 15 MB')); var rd = new FileReader(); rd.onload = function () { ok({ b64: String(rd.result).split(',')[1], name: f.name, mime: f.type || 'application/pdf' }); }; rd.onerror = function () { no(new Error('File tidak terbaca')); }; rd.readAsDataURL(f); }); }
+function fpCallP(fn, args) { return new Promise(function (ok, no) { call(fn, args, ok, no); }); }
+/** upload berurutan (satu file per panggilan) */
+function fpUploadAll(id, list) {
+  var i = 0, okN = 0, err = [];
+  var next = function () { if (i >= list.length) return Promise.resolve({ ok: okN, err: err }); var x = list[i++]; fpMsg('<span class="spin"></span> mengupload ' + esc(x.f ? x.f.name : '') + ' (' + i + '/' + list.length + ')…');
+    return fpReadFile(x.f).then(function (sc) { return fpCallP('apiFpUpload', [id, x.k, sc, x.nama || '']); }).then(function () { okN++; }, function (e) { err.push((x.f ? x.f.name : 'file') + ': ' + (e.message || e)); }).then(next); };
+  return next();
+}
 function fpDetailHtml(r) {
   var d = r.d || {}, F = fpNewForm(d), maker = !!(B.access && B.access.maker), st = FPX_ST[r.status] || [r.status, 'pz'], open = r.status !== 'SELESAI' && r.status !== 'BATAL', peng = r.jenis === 'PENGGANTI';
   var row = function (a, b) { return b ? '<div><span>' + a + '</span><b>' + b + '</b></div>' : ''; };
@@ -6664,15 +6708,19 @@ function fpDetailHtml(r) {
   if (r.status !== 'BATAL') h += '<div class="fpx-st">' + steps.map(function (s, i) { return '<span class="' + (i < ix || r.status === 'SELESAI' ? 'd' : i === ix ? 'c' : '') + '">' + (i + 1) + ' · ' + s[1] + '</span>'; }).join('') + '</div>';
   h += '<div class="fpx-tw"><table class="fpx-t"><tr><th>No. FP</th><th>Tgl FP</th><th>Invoice</th><th class="n">DPP</th><th class="n">PPN</th></tr>' + (d.fp || []).map(function (f) { return '<tr><td>' + esc(f.no) + '</td><td>' + esc(tg(f.tgl)) + '</td><td>' + esc(shortInv(f.inv)) + '</td><td class="n">' + nfDot(+f.dpp || 0) + '</td><td class="n">' + nfDot(+f.ppn || 0) + '</td></tr>'; }).join('') + '</table></div>';
   h += '<p class="fpx-al"><span>Alasan</span>' + esc(r.alasan) + '</p><div class="bgx-dl">' + (peng && r.batas ? row('Batas pengajuan', esc(tglIndo(r.batas)) + (open && r.status !== 'DIKIRIM KE PAJAK PUSAT' ? ' <span class="' + (lpDays(r.batas, B.today) <= 7 ? 'bgred' : '') + '">(' + (lpDays(r.batas, B.today) < 0 ? 'lewat ' + (-lpDays(r.batas, B.today)) : 'sisa ' + lpDays(r.batas, B.today)) + ' hari)</span>' : '')) : '') +
-    (!peng ? row('Surat ke pelanggan', esc(r.no_pel || '—') + (r.tgl_pel ? ' · ' + esc(tg(r.tgl_pel)) : '')) + row('Batas balasan', r.batas_pel ? esc(tg(r.batas_pel)) + (r.status === 'MENUNGGU PELANGGAN' && r.batas_pel < B.today ? ' <span class="bgred">(lewat)</span>' : '') : '') + row('Pernyataan diterima', r.tgl_pernyataan ? esc(tg(r.tgl_pernyataan)) : '') : '') +
-    row('Surat ke Pajak pusat', esc(r.no_int || '—') + (r.tgl_int ? ' · ' + esc(tg(r.tgl_int)) : '')) + row('Dikirim ke Pajak pusat', r.tgl_kirim ? esc(tg(r.tgl_kirim)) : '') + row(peng ? 'FP pengganti' : 'Keterangan selesai', esc(r.fp_baru)) + row('Selesai', r.tgl_selesai ? esc(tg(r.tgl_selesai)) : '') + '</div>';
-  h += '<div class="bgx-links">' + (!peng ? '<a href="#" data-fpa="lihatPel">📄 Surat ke pelanggan</a>' : '') + '<a href="#" data-fpa="lihatInt">📄 Surat ke Pajak pusat</a></div>';
+    (!peng ? row('Surat ke pelanggan', esc(fpNo(r.no_pel) || '—') + (r.tgl_pel ? ' · ' + esc(tg(r.tgl_pel)) : '')) + row('Batas balasan', r.batas_pel ? esc(tg(r.batas_pel)) + (r.status === 'MENUNGGU PELANGGAN' && r.batas_pel < B.today ? ' <span class="bgred">(lewat)</span>' : '') : '') + row('Pernyataan diterima', r.tgl_pernyataan ? esc(tg(r.tgl_pernyataan)) : '') : '') +
+    row('Surat ke Pajak pusat', esc(fpNo(r.no_int) || '—') + (r.tgl_int ? ' · ' + esc(tg(r.tgl_int)) : '')) + row('Dikirim ke Pajak pusat', r.tgl_kirim ? esc(tg(r.tgl_kirim)) : '') + row(peng ? 'FP pengganti' : 'Keterangan selesai', esc(r.fp_baru)) + row('Selesai', r.tgl_selesai ? esc(tg(r.tgl_selesai)) : '') + '</div>';
+  var DK = d.docs || [];
+  h += '<div class="fpx-docs"><b>📎 Dokumen</b>' + (DK.length ? DK.map(function (x) { return '<a target="_blank" href="' + esc(x.link) + '">📄 ' + esc(FPX_DOK[x.k] || x.k) + (x.nama ? ' · ' + esc(x.nama) : '') + '<small>' + esc(tg(String(x.tgl).slice(0, 10))) + '</small></a>'; }).join('') : '<span class="e">belum ada scan surat</span>') + (maker ? '<button class="btn sm" type="button" data-fpa="upDok">⤒ Upload dokumen</button>' : '') + '</div>';
+  var intBelum = r.status === 'DRAF' || r.status === 'MENUNGGU PELANGGAN' || r.status === 'PERNYATAAN DITERIMA';
+  if (!d.legacy || intBelum) h += '<div class="bgx-links">' + (!peng && !d.legacy ? '<a href="#" data-fpa="lihatPel">📄 Surat ke pelanggan (cetak aplikasi)</a>' : '') + '<a href="#" data-fpa="lihatInt">📄 Surat ke Pajak pusat (cetak aplikasi)</a></div>';
   if (maker && open) {
     var b = function (k, t, c) { return '<button class="btn' + (c ? ' ' + c : '') + '" type="button" data-fpa="' + k + '">' + t + '</button>'; }, A = [];
+    var lgc = !!d.legacy;
     if (!peng && r.status === 'DRAF') A.push(b('cetakPel', '🖨 Cetak surat pelanggan'), b('stPel', 'Tandai dikirim ke pelanggan →', 'primary'));
     else if (!peng && r.status === 'MENUNGGU PELANGGAN') A.push(b('stPern', '✓ Surat pernyataan diterima', 'primary'));
-    if (peng && r.status === 'DRAF' || !peng && r.status === 'PERNYATAAN DITERIMA') A.push(b('cetakInt', '🖨 Cetak surat Pajak pusat'), b('stKirim', 'Tandai dikirim ke Pajak pusat →', 'primary'));
-    if (r.status === 'DIKIRIM KE PAJAK PUSAT') A.push(b('cetakInt', '🖨 Cetak ulang surat'), b('stSelesai', peng ? '✓ FP pengganti terbit' : '✓ FP sudah dibatalkan', 'primary'));
+    if (peng && r.status === 'DRAF' || !peng && r.status === 'PERNYATAAN DITERIMA') { A.push(b('cetakInt', '🖨 Cetak surat Pajak pusat')); A.push(b('stKirim', 'Tandai dikirim ke Pajak pusat →', 'primary')); }
+    if (r.status === 'DIKIRIM KE PAJAK PUSAT') { if (!lgc) A.push(b('cetakInt', '🖨 Cetak ulang surat')); A.push(b('stSelesai', peng ? '✓ FP pengganti terbit' : '✓ FP sudah dibatalkan', 'primary')); }
     if (!peng && (r.status === 'DRAF' || r.status === 'MENUNGGU PELANGGAN')) A.push(b('stKirimLgs', 'Langsung ke Pajak pusat…'));
     h += '<div class="bgd-acts fpx-acts">' + A.join('') + '<span class="sp"></span>' + b('edit', 'Ubah isian') + b('stBatal', 'Batalkan kasus', 'red') + '</div>';
   }
@@ -6702,7 +6750,16 @@ function fpSave(F, after) {
 function fpStatus(id, act, p, ok) { call('apiFpStatus', [id, act, p || {}], function () { toast(ok); fpLoad(); if (act === 'SELESAI') refreshAll(); }, function (e) { fpMsg(esc(e.message || e), true); }); }
 function fpAct(k) {
   var r = (FPX.rows || []).filter(function (x) { return x.id === FPX.sel; })[0], F = FPX.form;
-  if (k === 'new') { FPX.form = fpNewForm(); FPX.sel = ''; return fpRender(); }
+  if (k === 'new') { FPX.form = fpNewForm(); FPX.sel = ''; FPX.files = {}; return fpRender(); }
+  if (k === 'old') { FPX.form = fpNewForm({ legacy: { status: 'DIKIRIM KE PAJAK PUSAT', tgl_kirim: '', tgl_pernyataan: '', tgl_selesai: '', fp_baru: '' }, si: { no: '', tgl: '' }, sp: { no: '', tgl: '', kepada: 'Accounting & Tax', nama: '', baris: '', rujuk: '', rujukAuto: false, butir: '', butirAuto: false, batas: '', email: fpDef('FP_EMAIL_BALASAN'), lamp: false } }); FPX.sel = ''; FPX.files = {}; return fpRender(); }
+  if (k === 'addMan') { var no = bgV('fpmNo').replace(/\D/g, ''); if (no.length < 13) return fpMsg('Isi nomor FP (minimal 13 digit).', true); if (F.fp.some(function (f) { return f.no === no; })) return fpMsg('FP sudah ada di daftar.', true);
+    var dpp = Math.round(num(bgV('fpmDpp'))); F.fp.push({ inv: '', no: no, tgl: bgV('fpmTg'), dpp: dpp, dppl: Math.round(dpp * 11 / 12), ppn: Math.round(num(bgV('fpmPpn'))), total: 0, invke: '', npp: '', ba: '' }); return fpRender(); }
+  if (k === 'saveOld') { var e1 = fpCheck(F, ''); if (e1) return fpMsg(e1, true); var Lg = F.legacy;
+    if (!F.id && (Lg.status === 'DIKIRIM KE PAJAK PUSAT' || Lg.status === 'SELESAI') && !Lg.tgl_kirim) return fpMsg('Isi tanggal dikirim ke Pajak pusat.', true);
+    var files = ['PEL', 'PERNYATAAN', 'PUSAT'].filter(function (x) { return FPX.files[x] && (x !== 'PEL' || F.jenis === 'PEMBATALAN') && (x !== 'PERNYATAAN' || (F.jenis === 'PEMBATALAN' && Lg.status !== 'MENUNGGU PELANGGAN')); }).map(function (x) { return { k: x, f: FPX.files[x] }; });
+    FPX.busy = true; fpRender();
+    return call('apiFpSave', [fpPayload(F)], function (r) { fpUploadAll(r.id, files).then(function (u) { FPX.busy = false; FPX.form = null; FPX.files = {}; FPX.sel = r.id; fpLoad(function () { toast('Kasus ' + r.id + (F.id ? ' diperbarui' : ' tercatat') + (u.ok ? ' · ' + u.ok + ' dokumen terupload' : '') + '.'); }); if (u.err.length) setTimeout(function () { fpMsg('Sebagian upload gagal: ' + esc(u.err.join('; ')) + ' — upload ulang lewat tombol Upload dokumen.', true); }, 900); }); },
+      function (er) { FPX.busy = false; fpRender(); fpMsg(esc(er.message || er), true); }); }
   if (k === 'cancel') { FPX.form = null; return fpRender(); }
   if (k === 'rujukAuto' || k === 'butirAuto') { F.sp[k] = true; fpAuto(F); return fpRender(); }
   if (k === 'save') return fpSave(F, null);
@@ -6710,7 +6767,9 @@ function fpAct(k) {
     return fpSave(F, function (id) { FPX.form = null; FPX.sel = id; fpRender(); var c = fpNewForm(F); fpPrev(w === 'pel' ? fpSuratPelanggan(c) : fpSuratPusat(c), (w === 'pel' ? 'Surat ke pelanggan' : 'Surat ke Pajak pusat') + ' · ' + id); }); }
   if (!r) return;
   var C = fpNewForm(r.d || {}); C.d_pernyataan = !!r.tgl_pernyataan;
-  if (k === 'edit') { FPX.form = C; delete FPX.form.d_pernyataan; return fpRender(); }
+  if (k === 'upDok') return confirmDlg('Upload dokumen · ' + r.id, '<p class="s">Scan surat yang sudah ditandatangani / dikirim, surat pernyataan pelanggan, atau bukti dari Pajak pusat. Tersimpan di Drive › Arsip › Surat Faktur Pajak.</p><label>Jenis dokumen</label><select id="dlgK">' + Object.keys(FPX_DOK).filter(function (x) { return r.jenis === 'PEMBATALAN' || (x !== 'PEL' && x !== 'PERNYATAAN'); }).map(function (x) { return '<option value="' + x + '">' + esc(FPX_DOK[x]) + '</option>'; }).join('') + '</select><label style="margin-top:8px">File (PDF / gambar)</label><input type="file" id="dlgF" accept="application/pdf,image/*"><label style="margin-top:8px">Keterangan (opsional)</label><input id="dlgC" placeholder="mis. bertanda tangan basah">', 'Upload', function () {
+    var f0 = $('dlgF').files[0]; fpUploadAll(r.id, [{ k: bgV('dlgK'), f: f0, nama: bgV('dlgC') }]).then(function (u) { if (u.err.length) fpMsg(esc(u.err.join('; ')), true); else { toast('Dokumen terupload.'); fpLoad(); } }); }, function () { if (!$('dlgF').files.length) { toast('Pilih file.'); return false; } });
+  if (k === 'edit') { FPX.form = C; delete FPX.form.d_pernyataan; FPX.files = {}; return fpRender(); }
   if (k === 'lihatPel' || k === 'cetakPel') { if (r.jenis !== 'PEMBATALAN') return; var hp = fpSuratPelanggan(C); return k === 'cetakPel' ? printHtml(hp) : fpPrev(hp, 'Surat ke pelanggan · ' + r.id); }
   if (k === 'lihatInt' || k === 'cetakInt') { var hi = fpSuratPusat(C); return k === 'cetakInt' ? printHtml(hi) : fpPrev(hi, 'Surat ke Pajak pusat · ' + r.id); }
   var dt = function (l) { return '<label>' + (l || 'Tanggal') + '</label><input type="date" id="dlgT1" value="' + B.today + '">'; };
@@ -6732,6 +6791,9 @@ function fpBind() {
   w.querySelectorAll('[data-fpf]').forEach(function (b) { b.onclick = function () { FPX.f = b.dataset.fpf; fpRender(); }; });
   w.querySelectorAll('[data-fps]').forEach(function (b) { b.onclick = function () { if (FPX.form && !confirm('Tutup form yang sedang diisi?')) return; FPX.form = null; FPX.sel = b.dataset.fps; fpRender(); }; });
   var F = FPX.form; if (!F) return;
+  w.querySelectorAll('[data-fpfile]').forEach(function (el) { el.onchange = function () { var f0 = el.files[0]; if (f0 && f0.size > 15 * 1024 * 1024) { toast('File lebih dari 15 MB.'); el.value = ''; return; } FPX.files[el.dataset.fpfile] = f0 || null; keep(function () { }); }; });
+  w.querySelectorAll('[data-fpfx]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); delete FPX.files[a.dataset.fpfx]; keep(function () { }); }; });
+  w.querySelectorAll('[data-fpdelm]').forEach(function (a) { a.onclick = function (e) { e.preventDefault(); keep(function () { F.fp = F.fp.filter(function (f) { return f.no !== a.dataset.fpdelm; }); }); }; });
   var keep = function (fn) { var s = w.querySelector('.bgx-side'), y = s ? s.scrollTop : 0, wy = w.scrollTop; fn(); fpRender(); var s2 = w.querySelector('.bgx-side'); if (s2) s2.scrollTop = y; w.scrollTop = wy; };
   w.querySelectorAll('[data-fpj]').forEach(function (b) { b.onclick = function () { keep(function () { F.jenis = b.dataset.fpj; fpAuto(F); }); }; });
   w.querySelectorAll('[data-fpal]').forEach(function (b) { b.onclick = function () { keep(function () { var a = FPX_ALASAN.filter(function (x) { return x[0] === b.dataset.fpal; })[0]; var y = ((F.fp[0] || {}).tgl || B.today).slice(0, 4);
@@ -6743,6 +6805,7 @@ function fpBind() {
     var k = el.dataset.fpk, set = function (v) { var p = k.split('.'); if (p.length > 1) F[p[0]][p[1]] = v; else F[k] = v; };
     if (k === 'pelanggan') { el.onchange = function () { keep(function () { F.pelanggan = el.value; F.fp = []; F.sp.nama = ''; F.sp.rujukAuto = true; F.sp.butirAuto = true; fpAuto(F); }); }; return; }
     if (k === 'sp.lamp') { el.onchange = function () { F.sp.lamp = el.checked; }; return; }
+    if (k === 'legacy.status') { el.onchange = function () { keep(function () { F.legacy.status = el.value; }); }; return; }
     if (el.dataset.pre !== undefined) { el.oninput = function () { set(el.dataset.pre + el.value.trim() + el.dataset.suf); }; return; }
     if (k === 'sp.rujuk') { el.oninput = function () { F.sp.rujuk = el.value; F.sp.rujukAuto = false; }; return; }
     if (k === 'sp.butir') { el.oninput = function () { F.sp.butir = el.value; F.sp.butirAuto = false; }; return; }

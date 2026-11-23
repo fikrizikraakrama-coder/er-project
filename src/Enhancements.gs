@@ -1475,6 +1475,13 @@ function apiFpSave(d) {
       batas: J === 'PENGGANTI' && arFpxIsD_(d.batas) ? d.batas : '', no_pel: J === 'PEMBATALAN' ? String((d.sp || {}).no || '') : '', tgl_pel: J === 'PEMBATALAN' && arFpxIsD_((d.sp || {}).tgl) ? d.sp.tgl : '',
       batas_pel: J === 'PEMBATALAN' && arFpxIsD_((d.sp || {}).batas) ? d.sp.batas : '', no_int: String((d.si || {}).no || ''), tgl_int: arFpxIsD_((d.si || {}).tgl) ? d.si.tgl : '', data: dd };
     if (!x) { o.tgl = now.slice(0, 10); o.status = 'DRAF'; o.oleh = acc.email; }
+    // v2.15.7 surat yang sudah dicetak manual sebelum aplikasi: kasus langsung pada status sebenarnya
+    var lg = !x && d.legacy ? d.legacy : null;
+    if (lg) { var st = String(lg.status || '').toUpperCase(); if (AR_FPX_ST_.indexOf(st) < 1 || st === 'BATAL') throw new Error('Pilih status kasus saat ini.');
+      if ((st === 'MENUNGGU PELANGGAN' || st === 'PERNYATAAN DITERIMA') && J !== 'PEMBATALAN') throw new Error('Status surat pelanggan hanya untuk pembatalan.');
+      o.status = st; if (arFpxIsD_(lg.tgl_pernyataan)) o.tgl_pernyataan = lg.tgl_pernyataan; if (arFpxIsD_(lg.tgl_kirim)) o.tgl_kirim = lg.tgl_kirim;
+      if (st === 'SELESAI') { o.tgl_selesai = arFpxIsD_(lg.tgl_selesai) ? lg.tgl_selesai : now.slice(0, 10); o.fp_baru = String(lg.fp_baru || (J === 'PENGGANTI' ? 'FP pengganti terbit (dicatat manual)' : 'FP dibatalkan')).slice(0, 300); }
+      dd.legacy = lg; arFpxHist_(dd, 'IMPOR', 'Dicatat dari surat yang sudah dicetak manual · status ' + st.toLowerCase()); }
     var row = x ? x._row : (function () { var m = colMap_(sh, AR_FPX_), r = lastDataRow_(sh, AR_FPX_.firstRow, [m.id]) + 1; roomFor_(sh, r); return r; })();
     arFpxWrite_(sh, row, o); out = { ok: true, id: id };
   } finally { lock.releaseLock(); }
@@ -1511,4 +1518,23 @@ function apiFpStatus(id, act, p) {
   } finally { lock.releaseLock(); }
   try { arBootBust_(); } catch (e) { }
   return out;
+}
+
+/** v2.15.7 upload dokumen kasus FP: scan surat ke pelanggan / surat pernyataan pelanggan / surat ke Pajak pusat (bertanda tangan) / lainnya.
+ *  File di <arsip>/Surat Faktur Pajak/<tahun>/<bulan>, tautan dicatat di DATA SURAT kasus. */
+var AR_FPX_DOK_ = { PEL: 'Surat ke pelanggan', PERNYATAAN: 'Surat pernyataan pelanggan', PUSAT: 'Surat ke Pajak pusat', BUKTI: 'Bukti dari Pajak pusat / Coretax', LAIN: 'Lainnya' };
+function apiFpUpload(id, jenis, file, nama) {
+  var acc = arRequireMaker_(); jenis = String(jenis || '').toUpperCase(); if (!AR_FPX_DOK_[jenis]) throw new Error('Pilih jenis dokumen.');
+  if (!file || !file.b64) throw new Error('Pilih file.'); var mime = String(file.mime || ''); if (!/^(application\/pdf|image\/)/.test(mime)) throw new Error('Dokumen harus PDF atau gambar.');
+  var bytes = Utilities.base64Decode(file.b64); if (bytes.length > 15 * 1024 * 1024) throw new Error('File lebih dari 15 MB.');
+  var x = arFpxRows_().filter(function (r) { return r.id === id; })[0]; if (!x) throw new Error('Kasus ' + id + ' tidak ditemukan.');
+  var ext = (/\.(\w{2,5})$/.exec(file.name || '') || [0, mime === 'application/pdf' ? 'pdf' : 'jpg'])[1].toLowerCase(), no = jenis === 'PEL' ? x.no_pel : jenis === 'PUSAT' ? x.no_int : '';
+  var base = (id + '_' + AR_FPX_DOK_[jenis] + (no ? '_' + no : '') + (nama ? '_' + nama : '') + '_' + String(x.pelanggan || '')).replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim().slice(0, 150);
+  var folder = archiveFolder_(arParameters_(), 'FPX', String(x.tgl || arNow_()).slice(0, 7)), f = folder.createFile(Utilities.newBlob(bytes, mime, base + '.' + ext)), link = f.getUrl();
+  var lock = bgLock_(); try {
+    var sh = arFpxSheet_(true), y = arFpxRows_().filter(function (r) { return r.id === id; })[0], d = y.d || {};
+    d.docs = (d.docs || []).concat([{ k: jenis, nama: String(nama || '').slice(0, 80), link: link, file: f.getName(), tgl: arNow_().slice(0, 16), by: acc.email }]);
+    arFpxWrite_(sh, y._row, { data: arFpxHist_(d, 'UPLOAD', 'Upload ' + AR_FPX_DOK_[jenis].toLowerCase() + ': ' + f.getName()) });
+  } finally { lock.releaseLock(); }
+  return { ok: true, link: link };
 }
