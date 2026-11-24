@@ -2377,6 +2377,10 @@ function reallyPrint(which) {
   if ((which === 'bap' || which === 'all') && d.p.template === 'FAJARPUTERA') html += renderBap(d);
   if ((which === 'ps' || which === 'all') && isMip()) html += renderPs(d);
   $('print-root').innerHTML = html.trim();
+  // v2.20 kwitansi dicetak sendiri: orientasi bawaan halaman juga dibuat landscape — sebagian browser/printer di Windows mengabaikan @page bernama (kw)
+  var old = $('prOri'); if (old) old.parentNode.removeChild(old);
+  if (which === 'kw') { var st = document.createElement('style'); st.id = 'prOri'; st.textContent = '@page{size:A4 landscape;margin:0}'; document.head.appendChild(st);
+    window.addEventListener('afterprint', function rm() { window.removeEventListener('afterprint', rm); var x = $('prOri'); if (x) x.parentNode.removeChild(x); }); }
   setTimeout(function () { window.print(); }, 60);
 }
 
