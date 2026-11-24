@@ -1267,7 +1267,7 @@ function apiSaveInvoice_(p, opt) { arRequireMaker_();
 // ---------------------------------------------------------------------  JENIS REVISI INVOICE
 var REV_NILAI_ = { tgl: 'Tanggal invoice', jenis: 'Jenis tagihan', pelanggan: 'Pelanggan', npp: 'NPP', bruto: 'Bruto', umk: 'Potongan UM', retensi: 'Retensi', retpos: 'Posisi retensi', dpp: 'DPP', ppn: 'PPN', tarif: 'Tarif PPh', dasar: 'Dasar PPh', tagih: 'Nilai di invoice' };
 var REV_DOK_ = { invke: 'Invoice ke-', ttd: 'Penandatangan', uraian: 'Uraian tagihan' };
-var REV_BAP_ = { bapTgl: 'Tanggal BAP', bapProg: 'Progress penagihan (BAP)', bapSpk: 'Nomor SPK (BAP)', bapSpkTgl: 'Tanggal SPK (BAP)' };
+var REV_BAP_ = { bapTgl: 'Tanggal BAP', bapProg: 'Progress penagihan (BAP)', bapSpk: 'Nomor SPK (BAP)', bapSpkTgl: 'Tanggal SPK (BAP)', psPeriode: 'Periode (Payment Summary MIP)', psDesc: 'Description (Payment Summary MIP)' };
 var REV_ABAI_ = ['alasan', '_loadedRev', 'judulAuto', 'invkeAuto', 'bapProgAuto', 'ppnRetensiAlasan'];
 /** bandingkan baris lama (oo) dengan simpanan baru (p) → { jenis: NILAI | INVOICE | BAP | '', diff: ['DPP: a → b', …] } */
 function revisiJenis_(oo, p) {
@@ -1822,6 +1822,9 @@ var V2_USERS = [
   ['', 'Yusqi Audah Firdaus', 'Manager of Concrete Services Unit', 'WB090278', 'MENGETAHUI (TTD BASAH)'],
   ['', 'Elmarta Hexa Panggabean', 'Akuntansi', '', 'PENERIMA']];
 var V2_KV = [
+  ['PS_MIP_PELANGGAN', 'MUSTIKA INDAH', 'Payment Summary: invoice ke pelanggan yang namanya memuat teks ini mendapat dokumen Payment Summary'],
+  ['PS_MIP_TTD_WTON_NAMA', 'Verly Widiantoro', 'Payment Summary MIP: nama penandatangan WIKA Beton (Submitted by)'], ['PS_MIP_TTD_WTON_JAB', 'Director', 'Payment Summary MIP: jabatan penandatangan WIKA Beton'],
+  ['PS_MIP_TTD_MIP_NAMA', 'Yana Rahmat Riyanto', 'Payment Summary MIP: nama penandatangan MIP (Approved by)'], ['PS_MIP_TTD_MIP_JAB', 'Operation Director', 'Payment Summary MIP: jabatan penandatangan MIP'],
   ['JT_AKUNTANSI_HARI', 30, 'Jatuh tempo versi akuntansi = tanggal invoice + n hari (CKPN, sama dengan lampiran LK N/30)'],
   ['CKPN_DISKONTO', 0.0833, 'Suku diskonto NPV untuk CKPN retensi, tagbrut & HAD (per tahun)'],
   ['CKPN_PIHAK_BERELASI', 'TIDAK', 'YA = pihak berelasi ikut dicadangkan; TIDAK = 0'],

@@ -79,6 +79,20 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-inv{width:210mm;height:297mm}
 .pg-kw{width:297mm;height:210mm}
 .pg-bap{width:210mm;height:297mm}
+.pg-ps{width:210mm;height:297mm}
+/* v2.20 Payment Summary PT Mustika Indah Permai (format dari MIP) */
+.ps{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;color:#000;font-size:11.5pt;line-height:1.3}
+.ps .ps-frm{position:absolute;left:15mm;top:15mm;right:15mm;border:.65mm solid #000;padding:11mm 9mm 12mm}
+.ps h2{margin:0 0 8mm;text-align:center;font-size:13.5pt;font-weight:700;white-space:nowrap;letter-spacing:-.05pt}
+.ps .ps-hd{border-collapse:collapse;margin-left:12mm}.ps .ps-hd td{padding:.7mm 0;vertical-align:top}.ps .ps-hd td:first-child{width:46mm}.ps .ps-hd td:nth-child(2){width:6mm}.ps .ps-hd td:last-child{font-weight:700}
+.ps .ps-it{width:100%;border-collapse:collapse;margin-top:9mm;table-layout:fixed}
+.ps .ps-it th{border:.25mm solid #000;padding:1.3mm 1.5mm;font-size:10.5pt;font-weight:700;text-align:center}
+.ps .ps-it td{border-left:.25mm solid #000;border-right:.25mm solid #000;border-bottom:.25mm dashed #000;padding:1mm 1.8mm;height:5.2mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps .ps-it tr:last-child td{border-bottom:.25mm solid #000}
+.ps .ps-sm{width:100%;border-collapse:collapse;margin-top:7mm}.ps .ps-sm td{padding:.8mm 1.8mm}.ps .ps-sm .ps-rp{width:14mm;text-align:right}.ps .ps-sm .ps-v{width:46mm;text-align:right}.ps .ps-sm .ps-tot td{font-weight:700}
+.ps .ps-sg{display:grid;grid-template-columns:1fr 1fr;column-gap:16mm;margin-top:9mm;text-align:center}
+.ps .ps-sg>div{border:.25mm solid #000}.ps .ps-sg .ps-t{border-bottom:.25mm solid #000;padding:1.2mm 0}
+.ps .ps-sg .ps-bx{height:36mm;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:1.5mm}.ps .ps-sg .ps-n{font-weight:700;text-decoration:underline}
 .f-tahoma{font-family:Tahoma,"Segoe UI",Verdana,Geneva,sans-serif}
 .f-antiqua{font-family:"Book Antiqua",Palatino,"Palatino Linotype","URW Palladio L",Georgia,serif}
 .abs{position:absolute}
@@ -155,7 +169,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 #print-root{display:none}
 @media print{
   html,body{height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff}
-  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-att{height:296.4mm}
+  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-att{height:296.4mm}
   .att-up{display:none!important}
   #print-root .pg-kw{height:209.4mm}
   #print-root .page{break-inside:avoid;page-break-inside:avoid}
@@ -166,7 +180,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
   #print-root .page{box-shadow:none;margin:0;break-after:page;page-break-after:always}
   #print-root .page:last-child{break-after:avoid;page-break-after:avoid}
   #print-root .pg-kw{page:kw}
-  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-att{page:po}
+  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-att{page:po}
 }
 /* ====================================================== v2: panel, persetujuan, dokumen internal */
 .modes button{font-size:12px;padding:9px 4px 10px}
@@ -1280,6 +1294,11 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
         <div class="row"><div><label for="fBapSpk">No. SPK di BAP</label><input id="fBapSpk"></div><div><label for="fBapSpkTgl">Tanggal SPK di BAP</label><input id="fBapSpkTgl" type="date"></div></div>
         <div class="note" id="bapSpkNote" style="font-size:11px">Kosongkan untuk memakai Master Proyek. Isi hanya bila BAP ini memerlukan nomor/tanggal SPK berbeda (mis. koreksi salah ketik).</div>
       </fieldset>
+      <fieldset class="stp" id="grpPs" data-ivstep="2" hidden>
+        <legend><i>+</i>Payment Summary (PT Mustika Indah Permai)</legend>
+        <div class="row"><div><label for="fPsPeriode">Periode — sesuai Berita Acara Opname</label><input id="fPsPeriode" placeholder="mis. 1 Juli 2026 - 31 Juli 2026"></div><div><label for="fPsDesc">Description di tabel</label><input id="fPsDesc"></div></div>
+        <div class="note" id="psNote" style="font-size:11px"></div>
+      </fieldset>
       <fieldset class="stp" data-ivstep="4" id="ivReview"><legend><i>4</i>Periksa sebelum menyimpan</legend><div id="ivReviewBox"></div></fieldset>
       <fieldset class="stp" data-ivstep="4">
         <legend><i>4</i>Draf faktur pajak (Coretax · kode 04) — klik Salin, lalu tempel</legend>
@@ -1410,7 +1429,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
       <div id="revBox" hidden><input id="fAlasan" type="hidden"></div>
       <div class="status" id="saveStatus"></div>
       <div class="fxbar"><button class="btn" id="btnSave" type="button">Simpan</button>
-        <div class="prm"><button class="btn" id="btnPrintM" type="button">Cetak ▾</button><div class="prm-dd" id="prmDd" hidden><button type="button" id="btnPInv">Invoice</button><button type="button" id="btnPKw">Kwitansi</button><button type="button" id="btnPBap">BAP</button><button type="button" id="btnPAll">Semua dokumen</button></div></div>
+        <div class="prm"><button class="btn" id="btnPrintM" type="button">Cetak ▾</button><div class="prm-dd" id="prmDd" hidden><button type="button" id="btnPInv">Invoice</button><button type="button" id="btnPKw">Kwitansi</button><button type="button" id="btnPBap">BAP</button><button type="button" id="btnPPs">Payment Summary</button><button type="button" id="btnPAll">Semua dokumen</button></div></div>
         <button class="btn primary sub" id="btnSaveSub" type="button"><svg class="ic"><use href="#i-send"/></svg>Simpan &amp; ajukan pengesahan</button>
         <div class="prm" id="newInvWrap" hidden><button class="btn newinv" id="btnNewInv" type="button">＋ Invoice baru ▾</button><div class="prm-dd newdd" id="newDd" hidden><button type="button" id="btnNewBlank"><b>＋ Invoice baru (kosong)</b><small id="newBlankSub">mulai dari langkah 1</small></button><button type="button" id="btnNewSame"><b>＋ Termin berikutnya proyek ini</b><small id="newSameSub">pelanggan, proyek & pola uraian sudah terisi</small></button></div></div></div>
       <button class="linkbtn" id="btnPkgInv" type="button">Buka lembar pengesahan</button>
@@ -1437,6 +1456,7 @@ dialog.df{max-width:640px;width:calc(100% - 24px)}
       <button role="tab" aria-selected="true" data-doc="inv">Invoice</button>
       <button role="tab" aria-selected="false" data-doc="kw">Kwitansi</button>
       <button role="tab" aria-selected="false" data-doc="bap" id="tabBap">BAP</button>
+      <button role="tab" aria-selected="false" data-doc="ps" id="tabPs" hidden>Payment Summary</button>
       <button role="tab" aria-selected="false" data-doc="fp">Draf faktur pajak</button>
       <span class="spacer"></span>
       <span class="zoom"><label for="zoom" style="margin:0">Zoom</label><select id="zoom"><option value="fit">Pas lebar</option><option value="1">100%</option><option value=".75">75%</option></select></span>
@@ -1802,7 +1822,7 @@ function fillSigner() {
 }
 function resetForm() {
   S = { pelanggan: '', npp: '', tgl: today(), year: +today().slice(0, 4), digit: '', jenis: 'PROGRES', progKe: '', termin: '', progres: '', pct: '', dpp: '', ppnOn: true,
-    items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: '', invkeAuto: true, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
+    items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: '', invkeAuto: true, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', psPeriode: '', psDesc: '', alasan: '' };
   S.digit = nextDigit(S.year); SAVED = false; IVSTEP = 1; toForm(); update();
 }
 function toForm() {
@@ -1810,7 +1830,7 @@ function toForm() {
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
   $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; if ($('fDppAdj')) $('fDppAdj').value = num(S.dppAdj) ? nfDot(S.dppAdj) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
   $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fBapSpk').value = S.bapSpk || ''; $('fBapSpkTgl').value = S.bapSpkTgl || ''; $('fAlasan').value = S.alasan || '';
-  $('fBappNo').value = S.bappNo || ''; $('fBappTgl').value = S.bappTgl || ''; $('fKwBeda').checked = !!S.kwBeda; $('kwBox').hidden = !S.kwBeda; $('fJudulKw').value = S.judulKw || ''; $('fPola').value = S.pola || '';
+  $('fBappNo').value = S.bappNo || ''; $('fPsPeriode').value = S.psPeriode || ''; $('fPsDesc').value = S.psDesc || ''; $('fBappTgl').value = S.bappTgl || ''; $('fKwBeda').checked = !!S.kwBeda; $('kwBox').hidden = !S.kwBeda; $('fJudulKw').value = S.judulKw || ''; $('fPola').value = S.pola || '';
   fillSigner(); renderItems();
 }
 
@@ -1832,7 +1852,7 @@ function ivGo(n) { IVSTEP = Math.max(1, Math.min(4, n)); update(); var sc = $('m
 function ivSteps(ok, nErr) {
   var p = pro(), d1 = !!(p && S.tgl && S.digit), d2 = !!(ok && !nErr), d3 = !!(S.judul && !/…/.test(S.judul)), done = [d1, d2, d3, SAVED];
   document.querySelectorAll('#stInv [data-ivs]').forEach(function (el, k) { el.className = (done[k] ? 'dn' : '') + (IVSTEP === k + 1 ? ' on cu' : ''); });
-  document.querySelectorAll('#mode-buat [data-ivstep]').forEach(function (f) { f.hidden = +f.dataset.ivstep !== IVSTEP || (f.id === 'grpBap' && (p ? p.template : '') !== 'FAJARPUTERA'); });
+  document.querySelectorAll('#mode-buat [data-ivstep]').forEach(function (f) { f.hidden = +f.dataset.ivstep !== IVSTEP || (f.id === 'grpBap' && (p ? p.template : '') !== 'FAJARPUTERA') || (f.id === 'grpPs' && !(p && isMip())); });
   var c = CUR, sm = $('ivSum');
   sm.innerHTML = c && p ? (c.progres !== undefined ? '<div>Progres<b>' + nfDot(c.progres) + '</b></div>' : '') + (c.umk ? '<div>− UM<b>' + nfDot(c.umk) + '</b></div>' : '') + '<div>DPP<b>' + nfDot(c.dpp) + '</b></div><div>+ PPN<b>' + nfDot(c.ppn) + '</b></div>' +
     (c.retensi && c.retPos === 'AKHIR' ? '<div>− Retensi ditahan<b>' + nfDot(c.retensi) + '</b></div>' : '') + '<div>− PPh<b>' + nfDot(c.pph) + '</b></div><div class="k">Kas diharapkan<b>' + nfDot((c.netto || 0) + (c.ppn || 0) - (c.pph || 0)) + '</b></div>' +
@@ -1909,7 +1929,11 @@ function update() {
   $('fPpnRetAls').hidden = !(retAkhirPpn(p) && S.jenis === 'RETENSI' && S.ppnOn !== false);
   $('lblDpp').textContent = tpl === 'FAJARPUTERA' ? 'Tagihan saat ini (Rp, belum termasuk PPN)' : (S.jenis === 'RETENSI' ? 'Nilai retensi yang ditagih (Rp)' : 'Nilai tagihan / DPP (Rp)');
   $('grpBap').hidden = tpl !== 'FAJARPUTERA' || IVSTEP !== 2; $('tabBap').hidden = tpl !== 'FAJARPUTERA'; $('btnPBap').hidden = tpl !== 'FAJARPUTERA';
+  var mip = isMip();
+  $('grpPs').hidden = !mip || IVSTEP !== 2; $('tabPs').hidden = !mip; $('btnPPs').hidden = !mip;
+  if (mip) { $('fPsDesc').placeholder = psDescAuto() || 'otomatis dari invoice'; $('psNote').innerHTML = (p && !String(p.kontrak || '').trim() ? '<span style="color:#B42318">No. kontrak proyek masih kosong di Master Proyek — PO No. / Contract No. akan kosong.</span> ' : '') + (S.psPeriode ? '' : '<span style="color:#9A5B00">Periode belum diisi.</span> ') + 'Description dikosongkan = otomatis. Dokumen ikut tercetak di "Semua dokumen".'; }
   if (DOC === 'bap' && tpl !== 'FAJARPUTERA') setDoc('inv');
+  if (DOC === 'ps' && !mip) setDoc('inv');
   // fakta proyek
   if (p) {
     var sg = signer();
@@ -2008,7 +2032,7 @@ function steps(id, done) { var cu = done.indexOf(false); $(id).querySelectorAll(
 function buttons() {
   var ok = !!(CUR && pro() && S.tgl && S.digit && CUR.bayar > 0), nErr = (INVCHK || []).filter(function (x) { return x.lvl === 'E'; }).length;
   $('btnSave').disabled = !ok || nErr > 0; $('btnSaveSub').disabled = !ok || nErr > 0 || !!save._busy;
-  ['btnPInv', 'btnPKw', 'btnPBap', 'btnPAll', 'btnPrintM'].forEach(function (id) { $(id).disabled = !ok; });
+  ['btnPInv', 'btnPKw', 'btnPBap', 'btnPPs', 'btnPAll', 'btnPrintM'].forEach(function (id) { $(id).disabled = !ok; });
   $('btnPkgInv').disabled = !(ok && SAVED);
   $('btnSave').textContent = existing() && !SAVED ? 'Simpan sebagai revisi' : (SAVED ? 'Simpan lagi (revisi)' : 'Simpan');
   ivSteps(ok, nErr);
@@ -2287,6 +2311,28 @@ function renderBap(d) {
     '<div class="ft"><b>' + esc(B.params.UNIT_NAMA || 'CONCRETE  SERVICES  UNIT') + '</b><br>' + esc(B.params.UNIT_ALAMAT || '') + '</div></div>';
   return h;
 }
+/** v2.20 Payment Summary — dokumen wajib setiap tagihan ke PT Mustika Indah Permai (format dari MIP) */
+function isMip() { var pat = String((B && B.params && B.params.PS_MIP_PELANGGAN) || 'MUSTIKA INDAH').trim().toUpperCase(); return !!pat && String(S.pelanggan || '').toUpperCase().replace(/\s+/g, ' ').indexOf(pat) >= 0; }
+function psDescAuto() {
+  var c = CUR; if (!c) return '';
+  if (S.jenis === 'PROGRES') return 'Progres' + (S.progKe ? ' ' + S.progKe : '') + (c.pct ? ' (' + pctf(c.pct).replace('.', ',') + ')' : '');
+  return S.jenis === 'UANG MUKA' ? 'Uang Muka' : S.jenis === 'RETENSI' ? 'Retensi' : String(S.judul || '').split('\n')[0].slice(0, 60);
+}
+function renderPs(d) {
+  if (!d.c || !isMip()) return '';
+  var P = B.params || {}, c = d.c, dpp = Math.round(c.dppFaktur || c.dpp || 0), ppn = Math.round(c.ppn || 0), pph = Math.round(c.pph || 0), tot = dpp + ppn - pph;
+  var fm = function (n) { return Math.round(n).toLocaleString('en-US'); }, nm = titleCase((d.pl && d.pl.nama) || S.pelanggan || '').replace(/^Pt\b\.?/, 'PT');
+  var rows = '<tr><td class="c">1</td><td>' + esc(S.psDesc || psDescAuto()) + '</td><td class="r">1.00</td><td class="r">' + fm(dpp) + '</td><td class="r">' + fm(dpp) + '</td></tr>';
+  for (var k = 0; k < 4; k++) rows += '<tr><td></td><td></td><td class="r">-</td><td class="r">-</td><td class="r">-</td></tr>';
+  var ln = function (t, v, b) { return '<tr' + (b ? ' class="ps-tot"' : '') + '><td>' + t + '</td><td class="ps-rp">Rp</td><td class="ps-v">' + fm(v) + '</td></tr>'; };
+  var box = function (a, pt, n, j) { return '<div><div class="ps-t">' + a + ',<br>' + esc(pt) + '</div><div class="ps-bx"><span class="ps-n">' + esc(n) + '</span><span>' + esc(j) + '</span></div></div>'; };
+  return '<div class="page pg-ps ps"><div class="ps-frm"><h2>PAYMENT OF PT WIJAYA KARYA BETON, Tbk FOR ' + esc(nm.toUpperCase()) + '</h2>' +
+    '<table class="ps-hd"><tr><td>Client</td><td>:</td><td>' + esc(nm) + '</td></tr><tr><td>PO No. / Contract No.</td><td>:</td><td>' + esc(d.p.kontrak || '') + '</td></tr><tr><td>Periode</td><td>:</td><td>' + esc(S.psPeriode || '') + '</td></tr></table>' +
+    '<table class="ps-it"><colgroup><col style="width:12mm"><col><col style="width:22mm"><col style="width:34mm"><col style="width:36mm"></colgroup><tr><th>No</th><th>Description</th><th>Quantity</th><th>Harga Dasar</th><th>Nilai</th></tr>' + rows + '</table>' +
+    '<table class="ps-sm">' + ln('Total Perhitungan', tot, 1) + ln('1. Dasar Pengenaan Pajak (DPP)', dpp) + ln('2. DPP Lainnya', Math.round(dpp * 11 / 12)) + ln('3. PPN (12% x DPP)', ppn) + ln('4. PPh', pph) + '</table>' +
+    '<div class="ps-sg">' + box('Submitted by', 'PT Wijaya Karya Beton, Tbk', P.PS_MIP_TTD_WTON_NAMA || 'Verly Widiantoro', P.PS_MIP_TTD_WTON_JAB || 'Director') +
+    box('Approved by', nm, P.PS_MIP_TTD_MIP_NAMA || 'Yana Rahmat Riyanto', P.PS_MIP_TTD_MIP_JAB || 'Operation Director') + '</div></div></div>';
+}
 function renderDocs() {
   if (MODE === 'bayar') return renderPayView();
   if (MODE === 'tbayar') { $('sheetwrap').innerHTML = '<div class="empty">Pilih penerimaan di daftar sebelah kiri untuk melihat lembar pengesahannya.</div>'; renderPayReg(); return; }
@@ -2294,7 +2340,7 @@ function renderDocs() {
   if (!CUR) { w.innerHTML = '<div class="empty">Pilih pelanggan dan proyek untuk melihat pratinjau dokumen.</div>'; return; }
   var d = docData();
   if (DOC === 'fp') { var f = fakturObj(); w.innerHTML = f ? pgFaktur(f, { nomor: d.nomor, no_fp: '' }, null) : ''; fitZoom(); return; }
-  w.innerHTML = DOC === 'inv' ? renderInvoice(d) : DOC === 'kw' ? renderKwitansi(d) : renderBap(d);
+  w.innerHTML = DOC === 'inv' ? renderInvoice(d) : DOC === 'kw' ? renderKwitansi(d) : DOC === 'ps' ? renderPs(d) : renderBap(d);
   fitZoom();
 }
 function fitZoom() {
@@ -2320,6 +2366,7 @@ function reallyPrint(which) {
   if (which === 'inv' || which === 'all') html += renderInvoice(d);
   if (which === 'kw' || which === 'all') html += renderKwitansi(d);
   if ((which === 'bap' || which === 'all') && d.p.template === 'FAJARPUTERA') html += renderBap(d);
+  if ((which === 'ps' || which === 'all') && isMip()) html += renderPs(d);
   $('print-root').innerHTML = html.trim();
   setTimeout(function () { window.print(); }, 60);
 }
@@ -2438,7 +2485,7 @@ function openInvoice(no) {
     if (o.form) { S = o.form; S.alasan = ''; if (!num(S.dppAdj) && num(o.dpp_adj)) S.dppAdj = num(o.dpp_adj); } // v2.15.1 adjustment yang diisi manual di sheet ikut terbaca
     else {
       S = { pelanggan: o.pelanggan, npp: o.npp, tgl: o.tgl, year: m ? +m[2] : +today().slice(0, 4), digit: m ? +m[1] : '', jenis: o.jenis || 'LAINNYA', progKe: '', termin: '', progres: o.bruto || '', pct: '',
-        dpp: o.dpp ? o.dpp - (num(o.dpp_adj) || 0) : '', dppAdj: num(o.dpp_adj) || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', alasan: '' };
+        dpp: o.dpp ? o.dpp - (num(o.dpp_adj) || 0) : '', dppAdj: num(o.dpp_adj) || '', ppnOn: true, items: [{ uraian: '', nilai: '', bulan: '' }], judul: '', judulAuto: true, invke: o.invke || '', invkeAuto: false, ttd: '', bapTgl: '', bapProg: '', bapProgAuto: true, bapSpk: '', bapSpkTgl: '', psPeriode: '', psDesc: '', alasan: '' };
       var pm = String(o.invke || '').match(/(\d+)/); if (pm) S.progKe = pm[1];
       toast('Invoice migrasi: nilai harus diisi ulang sebelum dicetak / direvisi.');
     }
@@ -3051,6 +3098,8 @@ function bind() {
   $('fInvke').oninput = function () { S.invke = this.value; S.invkeAuto = false; };
   $('fTtd').onchange = function () { S.ttd = this.value; touched(); update(); };
   $('fBapTgl').onchange = function () { S.bapTgl = this.value; update(); };
+  $('fPsPeriode').oninput = function () { S.psPeriode = this.value; touched(); update(); };
+  $('fPsDesc').oninput = function () { S.psDesc = this.value; touched(); update(); };
   $('fBapProg').oninput = function () { S.bapProg = this.value; S.bapProgAuto = false; renderDocs(); };
   $('fBapSpk').oninput = function () { S.bapSpk = this.value.trim(); touched(); bapSpkNote(); renderDocs(); };
   $('fBapSpkTgl').onchange = function () { S.bapSpkTgl = this.value; touched(); bapSpkNote(); renderDocs(); };
@@ -3063,7 +3112,7 @@ function bind() {
   $('btnPrintM').onclick = function (e) { e.stopPropagation(); $('prmDd').hidden = !$('prmDd').hidden; };
   document.addEventListener('click', function (e) { if (!e.target.closest('#btnPrintM')) $('prmDd').hidden = true; });
   $('btnPInv').onclick = function () { doPrint('inv'); }; $('btnPKw').onclick = function () { doPrint('kw'); };
-  $('btnPBap').onclick = function () { doPrint('bap'); }; $('btnPAll').onclick = function () { doPrint('all'); };
+  $('btnPBap').onclick = function () { doPrint('bap'); }; $('btnPAll').onclick = function () { doPrint('all'); }; $('btnPPs').onclick = function () { doPrint('ps'); };
   $('qInv').oninput = renderList;
   $('invList').onclick = function (e) { var dfb = e.target.closest('[data-df]'); if (dfb) { e.stopPropagation(); dfOpen(dfb.dataset.df); return; } var bt = e.target.closest('[data-batal]'); if (bt) { e.stopPropagation(); openPackage('BATAL', E.normInv(bt.dataset.batal)); return; } var tr = e.target.closest('tr[data-no]'); if (tr && isPhone()) { openPackage('INV', E.normInv(tr.dataset.no)); return; } if (tr) openInvoice(tr.dataset.no); };
   document.querySelectorAll('[data-pj]').forEach(function (b) { b.onclick = function () { setPj(b.dataset.pj); }; });
@@ -4385,7 +4434,7 @@ function withInvoiceState(form, fn) {
   try { S = form; CUR = compute(); out = CUR ? fn(docData()) : ''; } catch (e) { out = ''; }
   S = s0; CUR = c0; SAVED = v0; return out;
 }
-function invoiceDocs(d) { return renderInvoice(d) + renderKwitansi(d) + (d.p && d.p.template === 'FAJARPUTERA' ? renderBap(d) : ''); }
+function invoiceDocs(d) { return renderInvoice(d) + renderKwitansi(d) + (d.p && d.p.template === 'FAJARPUTERA' ? renderBap(d) : '') + renderPs(d); }
 function buildPages(pkg, invDocs) {
   var k = pkg.kind, internal = '', all = '';
   if (k === 'INV') {
@@ -4452,7 +4501,7 @@ function pkgTabsInit() {
   var pages = Array.prototype.slice.call(document.querySelectorAll('#sheetwrap .stackwrap > .page')), groups = [];
   var nameOf = function (pg) { var h = pg.querySelector('h2'), t = h ? h.textContent.trim().toUpperCase() : '';
     return /^LEMBAR PENGESAHAN|^LEMBAR PENUTUPAN|^LEMBAR PEMBATALAN|^LEMBAR PEMBALIKAN|^PEMBATALAN LEMBAR/.test(t) ? 'Lembar pengesahan' : /^KARTU PIUTANG/.test(t) ? 'Kartu piutang' : /^USULAN JURNAL/.test(t) ? 'Usulan jurnal SAP' : /^DRAFT FAKTUR/.test(t) ? 'Draf faktur pajak' :
-      /^LEMBAR VALIDASI/.test(t) ? 'Lembar validasi' : /^REKAP/.test(t) ? 'Rekap bulanan' : pg.classList.contains('pg-kw') ? 'Kwitansi' : pg.classList.contains('pg-bap') ? 'BAP' : pg.classList.contains('pg-inv') ? 'Invoice' : 'Lampiran'; };
+      /^LEMBAR VALIDASI/.test(t) ? 'Lembar validasi' : /^REKAP/.test(t) ? 'Rekap bulanan' : pg.classList.contains('pg-kw') ? 'Kwitansi' : pg.classList.contains('pg-bap') ? 'BAP' : pg.classList.contains('pg-ps') ? 'Payment Summary' : pg.classList.contains('pg-inv') ? 'Invoice' : 'Lampiran'; };
   pages.forEach(function (pg) { var n = nameOf(pg), g = groups.filter(function (x) { return x.n === n; })[0]; if (!g) groups.push(g = { n: n, p: [] }); g.p.push(pg); });
   var show = function (ix) { groups.forEach(function (g, k) { g.p.forEach(function (pg) { pg.hidden = k !== ix; }); }); document.querySelectorAll('#pkgTabs .ptab').forEach(function (b, k) { b.classList.toggle('on', k === ix); }); fitZoom(); };
   $('pkgTabs').innerHTML = groups.map(function (g, k) { return '<button type="button" class="ptab" data-k="' + k + '">' + esc(g.n) + (g.p.length > 1 && g.n !== 'Lembar pengesahan' ? ' (' + g.p.length + ')' : '') + '</button>'; }).join('');
