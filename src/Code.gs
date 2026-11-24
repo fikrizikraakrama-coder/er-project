@@ -1822,6 +1822,7 @@ var V2_USERS = [
   ['', 'Yusqi Audah Firdaus', 'Manager of Concrete Services Unit', 'WB090278', 'MENGETAHUI (TTD BASAH)'],
   ['', 'Elmarta Hexa Panggabean', 'Akuntansi', '', 'PENERIMA']];
 var V2_KV = [
+  ['INV_TGL_MAJU_MAKS_HARI', 31, 'Tanggal invoice boleh maju (setelah hari ini) paling banyak n hari'],
   ['PS_MIP_PELANGGAN', 'MUSTIKA INDAH', 'Payment Summary: invoice ke pelanggan yang namanya memuat teks ini mendapat dokumen Payment Summary'],
   ['PS_MIP_TTD_WTON_NAMA', 'Verly Widiantoro', 'Payment Summary MIP: nama penandatangan WIKA Beton (Submitted by)'], ['PS_MIP_TTD_WTON_JAB', 'Director', 'Payment Summary MIP: jabatan penandatangan WIKA Beton'],
   ['PS_MIP_TTD_MIP_NAMA', 'Yana Rahmat Riyanto', 'Payment Summary MIP: nama penandatangan MIP (Approved by)'], ['PS_MIP_TTD_MIP_JAB', 'Operation Director', 'Payment Summary MIP: jabatan penandatangan MIP'],

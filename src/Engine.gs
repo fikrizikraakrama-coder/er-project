@@ -222,6 +222,8 @@ var ENGINE = (function () {
   function dnum(s) { if (!s) return NaN; var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 86400000; }
   function addDays(s, n) { var d = new Date((dnum(s) + n) * 86400000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1, 2) + '-' + pad(d.getUTCDate(), 2); }
   function diffDays(a, b) { return dnum(a) - dnum(b); }
+  /** v2.20 batas tanggal invoice maju (hari), Parameter INV_TGL_MAJU_MAKS_HARI — bawaan 31 */
+  function invMajuMaks(P) { var v = P ? P.INV_TGL_MAJU_MAKS_HARI : ''; return v === '' || v === null || v === undefined || !isFinite(+v) ? 31 : Math.max(0, Math.floor(+v)); }
   /** tanggal + n bulan kalender (tanggal 31 → akhir bulan bila bulan tujuan lebih pendek) */
   function addMonths(s, n) { var p = String(s || '').split('-'); if (p.length < 3) return ''; var y = +p[0], m = +p[1] - 1 + (+n || 0), d = +p[2]; y += Math.floor(m / 12); m = ((m % 12) + 12) % 12;
     var last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate(); return y + '-' + pad(m + 1, 2) + '-' + pad(Math.min(d, last), 2); }
@@ -704,7 +706,7 @@ var ENGINE = (function () {
       inv.tgl = D(inv.tgl); inv.submit = D(inv.submit); inv.tt = D(inv.tt); inv.rencana = D(inv.rencana); inv.tgl_fp = D(inv.tgl_fp);
       inv.no_fp = digits(inv.no_fp); inv.sap_doc = S(inv.sap_doc); inv.uraian = S(inv.uraian);
       if (!inv.tgl) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Tanggal invoice kosong / tidak terbaca', 'Isi TANGGAL INVOICE']);
-      else if (inv.tgl > today) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Tanggal invoice di masa depan (' + inv.tgl + ')', 'Kemungkinan salah ketik tahun']);
+      else if (inv.tgl > addDays(today, invMajuMaks(params))) issues.push(['REGISTER', REG.sheet, inv.nomor, 'Tanggal invoice di masa depan (' + inv.tgl + ')', 'Kemungkinan salah ketik tahun']);
       // tanggal yang diketik manual di sheet: tanggal & bulan sering tertukar bila lokal file bukan Indonesia (05/10 terbaca 10 Mei)
       [['submit', 'TGL SUBMIT DOKUMEN'], ['tt', 'TGL TANDA TERIMA'], ['tgl_fp', 'TANGGAL FAKTUR PAJAK'], ['ba_tgl', 'TGL BA / MEMO']].forEach(function (x) {
         var d = D(inv[x[0]]); if (!d) return;
@@ -2998,7 +3000,11 @@ var ENGINE = (function () {
     var out = [], c = x.c || {}, p = x.pro || {}, add = function (lvl, f, t, m, fix) { out.push({ lvl: lvl, f: f || '', t: t, m: m || '', fix: fix || null }); };
     var self = normInv(x.nomor || ''), prog = (p.prog || []).filter(function (r) { return normInv(r[0]) !== self; });
     if (!x.tgl) add('E', 'fTgl', 'Invoice date is empty');
-    else if (x.today && x.tgl > x.today) add('E', 'fTgl', 'Invoice date is in the future', tglPanjang(x.tgl) + ' is after today.');
+    else if (x.today && x.tgl > x.today) { // v2.20: invoice boleh bertanggal maju (maks. INV_TGL_MAJU_MAKS_HARI, bawaan 31 hari)
+      var maju = diffDays(x.tgl, x.today), mx = invMajuMaks(x.params);
+      if (maju > mx) add('E', 'fTgl', 'Tanggal invoice terlalu jauh ke depan', tglPanjang(x.tgl) + ' = ' + maju + ' hari dari hari ini (maks. ' + mx + ' hari, Parameter INV_TGL_MAJU_MAKS_HARI).');
+      else add('I', 'fTgl', 'Tanggal invoice maju ' + maju + ' hari', 'Invoice bertanggal ' + tglPanjang(x.tgl) + ' — umur piutang & jatuh tempo dihitung dari tanggal ini.');
+    }
     // v2.15.1 tagihan progres bertanggal setelah masa kontrak berakhir (pelepasan retensi / UM tidak diperiksa)
     if (x.tgl && p.akhir && x.tgl > p.akhir && (x.jenis === 'PROGRES' || x.jenis === 'LAINNYA')) add('W', 'fTgl', 'Tanggal invoice melewati masa kontrak', 'Kontrak berakhir ' + tglPanjang(p.akhir) + (p.akhirDari === 'adendum' ? ' (adendum terakhir)' : '') + ' — bila ada adendum waktu, catat dulu di Master Pelanggan › Proyek › Kontrak & Adendum.');
     // v2.9.3: WIKA-WITON (jasa manajemen berjalan, ditagih per bulan dari rincian jasa) memang tidak punya nilai kontrak
@@ -3507,7 +3513,7 @@ var ENGINE = (function () {
     fpInvoice: fpInvoice, fpPayGroup: fpPayGroup, lkPreview: lkPreview, RKL: RKL, pelKey: pelKey, payKey: payKey, userBy: userBy, userByRole: userByRole, hash: hash, rekon: rekon,
     readParams: readParams, buildMaster: buildMaster, signerFor: signerFor, tarifDefault: tarifDefault, pphLabel: pphLabel,
     terbilang: terbilang, toRoman: toRoman, retTxt: retTxt, normInv: normInv, nppValid: nppValid, nppKey: nppKey, npwp16: npwp16, D: D, N: N, S: S, U: U, rnd: rnd, flo: flo,
-    monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, RKL: RKL, pelKey: pelKey, prevMonthEnd: prevMonthEnd, addDays: addDays, parseMonthSel: parseMonthSel,
+    monthLabel: monthLabel, colIndex: colIndex, fmtRp: fmtRp, tglPanjang: tglPanjang, RKL: RKL, pelKey: pelKey, prevMonthEnd: prevMonthEnd, addDays: addDays, invMajuMaks: invMajuMaks, parseMonthSel: parseMonthSel,
     MEMO: MEMO, PEREF: PEREF, MEMO_KODE: MEMO_KODE, memorial: memorial, memoParse: memoParse, memoSheetRows: memoSheetRows, peSummary: peSummary, peSummaryBlocks: peSummaryBlocks,
     raPlanValue: raPlanValue, raPlanPj: raPlanPj, delegasiFor: delegasiFor, isDelegasi: isDelegasi, isKoord: isKoord, sapParse: sapParse, sapMatch: sapMatch, normNpp: normNpp, nppList: nppList, nppListTxt: nppListTxt, proyekAR: proyekAR, fpFmt: fpFmt, MONTHS_SHORT: BLN3,
     DEC: DEC, DEC_ORDER: DEC_ORDER, VGRP: VGRP, usulCode: usulCode, valSnapshot: valSnapshot, valCheckUsulan: valCheckUsulan, valApplyDecisions: valApplyDecisions, valSidik: valSidik, valDecHash: valDecHash, kinerjaData: kinerjaData, overview: overview, pajakReport: pajakReport

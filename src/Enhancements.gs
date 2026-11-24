@@ -71,7 +71,10 @@ function arToday_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
 function arDigest_(s) { return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,s,Utilities.Charset.UTF_8).map(function(b) { return ('0'+(b&255).toString(16)).slice(-2); }).join(''); }
 function arSafeCell_(v) { return typeof v === 'string' && /^[=+@]/.test(v) ? "'" + v : v; }
 function arValidateInvoice_(p) {
-  if (!p || !arValidDate_(p.tgl) || p.tgl > arToday_()) throw new Error('Tanggal invoice tidak valid atau di masa depan.');
+  if (!p || !arValidDate_(p.tgl)) throw new Error('Tanggal invoice tidak valid.');
+  // v2.20 invoice boleh bertanggal maju, maks. INV_TGL_MAJU_MAKS_HARI hari (bawaan 31)
+  var mx = paramKV_('INV_TGL_MAJU_MAKS_HARI'), maks = ENGINE.invMajuMaks({ INV_TGL_MAJU_MAKS_HARI: mx ? mx.val : '' });
+  if (p.tgl > ENGINE.addDays(arToday_(), maks)) throw new Error('Tanggal invoice terlalu jauh ke depan (maks. ' + maks + ' hari dari hari ini).');
   ['dpp','ppn','bruto','umk','retensi'].forEach(function(k) { if (p[k] !== undefined && (!isFinite(Number(p[k])) || Number(p[k]) < 0)) throw new Error('Tidak valid: ' + k + ' value.'); });
   if (!(Number(p.dpp) > 0) || !String(p.uraian || '').trim()) throw new Error('DPP dan uraian tagihan wajib diisi.');
 }

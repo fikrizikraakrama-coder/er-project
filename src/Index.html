@@ -1965,7 +1965,7 @@ function update() {
   // info persen
   if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' dari nilai kontrak' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' setelah adendum' : '');
   else $('pctInfo').textContent = '';
-  INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net, limit: pel() ? +pel().limit || 0 : 0, expo: custExpo(S.pelanggan, nomorStr()) }) : [];
+  INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', params: B ? B.params : null, progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net, limit: pel() ? +pel().limit || 0 : 0, expo: custExpo(S.pelanggan, nomorStr()) }) : [];
   var syL = invSyaratList(), syM = syL.filter(function (x) { return !(S.syarat || {})[x]; });
   if (pro() && syM.length && !SAVED && !(B && existing())) INVCHK.push({ lvl: 'W', f: '', t: 'Dokumen penagihan belum lengkap (' + syM.length + ' dari ' + syL.length + ')', m: 'Belum dicentang: ' + syM.join(', ') + ' — syarat ' + titleCase(S.pelanggan || '') + ' di Master Pelanggan.' });
   renderSummary(); renderChecks(); renderFakturPanel(); if (!STACK) renderDocs(); buttons();
