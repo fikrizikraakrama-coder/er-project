@@ -2318,6 +2318,14 @@ function psDescAuto() {
   if (S.jenis === 'PROGRES') return 'Progres' + (S.progKe ? ' ' + S.progKe : '') + (c.pct ? ' (' + pctf(c.pct).replace('.', ',') + ')' : '');
   return S.jenis === 'UANG MUKA' ? 'Uang Muka' : S.jenis === 'RETENSI' ? 'Retensi' : String(S.judul || '').split('\n')[0].slice(0, 60);
 }
+/** judul Payment Summary harus satu baris di dalam bingkai: ukuran huruf disesuaikan dengan font yang tersedia di komputer (Calibri / Arial / Helvetica) */
+var PS_FONT = 'Calibri,Carlito,"Segoe UI",Arial,sans-serif';
+function psTitleSize(t) {
+  var fs = 13.5;
+  try { var cv = psTitleSize.c || (psTitleSize.c = document.createElement('canvas')), cx = cv.getContext('2d'); cx.font = '700 ' + fs + 'pt ' + PS_FONT;
+    var w = cx.measureText(t).width, max = 154 * 96 / 25.4; if (w > max) fs = Math.max(8, Math.floor(fs * max / w * 10) / 10); } catch (e) { fs = 11; }
+  return fs;
+}
 function renderPs(d) {
   if (!d.c || !isMip()) return '';
   var P = B.params || {}, c = d.c, dpp = Math.round(c.dppFaktur || c.dpp || 0), ppn = Math.round(c.ppn || 0), pph = Math.round(c.pph || 0), tot = dpp + ppn - pph;
@@ -2326,7 +2334,8 @@ function renderPs(d) {
   for (var k = 0; k < 4; k++) rows += '<tr><td></td><td></td><td class="r">-</td><td class="r">-</td><td class="r">-</td></tr>';
   var ln = function (t, v, b) { return '<tr' + (b ? ' class="ps-tot"' : '') + '><td>' + t + '</td><td class="ps-rp">Rp</td><td class="ps-v">' + fm(v) + '</td></tr>'; };
   var box = function (a, pt, n, j) { return '<div><div class="ps-t">' + a + ',<br>' + esc(pt) + '</div><div class="ps-bx"><span class="ps-n">' + esc(n) + '</span><span>' + esc(j) + '</span></div></div>'; };
-  return '<div class="page pg-ps ps"><div class="ps-frm"><h2>PAYMENT OF PT WIJAYA KARYA BETON, Tbk FOR ' + esc(nm.toUpperCase()) + '</h2>' +
+  var ttl = 'PAYMENT OF PT WIJAYA KARYA BETON, Tbk FOR ' + nm.toUpperCase();
+  return '<div class="page pg-ps ps"><div class="ps-frm"><h2 style="font-size:' + psTitleSize(ttl) + 'pt">' + esc(ttl) + '</h2>' +
     '<table class="ps-hd"><tr><td>Client</td><td>:</td><td>' + esc(nm) + '</td></tr><tr><td>PO No. / Contract No.</td><td>:</td><td>' + esc(d.p.kontrak || '') + '</td></tr><tr><td>Periode</td><td>:</td><td>' + esc(S.psPeriode || '') + '</td></tr></table>' +
     '<table class="ps-it"><colgroup><col style="width:12mm"><col><col style="width:22mm"><col style="width:34mm"><col style="width:36mm"></colgroup><tr><th>No</th><th>Description</th><th>Quantity</th><th>Harga Dasar</th><th>Nilai</th></tr>' + rows + '</table>' +
     '<table class="ps-sm">' + ln('Total Perhitungan', tot, 1) + ln('1. Dasar Pengenaan Pajak (DPP)', dpp) + ln('2. DPP Lainnya', Math.round(dpp * 11 / 12)) + ln('3. PPN (12% x DPP)', ppn) + ln('4. PPh', pph) + '</table>' +
