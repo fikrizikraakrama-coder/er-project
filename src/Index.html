@@ -81,7 +81,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-bap{width:210mm;height:297mm}
 .pg-ps{width:210mm;height:297mm}
 /* v2.20 kwitansi di cetakan campuran (portrait + landscape): diputar di dalam halaman portrait — printer Windows sering mencetak semua halaman portrait sehingga kwitansi terpotong */
-.pg-kwr{width:210mm;height:297mm}
+.pg-kwr{width:210mm;height:297mm;contain:strict}
 .pg-kwr .kwr-in{position:absolute;left:0;top:0;width:297mm;height:210mm;transform-origin:0 0;transform:translateY(297mm) rotate(-90deg);overflow:hidden;background:#fff;color:#000}
 /* v2.20 Payment Summary PT Mustika Indah Permai (format dari MIP) */
 .ps{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;color:#000;font-size:11.5pt;line-height:1.3}
