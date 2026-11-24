@@ -80,6 +80,9 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .pg-kw{width:297mm;height:210mm}
 .pg-bap{width:210mm;height:297mm}
 .pg-ps{width:210mm;height:297mm}
+/* v2.20 kwitansi di cetakan campuran (portrait + landscape): diputar di dalam halaman portrait — printer Windows sering mencetak semua halaman portrait sehingga kwitansi terpotong */
+.pg-kwr{width:210mm;height:297mm}
+.pg-kwr .kwr-in{position:absolute;left:0;top:0;width:297mm;height:210mm;transform-origin:0 0;transform:translateY(297mm) rotate(-90deg);overflow:hidden;background:#fff;color:#000}
 /* v2.20 Payment Summary PT Mustika Indah Permai (format dari MIP) */
 .ps{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;color:#000;font-size:11.5pt;line-height:1.3}
 .ps .ps-frm{position:absolute;left:15mm;top:15mm;right:15mm;border:.65mm solid #000;padding:11mm 9mm 12mm}
@@ -169,7 +172,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 #print-root{display:none}
 @media print{
   html,body{height:auto!important;min-height:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:#fff}
-  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-att{height:296.4mm}
+  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-kwr,#print-root .pg-att{height:296.4mm}
   .att-up{display:none!important}
   #print-root .pg-kw{height:209.4mm}
   #print-root .page{break-inside:avoid;page-break-inside:avoid}
@@ -180,7 +183,7 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
   #print-root .page{box-shadow:none;margin:0;break-after:page;page-break-after:always}
   #print-root .page:last-child{break-after:avoid;page-break-after:avoid}
   #print-root .pg-kw{page:kw}
-  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-att{page:po}
+  #print-root .pg-inv,#print-root .pg-bap,#print-root .pg-ps,#print-root .pg-kwr,#print-root .pg-att{page:po}
 }
 /* ====================================================== v2: panel, persetujuan, dokumen internal */
 .modes button{font-size:12px;padding:9px 4px 10px}
@@ -2370,13 +2373,24 @@ function doPrint(which) {
   if (!SAVED) { confirmDlg('Invoice belum disimpan', 'Dokumen ini belum tercatat di Monitoring Invoice. Tetap cetak, atau simpan dulu?', 'Cetak tanpa menyimpan', function () { reallyPrint(which); }); return; }
   reallyPrint(which);
 }
+/** v2.20 bila kwitansi (landscape) dicetak bersama halaman portrait, kwitansi diputar di dalam halaman A4 portrait.
+ *  Banyak driver printer Windows memakai satu orientasi untuk seluruh pekerjaan cetak → kwitansi landscape tercetak di kertas portrait & terpotong. */
+function kwRotate(root) {
+  var kws = root.querySelectorAll('.page.pg-kw'); if (!kws.length) return;
+  var other = Array.prototype.some.call(root.querySelectorAll('.page'), function (p) { return !p.classList.contains('pg-kw') && !(p.classList.contains('pg-flow') && p.classList.contains('land')); });
+  if (!other) return;
+  Array.prototype.forEach.call(kws, function (k) {
+    var w = document.createElement('div'); w.className = 'page pg-kwr'; k.parentNode.insertBefore(w, k); w.appendChild(k);
+    k.classList.remove('page'); k.classList.remove('pg-kw'); k.classList.add('kwr-in');
+  });
+}
 function reallyPrint(which) {
   var d = docData(), html = '';
   if (which === 'inv' || which === 'all') html += renderInvoice(d);
   if (which === 'kw' || which === 'all') html += renderKwitansi(d);
   if ((which === 'bap' || which === 'all') && d.p.template === 'FAJARPUTERA') html += renderBap(d);
   if ((which === 'ps' || which === 'all') && isMip()) html += renderPs(d);
-  $('print-root').innerHTML = html.trim();
+  $('print-root').innerHTML = html.trim(); kwRotate($('print-root'));
   // v2.20 kwitansi dicetak sendiri: orientasi bawaan halaman juga dibuat landscape — sebagian browser/printer di Windows mengabaikan @page bernama (kw)
   var old = $('prOri'); if (old) old.parentNode.removeChild(old);
   if (which === 'kw') { var st = document.createElement('style'); st.id = 'prOri'; st.textContent = '@page{size:A4 landscape;margin:0}'; document.head.appendChild(st);
@@ -4581,7 +4595,7 @@ function pkgChrome(canSubmit, canDecide) {
 }
 /** tabel internal: baris judul menjadi <thead> agar berulang di setiap halaman cetak */
 function theadify(h) { return String(h).replace(/<table class="t"><tr>(<th[\s\S]*?<\/tr>)/g, '<table class="t"><thead><tr>$1</thead>'); }
-function printHtml(html) { html = String(html).replace(/<span class="prd">[^<]*<\/span>/g, esc(tglIndo(today()))); $('print-root').innerHTML = theadify(html); setTimeout(function () { window.print(); }, 80); }
+function printHtml(html) { html = String(html).replace(/<span class="prd">[^<]*<\/span>/g, esc(tglIndo(today()))); $('print-root').innerHTML = theadify(html); kwRotate($('print-root')); var o = $('prOri'); if (o) o.parentNode.removeChild(o); setTimeout(function () { window.print(); }, 80); }
 function pkgFileName() { return archiveMeta(PKG).name; }
 /** nama file arsip: 4C0134_FAJARPUTERA DINASTI_Termin 3_Rev.00_<kode verifikasi>, folder per bulan */
 function cleanPel(s) { return String(s || '').toUpperCase().replace(/\bPT\.?\s+/g, '').replace(/\s*\(PERSERO\)/g, '').replace(/,?\s*TBK\.?/g, '').replace(/[,.]/g, ' ').replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim(); }
