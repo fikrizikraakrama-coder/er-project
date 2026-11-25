@@ -119,8 +119,9 @@ dialog .dact{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px;bor
 .kw .yel{position:absolute;left:1.4mm;top:13.5mm;width:294mm;height:113mm;background:#FFE87C;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .kw .lab{position:absolute;left:60mm;line-height:1.15}
 .kw .val{position:absolute;left:96mm;width:171mm}
-.kw .says{border-bottom:1px solid #000;font-weight:700;font-style:italic;font-size:9pt;line-height:5.2mm}
-.kw .says2{border-bottom:1px solid #000;height:5.2mm}
+.kw .says{font-weight:700;font-style:italic;font-size:9pt;line-height:5.2mm;position:relative;height:10.4mm;overflow:hidden}
+/* v2.20 terbilang di kertas bergaris: tiap baris teks duduk di garisnya sendiri (2 garis) */
+.kw .sayw{position:relative;height:10.4mm}.kw .sayw .gl{position:absolute;left:0;right:0;border-bottom:1px solid #000}.kw .sayw .gl1{top:0;height:5.2mm}.kw .sayw .gl2{top:5.2mm;height:5.2mm}.kw .sayw .says{position:absolute;left:0;right:0;top:0}
 .kop-hd{position:absolute;left:0;top:0;width:210mm;height:auto}
 .kop-ft{position:absolute;left:23.7mm;top:277.2mm;font-family:Roboto,Arial,Helvetica,sans-serif;color:#0096E2;font-size:7pt;line-height:1.38;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .kop-ft b{font-size:8pt}
@@ -2266,6 +2267,14 @@ function kwBg() {
   } catch (e) { kwBg.v = null; }
   return kwBg.v;
 }
+/** v2.20 terbilang kwitansi harus muat di 2 garis (171 mm): huruf dikecilkan otomatis bila terlalu panjang */
+function kwSaysSize(t, fam) {
+  var fs = 9;
+  try { var cv = kwSaysSize.c || (kwSaysSize.c = document.createElement('canvas')), cx = cv.getContext('2d');
+    cx.font = 'italic 700 ' + fs + 'pt ' + (fam === 'f-antiqua' ? '"Book Antiqua",Palatino,"Palatino Linotype","URW Palladio L",Georgia,serif' : 'Tahoma,"Segoe UI",Verdana,Geneva,sans-serif');
+    var w = cx.measureText(t).width, max = 2 * 171 * 96 / 25.4 * 0.9; if (w > max) fs = Math.max(6.5, Math.floor(fs * max / w * 10) / 10); } catch (e) { }
+  return fs;
+}
 function renderKwitansi(d) {
   if (!d.c) return '';
   var bg = kwBg();
@@ -2276,12 +2285,12 @@ function renderKwitansi(d) {
     '<div class="abs b" style="left:60mm;top:18mm">Nomor : <span class="i" style="margin-left:1.5mm;font-size:8pt">' + esc(d.nomor) + '</span></div>' +
     '<div class="abs b" style="left:242mm;top:18mm;line-height:4.1mm"><div>NPP&nbsp;&nbsp;&nbsp;&nbsp;: <span style="margin-left:3mm">' + esc(d.p.npp) + '</span></div><div>NPWP : <span style="margin-left:2mm;font-weight:400">' + esc(d.npwp) + '</span></div></div>' +
     '<div class="lab" style="top:26mm">Sudah terima dari<br><span class="i">Received from</span></div>' +
-    '<div class="abs b" style="left:91.7mm;top:30.4mm">:</div><div class="val b i" style="top:30mm">' + esc(d.pl ? d.pl.inv : '') + '</div>' +
+    '<div class="abs b" style="left:91.7mm;top:26mm">:</div><div class="val b i" style="top:26mm">' + esc(d.pl ? d.pl.inv : '') + '</div>' +
     '<div class="lab" style="top:40mm">Banyaknya uang<br><span class="i">Says</span></div>' +
-    '<div class="abs b" style="left:91.7mm;top:40.4mm">:</div><div class="val" style="top:39.4mm"><div class="says">' + esc(E.terbilang(amt)) + ' Rupiah</div><div class="says2"></div></div>' +
-    '<div class="lab" style="top:55mm">Untuk<br><br><span class="i">Payment of</span></div>' +
-    '<div class="abs" style="left:92mm;top:55.6mm">:</div><div class="val" style="top:55.6mm;font-size:7.8pt;line-height:1.25">' + esc(d.judulKw || d.judul) + '</div>' +
-    '<div class="lab" style="top:75mm">Jumlah<br><br><span class="i">Amount</span></div>' +
+    '<div class="abs b" style="left:91.7mm;top:39.6mm">:</div><div class="val" style="top:38.6mm"><div class="sayw"><div class="gl gl1"></div><div class="gl gl2"></div><div class="says" style="font-size:' + kwSaysSize(E.terbilang(amt) + ' Rupiah', fam) + 'pt">' + esc(E.terbilang(amt)) + ' Rupiah</div></div></div>' +
+    '<div class="lab" style="top:52.2mm">Untuk<br><span class="i">Payment of</span></div>' +
+    '<div class="abs" style="left:92mm;top:52.2mm">:</div><div class="val" style="top:52.2mm;font-size:7.8pt;line-height:1.25">' + esc(d.judulKw || d.judul) + '</div>' +
+    '<div class="lab" style="top:75mm">Jumlah<br><span class="i">Amount</span></div>' +
     '<svg class="pgram" viewBox="0 0 71.7 11.1" preserveAspectRatio="none"><polygon points="2.8,0 71.7,0 68.9,11.1 0,11.1" fill="none" stroke="#2E4D6B" stroke-width=".3"/></svg>' +
     '<div class="abs b" style="left:97mm;top:74.9mm;font-size:13pt">Rp&nbsp;&nbsp;&nbsp;&nbsp;' + nf(amt) + '</div>' +
     '<div class="abs" style="left:227mm;top:77.6mm"><div>' + esc(d.kota) + ', ' + tglIndo(d.tgl) + '</div><div class="b">' + esc(d.pt) + '</div></div>' +
