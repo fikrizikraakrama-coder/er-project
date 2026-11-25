@@ -2982,7 +2982,7 @@ var ENGINE = (function () {
   /** f: {template, jenis, nilaiKontrak, progres, umDiterima, retPct, retPos, tarif, dasar, tampilPPh, items[], dpp, pctUM, ppnOn}
    *  menghasilkan semua angka cetak + angka register. */
   /** angka ketikan form (1.234.567 / 1.234,5 / 1234.5) — sama dengan num() di aplikasi */
-  function numForm(v) { if (isNum(v)) return v; var s = S(v); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
+  function numForm(v) { if (isNum(v)) return v; var s = S(v); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf(',') === s.lastIndexOf(',')) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
   /** input calcInvoice dari data proyek (bentuk bootstrap) + isian form; dipakai aplikasi (pratinjau) dan server (pemeriksaan saat simpan)
    *  exUmk = potongan UM invoice yang sedang direvisi (dikembalikan ke sisa UM) */
   function invoiceInput(p, form, exUmk, selfNo) {
@@ -3147,7 +3147,9 @@ var ENGINE = (function () {
     var umRaw = pct * UM;
     if (f.progLalu !== undefined && f.umLalu !== undefined && UM > 0 && K > 0) {
       var pk = N(f.progLalu) + prog, fin = pk >= K - 5, tgt = fin ? UM : ROUND(pk / K * UM), kum = Math.max(0, tgt - N(f.umLalu));
-      if (Math.abs(kum - umRaw) > 1) { o.umKum = { pct: pk / K, target: tgt, lalu: ROUND(N(f.umLalu)), fin: fin, perTermin: ROUND(umRaw) }; o.umLbl = fin ? 'Pengembalian Sisa Uang Muka' : 'Pengembalian Uang Muka (kumulatif)'; }
+      // v2.20: selisih kecil (< Rp1.000) hanya pembulatan termin lalu → tetap per termin (persen x UM), sama dengan Payment Certificate pemberi kerja
+      if (!fin && Math.abs(kum - umRaw) < 1000) kum = umRaw;
+      else if (Math.abs(kum - umRaw) > 1) { o.umKum = { pct: pk / K, target: tgt, lalu: ROUND(N(f.umLalu)), fin: fin, perTermin: ROUND(umRaw) }; o.umLbl = fin ? 'Pengembalian Sisa Uang Muka' : 'Pengembalian Uang Muka'; }
       umRaw = kum;
     }
     if (T === 'IKK') {

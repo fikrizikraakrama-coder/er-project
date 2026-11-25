@@ -1765,8 +1765,10 @@ var RUN = (typeof google !== 'undefined' && google.script && google.script.run) 
 /* ====================================================== util */
 function nf(x) { x = Math.round(Number(x) || 0); var s = String(Math.abs(x)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); return (x < 0 ? '-' : '') + s; }
 function nfDot(x) { return nf(x).replace(/,/g, '.'); }
+/** v2.20 nilai progres boleh berdesimal sesuai Payment Certificate (9.347.294.513,86) — desimal tetap tampil di form */
+function nfDec(x) { x = Number(x) || 0; var r = Math.round(x * 100) / 100, i = Math.trunc(r), f = Math.round(Math.abs(r - i) * 100); return f ? nfDot(i) + ',' + String(f).padStart(2, '0') : nfDot(r); }
 function pctf(x) { return ((Number(x) || 0) * 100).toFixed(2) + '%'; }
-function num(v) { if (typeof v === 'number') return v; var s = String(v || '').trim(); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
+function num(v) { if (typeof v === 'number') return v; var s = String(v || '').trim(); if (!s) return 0; s = s.replace(/[^\d,.\-]/g, ''); if (/,\d{1,2}$/.test(s) && s.indexOf(',') === s.lastIndexOf(',')) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, ''); else s = s.replace(/,/g, ''); return parseFloat(s) || 0; }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function tglIndo(s, pad2) { if (!s) return ''; var p = s.split('-'); var d = +p[2]; return (pad2 && d < 10 ? '0' + d : d) + ' ' + BULAN[+p[1] - 1] + ' ' + p[0]; }
 /** v2.15 alamat dari Master Pelanggan yang ditulis KAPITAL semua dirapikan untuk surat (RT/RW/DKI/PT tetap kapital) */
@@ -1831,7 +1833,7 @@ function resetForm() {
 function toForm() {
   $('fPel').value = S.pelanggan; if (S.pelanggan) { var keep = S.npp; fillProyek(); if (keep) { S.npp = keep; $('fPro').value = keep; } } else $('fPro').innerHTML = '';
   $('fDigit').value = S.digit; $('fYear').value = S.year; $('fTgl').value = S.tgl; $('fJenis').value = S.jenis; $('fProgKe').value = S.progKe; $('fTermin').value = S.termin;
-  $('fProgres').value = S.progres ? nfDot(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; if ($('fDppAdj')) $('fDppAdj').value = num(S.dppAdj) ? nfDot(S.dppAdj) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
+  $('fProgres').value = S.progres ? nfDec(S.progres) : ''; $('fPct').value = S.pct; $('fUmPct').value = S.umPct || ''; $('fDpp').value = S.dpp ? nfDot(S.dpp) : ''; if ($('fDppAdj')) $('fDppAdj').value = num(S.dppAdj) ? nfDot(S.dppAdj) : ''; $('fPpnOn').checked = S.ppnOn !== false; $('fPpnRetAls').value = S.ppnRetensiAlasan || '';
   $('fJudul').value = S.judul; $('fInvke').value = S.invke; $('fBapTgl').value = S.bapTgl; $('fBapProg').value = S.bapProg; $('fBapSpk').value = S.bapSpk || ''; $('fBapSpkTgl').value = S.bapSpkTgl || ''; $('fAlasan').value = S.alasan || '';
   $('fBappNo').value = S.bappNo || ''; $('fPsPeriode').value = S.psPeriode || ''; $('fPsDesc').value = S.psDesc || ''; $('fBappTgl').value = S.bappTgl || ''; $('fKwBeda').checked = !!S.kwBeda; $('kwBox').hidden = !S.kwBeda; $('fJudulKw').value = S.judulKw || ''; $('fPola').value = S.pola || '';
   fillSigner(); renderItems();
@@ -1966,7 +1968,7 @@ function update() {
   if (S.bapProgAuto) { S.bapProg = S.termin ? 'Termin ' + E.toRoman(+S.termin) : ''; $('fBapProg').value = S.bapProg; }
   CUR = compute();
   // info persen
-  if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' dari nilai kontrak' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' setelah adendum' : '');
+  if (CUR && CUR.pct !== undefined) $('pctInfo').textContent = '= ' + pctf(CUR.pct) + ' dari nilai kontrak' + (kontrak(pro()).tambah || kontrak(pro()).kurang ? ' setelah adendum' : '') + ' · boleh pakai desimal sesuai Payment Certificate, mis. 9.347.294.513,86';
   else $('pctInfo').textContent = '';
   INVCHK = pro() ? E.invoiceChecks({ c: CUR, jenis: S.jenis, tgl: S.tgl, today: B ? B.today : '', params: B ? B.params : null, progKe: S.progKe, judul: S.judul, nomor: nomorStr(), pro: pro(), kontrak: kontrak(pro()).net, limit: pel() ? +pel().limit || 0 : 0, expo: custExpo(S.pelanggan, nomorStr()) }) : [];
   var syL = invSyaratList(), syM = syL.filter(function (x) { return !(S.syarat || {})[x]; });
@@ -2094,7 +2096,7 @@ function rowsCalc(d) {
     k = L();
     if (c.umKum && c.umDiterima) { var pu = Math.round(c.umk / c.umDiterima * 10000) / 10000;
       if (Math.abs(Math.round(pu * c.umDiterima) - c.umk) <= 1) { pr(o({ no: k, lbl: 'Pengembalian Uang Muka', colon: true, pct: pctf(pu), x: true, rp1: c.umDiterima, eq: true, rp2: c.umk })); return k; } }
-    pr(o(c.umCapped || c.umLbl ? { no: k, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', eq: true, rp2: c.umk } : { no: k, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }));
+    pr(o(c.umCapped || c.umLbl ? { no: k, lbl: c.umLbl || 'Pengembalian Sisa Uang Muka', colon: true, eq: true, rp2: c.umk } : { no: k, lbl: 'Pengembalian Uang Muka', colon: true, pct: pPct, x: true, rp1: c.umDiterima, eq: true, rp2: c.umk }));
     return k;
   };
   var kProg = L(); pr({ no: kProg, lbl: 'Nilai Progres Saat ini', colon: true, pct: pPct, x: true, rp1: d.k.net, eq: true, rp2: c.progres });
@@ -2176,7 +2178,7 @@ function invTahoma(d) {
     '<div class="desc j">' + esc(d.judul) + '</div>' +
     '<div style="padding:1.6mm 0 0 0">' +
     kontrakTahoma(d) +
-    calcTable(d, c.jenis === 'UANG MUKA' && d.k && d.k.net ? [6.2, 54, 2.6, 37, 4, 7, 21, 4, 4, 6, 20.6, 4.2] : [6.2, 51.4, 3, 13.6, 5.2, 6.2, 31, 4.4, 4.6, 6.2, 34.4, 8.4]) +
+    calcTable(d, c.jenis === 'UANG MUKA' && d.k && d.k.net ? [6.2, 54, 2.6, 37, 4, 7, 21, 4, 4, 6, 20.6, 4.2] : [6.2, 56.4, 3, 13.6, 5.2, 6.2, 31, 4.4, 4.6, 6.2, 29.4, 8.4]) +
     '<div style="display:grid;grid-template-columns:1fr 47mm;align-items:center;margin:5mm 3.6mm 0 0"><div class="b c" style="padding-right:12mm">' + esc(payLabel(c)) + '</div>' +
     '<div class="paybox" style="height:10.2mm"><span>Rp.</span><span class="num">' + nf(c.bayar) + '</span></div></div>' +
     '<div class="terb" style="margin:4mm 3.6mm 2.6mm 5.6mm;min-height:10.8mm"><span style="font-size:9pt">Terbilang :</span><span>' + esc(E.terbilang(c.bayar)) + ' Rupiah</span></div>' +
@@ -3103,8 +3105,8 @@ function bind() {
   $('fProgKe').oninput = function () { S.progKe = this.value.replace(/\D/g, ''); if (!S.termin || +S.termin === +S.progKe) { S.termin = S.progKe ? String(+S.progKe + 1) : ''; $('fTermin').value = S.termin; } touched(); update(); };
   $('fTermin').oninput = function () { S.termin = this.value.replace(/\D/g, ''); touched(); update(); };
   $('fProgres').oninput = function () { S.progres = num(this.value); S.pct = ''; $('fPct').value = ''; touched(); update(); };
-  $('fProgres').onblur = function () { if (S.progres) this.value = nfDot(S.progres); };
-  $('fPct').oninput = function () { var p = pro(), v = num(this.value); S.pct = this.value; if (p && kontrak(p).net && v) { S.progres = kontrak(p).net * v / 100; $('fProgres').value = nfDot(S.progres); } touched(); update(); };
+  $('fProgres').onblur = function () { if (S.progres) this.value = nfDec(S.progres); };
+  $('fPct').oninput = function () { var p = pro(), v = num(this.value); S.pct = this.value; if (p && kontrak(p).net && v) { S.progres = kontrak(p).net * v / 100; $('fProgres').value = nfDec(S.progres); } touched(); update(); };
   $('fDpp').oninput = function () { S.dpp = num(this.value); S.umPct = ''; $('fUmPct').value = ''; touched(); update(); };
   $('fUmPct').oninput = function () { var p = pro(), v = num(this.value); S.umPct = this.value; if (p && kontrak(p).net && v) { S.dpp = Math.round(kontrak(p).net * v / 100); $('fDpp').value = nfDot(S.dpp); } touched(); update(); };
   $('fDpp').onblur = function () { if (S.dpp) this.value = nfDot(S.dpp); };
