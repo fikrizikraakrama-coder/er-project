@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nota Kasir — Printer Thermal 58mm</title>
+<style>
+    :root { --paper-mm: 58; --font-px: 9.5; --font-family: "Courier New", Courier, monospace; --logo-pct: 90; --struk-weight: normal; --panel:#1f2a3a; --panel2:#2a3749; --ink:#e8edf3; --muted:#9fb0c3; --accent:#2fd28a; --accent2:#ffb347; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", Arial, sans-serif; background:#e9ecef; color:#222; }
+    .app { display:grid; grid-template-columns: 1fr 340px; min-height:100vh; }
+    @media (max-width: 860px) { .app { grid-template-columns: 1fr; } .preview-col { order:-1; } }
+
+    /* ===== PANEL KENDALI ===== */
+    .panel { background:var(--panel); color:var(--ink); padding:18px 20px 40px; }
+    .panel h1 { font-size:18px; margin:0 0 4px; }
+    .panel .sub { color:var(--muted); font-size:12px; margin:0 0 16px; }
+    .sec { background:var(--panel2); border-radius:8px; padding:12px 14px; margin-bottom:12px; }
+    .sec h2 { font-size:13px; margin:0 0 10px; color:var(--accent); }
+    label { display:block; font-size:11px; color:var(--muted); margin:8px 0 3px; }
+    input[type=text], input[type=number], input[type=datetime-local], textarea, select {
+        width:100%; padding:7px 9px; border:1px solid #3d4c60; border-radius:5px; background:#141c28; color:var(--ink); font-size:13px; font-family:inherit;
+    }
+    textarea { resize:vertical; min-height:60px; }
+    .g2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .logo-row { display:flex; gap:10px; align-items:center; }
+    .logo-thumb { width:56px; height:56px; border:1px dashed #56677c; border-radius:6px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
+    .logo-thumb img { max-width:100%; max-height:100%; }
+    .btn { border:none; border-radius:5px; padding:8px 12px; font-weight:600; cursor:pointer; font-size:12px; }
+    .btn-ghost { background:#3d4c60; color:var(--ink); }
+    .btn-accent { background:var(--accent); color:#0c1b14; }
+    .btn-warn { background:var(--accent2); color:#3a2500; }
+    .btn-print { background:#fff; color:#1f2a3a; width:100%; padding:12px; font-size:14px; margin-top:6px; }
+    .items { width:100%; border-collapse:collapse; margin-top:6px; }
+    .items th { font-size:10px; color:var(--muted); text-align:left; font-weight:600; padding:0 4px 4px; }
+    .items td { padding:3px 2px; }
+    .items input { padding:6px 7px; font-size:12px; }
+    .items .del { background:#c0392b; color:#fff; border:none; border-radius:4px; width:26px; height:28px; cursor:pointer; }
+    .hint { font-size:11px; color:var(--muted); margin-top:6px; line-height:1.4; }
+    .hist-tools { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .hist-list { margin-top:8px; max-height:340px; overflow:auto; border-radius:5px; }
+    .hist-row { display:flex; align-items:center; gap:8px; padding:7px 8px; background:#141c28; border:1px solid #3d4c60; border-radius:5px; margin-bottom:5px; }
+    .hist-row .info { flex:1; min-width:0; font-size:12px; line-height:1.35; }
+    .hist-row .info b { color:var(--ink); }
+    .hist-row .info .m { color:var(--muted); font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hist-row .btn { padding:6px 8px; font-size:11px; flex:none; }
+    .btn-del { background:#c0392b; color:#fff; }
+
+    /* ===== PREVIEW ===== */
+    .preview-col { background:#cfd6dd; display:flex; flex-direction:column; align-items:center; padding:28px 16px; position:sticky; top:0; height:100vh; overflow:auto; }
+    .preview-col .cap { font-size:12px; color:#4a5866; margin-bottom:10px; }
+
+    /* ===== STRUK ===== */
+    .struk {
+        width: calc(var(--paper-mm) * 1mm - var(--safe-mm, 0mm) - var(--shift-mm, 0mm));
+        margin-left: var(--shift-mm, 0mm);
+        padding: var(--top-mm, 0mm) var(--pad-mm, 2.5mm) var(--bot-mm, 8mm);
+        background:#fff; color:#000;
+        font-family: var(--font-family);
+        font-weight: var(--struk-weight);
+        font-size: calc(var(--font-px) * 1px);
+        line-height: 1.32;
+        box-shadow: 0 6px 20px rgba(0,0,0,.18);
+        word-wrap: break-word;
+    }
+    .struk .logo { text-align:center; margin-bottom:6px; }
+    .struk .logo img { width: calc(var(--logo-pct) * 1%); max-width:100%; filter: grayscale(1) contrast(1.15); }
+    .struk .center { text-align:center; }
+    .struk .nama { font-weight:bold; font-size:1.15em; }
+    .struk .rule { border:0; border-top:1px dashed #000; margin:5px 0; }
+    .struk .rule2 { border:0; border-top:3px double #000; margin:5px 0; }
+    .struk .kv { display:flex; }
+    .struk .kv .k { width:38%; flex:none; }
+    .struk .kv .s { width:7%; flex:none; }
+    .struk .kv .v { flex:1; }
+    .struk .line { display:flex; justify-content:space-between; gap:6px; }
+    .struk .line .n { flex:1; }
+    .struk .line .a { flex:none; text-align:right; }
+    .struk .b { font-weight:bold; }
+    .struk .satuan { padding-left:1.2em; font-size:.92em; }
+    .struk .closing { white-space:pre-wrap; text-align:center; margin-top:6px; }
+    .struk .foot { text-align:center; margin-top:8px; }
+    .struk .arrow { overflow:hidden; white-space:nowrap; text-align:center; }
+
+    /* ===== PRINT ===== */
+    @media print {
+        html, body { background:#fff; margin:0; }
+        .app { display:block; }
+        .panel, .preview-col .cap { display:none !important; }
+        .preview-col { display:block; padding:0; height:auto; background:#fff; position:static; overflow:visible; }
+        .struk { box-shadow:none; margin:0 0 0 var(--shift-mm, 0mm); }
+    }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ================= PANEL KENDALI ================= -->
+<div class="panel">
+    <h1>Nota Kasir — Printer Thermal</h1>
+    <p class="sub">Isi di kiri, hasil langsung tampil di kanan. Identitas kafe dan ucapan penutup tersimpan otomatis di browser ini.</p>
+
+    <div class="sec">
+        <h2>Identitas kafe</h2>
+        <div class="logo-row">
+            <div class="logo-thumb" id="logoThumb"><span style="font-size:10px;color:#889;">logo</span></div>
+            <div style="flex:1;">
+                <input type="file" id="logoFile" accept="image/*" style="display:none" onchange="loadLogo(this)">
+                <button class="btn btn-ghost" onclick="document.getElementById('logoFile').click()">Upload foto / logo</button>
+                <button class="btn btn-ghost" onclick="clearLogo()">Hapus</button>
+                <div class="hint">Logo dicetak hitam-putih. Gambar dengan latar putih dan garis tebal hasilnya paling jelas.</div>
+            </div>
+        </div>
+        <label>Ukuran logo: <span id="logoPctLbl">90</span>% lebar nota</label>
+        <input type="range" id="logoPct" min="30" max="100" value="90" oninput="applyLogoSize()" style="width:100%;">
+        <label>Nama kafe</label>
+        <input type="text" id="cafeName" placeholder="Dudukdulu" oninput="render()">
+        <label>Cabang / kota</label>
+        <input type="text" id="cafeCity" placeholder="Pontianak" oninput="render()">
+        <label>Alamat (opsional)</label>
+        <textarea id="cafeAddr" placeholder="Jl. ..." oninput="render()"></textarea>
+        <label>Telepon / WhatsApp (opsional)</label>
+        <input type="text" id="cafePhone" placeholder="0822 5500 8877" oninput="render()">
+    </div>
+
+    <div class="sec">
+        <h2>Transaksi</h2>
+        <div class="g2">
+            <div><label>No. nota</label><input type="text" id="notaNo" oninput="render()"></div>
+            <div><label>Waktu</label><input type="datetime-local" id="notaTime" oninput="render()"></div>
+        </div>
+        <div class="g3">
+            <div><label>Order (pelanggan)</label><input type="text" id="orderName" oninput="render()"></div>
+            <div><label>Kasir</label><input type="text" id="kasirName" oninput="render()"></div>
+            <div><label>Seating</label><input type="text" id="seating" placeholder="Meja 3 (1)" oninput="render()"></div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:10px;" onclick="newNota()">Nota baru (nomor & waktu sekarang, menu dikosongkan)</button>
+    </div>
+
+    <div class="sec">
+        <h2>Menu / pesanan</h2>
+        <table class="items">
+            <thead><tr><th style="width:8%">Qty</th><th>Nama menu</th><th style="width:30%">Harga satuan</th><th></th></tr></thead>
+            <tbody id="itemRows"></tbody>
+        </table>
+        <button class="btn btn-accent" style="margin-top:8px;" onclick="addItem()">+ Tambah menu</button>
+        <div class="g2" style="margin-top:8px;">
+            <div><label>Diskon (Rp, opsional)</label><input type="number" id="diskon" value="0" min="0" oninput="render()"></div>
+            <div><label>Pajak (%, opsional)</label><input type="number" id="pajak" value="0" min="0" step="0.5" oninput="render()"></div>
+        </div>
+        <div class="g2" style="margin-top:8px;">
+            <div><label>Service charge (%, opsional)</label><input type="number" id="service" value="0" min="0" step="0.5" oninput="render()"></div>
+            <div></div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px;"><input type="checkbox" id="showSatuan" checked onchange="render()" style="width:auto;"> Tampilkan harga satuan (@) di bawah menu bila qty lebih dari 1</label>
+        <label>Uang diterima (Rp)</label>
+        <div style="display:flex; gap:6px;">
+            <input type="number" id="bayar" value="0" min="0" oninput="render()">
+            <button class="btn btn-ghost" style="flex:none;" onclick="uangPas()">Uang pas</button>
+        </div>
+    </div>
+
+    <div class="sec">
+        <h2>Penutup nota</h2>
+        <label>Ucapan / info (bebas, boleh beberapa baris)</label>
+        <textarea id="closing" oninput="render()">Kritik Saran Pujian WhatsApp 082255008877
+DM IG @dudukdulu.ptk
+
+Wifi Password : internetkencang
+
+Instagram : dudukdulu.ptk</textarea>
+        <label>Teks status di bawah (mis. Terbayar / Lunas)</label>
+        <input type="text" id="statusText" value="Terbayar" oninput="render()">
+    </div>
+
+    <div class="sec">
+        <h2>Tampilan nota</h2>
+        <div class="g2">
+            <div><label>Jenis huruf</label>
+                <select id="fontFam" onchange="applyPaper()">
+                    <optgroup label="Monospace (gaya struk kasir)">
+                        <option value='"Courier New", Courier, monospace' selected>Courier New</option>
+                        <option value='"Lucida Console", Monaco, monospace'>Lucida Console / Monaco</option>
+                        <option value='Consolas, Menlo, monospace'>Consolas / Menlo</option>
+                        <option value='"Andale Mono", "DejaVu Sans Mono", monospace'>Andale Mono</option>
+                    </optgroup>
+                    <optgroup label="Sans-serif (modern)">
+                        <option value='Arial, Helvetica, sans-serif'>Arial / Helvetica</option>
+                        <option value='Verdana, Geneva, sans-serif'>Verdana</option>
+                        <option value='Tahoma, sans-serif'>Tahoma</option>
+                        <option value='"Trebuchet MS", sans-serif'>Trebuchet MS</option>
+                        <option value='"Segoe UI", Roboto, sans-serif'>Segoe UI / Roboto</option>
+                    </optgroup>
+                    <optgroup label="Serif (klasik)">
+                        <option value='Georgia, serif'>Georgia</option>
+                        <option value='"Times New Roman", Times, serif'>Times New Roman</option>
+                        <option value='"Palatino Linotype", "Book Antiqua", Palatino, serif'>Palatino / Book Antiqua</option>
+                    </optgroup>
+                </select></div>
+            <div><label>Bahasa nota</label>
+                <select id="lang" onchange="render()">
+                    <option value="id" selected>Indonesia</option>
+                    <option value="en">English</option>
+                </select></div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px;"><input type="checkbox" id="boldAll" onchange="applyPaper()" style="width:auto;"> Cetak seluruh nota dengan huruf tebal (bold)</label>
+        <div class="hint">Huruf monospace memberi kolom angka yang rapi; huruf lain tampil lebih modern tetapi lebar tiap karakter berbeda. Printer thermal mencetak semua huruf sebagai gambar, jadi apa yang tampil di pratinjau itulah yang tercetak.</div>
+    </div>
+
+    <div class="sec">
+        <h2>Pengaturan cetak</h2>
+        <div class="g3">
+            <div><label>Lebar kertas</label>
+                <select id="paperW" onchange="applyPaper()">
+                    <option value="48" selected>48 mm — area cetak printer 58 mm (ekstensi Chrome Rongta)</option>
+                    <option value="58">58 mm (driver sistem)</option>
+                    <option value="72">72 mm — area cetak printer 80 mm (ekstensi Rongta)</option>
+                    <option value="80">80 mm (driver sistem)</option>
+                </select></div>
+            <div><label>Tinggi kertas di dialog cetak (mm)</label><input type="number" id="paperH" value="210" min="30" step="1" oninput="applyPaper()"></div>
+            <div><label>Ukuran huruf</label>
+                <select id="fontPx" onchange="applyPaper()">
+                    <option value="9">Kecil (±34 karakter/baris)</option>
+                    <option value="9.5" selected>Normal (±32 karakter, standar printer 58 mm)</option>
+                    <option value="10.5">Besar (±29 karakter)</option>
+                    <option value="11.5">Sangat besar (±26 karakter)</option>
+                </select></div>
+        </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px;"><input type="checkbox" id="autoH" checked onchange="applyPaper()" style="width:auto;"> Panjang halaman otomatis mengikuti panjang nota (hemat kertas)</label>
+        <div class="g3">
+            <div><label>Kosong di atas (mm)</label><input type="number" id="topMm" value="0" min="0" step="1" oninput="applyPaper()"></div>
+            <div><label>Kosong di bawah, untuk sobek (mm)</label><input type="number" id="botMm" value="8" min="0" step="1" oninput="applyPaper()"></div>
+            <div><label>Geser isi ke kanan (mm)</label><input type="number" id="shiftMm" value="0" min="0" max="10" step="0.5" oninput="applyPaper()"></div>
+        </div>
+        <div class="hint" id="lenInfo"></div>
+        <button class="btn btn-print" onclick="printNota()">🖨️ Cetak nota (otomatis tersimpan ke riwayat)</button>
+        <div class="hint">Dengan ekstensi Chrome Rongta: pilih lebar <b>48 mm</b>. Di dialog cetak pilih Paper size yang <b>lebarnya 48</b> dan tingginya <b>sama atau lebih panjang</b> dari panjang nota (mis. 48 x 210), Margins <b>None</b>, Scale <b>Default</b>, matikan "Headers and footers". Aktifkan <b>Trim Bottom Blank</b> di pengaturan ekstensi Rongta agar sisa kertas tidak ikut keluar.<br>Kalau tulisan masih mepet ke kiri, isi "Geser isi ke kanan" (mis. 3–5 mm) sampai tengah. Dengan driver sistem biasa: pilih 58 mm dan ukuran kertas roll 58 mm.</div>
+    </div>
+
+    <div class="sec">
+        <h2>Riwayat nota</h2>
+        <div class="hint" style="margin-top:0;">Setiap nota yang dicetak tersimpan di sini (di browser ini). <b>Buka</b> = isi persis seperti dulu, tinggal ganti tanggal/jam. <b>Duplikat</b> = isi sama dengan nomor baru dan waktu sekarang.</div>
+        <input type="text" id="histSearch" placeholder="Cari no. nota, nama order, meja, atau menu..." oninput="drawHistory()" style="margin-top:8px;">
+        <div class="hist-list" id="histList"></div>
+        <div class="hist-tools">
+            <button class="btn btn-ghost" onclick="saveHistory(false)">Simpan nota ini ke riwayat (tanpa cetak)</button>
+            <button class="btn btn-ghost" onclick="exportHistory()">Backup riwayat (file)</button>
+            <button class="btn btn-ghost" onclick="$('importFile').click()">Pulihkan dari backup</button>
+            <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importHistory(this)">
+        </div>
+        <div class="hint">Riwayat hilang bila data browser (cookies & site data) dihapus atau file dibuka di browser/komputer lain. Sesekali tekan <b>Backup riwayat</b> untuk menyimpan salinannya.</div>
+    </div>
+</div>
+
+<!-- ================= PREVIEW / CETAK ================= -->
+<div class="preview-col">
+    <div class="cap">Pratinjau nota (ukuran sebenarnya)</div>
+    <div class="struk" id="struk"></div>
+</div>
+</div>
+
+<script>
+    // ---------- penyimpanan lokal (aman jika tidak tersedia) ----------
+    const lsGet = k => { try { return localStorage.getItem(k); } catch(e){ return null; } };
+    const lsSet = (k,v) => { try { localStorage.setItem(k,v); } catch(e){} };
+    const $ = id => document.getElementById(id);
+    let logoData = lsGet('nota_logo') || '';
+    let items = [];
+
+    // ---------- util ----------
+    const fmt = n => Math.round(n).toLocaleString('id-ID');
+    const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    function fmtWaktu(v) {
+        if(!v) return '';
+        const d = new Date(v);
+        const bln = ($('lang') && $('lang').value === 'en') ? bulanEN : ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+        return `${String(d.getDate()).padStart(2,'0')} ${bln[d.getMonth()]} ${String(d.getFullYear()).slice(2)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+    function nowLocal() {
+        const d = new Date(); d.setSeconds(0,0);
+        return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    }
+    function genNotaNo() {
+        const d = new Date();
+        const key = 'nota_seq_' + d.toISOString().slice(0,10);
+        const seq = (parseInt(lsGet(key) || '0') + 1); lsSet(key, seq);
+        return `N${String(d.getFullYear()).slice(2)}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(seq).padStart(3,'0')}`;
+    }
+
+    // ---------- logo ----------
+    function loadLogo(inp) {
+        const f = inp.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = e => {
+            // perkecil agar ringan disimpan
+            const img = new Image();
+            img.onload = () => {
+                const c = document.createElement('canvas'); const w = 400, h = Math.round(img.height * w / img.width);
+                c.width = w; c.height = h; const ctx = c.getContext('2d');
+                ctx.fillStyle = '#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
+                logoData = c.toDataURL('image/jpeg', 0.85); lsSet('nota_logo', logoData); render();
+            };
+            img.src = e.target.result;
+        };
+        r.readAsDataURL(f);
+    }
+    function clearLogo(){ logoData=''; lsSet('nota_logo',''); $('logoFile').value=''; render(); }
+
+    // ---------- menu ----------
+    function addItem(nama='', qty=1, harga='') {
+        items.push({nama, qty, harga}); drawItems(); render();
+    }
+    function delItem(i){ items.splice(i,1); drawItems(); render(); }
+    function updItem(i, k, v){ items[i][k] = v; render(); }
+    function drawItems() {
+        $('itemRows').innerHTML = items.map((it,i) => `<tr>
+            <td><input type="number" min="1" value="${it.qty}" oninput="updItem(${i},'qty',this.value)"></td>
+            <td><input type="text" value="${esc(it.nama)}" placeholder="Nama menu" oninput="updItem(${i},'nama',this.value)"></td>
+            <td><input type="number" min="0" value="${it.harga}" placeholder="0" oninput="updItem(${i},'harga',this.value)"></td>
+            <td><button class="del" title="Hapus" onclick="delItem(${i})">×</button></td></tr>`).join('');
+    }
+    function newNota() {
+        $('notaNo').value = genNotaNo(); $('notaTime').value = nowLocal();
+        $('orderName').value=''; $('seating').value=''; $('bayar').value=0; $('diskon').value=0;
+        items = []; addItem();
+    }
+
+    // ---------- pengaturan kertas ----------
+    function applyPaper() {
+        document.documentElement.style.setProperty('--paper-mm', $('paperW').value);
+        document.documentElement.style.setProperty('--font-px', $('fontPx').value);
+        document.documentElement.style.setProperty('--font-family', $('fontFam').value);
+        document.documentElement.style.setProperty('--struk-weight', $('boldAll').checked ? 'bold' : 'normal');
+        lsSet('nota_fontFam', $('fontFam').value); lsSet('nota_bold', $('boldAll').checked ? '1' : '0');
+        const ext = ($('paperW').value==='48'||$('paperW').value==='72');
+        document.documentElement.style.setProperty('--pad-mm', ext ? '0.5mm' : '2.5mm');
+        document.documentElement.style.setProperty('--safe-mm', ext ? '1.5mm' : '0mm');
+        lsSet('nota_paperH', $('paperH').value);
+        const mm = id => Math.max(parseFloat($(id).value)||0, 0) + 'mm';
+        document.documentElement.style.setProperty('--top-mm', mm('topMm'));
+        document.documentElement.style.setProperty('--bot-mm', mm('botMm'));
+        document.documentElement.style.setProperty('--shift-mm', mm('shiftMm'));
+        ['topMm','botMm','shiftMm'].forEach(id => lsSet('nota_'+id, $(id).value));
+        lsSet('nota_autoH', $('autoH').checked ? '1' : '0');
+        lsSet('nota_paper', $('paperW').value); lsSet('nota_font', $('fontPx').value);
+        // @page tidak menerima CSS variable, jadi ukuran kertas ditulis langsung
+        let st = $('pageStyle'); if(!st){ st = document.createElement('style'); st.id='pageStyle'; document.head.appendChild(st); }
+        setPageSize();
+    }
+    // Tinggi halaman mengikuti panjang nota (agar printer roll tidak mengeluarkan kertas kosong)
+    function setPageSize() {
+        let st = $('pageStyle'); if(!st){ st = document.createElement('style'); st.id='pageStyle'; document.head.appendChild(st); }
+        const w = $('paperW').value;
+        // Mode ekstensi Rongta: samakan persis dengan ukuran kertas ekstensi (48x210 / 72x210)
+        // agar Chrome tidak menskalakan; sisa kertas kosong dipotong oleh "Trim Bottom Blank".
+        const need = Math.ceil($('struk').offsetHeight * 25.4 / 96) + 1;
+        const ext = (w === '48' || w === '72');
+        const kertas = parseInt($('paperH').value) || 210;
+        // Otomatis: halaman sepanjang nota saja, jadi tidak ada sisa kosong 210 mm yang ikut keluar.
+        const hmm = ($('autoH').checked || !ext) ? need : kertas;
+        st.textContent = `@page { size: ${w}mm ${hmm}mm; margin: 0; }`;
+        const info = $('lenInfo'); if(info) info.innerHTML = `Panjang nota saat ini: <b>${need} mm</b>.` + (ext && need > kertas ? ` <span style="color:#ffb347">Lebih panjang dari kertas ${kertas} mm di dialog cetak — pilih Paper size yang lebih panjang agar tulisan tidak mengecil/terpotong.</span>` : '');
+    }
+    window.addEventListener('beforeprint', setPageSize);
+
+    function applyLogoSize() {
+        const v = $('logoPct').value; $('logoPctLbl').innerText = v;
+        document.documentElement.style.setProperty('--logo-pct', v); lsSet('nota_logoPct', v); setPageSize();
+    }
+
+    const T = {
+        id: { nota:'No Nota', waktu:'Waktu', order:'Order', kasir:'Kasir', seat:'Seating', subtotal:n=>`Subtotal ${n} produk`, diskon:'Diskon', pajak:p=>`Pajak ${p}%`, service:p=>`Service ${p}%`, total:'Total Tagihan', bayar:'Total Bayar', kembali:'Kembalian', kurang:'Kurang Bayar', kosong:'(belum ada menu)' },
+        en: { nota:'Receipt No', waktu:'Date/Time', order:'Order', kasir:'Cashier', seat:'Table', subtotal:n=>`Subtotal ${n} item${n==1?'':'s'}`, diskon:'Discount', pajak:p=>`Tax ${p}%`, service:p=>`Service ${p}%`, total:'Total', bayar:'Paid', kembali:'Change', kurang:'Balance Due', kosong:'(no items yet)' }
+    };
+    const bulanEN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    // ---------- hitung ----------
+    function hitung() {
+        const list = items.filter(it => String(it.nama).trim() !== '');
+        const subtotal = list.reduce((a,it) => a + (parseFloat(it.qty)||0) * (parseFloat(it.harga)||0), 0);
+        const diskon = parseFloat($('diskon').value)||0;
+        const pajakPct = parseFloat($('pajak').value)||0;
+        const servicePct = parseFloat($('service').value)||0;
+        const dasar = subtotal - diskon;
+        const service = Math.round(dasar * servicePct / 100);
+        const pajak = Math.round((dasar + service) * pajakPct / 100);
+        const total = Math.max(dasar + service + pajak, 0);
+        return { list, subtotal, diskon, pajakPct, servicePct, service, pajak, total };
+    }
+    function uangPas(){ $('bayar').value = hitung().total; render(); }
+
+    // ---------- riwayat ----------
+    const HKEY = 'nota_history';
+    const getHist = () => { try { return JSON.parse(lsGet(HKEY) || '[]'); } catch(e){ return []; } };
+    const setHist = arr => { try { localStorage.setItem(HKEY, JSON.stringify(arr)); return true; } catch(e){ alert('Riwayat gagal disimpan (penyimpanan browser penuh atau diblokir). Coba Backup lalu hapus riwayat lama.'); return false; } };
+    function snapshot() {
+        const fields = ['notaNo','notaTime','orderName','kasirName','seating','diskon','pajak','service','bayar','closing','statusText'];
+        const d = {}; fields.forEach(f => d[f] = $(f).value);
+        d.showSatuan = $('showSatuan').checked;
+        d.items = items.filter(it => String(it.nama).trim() !== '').map(it => ({nama:it.nama, qty:it.qty, harga:it.harga}));
+        d.total = hitung().total;
+        return d;
+    }
+    function saveHistory(silent) {
+        const d = snapshot();
+        if(!d.items.length) { if(!silent) alert('Belum ada menu untuk disimpan.'); return; }
+        let h = getHist().filter(e => e.data.notaNo !== d.notaNo || !d.notaNo);
+        h.unshift({ savedAt: new Date().toISOString(), data: d });
+        if(h.length > 1000) h = h.slice(0, 1000);
+        if(setHist(h)) { drawHistory(); if(!silent) alert('Nota tersimpan di riwayat.'); }
+    }
+    function loadHistory(i, duplikat) {
+        const e = getHist()[i]; if(!e) return;
+        const d = e.data;
+        ['notaNo','notaTime','orderName','kasirName','seating','diskon','pajak','service','bayar','closing','statusText'].forEach(f => { if(d[f] !== undefined) $(f).value = d[f]; });
+        $('showSatuan').checked = d.showSatuan !== false;
+        items = (d.items || []).map(it => ({...it}));
+        if(!items.length) items.push({nama:'', qty:1, harga:''});
+        if(duplikat) { $('notaNo').value = genNotaNo(); $('notaTime').value = nowLocal(); }
+        drawItems(); render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if(!duplikat) setTimeout(() => $('notaTime').focus(), 300);
+    }
+    function delHistory(i) {
+        const h = getHist(); const e = h[i]; if(!e) return;
+        if(!confirm(`Hapus nota ${e.data.notaNo || ''} dari riwayat?`)) return;
+        h.splice(i,1); setHist(h); drawHistory();
+    }
+    function drawHistory() {
+        const q = ($('histSearch').value || '').toLowerCase().trim();
+        const h = getHist();
+        const rows = h.map((e,i) => ({e,i})).filter(({e}) => {
+            if(!q) return true;
+            const d = e.data;
+            return [d.notaNo, d.orderName, d.seating, d.kasirName, ...(d.items||[]).map(it => it.nama)].join(' ').toLowerCase().includes(q);
+        });
+        $('histList').innerHTML = rows.length ? rows.map(({e,i}) => {
+            const d = e.data;
+            const menu = (d.items||[]).map(it => `${it.qty} ${it.nama}`).join(', ');
+            return `<div class="hist-row"><div class="info"><b>${esc(d.notaNo||'-')}</b> · ${esc(fmtWaktu(d.notaTime))}<br>${esc(d.orderName||'')}${d.seating ? ' · '+esc(d.seating) : ''} · <b>Rp ${fmt(d.total||0)}</b><div class="m">${esc(menu)}</div></div>
+                <button class="btn btn-accent" onclick="loadHistory(${i},false)">Buka</button>
+                <button class="btn btn-ghost" onclick="loadHistory(${i},true)">Duplikat</button>
+                <button class="btn btn-del" onclick="delHistory(${i})">×</button></div>`;
+        }).join('') : `<div class="hint">${h.length ? 'Tidak ada yang cocok.' : 'Belum ada riwayat. Nota tersimpan otomatis saat Anda menekan Cetak.'}</div>`;
+    }
+    function exportHistory() {
+        const blob = new Blob([JSON.stringify(getHist(), null, 1)], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `riwayat-nota-${new Date().toISOString().slice(0,10)}.json`; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    function importHistory(inp) {
+        const f = inp.files[0]; if(!f) return;
+        const r = new FileReader();
+        r.onload = ev => {
+            try {
+                const masuk = JSON.parse(ev.target.result);
+                if(!Array.isArray(masuk)) throw 0;
+                const ada = getHist(); const kunci = new Set(ada.map(e => e.data.notaNo + '|' + e.savedAt));
+                const baru = masuk.filter(e => e && e.data && !kunci.has(e.data.notaNo + '|' + e.savedAt));
+                const gabung = ada.concat(baru).sort((a,b) => String(b.savedAt).localeCompare(String(a.savedAt)));
+                if(setHist(gabung)) { drawHistory(); alert(`${baru.length} nota dipulihkan.`); }
+            } catch(e) { alert('File backup tidak bisa dibaca.'); }
+            inp.value = '';
+        };
+        r.readAsText(f);
+    }
+    function printNota() { saveHistory(true); setPageSize(); window.print(); }
+
+    // Rapikan angka seperti "010" menjadi "10" saat kolom ditinggalkan
+    document.addEventListener('change', e => {
+        const el = e.target;
+        if(el.tagName === 'INPUT' && el.type === 'number' && el.value !== '') {
+            const n = parseFloat(el.value); if(!isNaN(n) && String(n) !== el.value) { el.value = n; el.dispatchEvent(new Event('input', {bubbles:true})); }
+        }
+    });
+
+    // ---------- render struk ----------
+    function render() {
+        // simpan identitas, penutup, dan tarif
+        ['cafeName','cafeCity','cafeAddr','cafePhone','closing','statusText','kasirName','pajak','service'].forEach(id => lsSet('nota_'+id, $(id).value));
+
+        const L = T[$('lang').value] || T.id; lsSet('nota_lang', $('lang').value);
+        const { list, subtotal, diskon, pajakPct, servicePct, service, pajak, total } = hitung();
+        const bayar = parseFloat($('bayar').value)||0;
+        const kembali = bayar - total;
+        const jmlProduk = list.reduce((a,it)=>a+(parseFloat(it.qty)||0),0);
+
+        const kv = (k,v) => v ? `<div class="kv"><div class="k">${esc(k)}</div><div class="s">:</div><div class="v">${esc(v)}</div></div>` : '';
+        const line = (n,a,b) => `<div class="line${b?' b':''}"><div class="n">${esc(n)}</div><div class="a">${a}</div></div>`;
+
+        let h = '';
+        if(logoData) h += `<div class="logo"><img src="${logoData}"></div>`;
+        if($('cafeName').value) h += `<div class="center nama">${esc($('cafeName').value)}</div>`;
+        if($('cafeCity').value) h += `<div class="center">${esc($('cafeCity').value)}</div>`;
+        if($('cafeAddr').value) h += `<div class="center" style="font-size:.9em;">${esc($('cafeAddr').value).replace(/\n/g,'<br>')}</div>`;
+        if($('cafePhone').value) h += `<div class="center" style="font-size:.9em;">${esc($('cafePhone').value)}</div>`;
+        h += `<div style="height:6px"></div>`;
+        h += kv(L.nota, $('notaNo').value) + kv(L.waktu, fmtWaktu($('notaTime').value)) + kv(L.order, $('orderName').value) + kv(L.kasir, $('kasirName').value) + kv(L.seat, $('seating').value);
+        h += `<hr class="rule">`;
+        h += list.length ? list.map(it => {
+            const q = parseFloat(it.qty)||0, hs = parseFloat(it.harga)||0;
+            let row = line(`${it.qty} ${it.nama}`, fmt(q*hs));
+            if(q > 1 && $('showSatuan').checked) row += `<div class="satuan">@ ${fmt(hs)}</div>`;
+            return row;
+        }).join('') : `<div class="center" style="color:#888;">${L.kosong}</div>`;
+        h += `<hr class="rule">`;
+        h += line(L.subtotal(jmlProduk), fmt(subtotal));
+        if(diskon) h += line(L.diskon, '-' + fmt(diskon));
+        if(service) h += line(L.service(servicePct), fmt(service));
+        if(pajak) h += line(L.pajak(pajakPct), fmt(pajak));
+        h += line(L.total, fmt(total), true);
+        h += `<hr class="rule">`;
+        h += line(L.bayar, fmt(bayar)) + (kembali < 0 ? line(L.kurang, fmt(-kembali), true) : line(L.kembali, fmt(kembali)));
+        h += `<hr class="rule2">`;
+        if($('closing').value.trim()) h += `<div class="closing">${esc($('closing').value)}</div>`;
+        if($('statusText').value.trim()) h += `<div class="foot"><div class="b">${esc($('statusText').value)}</div><div class="arrow">&lt;------ ${esc(fmtWaktu($('notaTime').value))} ------&gt;</div></div>`;
+        $('struk').innerHTML = h;
+        setPageSize();
+
+        $('logoThumb').innerHTML = logoData ? `<img src="${logoData}">` : '<span style="font-size:10px;color:#889;">logo</span>';
+    }
+
+    // ---------- init ----------
+    (function init(){
+        ['cafeName','cafeCity','cafeAddr','cafePhone','closing','statusText','kasirName','pajak','service','topMm','botMm','shiftMm'].forEach(id => { const v = lsGet('nota_'+id); if(v !== null && v !== '') $(id).value = v; });
+        $('autoH').checked = lsGet('nota_autoH') !== '0';
+        const pw = lsGet('nota_paper'); if(pw) $('paperW').value = pw;
+        const fp = lsGet('nota_font'); if(fp) $('fontPx').value = fp;
+        const ph = lsGet('nota_paperH'); if(ph) $('paperH').value = ph;
+        const ff = lsGet('nota_fontFam'); if(ff) $('fontFam').value = ff;
+        $('boldAll').checked = lsGet('nota_bold') === '1';
+        const lg = lsGet('nota_lang'); if(lg) $('lang').value = lg;
+        const lp = lsGet('nota_logoPct'); if(lp) $('logoPct').value = lp; applyLogoSize();
+        applyPaper();
+        $('notaNo').value = genNotaNo(); $('notaTime').value = nowLocal();
+        if(!$('cafeName').value) { $('cafeName').value='Dudukdulu'; $('cafeCity').value='Pontianak'; }
+        addItem('Pisgor Keju Susu',1,12000); addItem('Creamy Chocolate',1,14000); addItem('Coffee Milk Signature (Ice)',1,17000);
+        $('bayar').value = 50000; $('orderName').value='Putri'; if(!$('kasirName').value) $('kasirName').value='Putri'; $('seating').value='Meja 3 (1)';
+        render();
+        drawHistory();
+    })();
+</script>
+</body>
+</html>
