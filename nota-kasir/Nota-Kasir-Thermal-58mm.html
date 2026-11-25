@@ -209,7 +209,35 @@ Instagram : dudukdulu.ptk</textarea>
     </div>
 
     <div class="sec">
-        <h2>Pengaturan cetak</h2>
+        <h2>Cetak langsung ke printer (tanpa dialog cetak, seperti aplikasi Android)</h2>
+        <div class="hint" style="margin-top:0;">Nota diubah menjadi gambar selebar area cetak printer lalu dikirim langsung ke printer, jadi ukuran selalu pas dan tidak ada kertas kosong berlebih. Pakai Google Chrome. Sambungkan sekali, lalu tinggal tekan Cetak langsung.</div>
+        <div class="hist-tools">
+            <button class="btn btn-ghost" onclick="connectBLE()">Sambungkan Bluetooth</button>
+            <button class="btn btn-ghost" onclick="connectSerial()">Sambungkan USB / Bluetooth (port serial)</button>
+            <button class="btn btn-ghost" onclick="disconnectPrinter()">Putuskan</button>
+        </div>
+        <div class="hint" id="prnStatus">Printer: belum tersambung.</div>
+        <div class="g2">
+            <div><label>Kepekatan cetak</label>
+                <select id="darkness" onchange="lsSet('nota_darkness', this.value)">
+                    <option value="120">Tipis</option>
+                    <option value="160" selected>Normal</option>
+                    <option value="200">Tebal</option>
+                </select></div>
+            <div><label>Lebar titik printer</label>
+                <select id="dots" onchange="lsSet('nota_dots', this.value)">
+                    <option value="auto" selected>Otomatis (58 mm = 384, 80 mm = 576)</option>
+                    <option value="384">384 titik (58 mm)</option>
+                    <option value="576">576 titik (80 mm)</option>
+                </select></div>
+        </div>
+        <button class="btn btn-print" style="background:var(--accent);" onclick="printDirect()">⚡ Cetak langsung ke printer</button>
+        <button class="btn btn-ghost" style="width:100%; margin-top:6px;" onclick="downloadPNG()">Unduh gambar nota (PNG) — bisa dicetak dari aplikasi printer di HP</button>
+        <div class="hint">Bluetooth: nyalakan printer, tekan Sambungkan Bluetooth, pilih nama printer. Bila printer tidak muncul di daftar Bluetooth, pasangkan (pair) dulu di System Settings → Bluetooth lalu pakai tombol <b>port serial</b>. USB: colok kabel lalu pakai tombol <b>port serial</b>.</div>
+    </div>
+
+    <div class="sec">
+        <h2>Pengaturan cetak (lewat dialog cetak Chrome)</h2>
         <div class="g3">
             <div><label>Lebar kertas</label>
                 <select id="paperW" onchange="applyPaper()">
@@ -468,6 +496,158 @@ Instagram : dudukdulu.ptk</textarea>
     }
     function printNota() { saveHistory(true); setPageSize(); window.print(); }
 
+    // ---------- cetak langsung (ESC/POS raster) ----------
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    let prn = null; // { kind, write(bytes), close(), name }
+    function setStatus(t, ok) { $('prnStatus').innerHTML = (ok ? '<span style="color:#2fd28a">●</span> ' : '') + t; }
+    function printerDots() {
+        const v = $('dots').value; if(v !== 'auto') return parseInt(v);
+        return ($('paperW').value === '72' || $('paperW').value === '80') ? 576 : 384;
+    }
+
+    // Ubah nota (HTML) menjadi canvas selebar titik printer
+    async function strukCanvas(dots) {
+        const mmW = dots >= 576 ? 72 : 48;
+        const vars = document.documentElement.style.cssText +
+            `;--paper-mm:${mmW};--safe-mm:0mm;--shift-mm:0mm;--pad-mm:0.5mm;--top-mm:0mm;--bot-mm:0mm;`;
+        const host = document.createElement('div');
+        host.style.cssText = 'position:absolute;left:-10000px;top:0;';
+        const wrap = document.createElement('div'); wrap.style.cssText = vars;
+        const sk = document.createElement('div'); sk.className = 'struk'; sk.style.cssText = 'box-shadow:none;margin:0;';
+        sk.innerHTML = $('struk').innerHTML; wrap.appendChild(sk); host.appendChild(wrap);
+        document.body.appendChild(host);
+        const el = host.firstChild.firstChild;
+        const w = el.offsetWidth, h = el.offsetHeight;
+        const css = [...document.querySelectorAll('style')].map(st => st.textContent).join('\n');
+        const xhtml = new XMLSerializer().serializeToString(host.firstChild);
+        document.body.removeChild(host);
+        const scale = dots / w, H = Math.ceil(h * scale);
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${dots}" height="${H}" viewBox="0 0 ${w} ${h}"><foreignObject x="0" y="0" width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${css.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</style>${xhtml}</div></foreignObject></svg>`;
+        const img = new Image();
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        await img.decode();
+        const c = document.createElement('canvas'); c.width = dots; c.height = H;
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, dots, H);
+        ctx.drawImage(img, 0, 0, dots, H);
+        // jadikan hitam-putih murni (seperti yang akan tercetak)
+        const thr = parseInt($('darkness').value) || 160;
+        const id = ctx.getImageData(0, 0, dots, H), d = id.data;
+        for(let i = 0; i < d.length; i += 4) {
+            const v = (d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114) < thr ? 0 : 255;
+            d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+        }
+        ctx.putImageData(id, 0, 0);
+        // buang baris putih di bagian bawah
+        let last = H - 1;
+        outer: for(; last > 0; last--) { for(let x = 0; x < dots; x++) if(d[(last*dots + x)*4] === 0) break outer; }
+        if(last < H - 1) { const c2 = document.createElement('canvas'); c2.width = dots; c2.height = last + 2; c2.getContext('2d').drawImage(c, 0, 0); return c2; }
+        return c;
+    }
+
+    function escposFromCanvas(c) {
+        const w = c.width, h = c.height, bw = Math.ceil(w / 8);
+        const d = c.getContext('2d').getImageData(0, 0, w, h).data;
+        const out = [0x1B, 0x40]; // init
+        const feed = mm => { let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); out.push(0x1B, 0x4A, k); n -= k; } };
+        feed(parseFloat($('topMm').value) || 0);
+        const BAND = 48;
+        for(let y0 = 0; y0 < h; y0 += BAND) {
+            const rows = Math.min(BAND, h - y0);
+            out.push(0x1D, 0x76, 0x30, 0x00, bw & 255, bw >> 8, rows & 255, rows >> 8);
+            for(let y = y0; y < y0 + rows; y++) for(let bx = 0; bx < bw; bx++) {
+                let b = 0;
+                for(let k = 0; k < 8; k++) { const x = bx*8 + k; if(x < w && d[(y*w + x)*4] === 0) b |= 0x80 >> k; }
+                out.push(b);
+            }
+        }
+        feed(parseFloat($('botMm').value) || 0);
+        return new Uint8Array(out);
+    }
+
+    const BLE_SERVICES = [
+        '000018f0-0000-1000-8000-00805f9b34fb', 'e7810a71-73ae-499d-8c15-faa9aef0c3f2',
+        '49535343-fe7d-4ae5-8fa9-9fafd205e455', '0000ff00-0000-1000-8000-00805f9b34fb',
+        '0000ae30-0000-1000-8000-00805f9b34fb', '0000fee7-0000-1000-8000-00805f9b34fb',
+        '0000ffe0-0000-1000-8000-00805f9b34fb', '0000ff80-0000-1000-8000-00805f9b34fb',
+        '0000af30-0000-1000-8000-00805f9b34fb', '0000ae00-0000-1000-8000-00805f9b34fb'
+    ];
+    async function connectBLE() {
+        if(!navigator.bluetooth) { alert('Browser ini tidak mendukung Bluetooth langsung. Pakai Google Chrome, atau gunakan tombol port serial.'); return; }
+        try {
+            const dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BLE_SERVICES });
+            setStatus('Menyambungkan ke ' + esc(dev.name || 'printer') + '...');
+            const gatt = await dev.gatt.connect();
+            let ch = null;
+            for(const svc of await gatt.getPrimaryServices()) {
+                for(const c of await svc.getCharacteristics()) {
+                    if(c.properties.write || c.properties.writeWithoutResponse) { ch = c; break; }
+                }
+                if(ch) break;
+            }
+            if(!ch) { gatt.disconnect(); setStatus('Printer tersambung tetapi tidak ditemukan jalur kirim data. Coba tombol port serial.'); return; }
+            let chunk = 180;
+            const withResp = ch.properties.write;
+            prn = { kind: 'ble', name: dev.name || 'printer Bluetooth',
+                async write(bytes) {
+                    if(!dev.gatt.connected) await dev.gatt.connect();
+                    for(let i = 0; i < bytes.length; ) {
+                        const part = bytes.slice(i, i + chunk);
+                        try {
+                            if(withResp) await ch.writeValueWithResponse(part);
+                            else { await ch.writeValueWithoutResponse(part); await sleep(8); }
+                            i += part.length;
+                        } catch(e) { if(chunk > 20) { chunk = 20; continue; } throw e; }
+                    }
+                },
+                close() { try { dev.gatt.disconnect(); } catch(e){} } };
+            dev.addEventListener('gattserverdisconnected', () => setStatus('Printer Bluetooth terputus. Akan disambung ulang saat mencetak.'));
+            setStatus('Tersambung (Bluetooth): <b>' + esc(prn.name) + '</b>', true);
+        } catch(e) { if(e.name !== 'NotFoundError') { setStatus('Gagal menyambung: ' + esc(e.message)); } }
+    }
+    async function openSerial(port) {
+        if(!port.writable) await port.open({ baudRate: 9600 });
+        const info = port.getInfo ? port.getInfo() : {};
+        prn = { kind: 'serial', name: info.bluetoothServiceClassId ? 'printer Bluetooth (serial)' : 'printer USB/serial',
+            async write(bytes) {
+                const wr = port.writable.getWriter();
+                try { for(let i = 0; i < bytes.length; i += 512) { await wr.write(bytes.slice(i, i + 512)); await sleep(15); } }
+                finally { wr.releaseLock(); }
+            },
+            async close() { try { await port.close(); } catch(e){} } };
+        setStatus('Tersambung: <b>' + prn.name + '</b>', true);
+    }
+    async function connectSerial() {
+        if(!navigator.serial) { alert('Browser ini tidak mendukung port serial. Pakai Google Chrome versi terbaru.'); return; }
+        try {
+            const port = await navigator.serial.requestPort({ allowedBluetoothServiceClassIds: ['00001101-0000-1000-8000-00805f9b34fb'] });
+            await openSerial(port);
+        } catch(e) { if(e.name !== 'NotFoundError') setStatus('Gagal menyambung: ' + esc(e.message)); }
+    }
+    async function disconnectPrinter() { if(prn) await prn.close(); prn = null; setStatus('Printer: belum tersambung.'); }
+
+    async function printDirect() {
+        try {
+            if(!prn && navigator.serial) {
+                const ports = await navigator.serial.getPorts();
+                if(ports.length === 1) await openSerial(ports[0]);
+            }
+            if(!prn) { alert('Sambungkan printer dulu (tombol Sambungkan Bluetooth atau port serial).'); return; }
+            saveHistory(true);
+            setStatus('Menyiapkan gambar nota...', true);
+            const c = await strukCanvas(printerDots());
+            const bytes = escposFromCanvas(c);
+            setStatus('Mengirim ke ' + esc(prn.name) + '... (' + Math.round(bytes.length/1024) + ' KB)', true);
+            await prn.write(bytes);
+            setStatus('Selesai dikirim ke <b>' + esc(prn.name) + '</b>.', true);
+        } catch(e) { setStatus('Gagal mencetak: ' + esc(e.message) + '. Coba putuskan lalu sambungkan lagi.'); }
+    }
+    async function downloadPNG() {
+        const c = await strukCanvas(printerDots());
+        const a = document.createElement('a');
+        a.href = c.toDataURL('image/png');
+        a.download = `nota-${($('notaNo').value || 'kasir').replace(/[^\w-]+/g,'_')}.png`; a.click();
+    }
+
     // Rapikan angka seperti "010" menjadi "10" saat kolom ditinggalkan
     document.addEventListener('change', e => {
         const el = e.target;
@@ -526,6 +706,8 @@ Instagram : dudukdulu.ptk</textarea>
     (function init(){
         ['cafeName','cafeCity','cafeAddr','cafePhone','closing','statusText','kasirName','pajak','service','topMm','botMm','shiftMm'].forEach(id => { const v = lsGet('nota_'+id); if(v !== null && v !== '') $(id).value = v; });
         $('autoH').checked = lsGet('nota_autoH') !== '0';
+        const dk = lsGet('nota_darkness'); if(dk) $('darkness').value = dk;
+        const dt = lsGet('nota_dots'); if(dt) $('dots').value = dt;
         const pw = lsGet('nota_paper'); if(pw) $('paperW').value = pw;
         const fp = lsGet('nota_font'); if(fp) $('fontPx').value = fp;
         const ph = lsGet('nota_paperH'); if(ph) $('paperH').value = ph;
