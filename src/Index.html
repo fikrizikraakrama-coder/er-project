@@ -2375,12 +2375,10 @@ function doPrint(which) {
   if (!SAVED) { confirmDlg('Invoice belum disimpan', 'Dokumen ini belum tercatat di Monitoring Invoice. Tetap cetak, atau simpan dulu?', 'Cetak tanpa menyimpan', function () { reallyPrint(which); }); return; }
   reallyPrint(which);
 }
-/** v2.20 bila kwitansi (landscape) dicetak bersama halaman portrait, kwitansi diputar di dalam halaman A4 portrait.
+/** v2.20 kwitansi (landscape) selalu dicetak diputar di dalam halaman A4 portrait — juga bila dicetak sendiri.
  *  Banyak driver printer Windows memakai satu orientasi untuk seluruh pekerjaan cetak → kwitansi landscape tercetak di kertas portrait & terpotong. */
 function kwRotate(root) {
   var kws = root.querySelectorAll('.page.pg-kw'); if (!kws.length) return;
-  var other = Array.prototype.some.call(root.querySelectorAll('.page'), function (p) { return !p.classList.contains('pg-kw') && !(p.classList.contains('pg-flow') && p.classList.contains('land')); });
-  if (!other) return;
   Array.prototype.forEach.call(kws, function (k) {
     var w = document.createElement('div'); w.className = 'page pg-kwr'; k.parentNode.insertBefore(w, k); w.appendChild(k);
     k.classList.remove('page'); k.classList.remove('pg-kw'); k.classList.add('kwr-in');
@@ -2393,10 +2391,6 @@ function reallyPrint(which) {
   if ((which === 'bap' || which === 'all') && d.p.template === 'FAJARPUTERA') html += renderBap(d);
   if ((which === 'ps' || which === 'all') && isMip()) html += renderPs(d);
   $('print-root').innerHTML = html.trim(); kwRotate($('print-root'));
-  // v2.20 kwitansi dicetak sendiri: orientasi bawaan halaman juga dibuat landscape — sebagian browser/printer di Windows mengabaikan @page bernama (kw)
-  var old = $('prOri'); if (old) old.parentNode.removeChild(old);
-  if (which === 'kw') { var st = document.createElement('style'); st.id = 'prOri'; st.textContent = '@page{size:A4 landscape;margin:0}'; document.head.appendChild(st);
-    window.addEventListener('afterprint', function rm() { window.removeEventListener('afterprint', rm); var x = $('prOri'); if (x) x.parentNode.removeChild(x); }); }
   setTimeout(function () { window.print(); }, 60);
 }
 
@@ -4597,7 +4591,7 @@ function pkgChrome(canSubmit, canDecide) {
 }
 /** tabel internal: baris judul menjadi <thead> agar berulang di setiap halaman cetak */
 function theadify(h) { return String(h).replace(/<table class="t"><tr>(<th[\s\S]*?<\/tr>)/g, '<table class="t"><thead><tr>$1</thead>'); }
-function printHtml(html) { html = String(html).replace(/<span class="prd">[^<]*<\/span>/g, esc(tglIndo(today()))); $('print-root').innerHTML = theadify(html); kwRotate($('print-root')); var o = $('prOri'); if (o) o.parentNode.removeChild(o); setTimeout(function () { window.print(); }, 80); }
+function printHtml(html) { html = String(html).replace(/<span class="prd">[^<]*<\/span>/g, esc(tglIndo(today()))); $('print-root').innerHTML = theadify(html); kwRotate($('print-root')); setTimeout(function () { window.print(); }, 80); }
 function pkgFileName() { return archiveMeta(PKG).name; }
 /** nama file arsip: 4C0134_FAJARPUTERA DINASTI_Termin 3_Rev.00_<kode verifikasi>, folder per bulan */
 function cleanPel(s) { return String(s || '').toUpperCase().replace(/\bPT\.?\s+/g, '').replace(/\s*\(PERSERO\)/g, '').replace(/,?\s*TBK\.?/g, '').replace(/[,.]/g, ' ').replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim(); }
