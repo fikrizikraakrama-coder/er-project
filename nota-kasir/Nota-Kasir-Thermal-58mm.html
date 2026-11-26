@@ -214,6 +214,12 @@ Instagram : dudukdulu.ptk</textarea>
     <div class="sec">
         <h2>Cetak langsung ke printer (tanpa dialog cetak, seperti aplikasi Android)</h2>
         <div class="hint" style="margin-top:0;">Nota diubah menjadi gambar selebar area cetak printer lalu dikirim langsung ke printer, jadi ukuran selalu pas dan tidak ada kertas kosong berlebih. Pakai Google Chrome. Sambungkan sekali, lalu tinggal tekan Cetak langsung.</div>
+        <label>Mode cetak</label>
+        <select id="prnMode" onchange="lsSet('nota_prnMode', this.value)">
+            <option value="text" selected>Teks printer — paling stabil & hemat baterai (disarankan)</option>
+            <option value="image">Gambar — sama persis dengan pratinjau, tapi berat untuk printer</option>
+        </select>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:8px;"><input type="checkbox" id="textLogo" checked onchange="lsSet('nota_textLogo', this.checked ? '1' : '0')" style="width:auto;"> Cetak logo (mode teks) — matikan bila printer masih mati saat mencetak logo</label>
         <div class="hist-tools">
             <button class="btn btn-ghost" onclick="connectBLE()">Sambungkan Bluetooth</button>
             <button class="btn btn-ghost" onclick="connectSerial()">Sambungkan USB / Bluetooth (port serial)</button>
@@ -557,7 +563,8 @@ Instagram : dudukdulu.ptk</textarea>
 
     // Nota dipecah per potongan kecil (24 baris titik). Tiap potongan adalah perintah gambar yang utuh,
     // supaya printer tidak pernah menerima data lebih cepat daripada kemampuannya mencetak.
-    function escposParts(c) {
+    function escposParts(c, opt = {}) {
+        const withInit = opt.init !== false, withBottom = opt.bottom !== false;
         const w = c.width, h = c.height, bw = Math.ceil(w / 8);
         const d = c.getContext('2d').getImageData(0, 0, w, h).data;
         // Batasi titik hitam per baris: baris yang terlalu pekat (mis. blok logo) dibuat berselang-seling
@@ -572,7 +579,7 @@ Instagram : dudukdulu.ptk</textarea>
         const parts = [];
         const feedBytes = mm => { const out = []; let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); out.push(0x1B, 0x4A, k); n -= k; } return out; };
         const topMm = parseFloat($('topMm').value) || 0;
-        parts.push({ bytes: new Uint8Array([0x1B, 0x40, ...feedBytes(topMm)]), rows: Math.round(topMm * 8) });
+        if(withInit) parts.push({ bytes: new Uint8Array([0x1B, 0x40, ...feedBytes(topMm)]), rows: Math.round(topMm * 8) });
         const BAND = 24;
         for(let y0 = 0; y0 < h; y0 += BAND) {
             const rows = Math.min(BAND, h - y0);
@@ -587,13 +594,124 @@ Instagram : dudukdulu.ptk</textarea>
             parts.push({ bytes: out, rows });
         }
         const botMm = parseFloat($('botMm').value) || 0;
-        parts.push({ bytes: new Uint8Array(feedBytes(botMm)), rows: Math.round(botMm * 8) });
+        if(withBottom) parts.push({ bytes: new Uint8Array(feedBytes(botMm)), rows: Math.round(botMm * 8) });
         return parts;
     }
     function escposFromCanvas(c) {
         const parts = escposParts(c), n = parts.reduce((a,p) => a + p.bytes.length, 0);
         const out = new Uint8Array(n); let o = 0; parts.forEach(p => { out.set(p.bytes, o); o += p.bytes.length; });
         return out;
+    }
+
+    // ---------- mode teks: tulisan memakai huruf bawaan printer, hanya logo yang berupa gambar ----------
+    const asciiText = v => String(v || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/\r/g, '').replace(/[^\x20-\x7E\n]/g, '?');
+    function wrapText(v, w) {
+        const out = [];
+        asciiText(v).split('\n').forEach(par => {
+            let line = '';
+            par.split(/\s+/).filter(Boolean).forEach(word => {
+                while(word.length > w) { if(line) { out.push(line); line = ''; } out.push(word.slice(0, w)); word = word.slice(w); }
+                if(!word) return;
+                if(!line) line = word; else if(line.length + 1 + word.length <= w) line += ' ' + word; else { out.push(line); line = word; }
+            });
+            out.push(line);
+        });
+        return out;
+    }
+    async function logoCanvas(dots) {
+        const img = new Image(); img.src = logoData; await img.decode();
+        const lw = Math.max(8, Math.round(dots * (parseInt($('logoPct').value) || 90) / 100));
+        const lh = Math.max(1, Math.round(img.height * lw / img.width));
+        const c = document.createElement('canvas'); c.width = dots; c.height = lh;
+        const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, dots, lh);
+        g.drawImage(img, Math.round((dots - lw) / 2), 0, lw, lh);
+        // Floyd–Steinberg: area gelap dibuat bertitik halus, lebih ringan untuk printer
+        const id = g.getImageData(0, 0, dots, lh), d = id.data;
+        const gray = new Float32Array(dots * lh);
+        for(let k = 0; k < gray.length; k++) gray[k] = d[k*4]*0.299 + d[k*4+1]*0.587 + d[k*4+2]*0.114;
+        const thr = parseInt($('darkness').value) || 160;
+        for(let y = 0; y < lh; y++) for(let x = 0; x < dots; x++) {
+            const k = y*dots + x, old = gray[k], nv = old < thr ? 0 : 255, err = old - nv;
+            gray[k] = nv;
+            if(x + 1 < dots) gray[k+1] += err * 7/16;
+            if(y + 1 < lh) { if(x > 0) gray[k+dots-1] += err * 3/16; gray[k+dots] += err * 5/16; if(x + 1 < dots) gray[k+dots+1] += err * 1/16; }
+        }
+        for(let k = 0; k < gray.length; k++) { const v = gray[k] < 128 ? 0 : 255; d[k*4] = d[k*4+1] = d[k*4+2] = v; d[k*4+3] = 255; }
+        g.putImageData(id, 0, 0);
+        return c;
+    }
+    async function textReceiptParts(dots) {
+        const cols = dots >= 576 ? 48 : 32;
+        const L = T[$('lang').value] || T.id;
+        const { list, subtotal, diskon, pajakPct, servicePct, service, pajak, total } = hitung();
+        const bayar = parseFloat($('bayar').value) || 0, kembali = bayar - total;
+        const jml = list.reduce((a, it) => a + (parseFloat(it.qty) || 0), 0);
+        const parts = [];
+        const topMm = parseFloat($('topMm').value) || 0;
+        const feedArr = mm => { const o = []; let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); o.push(0x1B, 0x4A, k); n -= k; } return o; };
+        const allBold = $('boldAll').checked;
+        let buf = [0x1B, 0x40, ...feedArr(topMm)], lines = 0;
+        const flush = () => { if(buf.length) parts.push({ bytes: new Uint8Array(buf), rows: lines * 30 }); buf = []; lines = 0; };
+        if(logoData && $('textLogo').checked) {
+            flush();
+            (escposParts(await logoCanvas(dots), { init: false, bottom: false })).forEach(p => parts.push(p));
+            buf.push(0x1B, 0x4A, 16);
+        }
+        const cmd = (...b) => buf.push(...b);
+        const align = n => cmd(0x1B, 0x61, n);
+        const bold = on => cmd(0x1B, 0x45, (on || allBold) ? 1 : 0);
+        const out = str => { for(const ch of asciiText(str)) buf.push(ch.charCodeAt(0)); buf.push(0x0A); if(++lines >= 4) flush(); };
+        const center = v => { align(1); wrapText(v, cols).forEach(out); align(0); };
+        const lr = (l, r, b) => {
+            bold(b); r = asciiText(r);
+            const room = cols - r.length - 1;
+            const ls = wrapText(l, Math.max(room, 8));
+            ls.forEach((t, i) => out(i === 0 ? t + ' '.repeat(Math.max(cols - t.length - r.length, 1)) + r : t));
+            bold(false);
+        };
+        const kv = (k, v) => {
+            if(!v) return;
+            const lab = asciiText(k).padEnd(11).slice(0, 11) + ': ';
+            wrapText(v, cols - lab.length).forEach((t, i) => out((i === 0 ? lab : ' '.repeat(lab.length)) + t));
+        };
+        const rule = ch => out(ch.repeat(cols));
+
+        bold(false);
+        if($('cafeName').value) { align(1); cmd(0x1B, 0x45, 1, 0x1D, 0x21, 0x01); wrapText($('cafeName').value, cols).forEach(out); cmd(0x1D, 0x21, 0x00); bold(false); align(0); }
+        if($('cafeCity').value) center($('cafeCity').value);
+        if($('cafeAddr').value) center($('cafeAddr').value);
+        if($('cafePhone').value) center($('cafePhone').value);
+        out('');
+        kv(L.nota, $('notaNo').value); kv(L.waktu, fmtWaktu($('notaTime').value)); kv(L.order, $('orderName').value); kv(L.kasir, $('kasirName').value); kv(L.seat, $('seating').value);
+        rule('-');
+        if(list.length) list.forEach(it => {
+            const q = parseFloat(it.qty) || 0, hs = parseFloat(it.harga) || 0;
+            lr(`${it.qty} ${it.nama}`, fmt(q * hs));
+            if(q > 1 && $('showSatuan').checked) out('  @ ' + fmt(hs));
+        }); else center(L.kosong);
+        rule('-');
+        lr(L.subtotal(jml), fmt(subtotal));
+        if(diskon) lr(L.diskon, '-' + fmt(diskon));
+        if(service) lr(L.service(servicePct), fmt(service));
+        if(pajak) lr(L.pajak(pajakPct), fmt(pajak));
+        lr(L.total, fmt(total), true);
+        rule('-');
+        lr(L.bayar, fmt(bayar));
+        if(kembali < 0) lr(L.kurang, fmt(-kembali), true); else lr(L.kembali, fmt(kembali));
+        rule('=');
+        if($('closing').value.trim()) center($('closing').value);
+        if($('statusText').value.trim()) {
+            out('');
+            align(1); bold(true); wrapText($('statusText').value, cols).forEach(out); bold(false);
+            const t = ' ' + asciiText(fmtWaktu($('notaTime').value)) + ' ';
+            const dash = Math.max(0, Math.floor((cols - t.length - 2) / 2));
+            out('<' + '-'.repeat(dash) + t + '-'.repeat(dash) + '>');
+            align(0);
+        }
+        buf.push(...feedArr(parseFloat($('botMm').value) || 0)); lines += 1;
+        flush();
+        return parts;
     }
 
     const BLE_SERVICES = [
@@ -666,8 +784,9 @@ Instagram : dudukdulu.ptk</textarea>
             if(!prn) { alert('Sambungkan printer dulu (tombol Sambungkan Bluetooth atau port serial).'); return; }
             saveHistory(true);
             setStatus('Menyiapkan gambar nota...', true);
-            const c = await strukCanvas(printerDots());
-            const parts = escposParts(c);
+            const parts = $('prnMode').value === 'text'
+                ? await textReceiptParts(printerDots())
+                : escposParts(await strukCanvas(printerDots()));
             const rate = parseInt($('speed').value) || 120; // baris titik per detik
             const t0 = performance.now(); let rowsSent = 0;
             for(let i = 0; i < parts.length; i++) {
@@ -750,6 +869,8 @@ Instagram : dudukdulu.ptk</textarea>
         const dt = lsGet('nota_dots'); if(dt) $('dots').value = dt;
         const sp = lsGet('nota_speed'); if(sp) $('speed').value = sp;
         $('hemat').checked = lsGet('nota_hemat') !== '0';
+        const pm = lsGet('nota_prnMode'); if(pm) $('prnMode').value = pm;
+        $('textLogo').checked = lsGet('nota_textLogo') !== '0';
         const pw = lsGet('nota_paper'); if(pw) $('paperW').value = pw;
         const fp = lsGet('nota_font'); if(fp) $('fontPx').value = fp;
         const ph = lsGet('nota_paperH'); if(ph) $('paperH').value = ph;
