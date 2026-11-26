@@ -70,6 +70,9 @@
     .struk .nama { font-weight:bold; font-size:1.15em; }
     .struk .rule { border:0; border-top:1px dashed #000; margin:5px 0; }
     .struk .rule2 { border:0; border-top:3px double #000; margin:5px 0; }
+    /* cetak langsung: garis dibuat putus-putus agar printer tidak memanaskan seluruh baris sekaligus */
+    .struk.direct .rule { border-top:1px dashed #000; }
+    .struk.direct .rule2 { border-top:1px dashed #000; border-bottom:1px dashed #000; height:3px; }
     .struk .kv { display:flex; }
     .struk .kv .k { width:38%; flex:none; }
     .struk .kv .s { width:7%; flex:none; }
@@ -238,6 +241,7 @@ Instagram : dudukdulu.ptk</textarea>
                     <option value="576">576 titik (80 mm)</option>
                 </select></div>
         </div>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:10px;"><input type="checkbox" id="hemat" checked onchange="lsSet('nota_hemat', this.checked ? '1' : '0')" style="width:auto;"> Mode hemat daya — cegah printer mati/reset di tengah cetak (bagian yang sangat hitam, seperti logo, dicetak sedikit lebih abu-abu)</label>
         <button class="btn btn-print" style="background:var(--accent);" onclick="printDirect()">⚡ Cetak langsung ke printer</button>
         <button class="btn btn-ghost" style="width:100%; margin-top:6px;" onclick="downloadPNG()">Unduh gambar nota (PNG) — bisa dicetak dari aplikasi printer di HP</button>
         <div class="hint">Bluetooth: nyalakan printer, tekan Sambungkan Bluetooth, pilih nama printer. Bila printer tidak muncul di daftar Bluetooth, pasangkan (pair) dulu di System Settings → Bluetooth lalu pakai tombol <b>port serial</b>. USB: colok kabel lalu pakai tombol <b>port serial</b>.</div>
@@ -520,7 +524,7 @@ Instagram : dudukdulu.ptk</textarea>
         const host = document.createElement('div');
         host.style.cssText = 'position:absolute;left:-10000px;top:0;';
         const wrap = document.createElement('div'); wrap.style.cssText = vars;
-        const sk = document.createElement('div'); sk.className = 'struk'; sk.style.cssText = 'box-shadow:none;margin:0;';
+        const sk = document.createElement('div'); sk.className = 'struk direct'; sk.style.cssText = 'box-shadow:none;margin:0;';
         sk.innerHTML = $('struk').innerHTML; wrap.appendChild(sk); host.appendChild(wrap);
         document.body.appendChild(host);
         const el = host.firstChild.firstChild;
@@ -556,6 +560,15 @@ Instagram : dudukdulu.ptk</textarea>
     function escposParts(c) {
         const w = c.width, h = c.height, bw = Math.ceil(w / 8);
         const d = c.getContext('2d').getImageData(0, 0, w, h).data;
+        // Batasi titik hitam per baris: baris yang terlalu pekat (mis. blok logo) dibuat berselang-seling
+        // agar arus listrik printer tidak melonjak (penyebab printer mati/reset di tengah cetak).
+        const cap = $('hemat').checked ? Math.floor(w * 0.45) : w;
+        const black = new Uint8Array(w * h);
+        for(let y = 0; y < h; y++) {
+            let n = 0;
+            for(let x = 0; x < w; x++) if(d[(y*w + x)*4] === 0) { black[y*w + x] = 1; n++; }
+            if(n > cap) for(let x = 0; x < w; x++) if(black[y*w + x] && ((x + y) & 1)) black[y*w + x] = 0;
+        }
         const parts = [];
         const feedBytes = mm => { const out = []; let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); out.push(0x1B, 0x4A, k); n -= k; } return out; };
         const topMm = parseFloat($('topMm').value) || 0;
@@ -568,7 +581,7 @@ Instagram : dudukdulu.ptk</textarea>
             let o = 8;
             for(let y = y0; y < y0 + rows; y++) for(let bx = 0; bx < bw; bx++) {
                 let b = 0;
-                for(let k = 0; k < 8; k++) { const x = bx*8 + k; if(x < w && d[(y*w + x)*4] === 0) b |= 0x80 >> k; }
+                for(let k = 0; k < 8; k++) { const x = bx*8 + k; if(x < w && black[y*w + x]) b |= 0x80 >> k; }
                 out[o++] = b;
             }
             parts.push({ bytes: out, rows });
@@ -736,6 +749,7 @@ Instagram : dudukdulu.ptk</textarea>
         const dk = lsGet('nota_darkness'); if(dk) $('darkness').value = dk;
         const dt = lsGet('nota_dots'); if(dt) $('dots').value = dt;
         const sp = lsGet('nota_speed'); if(sp) $('speed').value = sp;
+        $('hemat').checked = lsGet('nota_hemat') !== '0';
         const pw = lsGet('nota_paper'); if(pw) $('paperW').value = pw;
         const fp = lsGet('nota_font'); if(fp) $('fontPx').value = fp;
         const ph = lsGet('nota_paperH'); if(ph) $('paperH').value = ph;
