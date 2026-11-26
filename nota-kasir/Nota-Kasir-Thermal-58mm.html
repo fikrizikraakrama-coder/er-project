@@ -217,12 +217,19 @@ Instagram : dudukdulu.ptk</textarea>
             <button class="btn btn-ghost" onclick="disconnectPrinter()">Putuskan</button>
         </div>
         <div class="hint" id="prnStatus">Printer: belum tersambung.</div>
-        <div class="g2">
+        <div class="g3">
             <div><label>Kepekatan cetak</label>
                 <select id="darkness" onchange="lsSet('nota_darkness', this.value)">
                     <option value="120">Tipis</option>
                     <option value="160" selected>Normal</option>
                     <option value="200">Tebal</option>
+                </select></div>
+            <div><label>Kecepatan kirim</label>
+                <select id="speed" onchange="lsSet('nota_speed', this.value)">
+                    <option value="200">Cepat</option>
+                    <option value="120" selected>Normal (disarankan)</option>
+                    <option value="70">Lambat — pilih ini bila nota berubah jadi huruf acak</option>
+                    <option value="40">Sangat lambat</option>
                 </select></div>
             <div><label>Lebar titik printer</label>
                 <select id="dots" onchange="lsSet('nota_dots', this.value)">
@@ -544,24 +551,36 @@ Instagram : dudukdulu.ptk</textarea>
         return c;
     }
 
-    function escposFromCanvas(c) {
+    // Nota dipecah per potongan kecil (24 baris titik). Tiap potongan adalah perintah gambar yang utuh,
+    // supaya printer tidak pernah menerima data lebih cepat daripada kemampuannya mencetak.
+    function escposParts(c) {
         const w = c.width, h = c.height, bw = Math.ceil(w / 8);
         const d = c.getContext('2d').getImageData(0, 0, w, h).data;
-        const out = [0x1B, 0x40]; // init
-        const feed = mm => { let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); out.push(0x1B, 0x4A, k); n -= k; } };
-        feed(parseFloat($('topMm').value) || 0);
-        const BAND = 48;
+        const parts = [];
+        const feedBytes = mm => { const out = []; let n = Math.round(mm * 8); while(n > 0) { const k = Math.min(n, 255); out.push(0x1B, 0x4A, k); n -= k; } return out; };
+        const topMm = parseFloat($('topMm').value) || 0;
+        parts.push({ bytes: new Uint8Array([0x1B, 0x40, ...feedBytes(topMm)]), rows: Math.round(topMm * 8) });
+        const BAND = 24;
         for(let y0 = 0; y0 < h; y0 += BAND) {
             const rows = Math.min(BAND, h - y0);
-            out.push(0x1D, 0x76, 0x30, 0x00, bw & 255, bw >> 8, rows & 255, rows >> 8);
+            const out = new Uint8Array(8 + bw * rows);
+            out.set([0x1D, 0x76, 0x30, 0x00, bw & 255, bw >> 8, rows & 255, rows >> 8]);
+            let o = 8;
             for(let y = y0; y < y0 + rows; y++) for(let bx = 0; bx < bw; bx++) {
                 let b = 0;
                 for(let k = 0; k < 8; k++) { const x = bx*8 + k; if(x < w && d[(y*w + x)*4] === 0) b |= 0x80 >> k; }
-                out.push(b);
+                out[o++] = b;
             }
+            parts.push({ bytes: out, rows });
         }
-        feed(parseFloat($('botMm').value) || 0);
-        return new Uint8Array(out);
+        const botMm = parseFloat($('botMm').value) || 0;
+        parts.push({ bytes: new Uint8Array(feedBytes(botMm)), rows: Math.round(botMm * 8) });
+        return parts;
+    }
+    function escposFromCanvas(c) {
+        const parts = escposParts(c), n = parts.reduce((a,p) => a + p.bytes.length, 0);
+        const out = new Uint8Array(n); let o = 0; parts.forEach(p => { out.set(p.bytes, o); o += p.bytes.length; });
+        return out;
     }
 
     const BLE_SERVICES = [
@@ -585,7 +604,7 @@ Instagram : dudukdulu.ptk</textarea>
                 if(ch) break;
             }
             if(!ch) { gatt.disconnect(); setStatus('Printer tersambung tetapi tidak ditemukan jalur kirim data. Coba tombol port serial.'); return; }
-            let chunk = 180;
+            let chunk = 100;
             const withResp = ch.properties.write;
             prn = { kind: 'ble', name: dev.name || 'printer Bluetooth',
                 async write(bytes) {
@@ -594,7 +613,7 @@ Instagram : dudukdulu.ptk</textarea>
                         const part = bytes.slice(i, i + chunk);
                         try {
                             if(withResp) await ch.writeValueWithResponse(part);
-                            else { await ch.writeValueWithoutResponse(part); await sleep(8); }
+                            else { await ch.writeValueWithoutResponse(part); await sleep(15); }
                             i += part.length;
                         } catch(e) { if(chunk > 20) { chunk = 20; continue; } throw e; }
                     }
@@ -610,7 +629,7 @@ Instagram : dudukdulu.ptk</textarea>
         prn = { kind: 'serial', name: info.bluetoothServiceClassId ? 'printer Bluetooth (serial)' : 'printer USB/serial',
             async write(bytes) {
                 const wr = port.writable.getWriter();
-                try { for(let i = 0; i < bytes.length; i += 512) { await wr.write(bytes.slice(i, i + 512)); await sleep(15); } }
+                try { for(let i = 0; i < bytes.length; i += 256) { await wr.write(bytes.slice(i, i + 256)); await sleep(10); } }
                 finally { wr.releaseLock(); }
             },
             async close() { try { await port.close(); } catch(e){} } };
@@ -635,11 +654,19 @@ Instagram : dudukdulu.ptk</textarea>
             saveHistory(true);
             setStatus('Menyiapkan gambar nota...', true);
             const c = await strukCanvas(printerDots());
-            const bytes = escposFromCanvas(c);
-            setStatus('Mengirim ke ' + esc(prn.name) + '... (' + Math.round(bytes.length/1024) + ' KB)', true);
-            await prn.write(bytes);
+            const parts = escposParts(c);
+            const rate = parseInt($('speed').value) || 120; // baris titik per detik
+            const t0 = performance.now(); let rowsSent = 0;
+            for(let i = 0; i < parts.length; i++) {
+                await prn.write(parts[i].bytes);
+                rowsSent += parts[i].rows;
+                // tunggu sampai printer sempat mencetak potongan ini (mencegah buffer printer penuh → huruf acak)
+                const wait = t0 + rowsSent / rate * 1000 - performance.now();
+                if(wait > 0) await sleep(wait);
+                if(i % 4 === 0) setStatus('Mencetak... ' + Math.round((i + 1) / parts.length * 100) + '%', true);
+            }
             setStatus('Selesai dikirim ke <b>' + esc(prn.name) + '</b>.', true);
-        } catch(e) { setStatus('Gagal mencetak: ' + esc(e.message) + '. Coba putuskan lalu sambungkan lagi.'); }
+        } catch(e) { setStatus('Gagal mencetak: ' + esc(e.message) + '. Matikan-nyalakan printer, sambungkan lagi, lalu cetak ulang dengan Kecepatan kirim lebih lambat.'); }
     }
     async function downloadPNG() {
         const c = await strukCanvas(printerDots());
@@ -708,6 +735,7 @@ Instagram : dudukdulu.ptk</textarea>
         $('autoH').checked = lsGet('nota_autoH') !== '0';
         const dk = lsGet('nota_darkness'); if(dk) $('darkness').value = dk;
         const dt = lsGet('nota_dots'); if(dt) $('dots').value = dt;
+        const sp = lsGet('nota_speed'); if(sp) $('speed').value = sp;
         const pw = lsGet('nota_paper'); if(pw) $('paperW').value = pw;
         const fp = lsGet('nota_font'); if(fp) $('fontPx').value = fp;
         const ph = lsGet('nota_paperH'); if(ph) $('paperH').value = ph;
